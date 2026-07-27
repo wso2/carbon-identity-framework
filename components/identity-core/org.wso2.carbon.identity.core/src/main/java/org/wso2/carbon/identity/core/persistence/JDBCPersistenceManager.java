@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.core.persistence;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tomcat.jdbc.pool.DataSourceProxy;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -53,6 +55,8 @@ public class JDBCPersistenceManager {
     // This property refers to Active transaction state of postgresql db
     private static final String PG_ACTIVE_SQL_TRANSACTION_STATE = "25001";
     private static final String POSTGRESQL_DATABASE = "PostgreSQL";
+    public static final String PARENT_SCHEMA = "parentSchema";
+    public static final String POSTGRES_SCHEMA = "postgresSchema";
 
     private JDBCPersistenceManager() {
 
@@ -158,6 +162,42 @@ public class JDBCPersistenceManager {
     public Connection getDBConnection() throws IdentityRuntimeException {
 
         return getDBConnection(true);
+    }
+
+    /**
+     * This method extracts the parent schema of oracle db configurations.
+     *
+     * @return Parent Schema.
+     */
+    public String getParentSchema() {
+
+        String parentSchema = null;
+        Properties properties = ((DataSourceProxy) dataSource).getDbProperties();
+        if (properties != null) {
+            parentSchema = properties.getProperty(PARENT_SCHEMA);
+        }
+        return parentSchema;
+    }
+
+    /**
+     * This method extracts the custom schema from PostgreSQL db configurations.
+     * This is used when a schema other than the user's default schema is used in PostgreSQL.
+     * In such cases, the custom schema name should be specified in db configuration with the property name
+     * "postgresSchema".
+     *
+     * @return postgres Schema.
+     */
+    public String getPostgresSchema() {
+
+        String customSchema = null;
+        if (!(dataSource instanceof DataSourceProxy)) {
+            return null;
+        }
+        Properties properties = ((DataSourceProxy) dataSource).getDbProperties();
+        if (properties != null) {
+            customSchema = properties.getProperty(POSTGRES_SCHEMA);
+        }
+        return customSchema;
     }
 
     /**

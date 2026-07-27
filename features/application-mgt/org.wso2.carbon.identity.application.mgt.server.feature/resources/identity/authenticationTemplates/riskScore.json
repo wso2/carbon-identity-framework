@@ -2,7 +2,7 @@
   "category": "AdaptiveMFA",
   "name": "[Deprecated] Risk-Based",
   "title": "Risk-Based 2FA Template [Deprecated]",
-  "summary": "Define conditional authentication by risk score value calculated from analytics engine.",
+  "summary": "Prompts 2FA based on the risk score calculated by the analytics engine. This template is deprecated. Using the ELK-Risk-Based 2FA Template with ELK for risk-based authentication is recommended.",
   "preRequisites": [
     "Change the siddhiApplication and siddhiInputStream according to the Siddhi application you have deployed in the Stream Processor.",
     "Modify the default authentication steps and option(s) as required."
@@ -30,7 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/",
+  "helpLink": "",
   "code": [
     "// [Deprecated - Use ELK-Risk-Based with ELK analytics integration]",
     "",

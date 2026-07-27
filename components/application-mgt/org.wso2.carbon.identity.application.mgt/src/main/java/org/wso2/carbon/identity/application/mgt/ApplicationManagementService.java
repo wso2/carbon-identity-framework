@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
 import java.util.ArrayList;
@@ -564,6 +566,21 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     }
 
     /**
+     * Get shared application id in given shared organization for given main application.
+     *
+     * @param mainAppId   Main application id.
+     * @param ownerOrgId  Owner organization id of the main application.
+     * @param sharedOrgId Shared organization id where the application is shared.
+     * @return Shared application id in the given shared organization.
+     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the shared app id.
+     */
+    public String getSharedAppId(String mainAppId, String ownerOrgId, String sharedOrgId)
+            throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
      * Get the shared ancestor application IDs for the given child application ID of the given child organization.
      *
      * @param sharedAppId ID of the shared application.
@@ -627,6 +644,21 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementException If an error occurred while adding role to application.
      */
     public void addAssociatedRoleToApplication(ServiceProvider serviceProvider, String roleId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get the groups list based on the filter.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param domainName   User store domain name.
+     * @param filter       Filtering that should be applied.
+     * @return The list of groups.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving groups list.
+     */
+    public List<GroupBasicInfo> getGroups(String tenantDomain, String domainName, Node filter)
             throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();

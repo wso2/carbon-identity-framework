@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
+import java.util.Optional;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -29,23 +30,42 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import org.wso2.carbon.identity.application.common.processors.RandomPasswordProcessor;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ASK_PASSWORD_SEND_EMAIL_OTP;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ASK_PASSWORD_SEND_SMS_OTP;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PRESERVE_LOCALLY_ADDED_CLAIMS;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY;
 
 public class IdPManagementUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUtil.class);
+    private static final CacheBackedIdPMgtDAO CACHE_BACKED_IDP_MGT_DAO =
+            new CacheBackedIdPMgtDAO(new IdPManagementDAO());
 
     private static String tenantContext;
     private static String tenantParameter;
@@ -132,6 +152,70 @@ public class IdPManagementUtil {
         return rememberMeTimeout * 60;
     }
 
+    public static boolean getPreserveCurrentSessionAtPasswordUpdate(String tenantDomain) {
+
+        IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
+        boolean preserveSessionAtPasswordUpdate = Boolean.parseBoolean(IdentityUtil.getProperty(
+                PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
+
+        try {
+            IdentityProvider identityProvider = identityProviderManager.getResidentIdP(tenantDomain);
+            IdentityProviderProperty idpProperty = IdentityApplicationManagementUtil.getProperty(
+                    identityProvider.getIdpProperties(),
+                    IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
+            if (idpProperty != null) {
+                preserveSessionAtPasswordUpdate = Boolean.parseBoolean(idpProperty.getValue());
+            }
+        } catch (IdentityProviderManagementException e) {
+            log.error("Error when accessing the IdentityProviderManager for tenant : " + tenantDomain, e);
+        }
+        return preserveSessionAtPasswordUpdate;
+    }
+
+    /**
+     * Get the maximum session timeout configured in resident IdP of the tenant.
+     * If the maximum session timeout is not enabled, this will return empty optional.
+     *
+     * @param tenantDomain Tenant domain to get the resident IdP of the tenant.
+     * @return Maximum session timeout in seconds wrapped in an Optional if enabled, else empty Optional.
+     */
+    public static Optional<Integer> getMaximumSessionTimeout(String tenantDomain) {
+
+        IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
+        int timeout = Integer.parseInt(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT);
+
+        try {
+            IdentityProvider identityProvider = identityProviderManager.getResidentIdP(tenantDomain);
+            IdentityProviderProperty enableMaxSessionTimeoutIdpProp =
+                    IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
+                            IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            if (enableMaxSessionTimeoutIdpProp != null &&
+                    Boolean.parseBoolean(enableMaxSessionTimeoutIdpProp.getValue())) {
+                IdentityProviderProperty maxSessionTimeoutIdpProp =
+                        IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
+                                IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+                if (maxSessionTimeoutIdpProp != null) {
+                    timeout = Integer.parseInt(maxSessionTimeoutIdpProp.getValue());
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Maximum session timeout is enabled for tenant: " + tenantDomain +
+                            " with timeout (mins): " + timeout);
+                }
+
+                return Optional.of(timeout * 60);
+            }
+        } catch (IdentityProviderManagementException e) {
+            log.error("Error when retrieving the maximum session timeout for tenant : " + tenantDomain, e);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Maximum session timeout is not enabled for tenant: " + tenantDomain);
+        }
+
+        return Optional.empty();
+    }
+
     /**
      * Use this method to replace original passwords with random passwords before sending to UI front-end
      * @param identityProvider
@@ -175,6 +259,22 @@ public class IdPManagementUtil {
         }
     }
 
+    /**
+     * Utility method to clear the cache for a specific identity provider
+     *
+     * @param idpName      Name of the Identity Provider.
+     * @param tenantDomain Tenant Domain of the Identity Provider.
+     */
+    public static void clearIdPCache(String idpName, String tenantDomain) {
+
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            CACHE_BACKED_IDP_MGT_DAO.clearIdpCache(idpName, tenantId, tenantDomain);
+        } catch (IdentityProviderManagementException | IdentityRuntimeException e) {
+            log.error("Error while clearing the cache for the Identity Provider: " + idpName + " in tenant: "
+                    + tenantDomain, e);
+        }
+    }
 
     /**
      * Set tenantContext and tenantParameter specific to the tenant domain.
@@ -284,20 +384,25 @@ public class IdPManagementUtil {
     public static void validatePasswordRecoveryPropertyValues(Map<String, String> configurationDetails)
             throws IdentityProviderManagementClientException {
 
-        if (configurationDetails.containsKey(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY) ||
-                configurationDetails.containsKey(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
-                configurationDetails.containsKey(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY)) {
+        if (configurationDetails.containsKey(NOTIFICATION_PASSWORD_ENABLE_PROPERTY) ||
+                configurationDetails.containsKey(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(SMS_OTP_PASSWORD_RECOVERY_PROPERTY)) {
             // Perform process only if notification based password recovery connector or options are updated.
-            String recNotPwProp = configurationDetails.get(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
-            String emailLinkPwRecProp = configurationDetails.get(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
-            String smsOtpPwRecProp = configurationDetails.get(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
-            boolean recoveryNotificationPasswordProperty = Boolean.parseBoolean(recNotPwProp);
-            boolean smsOtpPasswordRecoveryProperty = Boolean.parseBoolean(emailLinkPwRecProp);
-            boolean emailLinkPasswordRecoveryProperty = Boolean.parseBoolean(smsOtpPwRecProp);
+            String recoveryNotificationPasswordProp = configurationDetails.get(NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
+            String emailLinkForPasswordRecoveryProp = configurationDetails.get(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+            String emailOtpForPasswordRecoveryProp = configurationDetails.get(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+            String smsOtpForPasswordRecoveryProp = configurationDetails.get(SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
 
-            if (recoveryNotificationPasswordProperty &&
-                    StringUtils.isNotBlank(emailLinkPwRecProp) && !emailLinkPasswordRecoveryProperty &&
-                    StringUtils.isNotBlank(smsOtpPwRecProp) && !smsOtpPasswordRecoveryProperty) {
+            boolean isRecoveryNotificationPasswordEnabled = Boolean.parseBoolean(recoveryNotificationPasswordProp);
+            boolean isEmailLinkPasswordRecoveryEnabled = Boolean.parseBoolean(emailLinkForPasswordRecoveryProp);
+            boolean isEmailOtpPasswordRecoveryEnabled = Boolean.parseBoolean(emailOtpForPasswordRecoveryProp);
+            boolean isSmsOtpPasswordRecoveryEnabled = Boolean.parseBoolean(smsOtpForPasswordRecoveryProp);
+
+            if (isRecoveryNotificationPasswordEnabled &&
+                    StringUtils.isNotBlank(emailLinkForPasswordRecoveryProp) && !isEmailLinkPasswordRecoveryEnabled &&
+                    StringUtils.isNotBlank(emailOtpForPasswordRecoveryProp) && !isEmailOtpPasswordRecoveryEnabled &&
+                    StringUtils.isNotBlank(smsOtpForPasswordRecoveryProp) && !isSmsOtpPasswordRecoveryEnabled) {
                 // Disabling all recovery options when recovery connector is enabled is not allowed.
                 // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
                 // this behaviour.
@@ -306,8 +411,9 @@ public class IdPManagementUtil {
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                                 "Disabling all recovery options when recovery connector is enabled, is not allowed.");
             }
-            if (StringUtils.isNotBlank(recNotPwProp) && !recoveryNotificationPasswordProperty &&
-                    (emailLinkPasswordRecoveryProperty || smsOtpPasswordRecoveryProperty)) {
+            if (StringUtils.isNotBlank(recoveryNotificationPasswordProp) && !isRecoveryNotificationPasswordEnabled &&
+                    (isEmailLinkPasswordRecoveryEnabled || isSmsOtpPasswordRecoveryEnabled ||
+                            isEmailOtpPasswordRecoveryEnabled)) {
                 // Enabling any recovery options when connector is disabled is not allowed.
                 // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
                 // this behaviour.
@@ -316,13 +422,65 @@ public class IdPManagementUtil {
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                                 "Enabling recovery options when connector is disabled, is not allowed.");
             }
+            if (isEmailLinkPasswordRecoveryEnabled && isEmailOtpPasswordRecoveryEnabled) {
+                throw IdPManagementUtil.handleClientException(
+                        IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                        "Enabling both email link and email otp options are not allowed.");
+            }
+        }
+    }
+
+    public static void validatePasswordRecoveryWithCurrentAndPreviousConfigs(Map<String, String> configurationDetails,
+                                                                   IdentityProviderProperty[] identityMgtProperties)
+            throws IdentityProviderManagementClientException {
+
+        // Validate updating configs.
+        validatePasswordRecoveryPropertyValues(configurationDetails);
+
+
+        // Check weather current configurations include email OTP or Link since enabling both at same time is not
+        // allowed.
+        if (configurationDetails.containsKey(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY)) {
+
+            String emailLinkForPasswordRecoveryProp = configurationDetails.get(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+            String emailOtpForPasswordRecoveryProp = configurationDetails.get(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+
+            boolean isEmailLinkPasswordRecoveryEnabled = Boolean.parseBoolean(emailLinkForPasswordRecoveryProp);
+            boolean isEmailOtpPasswordRecoveryEnabled = Boolean.parseBoolean(emailOtpForPasswordRecoveryProp);
+
+            // Checks for already existing configurations.
+            boolean isEmailLinkCurrentlyEnabled = false;
+            boolean isEmailOtpCurrentlyEnabled = false;
+
+            for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+                if (EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY.equals(identityMgtProperty.getName())) {
+                    isEmailLinkCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
+                } else if (EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY.equals(identityMgtProperty.getName())) {
+                    isEmailOtpCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
+                }
+            }
+
+            if (((isEmailLinkCurrentlyEnabled && StringUtils.isBlank(emailLinkForPasswordRecoveryProp)) ||
+                    isEmailLinkPasswordRecoveryEnabled) && isEmailOtpPasswordRecoveryEnabled) {
+                throw IdPManagementUtil.handleClientException(
+                        IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                        "Enabling email OTP while email link is enabled is not allowed.");
+            }
+            if (((isEmailOtpCurrentlyEnabled && StringUtils.isBlank(emailOtpForPasswordRecoveryProp)) ||
+                    isEmailOtpPasswordRecoveryEnabled) && isEmailLinkPasswordRecoveryEnabled) {
+                throw IdPManagementUtil.handleClientException(
+                        IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                        "Enabling email link while email OTP is enabled is not allowed.");
+            }
         }
     }
 
     /**
-     * This method is used to validate the username recovery property values.
+     * This method is used to validate the username recovery related property values.
      *
-     * @param configurationDetails Configuration updates for governance configuration.
+     * @param configurationDetails Configuration updates for governance configuration
+     * @throws IdentityProviderManagementClientException if configurations contain invalid configurations.
      */
     public static void validateUsernameRecoveryPropertyValues(Map<String, String> configurationDetails)
             throws IdentityProviderManagementClientException {
@@ -342,11 +500,12 @@ public class IdPManagementUtil {
             boolean usernameRecoverySmsProperty = Boolean.parseBoolean(usernameRecoverySmsProp);
 
             if (usernameRecoveryProperty &&
-                    StringUtils.isNotBlank(usernameRecoveryEmailProp) && !usernameRecoveryEmailProperty &&
-                    StringUtils.isNotBlank(usernameRecoverySmsProp) && !usernameRecoverySmsProperty) {
-                // Disabling all recovery options when recovery connector is enabled is not allowed.
-                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
-                // this behaviour.
+                    !usernameRecoveryEmailProperty && StringUtils.isNotBlank(usernameRecoveryEmailProp) &&
+                    !usernameRecoverySmsProperty && StringUtils.isNotBlank(usernameRecoverySmsProp)) {
+                /*
+                 Disabling all recovery options when recovery connector is enabled is not allowed.
+                 WARNING : Be mindful about compatibility of earlier recovery api versions when changing this behaviour.
+                 */
                 throw IdPManagementUtil
                         .handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
@@ -355,14 +514,246 @@ public class IdPManagementUtil {
             }
             if (StringUtils.isNotBlank(usernameRecoveryProp) && !usernameRecoveryProperty &&
                     (usernameRecoveryEmailProperty || usernameRecoverySmsProperty)) {
-                // Enabling any recovery options when connector is disabled is not allowed.
-                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
-                // this behaviour.
+                /*
+                 Enabling any recovery options when connector is disabled is not allowed.
+                 WARNING : Be mindful about compatibility of earlier recovery api versions when changing this behaviour.
+                 */
+
                 throw IdPManagementUtil
                         .handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                                 "Enabling recovery options when connector is disabled, is not allowed.");
             }
         }
+    }
+
+    /**
+     * This method validates the forced password related configs with current and previous configurations.
+     *
+     * @param configurationDetails  Configuration updates for governance configurations.
+     * @param identityMgtProperties Existing identity provider properties.
+     * @throws IdentityProviderManagementClientException When invalid configurations have passed.
+     */
+    public static void validateAdminPasswordResetWithCurrentAndPreviousConfigs(
+            Map<String, String> configurationDetails,
+            IdentityProviderProperty[] identityMgtProperties)
+            throws IdentityProviderManagementClientException {
+
+        if (configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY) ||
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY) ||
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY) ||
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY)) {
+
+            String adminPasswordResetOfflineProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY);
+            String adminPasswordResetEmailOtpProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY);
+            String adminPasswordResetEmailLinkProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
+            String adminPasswordResetSmsOtpProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY);
+
+            boolean isAdminPasswordResetOfflineEnabled = Boolean.parseBoolean(adminPasswordResetOfflineProp);
+            boolean isAdminPasswordResetEmailOtpEnabled = Boolean.parseBoolean(adminPasswordResetEmailOtpProp);
+            boolean isAdminPasswordResetEmailLinkEnabled = Boolean.parseBoolean(adminPasswordResetEmailLinkProp);
+            boolean isAdminPasswordResetSmsOtpEnabled = Boolean.parseBoolean(adminPasswordResetSmsOtpProp);
+
+            validateAdminPasswordResetCurrentConfigs(isAdminPasswordResetOfflineEnabled,
+                    isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                    isAdminPasswordResetSmsOtpEnabled);
+
+            validateAdminPasswordResetWithExistingConfigs(identityMgtProperties,
+                    isAdminPasswordResetOfflineEnabled, adminPasswordResetOfflineProp,
+                    isAdminPasswordResetEmailOtpEnabled, adminPasswordResetEmailOtpProp,
+                    isAdminPasswordResetEmailLinkEnabled, adminPasswordResetEmailLinkProp,
+                    isAdminPasswordResetSmsOtpEnabled, adminPasswordResetSmsOtpProp);
+        }
+    }
+
+    /**
+     * This method validates the ask password related configs with current and previous configurations.
+     *
+     * @param configurationDetails  Configuration updates for governance configurations.
+     * @param identityMgtProperties Existing identity provider properties.
+     * @throws IdentityProviderManagementClientException When invalid configurations have passed.
+     */
+    public static void validateAskPasswordBasedPasswordSetWithCurrentAndPreviousConfigs(
+            Map<String, String> configurationDetails,
+            IdentityProviderProperty[] identityMgtProperties)
+            throws IdentityProviderManagementClientException {
+
+        if (configurationDetails.containsKey(ASK_PASSWORD_SEND_EMAIL_OTP) ||
+                configurationDetails.containsKey(ASK_PASSWORD_SEND_SMS_OTP)) {
+
+            boolean isAskPasswordEmailOTPEnabled = Boolean.parseBoolean(configurationDetails
+                    .get(ASK_PASSWORD_SEND_EMAIL_OTP));
+            String askPasswordEmailOTPProperty = configurationDetails.get(ASK_PASSWORD_SEND_EMAIL_OTP);
+
+            boolean isAskPasswordSMSOTPEnabled = Boolean.parseBoolean(configurationDetails
+                    .get(ASK_PASSWORD_SEND_SMS_OTP));
+            String askPasswordSMSOTP = configurationDetails.get(ASK_PASSWORD_SEND_SMS_OTP);
+
+            validateAskPasswordCurrentConfigs(isAskPasswordEmailOTPEnabled, isAskPasswordSMSOTPEnabled);
+            validateAskPasswordWithExistingConfigs(identityMgtProperties, askPasswordEmailOTPProperty,
+                    askPasswordSMSOTP);
+        }
+    }
+
+    /**
+     * This method is used to validate user enabling multiple admin password reset options at the same time.
+     *
+     * @param isAdminPasswordResetOfflineEnabled is admin password reset offline enabled.
+     * @param isAdminPasswordResetEmailOtpEnabled is admin password reset email OTP enabled.
+     * @param isAdminPasswordResetEmailLinkEnabled is admin password reset email link enabled.
+     * @param isAdminPasswordResetSmsOtpEnabled is admin password reset sms OTP enabled.
+     * @throws IdentityProviderManagementClientException when more than one ask password reset option is enabled.
+     */
+    private static void validateAdminPasswordResetCurrentConfigs(boolean isAdminPasswordResetOfflineEnabled,
+                                                                 boolean isAdminPasswordResetEmailOtpEnabled,
+                                                                 boolean isAdminPasswordResetEmailLinkEnabled,
+                                                                 boolean isAdminPasswordResetSmsOtpEnabled)
+            throws IdentityProviderManagementClientException {
+
+        List<Boolean> configs = Arrays.asList(isAdminPasswordResetOfflineEnabled,
+                isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                isAdminPasswordResetSmsOtpEnabled);
+
+        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
+
+        if (enabledConfigCount > 1) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Enabling more than one admin password reset option is not allowed");
+        }
+    }
+
+    private static void validateAdminPasswordResetWithExistingConfigs(IdentityProviderProperty[] identityMgtProperties,
+                                                                      boolean isAdminPasswordResetOfflineEnabled,
+                                                                      String adminPasswordResetOfflineProp,
+                                                                      boolean isAdminPasswordResetEmailOtpEnabled,
+                                                                      String adminPasswordResetEmailOtpProp,
+                                                                      boolean isAdminPasswordResetEmailLinkEnabled,
+                                                                      String adminPasswordResetEmailLinkProp,
+                                                                      boolean isAdminPasswordResetSmsOtpEnabled,
+                                                                      String adminPasswordResetSmsOtpProp)
+            throws IdentityProviderManagementClientException {
+
+        boolean isAdminPasswordResetOfflineCurrentlyEnabled = false;
+        boolean isAdminPasswordResetEmailOtpCurrentlyEnabled = false;
+        boolean isAdminPasswordResetEmailLinkCurrentlyEnabled = false;
+        boolean isAdminPasswordResetSmsOtpCurrentlyEnabled = false;
+
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            if (ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetOfflineCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetEmailOtpCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetEmailLinkCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetSmsOtpCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            }
+        }
+
+        // Update the admin password reset config values based on the existing config values.
+        if (StringUtils.isBlank(adminPasswordResetOfflineProp)) {
+            isAdminPasswordResetOfflineEnabled = isAdminPasswordResetOfflineCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetEmailLinkProp)) {
+            isAdminPasswordResetEmailLinkEnabled = isAdminPasswordResetEmailLinkCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetEmailOtpProp)) {
+            isAdminPasswordResetEmailOtpEnabled = isAdminPasswordResetEmailOtpCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetSmsOtpProp)) {
+            isAdminPasswordResetSmsOtpEnabled = isAdminPasswordResetSmsOtpCurrentlyEnabled;
+        }
+
+        List<Boolean> configs = Arrays.asList(isAdminPasswordResetOfflineEnabled,
+                isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                isAdminPasswordResetSmsOtpEnabled);
+
+        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
+
+        if (enabledConfigCount > 1) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Enabling admin forced password reset option while other options are enabled is not allowed");
+        }
+        else if (enabledConfigCount == 0) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Disabling all admin forced password reset options is not allowed");
+        }
+    }
+
+    /**
+     * This method is used to validate user enabling multiple ask password set options at the same time.
+     *
+     * @param isAskPasswordEmailOTPEnabled is ask password email OTP enabled.
+     * @param isAskPasswordSMSOTPEnabled is ask password SMS OTP enabled.
+     *
+     * @throws IdentityProviderManagementClientException when more than one ask password set option is enabled.
+     */
+    private static void validateAskPasswordCurrentConfigs(boolean isAskPasswordEmailOTPEnabled,
+                                                                 boolean isAskPasswordSMSOTPEnabled)
+            throws IdentityProviderManagementClientException {
+
+        if (isAskPasswordEmailOTPEnabled && isAskPasswordSMSOTPEnabled) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Enabling more than one ask password set option is not allowed.");
+        }
+    }
+
+    private static void validateAskPasswordWithExistingConfigs(IdentityProviderProperty[] identityMgtProperties,
+                                                                      String askPasswordEmailOTP,
+                                                               String askPasswordSMSOTP)
+            throws IdentityProviderManagementClientException {
+
+        boolean isAskPasswordEmailOTPCurrentlyEnabled = false;
+        boolean isAskPasswordSMSOTPCurrentlyEnabled = false;
+
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            if (ASK_PASSWORD_SEND_EMAIL_OTP.equals(identityMgtProperty.getName())) {
+                isAskPasswordEmailOTPCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ASK_PASSWORD_SEND_SMS_OTP.equals(identityMgtProperty.getName())) {
+                isAskPasswordSMSOTPCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
+            }
+        }
+
+        if (askPasswordEmailOTP != null) {
+            isAskPasswordEmailOTPCurrentlyEnabled = Boolean.parseBoolean(askPasswordEmailOTP);
+        }
+        if (askPasswordSMSOTP != null) {
+            isAskPasswordSMSOTPCurrentlyEnabled = Boolean.parseBoolean(askPasswordSMSOTP);
+        }
+
+        List<Boolean> configs = Arrays.asList(isAskPasswordEmailOTPCurrentlyEnabled,
+                isAskPasswordSMSOTPCurrentlyEnabled);
+
+        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
+
+        if(enabledConfigCount > 1) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Enabling more than one ask password set option is not allowed.");
+        }
+    }
+
+
+    /**
+     * Check if outbound provisioning confidential data protection is enabled.
+     *
+     * @return true if OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED is enabled, false otherwise.
+     */
+    public static boolean isProvisioningConfidentialConfigProtectionEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                IdPManagementConstants.OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED));
     }
 }

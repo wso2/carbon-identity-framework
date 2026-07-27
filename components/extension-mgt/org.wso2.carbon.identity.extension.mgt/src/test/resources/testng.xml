@@ -20,6 +20,7 @@
     <test name="org.wso2.carbon.identity.extension.mgt.test" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.extension.mgt.function.JSONObjectToExtensionInfoTest"/>
+            <class name="org.wso2.carbon.identity.extension.mgt.utils.ExtensionMgtUtilsTest"/>
         </classes>
     </test>
 </suite>

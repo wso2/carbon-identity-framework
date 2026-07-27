@@ -62,7 +62,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
                         int index = 1;
                         preparedStatement.setString(index++, certificateId);
                         preparedStatement.setString(index++, certificate.getName());
-                        preparedStatement.setBlob(index++, certByteStream, certificateLength);
+                        preparedStatement.setBinaryStream(index++, certByteStream, certificateLength);
                         preparedStatement.setInt(index, tenantId);
                     }, certificate, true));
         } catch (TransactionException | IOException e) {
@@ -145,7 +145,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
                 template.executeUpdate(ApplicationCertificateMgtSQLQueries.UPDATE_CERTIFICATE_CONTENT,
                     preparedStatement -> {
                         int index = 1;
-                        preparedStatement.setBlob(index++, certByteStream, certificateLength);
+                        preparedStatement.setBinaryStream(index++, certByteStream, certificateLength);
                         preparedStatement.setInt(index++, certificateId);
                         preparedStatement.setInt(index, tenantId);
                     });

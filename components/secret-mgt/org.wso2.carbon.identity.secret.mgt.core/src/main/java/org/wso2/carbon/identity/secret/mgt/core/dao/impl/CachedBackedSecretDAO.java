@@ -72,7 +72,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
                 log.debug(message);
             }
             secret = secretDAO.getSecretByName(name, secretType, tenantId);
-            addSecretToCache(secret);
+            addSecretToCacheOnRead(secret);
         }
         return secret;
     }
@@ -92,7 +92,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
                 log.debug(message);
             }
             secret = secretDAO.getSecretById(secretId, tenantId);
-            addSecretToCache(secret);
+            addSecretToCacheOnRead(secret);
         }
         return secret;
     }
@@ -226,6 +226,24 @@ public class CachedBackedSecretDAO implements SecretDAO {
         }
         secretByIdCache.addToCache(secretByIdCacheKey, secretCacheEntry, secret.getTenantDomain());
         secretByNameCache.addToCache(secretByNameCacheKey, secretCacheEntry, secret.getTenantDomain());
+    }
+
+    private void addSecretToCacheOnRead(Secret secret) {
+
+        if (secret == null) {
+            return;
+        }
+        SecretByIdCacheKey secretByIdCacheKey = new SecretByIdCacheKey(secret.getSecretId());
+        SecretByNameCacheKey secretByNameCacheKey = new SecretByNameCacheKey(secret.getSecretName());
+        SecretCacheEntry secretCacheEntry = new SecretCacheEntry(secret);
+        if (log.isDebugEnabled()) {
+            String message = String.format("Following two cache entries created. 1. Secret by name cache %s, 2." +
+                            " Secret by id cache %s. Tenant domain for all caches: %s", secret.getSecretName(),
+                    secret.getSecretId(), secret.getTenantDomain());
+            log.debug(message);
+        }
+        secretByIdCache.addToCacheOnRead(secretByIdCacheKey, secretCacheEntry, secret.getTenantDomain());
+        secretByNameCache.addToCacheOnRead(secretByNameCacheKey, secretCacheEntry, secret.getTenantDomain());
     }
 
     private void deleteSecretFromCache(Secret secret) {

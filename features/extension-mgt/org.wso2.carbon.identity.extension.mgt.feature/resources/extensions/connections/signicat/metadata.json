@@ -1,0 +1,308 @@
+{
+    "create": {
+        "image": "assets/images/logos/signicat.svg",
+        "header": "Signicat",
+        "Subheading": "Enable login for users with their eIDs.",
+        "documentation": "",
+        "modal": {
+            "form": {
+                "fields": [
+                    {
+                        "index": 0,
+                        "ariaLabel": "Signicat Name",
+                        "name": "name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Enter a name for the connection.",
+                        "initialValue": "Signicat",
+                        "data-testid": "signicat-idp-create-wizard-page-idp-name",
+                        "maxLength": "50",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 1,
+                        "ariaLabel": "Signicat Client ID",
+                        "type": "text", 
+                        "name": "clientId", 
+                        "label": "Client ID",
+                        "placeholder": "Enter client ID from Signicat application.",
+                        "required": true, 
+                        "autoComplete": true,
+                        "data-testid": "signicat-idp-create-wizard-page-idp-client-id",
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 2,
+                        "ariaLabel": "Signicat Client Secret",
+                        "className": "addon-field-wrapper",
+                        "type": "password", 
+                        "name": "clientSecret", 
+                        "label": "Client secret",
+                        "placeholder": "Enter Client secret from Signicat application.",
+                        "required": true, 
+                        "autoComplete": true,
+                        "data-testid": "signicat-idp-create-wizard-page-idp-client-secret",
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 3,
+                        "ariaLabel": "Authorized redirect URL",
+                        "type": "STRING",
+                        "name": "oAuth2AuthzEPUrl",
+                        "label": "Authorized Redirect URL",
+                        "placeholder": "https://{your_signicat_domain}/auth/open/connect/authorize",
+                        "required": true,
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "data-testid": "signicat-idp-create-wizard-page-idp-authorized-redirect-url"
+                    },
+                    {
+                        "index": 4,
+                        "ariaLabel": "Token Endpoint URL",
+                        "type": "STRING",
+                        "name": "oAuth2TokenEPUrl",
+                        "label": "Token Endpoint URL",
+                        "placeholder": "https://{your_signicat_domain}/auth/open/connect/token",
+                        "required": true,
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "data-testid": "signicat-idp-create-wizard-page-idp-token-endpoint-url"
+                    }
+                ]
+                
+            },
+            "wizardHelp": {
+                "message": {
+                    "copyInputFields": [
+                        {
+                            "description": "Use the following URL as the <strong>Authorized Redirect URI</strong>.",
+                            "value": "redirect_uri"
+                        }
+                    ],
+                    "header": "Prerequisites",
+                    "paragraphs": [
+                        "Before you begin, create an <strong>OIDC credential</strong> on the <a href=\"https://dashboard.signicat.com\" target=\"_blank\" rel=\"noopener noreferrer\">Signicat Dashboard</a>, and obtain a <strong>Client ID & secret</strong>."                    ],
+                    "link": {
+                        "text": "See Signicat's guide on configuring OIDC Apps.",
+                        "url": "https://developer.signicat.com/docs/eid-hub/"
+                    }
+                },
+                "fields": [
+                    {
+                        "fieldName": "Name",
+                        "hint": "Provide a unique name for the connection."
+                    },
+                    {
+                        "fieldName": "Client ID",
+                        "hint": "Provide the <Code class=\"inline-code\">Client ID</Code> you received from Signicat when you registered the OIDC app."
+                    },
+                    {
+                        "fieldName": "Client secret",
+                        "hint": "Provide the <Code class=\"inline-code\">Client secret</Code> you received from Signicat when you registered the OIDC app."
+                    },
+                    {
+                        "fieldName": "Authorised redirect URL",
+                        "hint": "Provide the <Code class=\"inline-code\">Authorised redirect URL</Code> of your Signicat organization. For example https://{your_signicat_domain}/auth/open/connect/authorize."
+                    },
+                    {
+                        "fieldName": "Token endpoint URL",
+                        "hint": "Provide the <Code class=\"inline-code\">Token endpoint URL</Code> of your Signicat organization. For example https://{your_signicat_domain}/auth/open/connect/token."
+                    }
+                ]
+            }
+        },
+        "properties": [
+            {
+                "key": "ClientId",
+                "value": ""
+            },
+            {
+                "key": "ClientSecret",
+                "value": ""
+            },
+            {
+                "key": "callbackUrl",
+                "value": "/commonauth"
+            },
+            {
+                "key": "Scopes",
+                "value": "email openid profile"
+            },
+            {
+                "key": "OAuth2AuthzEPUrl",
+                "value": ""
+            },
+            {
+                "key" : "OAuth2TokenEPUrl",
+                "value" : ""
+            }
+        ]
+    },
+    "edit" : {
+        "tabs": {
+            "general" : [
+                
+                {
+                    "index": 0,
+                    "displayOrder" : 1,
+                    "ariaLabel": "name", 
+                    "inputType": "resource_name",
+                    "type": "text",
+                    "name": "name",
+                    "label": "Name",
+                    "required": true ,
+                    "message": "Connection name is required",
+                    "placeholder": "Signicat",
+                    "validation": true,
+                    "value": "",
+                    "maxLength": "50",
+                    "minLength": "3",
+                    "data-testid": "idp-edit-page-general-settings-form-idp-name",
+                    "hint": "Enter a unique name for this Signicat connection.",
+                    "readOnly": false
+                },
+                {
+                    "index": 1,
+                    "displayOrder" : 2,
+                    "type": "textarea", 
+                    "name" : "description",
+                    "ariaLabel" : "description",
+                    "label" : "Description",
+                    "required": false,
+                    "placeholder": "Enter a description of the Signicat connection.",
+                    "value": "",
+                    "data-testid": "idp-edit-page-general-settings-form-idp-description",
+                    "maxLength": "300",
+                    "minLength": "3",
+                    "hint": "A text description of Signicat connection.",
+                    "readOnly": false
+                },
+                {
+                    "index": 2,
+                    "displayOrder" : 3,
+                    "name": "jwks_endpoint",
+                    "ariaLabel": "JWKS Endpoint URL",
+                    "inputType": "url",
+                    "type": "text",
+                    "label": "JWKS Endpoint URL",
+                    "required": true,
+                    "placeholder": "https://{your_signicat_domain}/oauth/open/.well-known/openid-configuration/jwks",
+                    "value": "",
+                    "data-testid": "",
+                    "maxLength": "2048",
+                    "minLength": "10",
+                    "hint": "A JSON Web Key (JWK) Set is a JSON object that represents a set of JWKs. The JSON object MUST have a keys member, with its value being an array of JWKs.",
+                    "readOnly": false
+                },
+                {
+                    "index": 3,
+                    "displayOrder" : 4,
+                    "type": "certbox",
+                    "isJWKSEnabled": "",
+                    "isReadOnly": "",
+                    "editingIDP": "",
+                    "onUpdate": "",
+                    "isPEMEnabled": ""
+                }
+            ],
+            "settings" : [
+                {
+                    "index": 0,
+                    "displayOrder" : 5,
+                    "ariaLabel": "Signicat client ID",
+                    "inputType": "default",
+                    "name": "ClientId",
+                    "label": "Client ID",
+                    "placeholder": "Enter Client ID from Signicat application.",
+                    "hint": "The Client ID you received from Signicat for your OIDC app.",
+                    "required": true,
+                    "readOnly": false,
+                    "value": "",
+                    "maxLength": "100",
+                    "minLength": "3",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-OpenIDConnectAuthenticator-content-client-id"
+                },
+                {
+                    "index": 1,
+                    "displayOrder" : 6,
+                    "ariaLabel": "Signicat client secret",
+                    "className": "addon-field-wrapper",
+                    "inputType": "password",
+                    "type": "password",
+                    "name": "ClientSecret",
+                    "label": "Client secret",
+                    "placeholder": "Enter Client secret from Signicat application.",
+                    "hint": "The Client secret you received from Signicat for your OIDC app.",
+                    "required": true,
+                    "readOnly": false,
+                    "value": "",
+                    "maxLength": "50",
+                    "minLength": "3",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-OpenIDConnectAuthenticator-content-client-secret"
+                },
+                {
+                    "index": 2,
+                    "displayOrder" : 7,
+                    "ariaLabel": "Signicat authorized redirect URL",
+                    "inputType": "copy_input",
+                    "type": "text",
+                    "name": "callbackUrl",
+                    "label": "Authorized redirect URI",
+                    "placeholder": "",
+                    "hint": "The authorized redirect URI used to obtain Signicat credentials.",
+                    "required": "",
+                    "value": "",
+                    "readOnly": true,
+                    "maxLength": "",
+                    "minLength": "",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-OpenIDConnectAuthenticator-content-authorized-redirect-url-wrapper"
+                },
+                {
+                    "index": 3,
+                    "displayOrder" : 8,
+                    "field": "Scopes",
+                    "ariaLabel": "",
+                    "inputType": "default",
+                    "name": "",
+                    "label":"Scopes",
+                    "placeholder": "e.g: openid",
+                    "hint": "The types of access provided for the connected apps to access data from Signicat.",
+                    "required": false,
+                    "value": "",
+                    "readOnly": false,
+                    "maxLength": "",
+                    "minLength": "",
+                    "width": "16",
+                    "data-testid": ""
+                },
+                {
+                    "index": 4,
+                    "displayOrder" : 9,
+                    "field": "QueryParams",
+                    "ariaLabel": "",
+                    "inputType": "default",
+                    "name": "commonAuthQueryParams",
+                    "label": "Additional Query Parameters",
+                    "placeholder": "",
+                    "hint": "Additional query parameters to be sent to Signicat.",
+                    "required": "",
+                    "value": "",
+                    "readOnly": "",
+                    "maxLength": "",
+                    "minLength": "",
+                    "width": "16",
+                    "data-testid": ""
+                }
+            ]
+        }    
+    }
+}

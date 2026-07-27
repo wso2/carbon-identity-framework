@@ -105,6 +105,17 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
      * {@inheritDoc}
      */
     @Override
+    public List<CORSOrigin> getCORSOriginsByTenantDomain(String tenantDomain)
+            throws CORSManagementServiceServerException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return getCORSOriginsByTenantId(tenantId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<CORSOrigin> getCORSOriginsByApplicationId(int applicationId, int tenantId)
             throws CORSManagementServiceServerException {
 

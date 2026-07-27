@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.constant;
 
+import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,10 +32,19 @@ public class TestConstants {
             "http://foo.com",
             "http://bar.com",
             "https://foobar.com");
+
+    public static final List<CORSOrigin> SAMPLE_CORS_ORIGIN_LIST_1 = Arrays.asList(
+            new CORSOrigin("1", "http://foo.com"),
+            new CORSOrigin("2", "http://bar.com"),
+            new CORSOrigin("3", "https://foobar.com"));
     public static final List<String> SAMPLE_ORIGIN_LIST_2 = Arrays.asList(
             "http://abc.com",
             "https://pqr.com",
             "http://xyz.com");
+    public static final List<CORSOrigin> SAMPLE_CORS_ORIGIN_LIST_2 = Arrays.asList(
+            new CORSOrigin("1", "http://abc.com"),
+            new CORSOrigin("2", "https://pqr.com"),
+            new CORSOrigin("3", "http://xyz.com"));
     public static final String INSERT_APPLICATION =
             "INSERT INTO SP_APP (ID, TENANT_ID, APP_NAME, UUID) " +
                     "VALUES (?, ?, ?, ?)";

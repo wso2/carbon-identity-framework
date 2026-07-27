@@ -34,7 +34,7 @@ import java.util.TreeMap;
  */
 public class GraalSelectAcrFromFunction implements SelectOneFunction {
 
-    private static final Log log = LogFactory.getLog(SelectAcrFromFunction.class);
+    private static final Log log = LogFactory.getLog(GraalSelectAcrFromFunction.class);
 
     @HostAccess.Export
     public String evaluate(JsAuthenticationContext context, Object possibleOutcomesObj) {

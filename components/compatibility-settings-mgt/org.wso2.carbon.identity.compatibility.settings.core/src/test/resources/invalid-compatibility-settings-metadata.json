@@ -1,0 +1,8 @@
+{
+  "authentication": {
+    "enableLegacyAuthFlow": {
+      "timestampReference": "2025-01-01T00:00:00Z",
+      "targetValue": "true",
+    -- Invalid JSON syntax here
+  }
+}

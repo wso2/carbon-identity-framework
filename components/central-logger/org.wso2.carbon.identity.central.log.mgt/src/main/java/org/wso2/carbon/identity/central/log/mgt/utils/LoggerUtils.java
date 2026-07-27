@@ -55,6 +55,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.Applic
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_CLIENT_ID;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.SUCCESS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
 
@@ -69,6 +70,8 @@ public class LoggerUtils {
     private static final String TENANT_DOMAIN = "tenantDomain";
     public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
 
+    private static final Gson GSON = new Gson();
+
     /**
      * Defines the Initiators of the logs.
      */
@@ -80,7 +83,7 @@ public class LoggerUtils {
      * Defines the Targets of the logs.
      */
     public enum Target {
-        User, Role, Group, Application, Action
+        User, Role, Group, Application, Action, Flow, Organization, Webhook, ApprovalTask
     }
 
     /**
@@ -101,11 +104,18 @@ public class LoggerUtils {
             if (!isLoggingEnabled) {
                 return;
             }
-            IdentityEventService eventMgtService =
-                    CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
-            Event auditEvent = new Event(PUBLISH_AUDIT_LOG,
-                    Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLogBuilder.build()));
-            eventMgtService.handleEvent(auditEvent);
+            AuditLog auditLog = auditLogBuilder.build();
+            if (isEnableV2AuditLogs()) {
+                IdentityEventService eventMgtService =
+                        CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
+                Event auditEvent =
+                        new Event(PUBLISH_AUDIT_LOG, Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog));
+                eventMgtService.handleEvent(auditEvent);
+            } else {
+                CarbonConstants.AUDIT_LOG.info(
+                        String.format(CarbonConstants.AUDIT_MESSAGE, auditLog.getInitiatorId(), auditLog.getAction(),
+                                auditLog.getTargetId(), GSON.toJson(auditLog.getData()), SUCCESS));
+            }
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";
             log.error(errorLog, e);
@@ -322,7 +332,7 @@ public class LoggerUtils {
      */
     public static String getSanitizedErrorMessage(String errorMessage, String userName) {
 
-        if (LoggerUtils.isLogMaskingEnable && errorMessage.contains(userName)) {
+        if (LoggerUtils.isLogMaskingEnable && userName != null && errorMessage.contains(userName)) {
             return errorMessage.replace(userName, LoggerUtils.getMaskedContent(userName));
         }
         return errorMessage;

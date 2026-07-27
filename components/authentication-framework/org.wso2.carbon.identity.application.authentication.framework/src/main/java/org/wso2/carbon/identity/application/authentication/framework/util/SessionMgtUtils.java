@@ -193,6 +193,175 @@ public class SessionMgtUtils {
     }
 
     /**
+     * Transform a list of filter expressions into parameterized SQL fragments with bound values.
+     * Unlike {@link #getSQLFiltersFromExpressionNodes(List)}, each SQL fragment uses {@code ?}
+     * placeholders and values are stored separately in the returned {@link SessionFilterQueryBuilder},
+     * preventing SQL injection through filter parameters.
+     *
+     * @param expressionNodes list of filter expressions.
+     * @return {@link SessionFilterQueryBuilder} containing SQL fragments and ordered parameter values.
+     * @throws UserSessionException if an error occurs while parsing the filter criteria.
+     */
+    public static SessionFilterQueryBuilder getSQLFilterQueryBuilder(
+            List<ExpressionNode> expressionNodes) throws UserSessionException {
+
+        SessionFilterQueryBuilder builder = new SessionFilterQueryBuilder();
+        StringJoiner sessionJoiner = new StringJoiner(SessionMgtConstants.QueryOperations.AND.getQueryString());
+        StringJoiner appJoiner = new StringJoiner(SessionMgtConstants.QueryOperations.AND.getQueryString());
+        StringJoiner userJoiner = new StringJoiner(SessionMgtConstants.QueryOperations.AND.getQueryString());
+        StringJoiner mainJoiner = new StringJoiner(SessionMgtConstants.QueryOperations.AND.getQueryString());
+
+        if (expressionNodes != null) {
+            for (ExpressionNode expressionNode : expressionNodes) {
+                String operation = expressionNode.getOperation();
+                String value = expressionNode.getValue();
+                String attribute = expressionNode.getAttributeValue();
+
+                if (StringUtils.isBlank(attribute) || StringUtils.isBlank(operation) || value == null) {
+                    throw new UserSessionException(
+                            "Invalid filter node: attribute, operation, and value must not be null or blank.");
+                }
+
+                SessionMgtConstants.FilterType filterType = SessionMgtConstants.FilterType.DEFAULT;
+
+                StringBuilder filterSQL = new StringBuilder();
+                boolean isString = true;
+
+                switch (attribute.toLowerCase()) {
+                    case SessionMgtConstants.FLD_SESSION_ID_LOWERCASE:
+                        attribute = SessionMgtConstants.COL_SESSION_ID;
+                        filterType = SessionMgtConstants.FilterType.SESSION;
+                        break;
+                    case SessionMgtConstants.FLD_APPLICATION_LOWERCASE:
+                        attribute = SessionMgtConstants.COL_APPLICATION;
+                        value = value.toLowerCase();
+                        filterType = SessionMgtConstants.FilterType.APPLICATION;
+                        break;
+                    case SessionMgtConstants.FLD_LOGIN_ID_LOWERCASE:
+                        attribute = SessionMgtConstants.COL_LOGIN_ID;
+                        value = value.toLowerCase();
+                        filterType = SessionMgtConstants.FilterType.USER;
+                        break;
+                    case SessionMgtConstants.FLD_IP_ADDRESS_LOWERCASE:
+                        attribute = SessionMgtConstants.COL_IP_ADDRESS;
+                        break;
+                    case SessionMgtConstants.FLD_USER_AGENT_LOWERCASE:
+                        attribute = SessionMgtConstants.COL_USER_AGENT;
+                        value = value.toLowerCase();
+                        break;
+                    case SessionMgtConstants.FLD_LOGIN_TIME_LOWERCASE:
+                        attribute = SessionMgtConstants.COL_LOGIN_TIME;
+                        break;
+                    case SessionMgtConstants.FLD_LAST_ACCESS_TIME_LOWERCASE:
+                        attribute = SessionMgtConstants.COL_LAST_ACCESS_TIME;
+                        break;
+                    case SessionMgtConstants.FLD_TIME_CREATED_SINCE:
+                    case SessionMgtConstants.FLD_TIME_CREATED_UNTIL:
+                        attribute = SessionMgtConstants.COL_TIME_CREATED;
+                        isString = false;
+                        break;
+                    default:
+                        throw new UserSessionException("Invalid filter attribute: " + attribute);
+                }
+
+                Object paramValue;
+                switch (operation.toLowerCase()) {
+                    case SessionMgtConstants.EQ:
+                        filterSQL.append(attribute).append(" = ?");
+                        paramValue = isString ? value : parseNumericFilterValue(attribute, value);
+                        break;
+                    case SessionMgtConstants.SW:
+                        filterSQL.append(attribute).append(" LIKE ? ESCAPE '\\'");
+                        paramValue = escapeLikeChars(value) + "%";
+                        break;
+                    case SessionMgtConstants.EW:
+                        filterSQL.append(attribute).append(" LIKE ? ESCAPE '\\'");
+                        paramValue = "%" + escapeLikeChars(value);
+                        break;
+                    case SessionMgtConstants.CO:
+                        filterSQL.append(attribute).append(" LIKE ? ESCAPE '\\'");
+                        paramValue = "%" + escapeLikeChars(value) + "%";
+                        break;
+                    case SessionMgtConstants.LE:
+                        filterSQL.append(attribute).append(" <= ?");
+                        paramValue = isString ? value : parseNumericFilterValue(attribute, value);
+                        break;
+                    case SessionMgtConstants.LT:
+                        filterSQL.append(attribute).append(" < ?");
+                        paramValue = isString ? value : parseNumericFilterValue(attribute, value);
+                        break;
+                    case SessionMgtConstants.GE:
+                        filterSQL.append(attribute).append(" >= ?");
+                        paramValue = isString ? value : parseNumericFilterValue(attribute, value);
+                        break;
+                    case SessionMgtConstants.GT:
+                        filterSQL.append(attribute).append(" > ?");
+                        paramValue = isString ? value : parseNumericFilterValue(attribute, value);
+                        break;
+                    default:
+                        throw new UserSessionException("Invalid filter operation: " + operation);
+                }
+
+                // Route the SQL fragment and its bound value to the correct per-type joiner/builder.
+                // DEFAULT maps to the MAIN filter (outer WHERE clause predicates).
+                switch (filterType) {
+                    case SESSION:
+                        sessionJoiner.add(filterSQL.toString());
+                        builder.addFilterParam(SessionMgtConstants.FilterType.SESSION, paramValue);
+                        break;
+                    case APPLICATION:
+                        appJoiner.add(filterSQL.toString());
+                        builder.addFilterParam(SessionMgtConstants.FilterType.APPLICATION, paramValue);
+                        break;
+                    case USER:
+                        userJoiner.add(filterSQL.toString());
+                        builder.addFilterParam(SessionMgtConstants.FilterType.USER, paramValue);
+                        break;
+                    default:
+                        mainJoiner.add(filterSQL.toString());
+                        builder.addFilterParam(SessionMgtConstants.FilterType.MAIN, paramValue);
+                }
+            }
+        }
+
+        if (sessionJoiner.length() > 0) {
+            builder.setFilterQuery(SessionMgtConstants.FilterType.SESSION,
+                    SessionMgtConstants.QueryOperations.AND.getQueryString() + sessionJoiner);
+        } else {
+            builder.setFilterQuery(SessionMgtConstants.FilterType.SESSION, "");
+        }
+
+        boolean hasAppFilter = appJoiner.length() > 0;
+        if (hasAppFilter) {
+            builder.setFilterQuery(SessionMgtConstants.FilterType.APPLICATION,
+                    MessageFormat.format(SessionMgtConstants.QueryOperations.WHERE.getQueryString(), appJoiner));
+        } else {
+            builder.setFilterQuery(SessionMgtConstants.FilterType.APPLICATION, "");
+        }
+
+        if (userJoiner.length() > 0) {
+            if (!hasAppFilter) {
+                builder.setFilterQuery(SessionMgtConstants.FilterType.USER, MessageFormat.format(
+                        SessionMgtConstants.QueryOperations.WHERE.getQueryString(), userJoiner));
+            } else {
+                builder.setFilterQuery(SessionMgtConstants.FilterType.USER,
+                        SessionMgtConstants.QueryOperations.AND.getQueryString() + userJoiner);
+            }
+        } else {
+            builder.setFilterQuery(SessionMgtConstants.FilterType.USER, "");
+        }
+
+        if (mainJoiner.length() > 0) {
+            builder.setFilterQuery(SessionMgtConstants.FilterType.MAIN,
+                    SessionMgtConstants.QueryOperations.AND.getQueryString() + mainJoiner);
+        } else {
+            builder.setFilterQuery(SessionMgtConstants.FilterType.MAIN, "");
+        }
+
+        return builder;
+    }
+
+    /**
      * Transform a result set record into a search result object.
      *
      * @param record result set object.
@@ -234,5 +403,20 @@ public class SessionMgtUtils {
             return new Application(data[1], null, data[0]);
         }
         return new Application(data[1], application.getAppName(), application.getAppId(), application.getResourceId());
+    }
+
+    private static Long parseNumericFilterValue(String attribute, String value) throws UserSessionException {
+
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            throw new UserSessionException(
+                    "Invalid numeric filter value for attribute '" + attribute + "': " + value);
+        }
+    }
+
+    private static String escapeLikeChars(String value) {
+
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }

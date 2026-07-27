@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2005-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,17 +11,27 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.core.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.ibm.wsdl.util.xml.DOM2Writer;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.httpclient.HttpURL;
+import org.apache.commons.httpclient.HttpsURL;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,12 +46,16 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AdminServicesUtil;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.core.util.Utils;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -67,18 +81,23 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -104,10 +123,18 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.AGENT_IDENTITY_ENABLE;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.AGENT_IDENTITY_USERSTORE_NAME;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_AGENT_IDENTITY_USERSTORE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.SINGLE_CHARACTER_WILDCARD;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.UNDERSCORE;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
 public class IdentityUtil {
 
@@ -150,7 +177,10 @@ public class IdentityUtil {
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
+    private static final String HTTP = "http";
+    private static final String HTTPS = "https";
     private static Boolean groupsVsRolesSeparationImprovementsEnabled;
+    private static Boolean showLegacyRoleClaimOnGroupRoleSeparationEnabled;
     private static String JAVAX_TRANSFORMER_PROP_VAL = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 
     // System Property for trust managers.
@@ -183,14 +213,47 @@ public class IdentityUtil {
     }
 
     /**
-     * Read configuration elements from the identity.xml
+     * Read configuration elements from the identity.xml.
      *
      * @param key Element Name as specified from the parent elements in the XML structure.
-     *            To read the element value of b in {@code<a><b>text</b></a>}, the property
+     *            To read the element value of b in {@code <a><b>text</b></a>}, the property
      *            name should be passed as "a.b"
-     * @return Element text value, "text" for the above element.
+     * @return Element text value, "text" for the above element with the placeholders replaced.
      */
     public static String getProperty(String key) {
+
+        String strValue = getPropertyValue(key);
+        strValue = fillURLPlaceholders(strValue);
+        return strValue;
+    }
+
+    /**
+     * Read configuration elements from the identity.xml and
+     * drops the port if it is 443 for https and 80 for http.
+     *
+     * @param key Element name as specified from the parent elements in the XML structure.
+     *            To read the element value of b in {@code <a><b>text</b></a>}, the property
+     *            name should be passed as "a.b".
+     * @return The value of the element, which is "text" in the above element, with the placeholders
+     * replaced and the standard port dropped.
+     */
+    public static String getPropertyWithoutStandardPort(String key) {
+
+        String strValue = getPropertyValue(key);
+        strValue = replacePortNumberPlaceholder(strValue, Boolean.TRUE);
+        strValue = fillURLPlaceholders(strValue);
+        return strValue;
+    }
+
+    /**
+     * Gets the property value corresponding to the given key from the identity.xml file.
+     *
+     * @param key Element name as specified from the parent elements in the XML structure.
+     *            To read the element value of b in {@code <a><b>text</b></a>}, the property
+     *            name should be passed as "a.b".
+     * @return The value of the element, which is "text" in the above element.
+     */
+    private static String getPropertyValue(String key) {
 
         Object value = configuration.get(key);
         String strValue;
@@ -206,7 +269,6 @@ public class IdentityUtil {
         } else {
             strValue = String.valueOf(value);
         }
-        strValue = fillURLPlaceholders(strValue);
         return strValue;
     }
 
@@ -959,6 +1021,48 @@ public class IdentityUtil {
     }
 
     /**
+     * Replaces the port number placeholder with the actual port number for non-standard ports, and
+     * if the ports are standard ports, namely 443 for https and 80 for http, the port number is dropped.
+     *
+     * @param urlWithPlaceholders URL with the placeholders.
+     * @return URL with the port number placeholder replaced.
+     */
+    public static String replacePortNumberPlaceholder(String urlWithPlaceholders, boolean dropStandardPort) {
+
+        if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT)) {
+
+            String mgtTransport = CarbonUtils.getManagementTransport();
+            AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
+                    getServerConfigContext().getAxisConfiguration();
+
+            int mgtTransportProxyPort = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
+            String mgtTransportPort = Integer.toString(mgtTransportProxyPort);
+
+            if (mgtTransportProxyPort <= 0) {
+                if (StringUtils.equals(mgtTransport, HTTP)) {
+                    mgtTransportPort = System.getProperty(
+                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY);
+                } else {
+                    mgtTransportPort = System.getProperty(
+                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY);
+                }
+            }
+
+            if (dropStandardPort && ((StringUtils.equals(mgtTransport, HTTP) &&
+                    StringUtils.equals(mgtTransportPort, String.valueOf(HttpURL.DEFAULT_PORT))) ||
+                    (StringUtils.equals(mgtTransport, HTTPS) &&
+                            StringUtils.equals(mgtTransportPort, String.valueOf(HttpsURL.DEFAULT_PORT))))) {
+                urlWithPlaceholders = StringUtils.replace(urlWithPlaceholders, ":" +
+                        IdentityConstants.CarbonPlaceholders.CARBON_PORT, StringUtils.EMPTY);
+            } else {
+                urlWithPlaceholders = StringUtils.replace(urlWithPlaceholders,
+                        IdentityConstants.CarbonPlaceholders.CARBON_PORT, mgtTransportPort);
+            }
+        }
+        return urlWithPlaceholders;
+    }
+
+    /**
      * Replace the placeholders with the related values in the URL.
      *
      * @param urlWithPlaceholders URL with the placeholders.
@@ -990,28 +1094,7 @@ public class IdentityUtil {
                     hostName);
         }
 
-        if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT)) {
-
-            String mgtTransport = CarbonUtils.getManagementTransport();
-            AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
-                    getServerConfigContext().getAxisConfiguration();
-
-            int mgtTransportProxyPort = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
-            String mgtTransportPort = Integer.toString(mgtTransportProxyPort);
-
-            if (mgtTransportProxyPort <= 0) {
-                if (StringUtils.equals(mgtTransport, "http")) {
-                    mgtTransportPort = System.getProperty(
-                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY);
-                } else {
-                    mgtTransportPort = System.getProperty(
-                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY);
-                }
-            }
-
-            urlWithPlaceholders = StringUtils.replace(urlWithPlaceholders,
-                    IdentityConstants.CarbonPlaceholders.CARBON_PORT, mgtTransportPort);
-        }
+        urlWithPlaceholders = replacePortNumberPlaceholder(urlWithPlaceholders, Boolean.FALSE);
 
         if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP)) {
 
@@ -1315,7 +1398,7 @@ public class IdentityUtil {
         return Boolean.parseBoolean(disableEmailUsernameValidationProperty);
     }
 
-     /**
+    /**
      *
      * Converts and returns a {@link Certificate} object for given PEM content.
      *
@@ -1536,12 +1619,32 @@ public class IdentityUtil {
             try {
                 maximumActionsPerActionType = Integer.parseInt(maximumActionsPerActionTypePropertyValue);
             } catch (NumberFormatException e) {
-                maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
                 log.warn("Error occurred while parsing the 'maximumActionsPerActionType' property value " +
                         "in identity.xml.", e);
             }
         }
         return maximumActionsPerActionType;
+    }
+
+    /**
+     * Get the Maximum Webhooks per Tenant to be configured.
+     *
+     * @return maximumWebhooksPerTenant which can be configured.
+     */
+    public static int getMaximumWebhooksPerTenant() {
+
+        int maximumWebhooksPerTenant = IdentityCoreConstants.DEFAULT_MAXIMUM_WEBHOOKS_PER_TENANT;
+        String maximumWebhooksPerTenantPropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_WEBHOOKS_PER_TENANT_PROPERTY);
+        if (StringUtils.isNotBlank(maximumWebhooksPerTenantPropertyValue)) {
+            try {
+                maximumWebhooksPerTenant = Integer.parseInt(maximumWebhooksPerTenantPropertyValue);
+            } catch (NumberFormatException e) {
+                log.warn("Error occurred while parsing the 'maximumWebhooksPerTenant' property value in " +
+                        "identity.xml.", e);
+            }
+        }
+        return maximumWebhooksPerTenant;
     }
 
     /**
@@ -1578,8 +1681,10 @@ public class IdentityUtil {
                 IdentityCoreConstants.MAXIMUM_USERS_LIST_PER_ROLE_PROPERTY);
 
         if (StringUtils.isBlank(maxUsersListPerRolePropertyValue)) {
-            log.warn("Missing 'MaximumUsersListPerRole' property. Using lower bound value "
-                    + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Missing 'MaximumUsersListPerRole' property. Using lower bound value %d.",
+                        USERS_LIST_PER_ROLE_LOWER_BOUND));
+            }
             return USERS_LIST_PER_ROLE_LOWER_BOUND;
         }
 
@@ -1588,12 +1693,16 @@ public class IdentityUtil {
             if (maxUsersListPerRole >= USERS_LIST_PER_ROLE_LOWER_BOUND) {
                 return maxUsersListPerRole;
             }
-            log.warn("Configured 'MaximumUsersListPerRole' value " + maxUsersListPerRolePropertyValue +
-                    " is below the recommended minimum.");
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Configured 'MaximumUsersListPerRole' value %s " +
+                        "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
+            }
         } catch (NumberFormatException e) {
-            log.warn("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
+            log.debug("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
         }
-        log.warn("Falling back to the lower bound value " + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Falling back to the lower bound value %d.", USERS_LIST_PER_ROLE_LOWER_BOUND));
+        }
         return USERS_LIST_PER_ROLE_LOWER_BOUND;
     }
 
@@ -1618,6 +1727,31 @@ public class IdentityUtil {
 
         } catch (UserStoreException | CarbonException e) {
             log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
+            return Boolean.FALSE;
+        }
+    }
+
+    /**
+     * Check with authorization manager whether show role claim on group role separation config is set to true.
+     *
+     * @return Where show role claim on group role separation enabled or not.
+     */
+    public static boolean isShowLegacyRoleClaimOnGroupRoleSeparationEnabled() {
+
+        try {
+            UserRealm userRealm = AdminServicesUtil.getUserRealm();
+            if (userRealm == null) {
+                log.warn("Unable to find the user realm, thus ShowRoleClaimOnGroupRoleSeparationEnabled is set as FALSE.");
+                return Boolean.FALSE;
+            }
+            if (showLegacyRoleClaimOnGroupRoleSeparationEnabled == null) {
+                showLegacyRoleClaimOnGroupRoleSeparationEnabled =
+                        UserCoreUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled(
+                                userRealm.getRealmConfiguration());
+            }
+            return showLegacyRoleClaimOnGroupRoleSeparationEnabled;
+        } catch (UserStoreException | CarbonException e) {
+            log.warn("Property value parsing error: ShowRoleClaimOnGroupRoleSeparationEnabled, thus considered as FALSE");
             return Boolean.FALSE;
         }
     }
@@ -1660,6 +1794,22 @@ public class IdentityUtil {
      */
     public static Map<String, Set<String>> getSystemRolesWithScopes() {
 
+        return getSystemRolesWithScopes(true);
+    }
+
+    /**
+     * This will return a map of system roles and the list of scopes configured for each system role
+     * in original case.
+     *
+     * @return A map of system roles against the scopes list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithScopesInOriginalCase() {
+
+        return getSystemRolesWithScopes(false);
+    }
+
+    private static Map<String, Set<String>> getSystemRolesWithScopes(boolean requireLowerCaseScopes) {
+
         Map<String, Set<String>> systemRolesWithScopes = new HashMap<>(Collections.emptyMap());
         IdentityConfigParser configParser = IdentityConfigParser.getInstance();
         OMElement systemRolesConfig = configParser
@@ -1698,7 +1848,7 @@ public class IdentityUtil {
                 OMElement scopeIdentifierConfig = (OMElement) scopeIdentifierIterator.next();
                 String scopeName = scopeIdentifierConfig.getText();
                 if (StringUtils.isNotBlank(scopeName)) {
-                    scopes.add(scopeName.trim().toLowerCase());
+                    scopes.add(requireLowerCaseScopes ? scopeName.trim().toLowerCase() : scopeName.trim());
                 }
             }
             if (StringUtils.isNotBlank(roleName)) {
@@ -1961,5 +2111,453 @@ public class IdentityUtil {
             return true;
         }
         return Boolean.parseBoolean(scim2UserMaxItemsPerPageEnabledProperty);
+    }
+
+    /**
+     * Validates the provided signature for the given data using the public key of a specified tenant.
+     *
+     * The method retrieves the public key for the tenant from the certificate stored in the tenant's keystore.
+     * If a context is provided, the method attempts to retrieve the certificate within that context.
+     *
+     * @param data        The data to validate the signature against.
+     * @param signature   The signature to be validated.
+     * @param tenantDomain The domain name of the tenant whose public key should be used for validation.
+     * @param context     The optional context for retrieving the tenant's certificate (can be null or blank).
+     * @return True if the signature is valid; false otherwise.
+     * @throws SignatureException If an error occurs while validating the signature or accessing tenant data.
+     */
+    public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain,
+                                                      String context) throws SignatureException {
+
+        // Retrieve tenant ID based on the tenant domain
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            // Initialize the tenant's registry
+            IdentityTenantUtil.initializeRegistry(tenantId);
+
+            // Retrieve the tenant's public key
+            PublicKey publicKey;
+            if (StringUtils.isBlank(context)) {
+                // Fetch certificate without context if context is null or blank
+                publicKey = IdentityKeyStoreResolver.getInstance()
+                        .getCertificate(tenantDomain, null)
+                        .getPublicKey();
+            } else {
+                try {
+                    // Fetch certificate within the provided context
+                    Certificate certificate = IdentityKeyStoreResolver.getInstance()
+                            .getCertificate(tenantDomain, null, context);
+                    publicKey = certificate.getPublicKey();
+                } catch (IdentityKeyStoreResolverException e) {
+                    if (ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST.getCode()
+                            .equals(e.getErrorCode())) {
+                        // Context keystore not exits, hence return validation as false.
+                        return false;
+                    } else {
+                        throw new SignatureException("Error while validating the signature for tenant: "
+                                + tenantDomain, e);
+                    }
+                }
+            }
+
+            // Validate the signature using the retrieved public key
+            return SignatureUtil.validateSignature(data, signature, publicKey);
+        } catch (IdentityException e) {
+            // Log and throw an exception if an error occurs
+            throw new SignatureException("Error while validating the signature for tenant: " + tenantDomain, e);
+        }
+    }
+
+    /**
+     * Validates the signature of the given data for the specified tenant domain.
+     *
+     * @param data         The data to be verified.
+     * @param signature    The signature to be verified.
+     * @param tenantDomain The tenant domain to which the data belongs.
+     * @return true if the signature is valid, false otherwise.
+     * @throws SignatureException If an error occurs during the signature validation process.
+     */
+    public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain)
+            throws SignatureException {
+
+        return validateSignatureFromTenant(data, signature, tenantDomain, null);
+    }
+
+    /**
+     * Signs the given data using the private key of the specified tenant.
+     *
+     * For super tenant domains, the default private key is used. For other tenants, the method retrieves the private
+     * key from the tenant's keystore. If a context is provided, it will attempt to retrieve the private key associated
+     * with that context.
+     *
+     * @param data         The data to be signed.
+     * @param tenantDomain The domain name of the tenant whose private key will be used for signing.
+     * @param context      The optional context for retrieving the tenant's private key (can be null or blank).
+     * @return A byte array containing the signature for the provided data.
+     * @throws SignatureException If an error occurs while retrieving the private key or signing the data.
+     */
+    public static byte[] signWithTenantKey(String data, String tenantDomain, String context) throws SignatureException {
+
+        // Get tenant ID from tenant domain
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+        PrivateKey privateKey;
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            try {
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
+                // Retrieve private key from the tenant's keystore
+                if (StringUtils.isBlank(context)) {
+                    // Retrieve default private key for the super tenant
+                    privateKey = keyStoreManager.getDefaultPrivateKey();
+                } else {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName,
+                            tenantDomain +
+                                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
+                }
+
+            } catch (Exception e) {
+                throw new SignatureException(String.format(
+                        IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY
+                                .getDescription(),
+                        tenantDomain), e);
+            }
+        } else {
+            try {
+                // Build tenant keystore name
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
+
+                // Initialize the tenant's registry
+                IdentityTenantUtil.initializeRegistry(tenantId);
+
+                // Retrieve private key from the tenant's keystore
+                if (StringUtils.isBlank(context)) {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
+                } else {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName,
+                            tenantDomain +
+                                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
+                }
+            } catch (IdentityException e) {
+                throw new SignatureException("Error while retrieving the private key for tenant: " + tenantDomain, e);
+            }
+        }
+
+        // Sign the data with the retrieved private key
+        return SignatureUtil.doSignature(data, privateKey);
+    }
+
+    /**
+     * Sign the given data for the specified tenant domain.
+     *
+     * @param data         The data to be signed.
+     * @param tenantDomain The tenant domain to which the data belongs.
+     * @return The signature of the data.
+     * @throws SignatureException If an error occurs during the signature generation process.
+     */
+    public static byte[] signWithTenantKey(String data, String tenantDomain) throws SignatureException {
+
+        return signWithTenantKey(data, tenantDomain, null);
+    }
+
+    /**
+     * Check whether the agent identity is enabled.
+     * @return
+     */
+    public static boolean isAgentIdentityEnabled() {
+
+        if (IdentityUtil.getProperty(AGENT_IDENTITY_ENABLE) != null) {
+            return Boolean.parseBoolean(IdentityUtil.getProperty(AGENT_IDENTITY_ENABLE));
+        }
+        return false;
+    }
+
+    /**
+     * Get the agent identity userstore name.
+     * If the property is not set, it will return the default agent identity userstore name.
+     * @return Agent identity userstore name.
+     */
+    public static String getAgentIdentityUserstoreName() {
+
+        String userStoreName = IdentityUtil.getProperty(AGENT_IDENTITY_USERSTORE_NAME);
+        if (StringUtils.isBlank(userStoreName)) {
+            userStoreName = DEFAULT_AGENT_IDENTITY_USERSTORE_NAME;
+        }
+        return userStoreName;
+    }
+
+    /**
+     * Check whether the JWT exceeds the allowed depth. This only validates the depth of the payload part of the JWT.
+     *
+     * @param jwt JWT string to check.
+     * @throws  ParseException If the JWT exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJWTDepth(String jwt) throws ParseException {
+
+        log.debug("Initiating JWT depth validation.");
+
+        if (StringUtils.isBlank(jwt)) {
+            log.debug("JWT is blank, skipping depth validation.");
+            return;
+        }
+
+        // Extract and decode JWT payload.
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            log.debug("Invalid JWT format. Skipping depth validation.");
+            return;
+        }
+
+        validateX5CLength(jwt);
+
+        byte[] payloadBytes;
+        try {
+            payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+        } catch (IllegalArgumentException e) {
+            log.debug("Invalid Base64 encoding in JWT payload.");
+            return;
+        }
+        String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
+
+        validateJsonDepth(jsonPayload, IdentityCoreConstants.MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH);
+    }
+
+    /**
+     * Check whether the JWT payload exceeds the allowed depth. This only validates the depth
+     * of the payload part of the JWT.
+     * @param payload JWT payload(JSON) string to check.
+     * @throws ParseException If the JWT payload exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJWTDepthOfJWTPayload(String payload) throws ParseException {
+
+        log.debug("Checking JWT payload depth validation");
+
+        if (StringUtils.isBlank(payload)) {
+            log.debug("JWT payload is blank, skipping depth validation");
+            return;
+        }
+        validateJsonDepth(payload, IdentityCoreConstants.MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH);
+    }
+
+    /**
+     * Check whether the JSON exceeds the allowed depth.
+     *
+     * @param json JSON String to check.
+     * @throws  ParseException If the JSON exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJsonDepth(String json, int maxDepth) throws ParseException {
+
+        try (JsonReader reader = new JsonReader(new StringReader(json))) {
+            int depth = 0;
+
+            while (reader.hasNext()) {
+                JsonToken token = reader.peek();
+
+                if (token == JsonToken.BEGIN_OBJECT) {
+                    depth++;
+                    if (depth > maxDepth) {
+                        log.error("Maximum allowed JSON depth exceeded.");
+                        throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    }
+                    reader.beginObject();
+                } else if (token == JsonToken.BEGIN_ARRAY) {
+                    depth++;
+                    if (depth > maxDepth) {
+                        log.error("Maximum allowed JSON depth exceeded.");
+                        throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    }
+                    reader.beginArray();
+                } else if (token == JsonToken.END_OBJECT) {
+                    depth--;
+                    reader.endObject();
+                } else if (token == JsonToken.END_ARRAY) {
+                    depth--;
+                    reader.endArray();
+                } else {
+                    reader.skipValue();
+                }
+            }
+        } catch (IOException e) {
+            log.debug("Error occurred while validating JSON depth.", e);
+            return;
+        }
+        log.debug("Validated JSON depth successfully.");
+    }
+
+    /**
+     * Check whether the X5C length in the JWT header exceeds the allowed limit.
+     * Remove this after monitoring the X5C length issue is resolved.
+     * Adding this with deprecated tag to avoid usage in new code since this will be removed in the future.
+     * @param jwt JWT string to check.
+     */
+    @Deprecated
+    public static void validateX5CLength(String jwt) {
+
+        if (StringUtils.isBlank(jwt)) {
+            return;
+        }
+
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            return;
+        }
+
+        byte[] headerBytes;
+        try {
+            headerBytes = Base64.getUrlDecoder().decode(parts[0]);
+            String jsonHeader = new String(headerBytes, StandardCharsets.UTF_8);
+            JsonObject headerObj = JsonParser.parseString(jsonHeader).getAsJsonObject();
+            if (headerObj.has("x5c")) {
+                JsonArray x5cArray = headerObj.getAsJsonArray("x5c");
+                if (x5cArray.toString().length() > 20000) {
+                    log.error("X5C length exceeds the maximum allowed limit.");
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Error occurred while validating X5C length.", e);
+        }
+    }
+
+    /**
+     * The resulting JSONObject, JSONArray, or the original object if it is neither a List nor a Map.
+     * @param object The object to convert.
+     * @return The resulting JSON object.
+     */
+    public static Object convertToJson(Object object) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Converting object to JSON. Object type: "
+                    + (object != null ? object.getClass().getSimpleName() : "null"));
+        }
+
+        if (object instanceof List) {
+            return convertToJSONArray((List)object);
+        } else if (object instanceof Map) {
+            return convertToJSONObject((Map)object);
+        } else {
+            return object;
+        }
+    }
+
+    /**
+     * Convert a List to a JSONArray, recursively converting any nested Maps or Lists.
+     * @param list The List to convert.
+     * @return The resulting JSONArray.
+     */
+    public static JSONArray convertToJSONArray(List<Object> list) {
+
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.addAll(list);
+        recursivelyConvertToJSONArray(jsonArray);
+        return jsonArray;
+    }
+
+    /**
+     * Convert a Map to a JSONObject, recursively converting any nested Maps or Lists.
+     * @param map The Map to convert.
+     * @return The resulting JSONObject.
+     */
+    public static JSONObject convertToJSONObject(Map<String, Object> map) {
+
+        JSONObject jsonObject = new JSONObject(map);
+        recursivelyConvertToJSONObject(jsonObject);
+        return jsonObject;
+    }
+
+    /**
+     * Handles SQL LIKE single-character wildcard based on 'api.filters.single_character_wildcard' configuration.
+     * - If set to "_" (default): underscore acts as a wildcard, no escaping is applied.
+     * - If set to any other single character: that character is used as the wildcard (mapped to "_"),
+     *   and actual underscores are escaped.
+     * - If set to empty string: underscore is escaped to prevent wildcard behavior.
+     * - NOTE: This is not supported for MSSQL, Oracle, and DB2 databases.
+     *
+     * @param value The user input value to process.
+     * @return The processed value with wildcard handling applied.
+     */
+    public static String processSingleCharWildcard(String value) {
+
+        String wildcardChar = getProperty(SINGLE_CHARACTER_WILDCARD);
+        try {
+            if (StringUtils.isBlank(value) || UNDERSCORE.equals(wildcardChar) || JdbcUtils.isOracleDB()
+                    || JdbcUtils.isMSSqlDB() || JdbcUtils.isDB2DB()) {
+                return value;
+            }
+        } catch (DataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to check database type to process single wildcard property.", e);
+            }
+            return value;
+        }
+        // Escape backslash first to avoid double-escaping.
+        String escaped = value.replace("\\", "\\\\");
+        escaped = escaped.replace(UNDERSCORE, "\\_");
+
+        if (StringUtils.isNotBlank(wildcardChar) && wildcardChar.length() == 1) {
+            escaped = escaped.replace(wildcardChar, UNDERSCORE);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Processed wildcard value with wildcard character: " + wildcardChar);
+        }
+        return escaped;
+    }
+
+    private static void recursivelyConvertToJSONObject(JSONObject jsonObject) {
+
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+            if (entry.getValue() instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) entry.getValue());
+                recursivelyConvertToJSONObject(child);
+                jsonObject.put(entry.getKey(), child);
+            } else if (entry.getValue() instanceof List) {
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.addAll((List<?>) entry.getValue());
+                recursivelyConvertToJSONArray(jsonArray);
+                jsonObject.put(entry.getKey(), jsonArray);
+            }
+        }
+    }
+
+    private static void recursivelyConvertToJSONArray(JSONArray jsonArray) {
+
+        for (int i = 0; i < jsonArray.size(); i++) {
+            Object element = jsonArray.get(i);
+            if (element instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) element);
+                recursivelyConvertToJSONObject(child);
+                jsonArray.set(i, child);
+            } else if (element instanceof List) {
+                JSONArray childArray = new JSONArray();
+                childArray.addAll((List<?>) element);
+                recursivelyConvertToJSONArray(childArray);
+                jsonArray.set(i, childArray);
+            }
+        }
+    }
+
+    public static int getMaxApproverNotificationsForWorkflow() {
+
+        String configuredValue = IdentityUtil.getProperty(WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        if (StringUtils.isBlank(configuredValue)) {
+            return DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Workflow engine max approver notifications has been configured. Parsing max approver count.");
+        }
+
+        try {
+            int parsedValue = Integer.parseInt(configuredValue);
+            if (parsedValue > 0) {
+                return parsedValue;
+            }
+            log.warn("Invalid configuration for property: " + WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS +
+                    ". The value should be a positive integer. Using default value: " +
+                    DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        } catch (NumberFormatException e) {
+            log.warn("Invalid number format for property: " + WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS +
+                    ". Using default value: " + DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        }
+        return DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
     }
 }

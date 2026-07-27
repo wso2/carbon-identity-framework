@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,18 +25,28 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionSerializerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -44,6 +54,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.testng.Assert.assertEquals;
 
 /**
  * Test class that includes unit tests of Session Data Store.
@@ -52,9 +63,23 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class SessionDataStoreTest extends DataStoreBaseTest {
 
     private static final String DB_NAME = "SESSION_DATA_STORE";
+    private static final String OPERATION_STORE = "STORE";
+    private static final String OPERATION_DELETE = "DELETE";
 
     @Mock
     FrameworkServiceDataHolder mockFrameworkServiceDataHolder;
+    @Mock
+    FrameworkServiceDataHolder mockFrameworkServiceDataHolder1;
+    @Mock
+    PreparedStatement mockPreparedStatement;
+    @Mock
+    ResultSet mockResultSet;
+    @Mock
+    SessionSerializer mockSessionSerializer;
+    @Mock
+    InputStream mockInputStream;
+    @Mock
+    DatabaseMetaData mockDatabaseMetaData;
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -71,9 +96,12 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
 
     @DataProvider
     public Object[][] getSessionData() {
-        Object obj = mock(Object.class, withSettings().serializable());
+
+        Object obj1 = mock(Object.class, withSettings().serializable());
+        Object obj2 = mock(Object.class, withSettings().serializable());
         return new Object[][]{
-                {"00000001", "sessionType", obj, 30000, 1},
+                {"00000001", "sessionType", obj1, 30000, 1},
+                {"00000002", "sessionType", obj2, 30001, 1},
         };
     }
 
@@ -97,7 +125,97 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         }
     }
 
-    @Test(dependsOnMethods = "testPersistSessionData")
+    @Test(dependsOnMethods = "testRemoveSessionData")
+    public void testGetSessionData() throws Exception {
+
+        String key = "1";
+        String type = "AuthCache";
+        String operation = OPERATION_STORE;
+        long nanoTime = 30000;
+        int tenantId = 1;
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+
+            Object obj = new Object();
+            SessionContextDO sessionContextDO = new SessionContextDO(key, type, obj, nanoTime, tenantId);
+
+            mockPreparedStatements(false, identityDatabaseUtil, frameworkServiceDataHolder,
+                    sessionContextDO);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            Object sessionData = SessionDataStore.getInstance().getSessionData(key, type, operation);
+            assertEquals(sessionData, obj);
+        }
+    }
+
+    @DataProvider
+    public Object[][] getRemoveSessionData() {
+
+        return new Object[][]{
+                {"00000002", "sessionType"},
+        };
+    }
+
+    @Test(dataProvider = "getRemoveSessionData", dependsOnMethods = "testPersistSessionData")
+    public void testRemoveSessionData(String key, String type) throws Exception {
+
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            Connection connection = getConnection(DB_NAME);
+            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            mockDataHolder(frameworkServiceDataHolder);
+            SessionDataStore.getInstance().removeSessionData(key, type, 30002);
+        }
+    }
+
+    @DataProvider
+    public Object[][] getValidateLastOperationOnSessionData() {
+
+        return new Object[][]{
+                {"00000001", "sessionType", OPERATION_STORE, true},
+                {"00000001", "sessionType", OPERATION_DELETE, false},
+                {"00000002", "sessionType", OPERATION_DELETE, true},
+                {"00000002", "sessionType", OPERATION_STORE, false},
+        };
+    }
+
+    @Test(dependsOnMethods = "testRemoveSessionData", dataProvider = "getValidateLastOperationOnSessionData")
+    public void testValidateLastOperationOnSessionData(String key, String type, String operation, boolean isExist)
+            throws Exception {
+
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+
+            Connection connection = getConnection(DB_NAME);
+
+            mockIdentityDataBaseUtilConnection(connection, false, identityDatabaseUtil);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            mockDataHolder(frameworkServiceDataHolder);
+            boolean isSessionDataExist = SessionDataStore.getInstance()
+                    .validateLastOperationOnSessionData(key, type, operation);
+            assertEquals(isSessionDataExist, isExist);
+        }
+    }
+
+    @Test(dependsOnMethods = "testValidateLastOperationOnSessionData")
     public void testRemoveExpiredSessionData() throws Exception {
 
         try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
@@ -151,5 +269,178 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         }
         identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getSessionDBConnection(shouldApplyTransaction))
                 .thenReturn(connection1);
+    }
+
+    private void mockPreparedStatements(Boolean shouldApplyTransaction,
+                                        MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil,
+                                        MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder,
+                                        SessionContextDO sessionContextDO
+                                       )
+            throws SQLException, SessionSerializerException {
+
+        frameworkServiceDataHolder.when(
+                FrameworkServiceDataHolder::getInstance).thenReturn(mockFrameworkServiceDataHolder1);
+        when(mockFrameworkServiceDataHolder1.getSessionSerializer()).thenReturn(mockSessionSerializer);
+        when(mockSessionSerializer.deSerializeSessionObject(any())).thenReturn(sessionContextDO.getEntry());
+        Connection connection1 = mock(Connection.class);
+        doNothing().when(connection1).close();
+
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getSessionDBConnection(shouldApplyTransaction))
+                .thenReturn(connection1);
+
+        when(connection1.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+        doNothing().when(mockPreparedStatement).setString(anyInt(), anyString());
+        when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+        when(mockResultSet.next()).thenReturn(true);
+        when(mockResultSet.getLong(anyInt())).thenReturn(1000L);
+        when(mockResultSet.getBinaryStream(anyInt())).thenReturn(mockInputStream);
+        when(connection1.getMetaData()).thenReturn(mockDatabaseMetaData);
+        when(mockDatabaseMetaData.getDriverName()).thenReturn("H2");
+    }
+
+    @Test(description = "Test getCleanupTimeout with max session timeout greater than remember me")
+    public void testGetCleanupTimeoutWithMaxSessionTimeoutGreaterThanRememberMe() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = 1;
+        String tenantDomain = "test.com";
+        String type = "sessionType";
+        int rememberMeTimeout = 1209600; // 14 days in seconds.
+        int maxSessionTimeout = 2592000; // 30 days in seconds.
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(tenantDomain);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(rememberMeTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+            mockedIdentityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), anyString()))
+                    .thenReturn(null);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.SECONDS.toNanos(maxSessionTimeout),
+                    "Should return max session timeout when it is greater than remember me timeout");
+        }
+    }
+
+    @Test(description = "Test getCleanupTimeout with remember me timeout greater than max session timeout")
+    public void testGetCleanupTimeoutWithRememberMeGreaterThanMaxSessionTimeout() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = 1;
+        String tenantDomain = "test.com";
+        String type = "sessionType";
+        int rememberMeTimeout = 2592000; // 30 days in seconds.
+        int maxSessionTimeout = 1209600; // 14 days in seconds.
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(tenantDomain);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(rememberMeTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+            mockedIdentityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), anyString()))
+                    .thenReturn(null);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.SECONDS.toNanos(rememberMeTimeout),
+                    "Should return remember me timeout when it is greater than max session timeout");
+        }
+    }
+
+    @Test(description = "Test getCleanupTimeout when max session timeout is not configured")
+    public void testGetCleanupTimeoutWhenMaxSessionTimeoutNotConfigured() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = 1;
+        String tenantDomain = "test.com";
+        String type = "sessionType";
+        int rememberMeTimeout = 1209600; // 14 days in seconds.
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(tenantDomain);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(rememberMeTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.empty());
+            mockedIdentityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), anyString()))
+                    .thenReturn(null);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.SECONDS.toNanos(rememberMeTimeout),
+                    "Should return remember me timeout when max session timeout is not configured");
+        }
+    }
+
+    @Test(description = "Test getCleanupTimeout with equal remember me and max session timeout")
+    public void testGetCleanupTimeoutWithEqualTimeouts() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = 1;
+        String tenantDomain = "test.com";
+        String type = "sessionType";
+        int timeout = 1209600; // 14 days in seconds.
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(tenantDomain);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(timeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(timeout));
+            mockedIdentityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), anyString()))
+                    .thenReturn(null);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.SECONDS.toNanos(timeout),
+                    "Should return the timeout value when both are equal");
+        }
+    }
+
+    @Test(description = "Test getCleanupTimeout with invalid tenant ID")
+    public void testGetCleanupTimeoutWithInvalidTenantId() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+        String type = "sessionType";
+        long expectedTimeout = 20; // Default cleanup timeout in minutes.
+
+        try (MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+            mockedIdentityUtil.when(IdentityUtil::getCleanUpTimeout).thenReturn(expectedTimeout);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.MINUTES.toNanos(expectedTimeout),
+                    "Should return default cleanup timeout when tenant ID is invalid");
+        }
     }
 }

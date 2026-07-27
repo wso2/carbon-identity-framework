@@ -1,0 +1,35 @@
+[
+  {
+    "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9jdXN0b21FbXBsb3llZVR5cGVz",
+    "claimURI": "http://wso2.org/claims/customEmployeeTypes",
+    "dialectURI": "http://wso2.org/claims",
+    "description": "Custom employee types",
+    "displayOrder": 20,
+    "displayName": "Employee Type",
+    "readOnly": false,
+    "regEx": "",
+    "required": false,
+    "supportedByDefault": false,
+    "dataType": "string",
+    "multiValued": false,
+    "canonicalValues": [
+      {
+        "label": "Manager",
+        "value": "manager"
+      },
+      {
+        "label": "Cashier",
+        "value": "cashier"
+      }
+    ],
+    "properties": [
+      {
+        "key": "USER_CUSTOM_ATTRIBUTE",
+        "value": "TRUE"
+      }
+    ],
+    "inputFormat": {
+      "inputType": "radio_group"
+    }
+  }
+]

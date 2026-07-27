@@ -125,6 +125,22 @@
                    description="Delete actions"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Password Update API" identifier="/api/users/v1/me/change-password"
+                 requiresAuthorization="false"
+                 description="API representation of the User Password Update API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Update User Password" name="internal_user_password_update"
+                   description="Update password of the authenticated user"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Password Update API" identifier="/o/api/users/v1/me/change-password"
+                 requiresAuthorization="false"
+                 description="API representation of the User Password Update API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Update User Password" name="internal_org_user_password_update"
+                   description="Update password of the authenticated user in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">
@@ -980,13 +996,30 @@
                    description="Manage server from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Management Feature" identifier="console:workflowApprovals"
+    <APIResource name="Approval Workflow Management Feature" identifier="console:workflows"
                  requiresAuthorization="true"
-                 description="Resource representation of the Workflow Approval Management Feature"
+                 description="Resource representation of the Approval Workflow Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="Workflow Approval Feature" name="console:workflowApprovals"
-                   description="Manage workflow approvals from the Console"/>
+            <Scope displayName="Approval Workflow Feature" name="console:workflows"
+                   description="Manage workflows from the Console"/>
+            <Scope displayName="Approval Workflow View Feature" name="console:workflows_view"
+                   description="Manage views of workflows from the Console"/>
+            <Scope displayName="Approval Workflow Edit Feature" name="console:workflows_edit"
+                   description="Manage edits of workflows from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:workflows"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Approval Workflow Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Approval Workflow Feature" name="console:org:workflows"
+                   description="Manage Approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow View Feature" name="console:org:workflows_view"
+                   description="Manage views of approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow Edit Feature" name="console:org:workflows_edit"
+                   description="Manage edits of approval workflows from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
@@ -1102,6 +1135,26 @@
         <Scopes>
             <Scope displayName="Offline invite link" name="internal_offline_invite"
                    description="Manage offline invitations from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Credential Management API" identifier="/api/server/v1/users/(.*)/credentials"
+                 requiresAuthorization="true"
+                 description="API representation of the User Credential Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Credential" name="internal_user_credential_mgt_view"
+                   description="View credentials of end users in the organization"/>
+            <Scope displayName="Delete Credential" name="internal_user_credential_mgt_delete"
+                   description="Delete credentials of end users in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Credential Management API" identifier="/o/api/server/v1/users/(.*)/credentials"
+                 requiresAuthorization="true"
+                 description="API representation of the User Credential Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Credential" name="internal_org_user_credential_mgt_view"
+                   description="View credentials of end users in the organization"/>
+            <Scope displayName="Delete Credential" name="internal_org_user_credential_mgt_delete"
+                   description="Delete credentials of end users in the organization"/>
         </Scopes>
     </APIResource>
 </APIResources>

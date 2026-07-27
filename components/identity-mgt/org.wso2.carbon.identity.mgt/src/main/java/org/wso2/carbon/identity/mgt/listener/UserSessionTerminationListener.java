@@ -79,6 +79,27 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
     }
 
     @Override
+    public boolean doPostUpdateCredential(String username, Object credential, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        if (!IdentityMgtServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
+            return true;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Terminating all the active sessions of the password reset user: " +
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username));
+        }
+
+        terminateSessionsOfUser(username, userStoreManager);
+        return true;
+    }
+
+    @Override
     public boolean doPreDeleteUser(String username, UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {

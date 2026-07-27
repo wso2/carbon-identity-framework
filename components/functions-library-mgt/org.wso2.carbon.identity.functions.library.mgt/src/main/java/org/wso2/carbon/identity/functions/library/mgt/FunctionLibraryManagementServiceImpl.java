@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.functions.library.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.functions.library.mgt.dao.FunctionLibraryDAO;
 import org.wso2.carbon.identity.functions.library.mgt.dao.impl.FunctionLibraryDAOImpl;
@@ -36,6 +37,13 @@ import static org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryMgtU
 /**
  * Function library management service implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService",
+                "service.scope=singleton"
+        }
+)
 public class FunctionLibraryManagementServiceImpl implements FunctionLibraryManagementService {
 
     private static final Log log = LogFactory.getLog(FunctionLibraryManagementServiceImpl.class);

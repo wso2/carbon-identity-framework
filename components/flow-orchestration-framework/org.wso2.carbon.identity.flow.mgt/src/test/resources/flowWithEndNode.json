@@ -1,0 +1,121 @@
+{
+  "steps": [
+    {
+      "id": "view_5box",
+      "type": "VIEW",
+      "size": {
+        "width": 350,
+        "height": 556
+      },
+      "position": {
+        "x": 0,
+        "y": 330
+      },
+      "data": {
+        "components": [
+          {
+            "category": "DISPLAY",
+            "type": "TYPOGRAPHY",
+            "id": "typography_rled",
+            "variant": "H3",
+            "config": {
+              "text": "Register Account"
+            }
+          },
+          {
+            "category": "BLOCK",
+            "type": "FORM",
+            "config": {},
+            "id": "form_4hbb",
+            "components": [
+              {
+                "category": "FIELD",
+                "type": "INPUT",
+                "variant": "TEXT",
+                "config": {
+                  "type": "text",
+                  "hint": "",
+                  "label": "Username",
+                  "required": true,
+                  "placeholder": "Enter your username",
+                  "identifier": "http://wso2.org/claims/username"
+                },
+                "id": "input_9rvp"
+              },
+              {
+                "category": "FIELD",
+                "type": "INPUT",
+                "variant": "PASSWORD",
+                "config": {
+                  "identifier": "password",
+                  "type": "password",
+                  "hint": "",
+                  "label": "Password",
+                  "required": true,
+                  "placeholder": "Enter your password"
+                },
+                "id": "input_9fg2"
+              },
+              {
+                "category": "ACTION",
+                "type": "BUTTON",
+                "id": "button_86k2",
+                "variant": "PRIMARY",
+                "action": {
+                  "type": "NEXT",
+                  "nextId": "END"
+                },
+                "config": {
+                  "type": "submit",
+                  "text": "Continue"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "END",
+      "type": "END",
+      "data": {
+        "action": {
+          "type": "EXECUTOR",
+          "executor": {
+            "name": "UserProvisioningExecutor"
+          },
+          "nextId": "END"
+        },
+        "components": [
+          {
+            "id": "display_2v3t",
+            "category": "DISPLAY",
+            "type": "TYPOGRAPHY",
+            "variant": "H5",
+            "config": {
+              "text": "Registration Completed"
+            }
+          },
+          {
+            "id": "display_4n49",
+            "category": "DISPLAY",
+            "type": "IMAGE",
+            "variant": "IMAGE_BLOCK",
+            "config": {
+              "src": "https://www.svgrepo.com/show/428755/success-growth-successful.svg"
+            }
+          }
+        ]
+      },
+      "size": {
+        "height": 612.0,
+        "width": 350.0
+      },
+      "position": {
+        "x": 585.5320627344254,
+        "y": 444.74770515463473
+      }
+    }
+  ]
+}
+

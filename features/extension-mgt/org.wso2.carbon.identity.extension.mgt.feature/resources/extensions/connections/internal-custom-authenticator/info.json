@@ -1,0 +1,10 @@
+{
+  "id": "internal-user-custom-authenticator",
+  "name": "Internal User Authentication",
+  "description": "Collect identifier and authenticate user accounts managed in the organization.",
+  "image": "",
+  "category": "DEFAULT",
+  "displayOrder": -1,
+  "tags": [ "Custom" ],
+  "type": "custom-authenticator"
+}

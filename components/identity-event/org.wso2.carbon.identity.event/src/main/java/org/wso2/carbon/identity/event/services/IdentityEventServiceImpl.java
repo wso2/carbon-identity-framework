@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.event.services;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.event.EventDistributionTask;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
@@ -30,6 +31,13 @@ import org.wso2.carbon.identity.event.internal.IdentityEventServiceComponent;
 
 import java.util.List;
 
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.event.services.IdentityEventService",
+                "service.scope=singleton"
+        }
+)
 public class IdentityEventServiceImpl implements IdentityEventService {
 
     private static final Log log = LogFactory.getLog(IdentityEventServiceImpl.class);

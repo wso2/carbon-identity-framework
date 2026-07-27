@@ -31,6 +31,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
 import org.wso2.carbon.identity.cors.mgt.core.internal.impl.CORSManagementServiceImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
 /**
  * Service component class for CORS-Service.
@@ -107,5 +109,37 @@ public class CORSManagementServiceComponent {
             log.debug("Unregistering the ConfigurationManager in CORSManagementService.");
         }
         CORSManagementServiceHolder.getInstance().setConfigurationManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service",
+            service = OrgResourceResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrgResourceResolverService")
+    protected void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        CORSManagementServiceHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
+    }
+
+    protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        CORSManagementServiceHolder.getInstance().setOrgResourceResolverService(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        CORSManagementServiceHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        CORSManagementServiceHolder.getInstance().setOrganizationManager(null);
     }
 }

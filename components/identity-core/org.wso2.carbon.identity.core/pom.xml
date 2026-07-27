@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core</artifactId>
-        <version>7.7.2-SNAPSHOT</version>
+        <version>7.11.164-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -34,6 +34,14 @@
     <url>http://www.wso2.com</url>
     <dependencies>
         <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+        </dependency>
+        <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
             <scope>provided</scope>
@@ -44,7 +52,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <artifactId>opensaml-jdk21</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -95,6 +103,11 @@
             <artifactId>commons-logging</artifactId>
         </dependency>
         <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>${json-smart.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.ops4j.pax.logging</groupId>
             <artifactId>pax-logging-api</artifactId>
         </dependency>
@@ -122,6 +135,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.utils</groupId>
             <artifactId>org.wso2.carbon.database.utils</artifactId>
         </dependency>
@@ -142,6 +160,11 @@
             <groupId>xml-apis</groupId>
             <artifactId>xml-apis</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -157,7 +180,7 @@
                             ${project.artifactId}
                         </Bundle-SymbolicName>
                         <Private-Package>
-                            org.wso2.carbon.identity.core.internal
+                            org.wso2.carbon.identity.core.internal.*
                         </Private-Package>
                         <Import-Package>
                             !javax.ws.rs,
@@ -169,6 +192,8 @@
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
                             javax.xml.stream; version="${equinox.osgi.stax-api.imp.pkg.version.range}",
+
+                            net.minidev.json; version="${json-smart.version.range}",
 
                             org.apache.axiom.om.*; version="${axiom.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
@@ -208,9 +233,10 @@
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.apache.commons.collections4; version = "${commons-collections4.wso2.osgi.version.range}",
                             ua_parser; version="${ua_parser.version.range}",
+                            org.wso2.carbon.utils.security;version="${carbon.kernel.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.core.internal,
+                            !org.wso2.carbon.identity.core.internal.*,
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>

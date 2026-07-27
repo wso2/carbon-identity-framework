@@ -21,12 +21,15 @@ package org.wso2.carbon.user.mgt.listeners;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
@@ -40,13 +43,13 @@ import java.util.Map;
 
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiator;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getTargetForAuditLog;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This audit logger logs the User Management success activities.
  */
 public class UserManagementAuditLogger extends AbstractIdentityUserOperationEventListener {
 
+    private static final Log LOG = LogFactory.getLog(UserManagementAuditLogger.class);
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private static final String SUCCESS = "Success";
     private static final String IN_PROGRESS = "In-Progress";
@@ -64,7 +67,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            return !isLegacyAuditLogsDisabled();
+            return !LoggerUtils.isEnableV2AuditLogs();
         }
         return false;
     }
@@ -223,7 +226,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION, getTargetForAuditLog
+            String auditMessageAction = getPasswordUpdateAuditMessageAction();
+            audit.info(createAuditMessage(auditMessageAction, getTargetForAuditLog
                     (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), null, SUCCESS));
         }
@@ -520,6 +524,37 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(maskedClaims));
         } else {
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
+        }
+    }
+
+    /**
+     * Determines the appropriate audit message action based on the initiating persona in the current flow.
+     * The action returned depends on the persona initiating the password update.
+     *
+     * @return The audit message action. If the flow is unavailable or the persona is unrecognized,
+     *         returns {@code null}. In case the flow is not available, {@code null} is returned as the default value.
+     *         If the initiating persona is a user, returns {@code ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION}.
+     *         If the initiating persona is an admin or application, returns {@code ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION}.
+     *         If an unhandled persona is encountered, logs a debug message and returns {@code null}.
+     */
+    String getPasswordUpdateAuditMessageAction() {
+
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+        if (flow == null) {
+            LOG.debug("Unable to determine the initiating persona for the password update action.");
+            return null;
+        }
+        switch (flow.getInitiatingPersona()) {
+            case USER:
+                return ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION;
+            case ADMIN:
+            case APPLICATION:
+                return ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION;
+            default:
+                // Fallback in case a new enum value is added in the future
+                LOG.debug("Unhandled initiating persona for the password update action: "
+                        + flow.getInitiatingPersona());
+                return null;
         }
     }
 }

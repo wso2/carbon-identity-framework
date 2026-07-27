@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSConfigurationDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSOriginDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CacheBackedCORSConfigurationDAO;
 import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CacheBackedCORSOriginDAO;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
 /**
  * Service holder class for CORS-Service.
@@ -39,6 +41,8 @@ public class CORSManagementServiceHolder {
     private CORSConfigurationDAO corsConfigurationDAO =
             new CacheBackedCORSConfigurationDAO(new CORSConfigurationDAOImpl());
     private ConfigurationManager configurationManager;
+    private OrgResourceResolverService orgResourceResolverService;
+    private OrganizationManager organizationManager;
 
     private CORSManagementServiceHolder() {
 
@@ -105,5 +109,25 @@ public class CORSManagementServiceHolder {
     private static class SingletonHelper {
 
         private static final CORSManagementServiceHolder INSTANCE = new CORSManagementServiceHolder();
+    }
+
+    public OrgResourceResolverService getOrgResourceResolverService() {
+
+        return orgResourceResolverService;
+    }
+
+    public void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        this.orgResourceResolverService = orgResourceResolverService;
+    }
+
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
     }
 }

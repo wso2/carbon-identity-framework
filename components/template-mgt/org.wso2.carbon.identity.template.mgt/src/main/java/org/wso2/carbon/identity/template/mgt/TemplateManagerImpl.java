@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
@@ -55,6 +56,13 @@ import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handle
 /**
  * Template manager service implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.template.mgt.TemplateManager",
+                "service.scope=singleton"
+        }
+)
 public class TemplateManagerImpl implements TemplateManager {
 
     private static final Log log = LogFactory.getLog(TemplateManagerImpl.class);

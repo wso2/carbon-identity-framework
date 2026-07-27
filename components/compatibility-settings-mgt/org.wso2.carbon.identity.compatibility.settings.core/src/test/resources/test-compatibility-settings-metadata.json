@@ -1,0 +1,21 @@
+{
+  "authentication": {
+    "enableLegacyAuthFlow": {
+      "timestampReference": "2025-01-01T00:00:00Z",
+      "targetValue": "true",
+      "defaultValue": "false"
+    },
+    "enableBackwardCompatibleSession": {
+      "timestampReference": "2025-06-15T12:00:00Z",
+      "targetValue": "true",
+      "defaultValue": "false"
+    }
+  },
+  "userManagement": {
+    "useLegacyUserStore": {
+      "timestampReference": "2024-12-01T00:00:00Z",
+      "targetValue": "true",
+      "defaultValue": "false"
+    }
+  }
+}

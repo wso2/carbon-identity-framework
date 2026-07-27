@@ -1,0 +1,255 @@
+/*
+ * Copyright (c) 2021-2025, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.core.internal.component;
+
+import org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyExtender;
+import org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyLoader;
+import org.wso2.carbon.identity.core.circuitbreaker.TenantService;
+import org.wso2.carbon.identity.core.circuitbreaker.TenantServiceBreakerObserver;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
+import org.wso2.carbon.user.core.service.RealmService;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Identity core service data holder.
+ */
+public class IdentityCoreServiceDataHolder {
+
+    private static IdentityCoreServiceDataHolder instance = new IdentityCoreServiceDataHolder();
+    private RealmService realmService = null;
+    private OrganizationUserResidentResolverService organizationUserResidentResolverService = null;
+    private OrganizationManager organizationManager = null;
+    private final Map<TenantService, TenantServiceBreakerObserver> tenantBreakerObservers = new HashMap<>();
+    private final Map<TenantService, RuntimePolicyLoader> runtimePolicyLoaders = new HashMap<>();
+    private RuntimePolicyExtender runtimePolicyExtender;
+
+    private boolean isTenantQualifiedUrlsEnabled;
+
+    private boolean isTenantedSessionsEnabled;
+
+    private IdentityCoreServiceDataHolder() {
+
+    }
+
+    public static IdentityCoreServiceDataHolder getInstance() {
+
+        return instance;
+    }
+
+    /**
+     * Get realm service.
+     *
+     * @return realm service.
+     */
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    /**
+     * Set realm service.
+     *
+     * @param realmService Realm service.
+     */
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
+    }
+    
+    /**
+     * Get organization user resident resolver service instance.
+     *
+     * @return User resident resolver service instance.
+     */
+    public OrganizationUserResidentResolverService getOrganizationUserResidentResolverService() {
+        
+        return organizationUserResidentResolverService;
+    }
+    
+    /**
+     * Set organization user resident resolver service instance.
+     *
+     * @param organizationUserResidentResolverService OrganizationUserResidentResolverService user resident resolver
+     *                                                service instance.
+     */
+    public void setOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+        
+        this.organizationUserResidentResolverService = organizationUserResidentResolverService;
+    }
+
+    /**
+     * Get tenant qualified URLs enabled status.
+     *
+     * @return Tenant qualified URLs enabled status.
+     */
+    public boolean isTenantQualifiedUrlsEnabled() {
+
+        return isTenantQualifiedUrlsEnabled;
+    }
+
+    /**
+     * Get tenanted sessions enabled status.
+     *
+     * @return Tenanted sessions enabled status.
+     */
+    public boolean isTenantedSessionsEnabled() {
+
+        return isTenantedSessionsEnabled;
+    }
+
+    public void setTenantQualifiedUrlsEnabled(boolean tenantQualifiedUrlsEnabled) {
+
+        isTenantQualifiedUrlsEnabled = tenantQualifiedUrlsEnabled;
+    }
+
+    public void setTenantedSessionsEnabled(boolean tenantedSessionsEnabled) {
+
+        isTenantedSessionsEnabled = tenantedSessionsEnabled;
+    }
+
+    /**
+     * Get organization manager.
+     *
+     * @return Organization manager.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Set organization manager.
+     *
+     * @param organizationManager Organization manager.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Registers a {@link TenantServiceBreakerObserver} for the service it is associated with.
+     * Only one observer can be registered per {@link TenantService}.
+     *
+     * @param observer The observer to register; ignored if {@code null}.
+     * @throws IllegalStateException If an observer is already registered for the same service.
+     */
+    public void addTenantServiceBreakerObserver(TenantServiceBreakerObserver observer) {
+
+        if (observer == null) {
+            return;
+        }
+        TenantService service = observer.getService();
+        if (tenantBreakerObservers.containsKey(service)) {
+            throw new IllegalStateException(
+                    "A TenantServiceBreakerObserver is already registered for service: " + service);
+        }
+        tenantBreakerObservers.put(service, observer);
+    }
+
+    /**
+     * Removes the {@link TenantServiceBreakerObserver} registered for the given service, if any.
+     *
+     * @param service The service whose observer should be removed; ignored if {@code null}.
+     */
+    public void removeTenantServiceBreakerObserver(TenantService service) {
+
+        if (service != null) {
+            tenantBreakerObservers.remove(service);
+        }
+    }
+
+    /**
+     * Returns the {@link TenantServiceBreakerObserver} registered for the given service.
+     *
+     * @param service The service to look up.
+     * @return The registered observer, or {@code null} if none is registered for the service.
+     */
+    public TenantServiceBreakerObserver getTenantServiceBreakerObserver(TenantService service) {
+
+        return tenantBreakerObservers.get(service);
+    }
+
+    /**
+     * Registers a {@link RuntimePolicyLoader} for the service it is associated with.
+     * Only one loader can be registered per {@link TenantService}.
+     *
+     * @param loader The loader to register; ignored if {@code null}.
+     * @throws IllegalStateException If a loader is already registered for the same service.
+     */
+    public void addRuntimePolicyLoader(RuntimePolicyLoader loader) {
+
+        if (loader == null) {
+            return;
+        }
+        TenantService service = loader.getService();
+        if (runtimePolicyLoaders.containsKey(service)) {
+            throw new IllegalStateException(
+                    "A RuntimePolicyLoader is already registered for service: " + service);
+        }
+        runtimePolicyLoaders.put(service, loader);
+    }
+
+    /**
+     * Removes the {@link RuntimePolicyLoader} registered for the given service, if any.
+     *
+     * @param service The service whose loader should be removed; ignored if {@code null}.
+     */
+    public void removeRuntimePolicyLoader(TenantService service) {
+
+        if (service != null) {
+            runtimePolicyLoaders.remove(service);
+        }
+    }
+
+    /**
+     * Returns the {@link RuntimePolicyLoader} registered for the given service.
+     *
+     * @param service The service to look up.
+     * @return The registered loader, or {@code null} if none is registered for the service.
+     */
+    public RuntimePolicyLoader getRuntimePolicyLoader(TenantService service) {
+
+        return runtimePolicyLoaders.get(service);
+    }
+
+    /**
+     * Sets the global {@link RuntimePolicyExtender}.
+     *
+     * @param extender The extender to register; {@code null} clears any existing registration.
+     */
+    public void setRuntimePolicyExtender(RuntimePolicyExtender extender) {
+
+        this.runtimePolicyExtender = extender;
+    }
+
+    /**
+     * Returns the registered global {@link RuntimePolicyExtender}, or {@code null} if none.
+     *
+     * @return The registered extender, or {@code null}.
+     */
+    public RuntimePolicyExtender getRuntimePolicyExtender() {
+
+        return runtimePolicyExtender;
+    }
+}

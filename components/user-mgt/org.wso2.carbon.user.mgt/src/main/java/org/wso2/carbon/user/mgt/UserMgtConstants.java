@@ -58,5 +58,6 @@ public class UserMgtConstants {
     public static final String AUDIT_LOG_FORMAT = "Initiator : %s | Action : %s | Target : %s | Data : %s | Result : %s";
     public static final String ERROR_MESSAGE = "Bulk User Import was completed with Errors. Success count : %d,  " +
             "Failed Count : %d, Duplicate Count : %d.";
+    public static final String UTF8 = "UTF-8";
     // component xml constants
 }

@@ -24,12 +24,25 @@
         <classes>
             <class name="org.wso2.carbon.identity.core.util.IdentityUtilTest"/>
             <class name="org.wso2.carbon.identity.core.util.IdentityConfigParserTest"/>
-            <class name="org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAOTest"/>
+            <class name="org.wso2.carbon.identity.core.dao.SAMLServiceProviderPersistenceManagerFactoryTest"/>
+            <class name="org.wso2.carbon.identity.core.JDBCSAMLSSOServiceProviderManagerTest"/>
+            <class name="org.wso2.carbon.identity.core.RegistrySAMLSSOServiceProviderManagerTest"/>
             <class name="org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilderTest"/>
             <class name="org.wso2.carbon.identity.core.cache.BaseCacheTest"/>
             <class name="org.wso2.carbon.identity.core.ThreadLocalAwareThreadPoolExecutorTest"/>
             <class name="org.wso2.carbon.identity.core.IdentityKeyStoreResolverTest"/>
             <class name="org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtilTest"/>
+            <class name="org.wso2.carbon.identity.core.HybridSAMLSSOServiceProviderDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.core.model.FilterTreeBuilderTest"/>
+            <class name="org.wso2.carbon.identity.core.util.IdentityTenantUtilTest"/>
+            <class name="org.wso2.carbon.identity.core.util.JWTDepthValidationTest"/>
+            <class name="org.wso2.carbon.identity.core.util.IdentityDatabaseUtilTest"/>
+            <class name="org.wso2.carbon.identity.core.circuitbreaker.CircuitBreakerManagerTest"/>
+            <class name="org.wso2.carbon.identity.core.circuitbreaker.DecisionTest"/>
+            <class name="org.wso2.carbon.identity.core.circuitbreaker.DefaultPolicyConfigurationLoaderTest"/>
+            <class name="org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyTest"/>
+            <class name="org.wso2.carbon.identity.core.circuitbreaker.StaticPolicyTest"/>
+            <class name="org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyResolverTest"/>
         </classes>
     </test>
 </suite>

@@ -19,9 +19,11 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,9 +41,31 @@ public class JsGraalWritableParameters extends JsGraalParameters implements Prox
     public Object getMember(String name) {
 
         Object member = getWrapped().get(name);
+        return processWritableParameterMember(member);
+    }
+
+    private Object processWritableParameterMember(Object member) {
+
         if (member instanceof Map) {
-            return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                    .createJsWritableParameters((Map) member);
+            // Recursively wrap the Map and its contents
+            Map<?, ?> originalMap = (Map<?, ?>) member;
+            Map<Object, Object> wrappedMap = new HashMap<>();
+            for (Map.Entry<?, ?> entry : originalMap.entrySet()) {
+                wrappedMap.put(entry.getKey(), processWritableParameterMember(entry.getValue()));
+            }
+            return JsWrapperFactoryProvider.getInstance().getWrapperFactory().createJsWritableParameters(wrappedMap);
+        } else if (member instanceof List) {
+            // Recursively process the list
+            return ProxyArray.fromArray(
+                    ((List<?>) member).stream().map(this::processWritableParameterMember).toArray());
+        } else if (member != null && member.getClass().isArray()) {
+            // Recursively process the array
+            Object[] array = (Object[]) member;
+            Object[] processedArray = new Object[array.length];
+            for (int i = 0; i < array.length; i++) {
+                processedArray[i] = processWritableParameterMember(array[i]);
+            }
+            return ProxyArray.fromArray(processedArray);
         }
         return member;
     }

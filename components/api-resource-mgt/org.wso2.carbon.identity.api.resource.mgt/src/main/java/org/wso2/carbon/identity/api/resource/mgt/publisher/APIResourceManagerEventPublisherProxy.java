@@ -269,6 +269,25 @@ public class APIResourceManagerEventPublisherProxy {
     }
 
     /**
+     * Publish the pre delete API scope by scope id event.
+     *
+     * @param apiResourceId API resource id.
+     * @param scopeId       Scope id.
+     * @param tenantDomain  Tenant domain.
+     * @throws APIResourceMgtException If an error occurred while publishing the event.
+     */
+    public void publishPreDeleteAPIScopeByScopeIdWithException(String apiResourceId, String scopeId,
+                                                               String tenantDomain) throws APIResourceMgtException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
+        eventProperties.put(IdentityEventConstants.EventProperty.SCOPE_ID, scopeId);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(IdentityEventConstants.Event.PRE_DELETE_SCOPE, eventProperties);
+        doPublishEvent(event);
+    }
+
+    /**
      * Publish the post delete API scope by scope name event.
      *
      * @param apiResourceId API resource id.
@@ -280,6 +299,27 @@ public class APIResourceManagerEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.SCOPE_NAME, scopeName);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(IdentityEventConstants.Event.POST_DELETE_SCOPE, eventProperties);
+        try {
+            doPublishEvent(event);
+        } catch (APIResourceMgtException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Publish the post delete API scope by scope id event.
+     *
+     * @param apiResourceId API resource id.
+     * @param scopeId       Scope id.
+     * @param tenantDomain  Tenant domain.
+     */
+    public void publishPostDeleteAPIScopeByScopeId(String apiResourceId, String scopeId, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
+        eventProperties.put(IdentityEventConstants.EventProperty.SCOPE_ID, scopeId);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(IdentityEventConstants.Event.POST_DELETE_SCOPE, eventProperties);
         try {

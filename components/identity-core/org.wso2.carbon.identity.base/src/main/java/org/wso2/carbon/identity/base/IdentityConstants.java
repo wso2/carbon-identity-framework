@@ -1,17 +1,19 @@
 /*
- * Copyright 2005-2007 WSO2, Inc. (http://wso2.com)
+ * Copyright (c) 2005-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.base;
@@ -100,6 +102,13 @@ public class IdentityConstants {
     public final static String EVENT_LISTENER_PROPERTY = "Property";
     public final static String EVENT_LISTENER_PROPERTY_NAME = "name";
 
+    // My Account impersonation allowed resource configs.
+    public final static String MY_ACCOUNT = "MyAccount";
+    public final static String IMPERSONATION = "Impersonation";
+    public final static String ALLOWED_RESOURCES = "AllowedResources";
+    public final static String RESOURCE = "Resource";
+    public final static String CONTEXT = "context";
+
 
     // Cache Config constants
     public final static String CACHE_CONFIG = "CacheConfig";
@@ -147,6 +156,10 @@ public class IdentityConstants {
     public static final String UNKNOWN = "unknown";
     public static final String USER_IP = "user-ip";
 
+    // User-Agent header constants.
+    public static final String USER_AGENT = "User-Agent";
+    public static final String X_FORWARDED_USER_AGENT = "X-Forwarded-User-Agent";
+
     // Service provider constants
     public static final String SKIP_CONSENT_DISPLAY_NAME="Skip Consent";
     public static final String SKIP_CONSENT="skipConsent";
@@ -163,6 +176,8 @@ public class IdentityConstants {
 
     // User account association constants
     public static final String USER_ACCOUNT_ASSOCIATION_ENABLE_SHA256_KEY = "UserAccountAssociation.EnableSHA256Key";
+    public static final String FEDERATED_ASSOCIATION_MAX_BULK_OPERATIONS =
+            "FederatedUserAccountAssociation.MaxBulkOperations";
 
     public static final String IDENTITY_UTIL_ENABLE_SHA256 = "IdentityUtil.EnableSHA256";
     public static final String CERT_THUMBPRINT_ENABLE_SHA256 = "CertThumbprint.EnableSHA256";
@@ -250,6 +265,7 @@ public class IdentityConstants {
         public final static String SSO_IDP_URL = "SSOService.IdentityProviderURL";
         public final static String SSO_ARTIFACT_URL = "SSOService.ArtifactResolutionEndpoint";
         public final static String DEFAULT_LOGOUT_ENDPOINT = "SSOService.DefaultLogoutEndpoint";
+        public static final String DEFAULT_LOGOUT_ENDPOINT_V2 = "SSOService.V2.DefaultLogoutEndpoint";
         public final static String NOTIFICATION_ENDPOINT = "SSOService.NotificationEndpoint";
         public final static String SSO_ATTRIB_CLAIM_DIALECT = "SSOService.AttributesClaimDialect";
         public static final String SINGLE_LOGOUT_RETRY_COUNT = "SSOService.SingleLogoutRetryCount";
@@ -258,6 +274,8 @@ public class IdentityConstants {
         public static final String ACCEPT_OPENID_LOGIN = "SSOService.AcceptOpenIDLogin";
         public static final String SAML_RESPONSE_VALIDITY_PERIOD = "SSOService.SAMLResponseValidityPeriod";
         public static final String SAML2_ARTIFACT_VALIDITY_PERIOD = "SSOService.SAML2ArtifactValidityPeriodInMinutes";
+        public static final String SAML2_ARTIFACT_DOUBLE_ENCODING_DISABLED =
+                "SSOService.SAML2ArtifactDoubleEncodingDisabled";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SSOService.SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SSOService.SAMLDefaultDigestAlgorithmURI";
         public static final String SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM = "SSOService" +
@@ -275,6 +293,8 @@ public class IdentityConstants {
                 ".SAML2AuthnRequestsSigningEnabled";
         public static final String ADD_NAME_ID_POLICY_IF_UNSPECIFIED = "SSOService" +
                 ".SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified";
+        public static final String SAML_ALLOW_NESTED_ASSERTIONS_IN_RESPONSE = "SSOService" +
+                ".SAMLAllowNestedAssertionsInResponse";
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
@@ -286,6 +306,11 @@ public class IdentityConstants {
         public static final String REMEMBER_ME_TIME_OUT = "TimeConfig.RememberMeTimeout";
         public static final String EXTEND_REMEMBER_ME_SESSION_ON_AUTH =
                 "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
+        public static final String ENABLE_MAXIMUM_SESSION_TIMEOUT = "TimeConfig.EnableMaximumSessionTimeout";
+        public static final String MAXIMUM_SESSION_TIMEOUT = "TimeConfig.MaximumSessionTimeout";
+
+        public static final String PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE =
+                "PasswordUpdate.PreserveLoggedInSession";
 
         public static final String CLEAN_UP_PERIOD = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpPeriod";
         public static final String CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpTimeout";
@@ -317,6 +342,8 @@ public class IdentityConstants {
         public static final String ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT = "false";
 
         public static final String ADAPTIVE_AUTH_ALLOW_LOOPS = "AdaptiveAuth.AllowLoops";
+
+        public static final String IDENTIFIER_AS_USERNAME = "LoginIdentifiers.enableIdentifierAsDisplayUsername";
     }
 
     /**
@@ -431,6 +458,8 @@ public class IdentityConstants {
                 "PassiveSTS.EnableDefaultSignatureAndDigestAlgorithm";
         public static final String PASSIVE_STS_LOGOUT_WREPLY_VALIDATION =
                 "PassiveSTS.EnableLogoutWreplyValidation";
+        public static final String PASSIVE_STS_ENABLE_CLAIM_DESCRIPTION_IN_ATTRIBUTE_NAME =
+                "PassiveSTS.EnableClaimDescriptionInAttributeName";
     }
 
     /**

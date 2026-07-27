@@ -19,9 +19,10 @@
 package org.wso2.carbon.identity.action.execution.util;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
-import org.wso2.carbon.identity.action.execution.model.Operation;
-import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
+import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
+import org.wso2.carbon.identity.action.execution.api.model.Operation;
+import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
+import org.wso2.carbon.identity.action.execution.internal.util.OperationComparator;
 
 import java.util.Arrays;
 
@@ -41,6 +42,19 @@ public class OperationComparatorTest {
         performableOp.setOp(Operation.ADD);
         performableOp.setPath("/accessToken/claims/-");
         performableOp.setValue("testValue");
+
+        assertTrue(OperationComparator.compare(allowedOp, performableOp));
+    }
+
+    @Test
+    public void testCompareMatchingOperationAndBasePathForRedirectOperation() {
+
+        AllowedOperation allowedOp = new AllowedOperation();
+        allowedOp.setOp(Operation.REDIRECT);
+
+        PerformableOperation performableOp = new PerformableOperation();
+        performableOp.setOp(Operation.REDIRECT);
+        performableOp.setUrl("https://test.com");
 
         assertTrue(OperationComparator.compare(allowedOp, performableOp));
     }

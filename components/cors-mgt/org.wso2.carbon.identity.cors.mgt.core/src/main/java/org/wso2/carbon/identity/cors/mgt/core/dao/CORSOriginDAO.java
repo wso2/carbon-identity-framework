@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.dao;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceServerException;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
@@ -43,6 +44,19 @@ public interface CORSOriginDAO {
      */
     List<CORSOrigin> getCORSOriginsByTenantId(int tenantId)
             throws CORSManagementServiceServerException;
+
+    /**
+     * Get the CORS origins by tenant domain.
+     *
+     * @param tenantDomain The tenant domain.
+     * @return List of CORS origins belonging to the tenant.
+     * @throws CORSManagementServiceServerException
+     */
+    default List<CORSOrigin> getCORSOriginsByTenantDomain(String tenantDomain)
+            throws CORSManagementServiceServerException {
+
+        throw new NotImplementedException();
+    }
 
     /**
      * Get the CORS origins of a tenant that are associated with a specific application by application ID.

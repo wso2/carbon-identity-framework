@@ -21,18 +21,22 @@ package org.wso2.carbon.identity.application.common.model;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
+import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_2FA;
+import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_CUSTOM;
+
 /**
  * The user defined local authenticator configuration model.
  */
 public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfig {
 
-    private static final String TAG_2FA = "2FA";
-    private static final String TAG_CUSTOM = "CUSTOM";
-
-    protected UserDefinedAuthenticatorEndpointConfig endpointConfig;
+    private AuthenticationType authenticationType;
+    private UserDefinedAuthenticatorEndpointConfig endpointConfig;
+    private String imageUrl;
+    private String description;
 
     public UserDefinedLocalAuthenticatorConfig(AuthenticationType type) {
 
+        authenticationType = type;
         definedByType = DefinedByType.USER;
         if (AuthenticationType.VERIFICATION == type) {
             setTags(new String[]{TAG_CUSTOM, TAG_2FA});
@@ -42,7 +46,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Get the endpoint configurations of the User defined local authenticator config.
+     * Get the endpoint configurations of the user defined local authenticator config.
      *
      * @return UserDefinedAuthenticatorEndpointConfig
      */
@@ -52,12 +56,72 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Set the endpoint configurations of the User defined local authenticator config.
+     * Set the endpoint configurations of the user defined local authenticator config.
      *
-     * @param endpointConfig    The endpoint config of the User defined local authenticator config.
+     * @param endpointConfig    The endpoint config of the user defined local authenticator config.
      */
     public void setEndpointConfig(UserDefinedAuthenticatorEndpointConfig endpointConfig) {
 
         this.endpointConfig = endpointConfig;
+    }
+
+    /**
+     * Get the authentication type of the user defined local authenticator config.
+     *
+     * @return AuthenticationType.
+     */
+    public AuthenticationType getAuthenticationType() {
+
+        return authenticationType;
+    }
+
+    /**
+     * Set the authentication type of the user defined local authenticator config.
+     *
+     * @param authenticationType    The authentication type of the user defined local authenticator config.
+     */
+    public void setAuthenticationType(AuthenticationType authenticationType) {
+
+        this.authenticationType = authenticationType;
+    }
+
+    /**
+     * Get the image url of the local authenticator config.
+     *
+     * @return Image
+     */
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    /**
+     * Set the image url of the local authenticator config.
+     *
+     * @param imageUrl The image of the local authenticator config.
+     */
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
+    }
+
+    /**
+     * Get the description of the local authenticator config.
+     *
+     * @return Description
+     */
+    public String getDescription() {
+
+        return description;
+    }
+
+    /**
+     * Set the description of the local authenticator config.
+     *
+     * @param description The description of the local authenticator config.
+     */
+    public void setDescription(String description) {
+
+        this.description = description;
     }
 }

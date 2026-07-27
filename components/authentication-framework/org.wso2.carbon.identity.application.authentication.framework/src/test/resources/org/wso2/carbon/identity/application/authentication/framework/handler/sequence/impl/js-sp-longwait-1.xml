@@ -84,8 +84,19 @@ var onLoginRequest = function(context) {
     //TODO remove this executeStep and make it to work.
     executeStep(1);
     testLongWaitCall('a', 'b', 'c', {}, {
-            "onSuccess" : function(){Log.info('OK Called');
-        }
+            "onSuccess" : function(context, data)
+                {
+                    Log.info('OK Called');
+                    if (data.arrayKey[0].key1 !== 'value1') {
+                        fail();
+                    }
+                    if (data.listKey[0].key3 !== 'value3') {
+                        fail();
+                    }
+                    if (context.request.params.stringAttribute !== 'stringAttributeValue' || context.request.params.arrayAttribute[0] !== 'arrayValue1') {
+                        fail();
+                    }
+                }
     });
 };
 ]]></AuthenticationScript>

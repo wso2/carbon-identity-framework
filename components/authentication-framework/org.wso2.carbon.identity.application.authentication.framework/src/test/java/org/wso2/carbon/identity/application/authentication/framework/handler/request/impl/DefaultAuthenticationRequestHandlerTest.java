@@ -28,12 +28,14 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -51,7 +53,9 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -534,6 +538,188 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         FrameworkServiceDataHolder.getInstance().setPostAuthenticationMgtService(postAuthenticationMgtService);
+    }
+
+    @Test(description = "Test concludeFlow throws FrameworkException when tenant domains mismatch for non-shared user")
+    public void testConcludeFlowThrowsOnTenantMismatchForNonSharedUser() throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            AuthenticationContext context = new AuthenticationContext();
+            context.setContextIdentifier("test-context-id");
+            context.setRequestAuthenticated(true);
+            context.setTenantDomain("sp-tenant.com");
+
+            SequenceConfig sequenceConfig = new SequenceConfig();
+            ApplicationConfig applicationConfig =
+                    new ApplicationConfig(new ServiceProvider(), SUPER_TENANT_DOMAIN_NAME);
+            applicationConfig.getServiceProvider().setSaasApp(false);
+            sequenceConfig.setApplicationConfig(applicationConfig);
+
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setAuthenticatedSubjectIdentifier("admin");
+            authenticatedUser.setUserId("user-id-1");
+            authenticatedUser.setTenantDomain("user-tenant.com");
+            authenticatedUser.setSharedUser(false);
+            sequenceConfig.setAuthenticatedUser(authenticatedUser);
+
+            context.setSequenceConfig(sequenceConfig);
+            context.initializeAnalyticsData();
+
+            frameworkUtils.when(
+                    FrameworkUtils::getStepBasedSequenceHandler).thenReturn(new DefaultStepBasedSequenceHandler());
+
+            HttpServletRequest req = spy(HttpServletRequest.class);
+            mockHttpRequestAttributes(req);
+
+            boolean exceptionThrown = false;
+            try {
+                authenticationRequestHandler.concludeFlow(req, response, context);
+            } catch (FrameworkException e) {
+                exceptionThrown = true;
+            }
+            assertTrue(exceptionThrown, "FrameworkException should be thrown for tenant domain mismatch " +
+                    "with non-shared user");
+        }
+    }
+
+    @Test(description = "Test concludeFlow does NOT throw for tenant mismatch when user is a shared user")
+    public void testConcludeFlowAllowsTenantMismatchForSharedUser() throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            AuthenticationContext context = new AuthenticationContext();
+            context.setContextIdentifier("test-context-id");
+            context.setRequestAuthenticated(true);
+            context.setTenantDomain("sp-tenant.com");
+            context.setCallerSessionKey("test-session-key");
+            context.setCallerPath("/commonauth");
+            context.setRequestType("oauth2");
+
+            SequenceConfig sequenceConfig = new SequenceConfig();
+            ServiceProvider sp = new ServiceProvider();
+            sp.setLocalAndOutBoundAuthenticationConfig(new LocalAndOutboundAuthenticationConfig());
+            ApplicationConfig applicationConfig = new ApplicationConfig(sp, SUPER_TENANT_DOMAIN_NAME);
+            applicationConfig.getServiceProvider().setSaasApp(false);
+            sequenceConfig.setApplicationConfig(applicationConfig);
+
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setAuthenticatedSubjectIdentifier("admin");
+            authenticatedUser.setUserId("user-id-1");
+            authenticatedUser.setTenantDomain("user-tenant.com");
+            authenticatedUser.setSharedUser(true);
+            sequenceConfig.setAuthenticatedUser(authenticatedUser);
+
+            context.setSequenceConfig(sequenceConfig);
+            context.initializeAnalyticsData();
+
+            setPostAuthnMgtService();
+            addPostAuthnHandler();
+            frameworkUtils.when(
+                    FrameworkUtils::getStepBasedSequenceHandler).thenReturn(new DefaultStepBasedSequenceHandler());
+            frameworkUtils.when(FrameworkUtils::getCacheDisabledAuthenticators)
+                    .thenReturn(new ArrayList<>());
+
+            HttpServletRequest req = spy(HttpServletRequest.class);
+            mockHttpRequestAttributes(req);
+
+            boolean exceptionThrown = false;
+            try {
+                authenticationRequestHandler.concludeFlow(req, response, context);
+            } catch (FrameworkException e) {
+                exceptionThrown = true;
+            }
+            assertFalse(exceptionThrown, "FrameworkException should NOT be thrown for tenant domain mismatch "
+                    + "when user is a shared user");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, AuthenticatedIdPData> invokeMergeAuthenticatedIdPs(
+            Map<String, AuthenticatedIdPData> previous,
+            Map<String, AuthenticatedIdPData> current) throws Exception {
+
+        Method method = DefaultAuthenticationRequestHandler.class.getDeclaredMethod(
+                "mergeAuthenticatedIdPs", Map.class, Map.class);
+        method.setAccessible(true);
+        return (Map<String, AuthenticatedIdPData>) method.invoke(
+                new DefaultAuthenticationRequestHandler(), previous, current);
+    }
+
+    private AuthenticatedIdPData buildAuthenticatedIdPData(String idpName, String... authenticatorNames) {
+
+        AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+        authenticatedIdPData.setIdpName(idpName);
+        authenticatedIdPData.setUser(new AuthenticatedUser());
+        List<AuthenticatorConfig> authenticators = new ArrayList<>();
+        for (String authenticatorName : authenticatorNames) {
+            authenticators.add(new AuthenticatorConfig(authenticatorName, true, null));
+        }
+        authenticatedIdPData.setAuthenticators(authenticators);
+        return authenticatedIdPData;
+    }
+
+    private List<String> authenticatorNames(AuthenticatedIdPData authenticatedIdPData) {
+
+        List<String> names = new ArrayList<>();
+        for (AuthenticatorConfig authenticatorConfig : authenticatedIdPData.getAuthenticators()) {
+            names.add(authenticatorConfig.getName());
+        }
+        return names;
+    }
+
+    @Test(description = "Test merging a federated IDP with the local IDP keeps only the local IDP.")
+    public void testMergeAuthenticatedIdPsWithDisjointIdPs() throws Exception {
+
+        Map<String, AuthenticatedIdPData> previous = new HashMap<>();
+        previous.put("LOCAL", buildAuthenticatedIdPData("LOCAL", "BasicAuthenticator"));
+        Map<String, AuthenticatedIdPData> current = new HashMap<>();
+        current.put("FederatedIdP", buildAuthenticatedIdPData("FederatedIdP", "OpenIDConnectAuthenticator"));
+
+        Map<String, AuthenticatedIdPData> merged = invokeMergeAuthenticatedIdPs(previous, current);
+
+        assertEquals(merged.size(), 1);
+        assertTrue(merged.containsKey("LOCAL"));
+        assertFalse(merged.containsKey("FederatedIdP"));
+        assertNotNull(merged.get("LOCAL"));
+    }
+
+    @Test(description = "Merging IdP maps that share an IdP appends only the authenticators not already present.")
+    public void testMergeAuthenticatedIdPsAppendsMissingAuthenticators() throws Exception {
+
+        Map<String, AuthenticatedIdPData> previous = new HashMap<>();
+        previous.put("LOCAL", buildAuthenticatedIdPData("LOCAL", "BasicAuthenticator"));
+        Map<String, AuthenticatedIdPData> current = new HashMap<>();
+        // Same IdP with a duplicate authenticator and a new authenticator.
+        current.put("LOCAL", buildAuthenticatedIdPData("LOCAL", "BasicAuthenticator", "TOTPAuthenticator"));
+
+        Map<String, AuthenticatedIdPData> merged = invokeMergeAuthenticatedIdPs(previous, current);
+
+        assertEquals(merged.size(), 1);
+        List<String> mergedAuthenticators = authenticatorNames(merged.get("LOCAL"));
+        assertEquals(mergedAuthenticators.size(), 2, "Duplicate authenticator should not be added twice.");
+        assertTrue(mergedAuthenticators.contains("BasicAuthenticator"));
+        assertTrue(mergedAuthenticators.contains("TOTPAuthenticator"));
+    }
+
+    @Test(description = "Merging handles null and empty authenticated IdP maps gracefully.")
+    public void testMergeAuthenticatedIdPsWithNullAndEmptyMaps() throws Exception {
+
+        Map<String, AuthenticatedIdPData> current = new HashMap<>();
+        current.put("LOCAL", buildAuthenticatedIdPData("LOCAL", "BasicAuthenticator"));
+
+        // Previous map is null.
+        Map<String, AuthenticatedIdPData> merged = invokeMergeAuthenticatedIdPs(null, current);
+        assertEquals(merged.size(), 1);
+        assertTrue(merged.containsKey("LOCAL"));
+
+        // Both maps empty/null.
+        Map<String, AuthenticatedIdPData> emptyMerge = invokeMergeAuthenticatedIdPs(null, new HashMap<>());
+        assertTrue(emptyMerge.isEmpty());
     }
 }
 

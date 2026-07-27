@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,17 +21,22 @@ package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
@@ -45,12 +50,15 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.api.AuthorizationManager;
@@ -66,14 +74,16 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -82,15 +92,19 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.common.testng.TestConstants.USER_DOMAIN_PRIMARY;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
@@ -101,11 +115,27 @@ public class RoleDAOTest {
 
     private static final int SAMPLE_TENANT_ID = 1;
     private static final String SAMPLE_TENANT_DOMAIN = "wso2.com";
+    private static final String L1_ORG_TENANT_DOMAIN = "test-org-001";
+    private static final String L1_ORG_TENANT_ORG_ID = "test-org-id-001";
     private static final String SAMPLE_ORG_ID = "test-org-id";
+    private static final String SAMPLE_SUB_ORG_TENANT_DOMAIN = "wso2123.com";
     private static final String SAMPLE_APP_ID = "test-app-id";
+    private static final String SHARED_APP_ID_OF_SAMPLE_APP = "test-app-id-2";
     private static final String DB_NAME = "ROLE_DB";
-    private static final String ORGANIZATION_AUD  = "organization";
-    private static final String APPLICATION_AUD  = "application";
+    private static final String ORGANIZATION_AUD = "organization";
+    private static final String APPLICATION_AUD = "application";
+    private static final String SHARED_ROLE_NAME = "sharing-org-role-with-permission-001";
+    private static final String SHARED_ORG_ROLE_NAME = "sharing-org-role-001";
+    private static final String SHARED_ORG_ROLE_NAME_2 = "sharing-org-role-200";
+    private static final String UPDATED_SHARED_ORG_ROLE_NAME = "new-sharing-org-role-001";
+    private static final String SUB_ORG_ROLE_NAME = "sub-org-role-200";
+    private static final String MOCKED_EXCEPTION = "Mocked Exception";
+    private static final String ROLE_PROPERTIES = "properties";
+    private static final String IS_SHARED_ROLE = "isSharedRole";
+    private static final String IS_FRAGMENT_APP = "isFragmentApp";
+    private static final String SHARED_APP_ROLE_NAME = "shared-app-role-name-01";
+    private static final String SHARED_APP_ID = "shared-app-id";
+
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private List<String> userNamesList = new ArrayList<>();
     private List<String> groupNamesList = new ArrayList<>();
@@ -123,11 +153,38 @@ public class RoleDAOTest {
     private MockedStatic<UserCoreUtil> userCoreUtil;
     private MockedStatic<UserRolesCache> userRolesCache;
     private MockedStatic<AuthorizationCache> authorizationCache;
+    private MockedStatic<RoleManagementUtils> roleManagementUtils;
 
     @Mock
     UserRealm mockUserRealm;
 
     MockedStatic<OrganizationManagementUtil> organizationManagementUtil;
+
+    @BeforeClass
+    public void classSetUp() {
+
+        roleManagementUtils = mockStatic(RoleManagementUtils.class);
+        roleManagementUtils.when(() -> RoleManagementUtils.getOrganizationId(SAMPLE_TENANT_DOMAIN))
+                .thenReturn(SAMPLE_ORG_ID);
+        roleManagementUtils.when(() -> RoleManagementUtils.getOrganizationId(L1_ORG_TENANT_DOMAIN))
+                .thenReturn(L1_ORG_TENANT_ORG_ID);
+        roleManagementUtils.when(() -> RoleManagementUtils.removeInternalDomain(anyString()))
+                .thenAnswer(invocation -> {
+                    String input = invocation.getArgument(0, String.class);
+                    if (input.startsWith("Internal/") || input.startsWith("INTERNAL/")) {
+                        return input.substring(input.indexOf("/") + 1);
+                    }
+                    return input;
+                });
+        roleManagementUtils.when(() -> RoleManagementUtils.getEveryOneRoleName(anyString()))
+                .thenReturn("Internal/everyone");
+    }
+
+    @AfterClass
+    public void classTearDown() {
+
+        roleManagementUtils.close();
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -221,6 +278,33 @@ public class RoleDAOTest {
     }
 
     @Test
+    public void testAddAppRoleToFragmentApp() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        // Mock the threadLocalProperties static variable.
+        Map<String, Object> mockThreadLocalProperties = new HashMap<>();
+        mockThreadLocalProperties.put(IS_FRAGMENT_APP, Boolean.TRUE.toString());
+        IdentityUtil.threadLocalProperties.set(mockThreadLocalProperties);
+        // Add role to a fragment application. WHen doing this we need to stop adding the role to the
+        // application mapping.
+        RoleBasicInfo sharedRoleBasicInfo = addRole(SHARED_APP_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID, roleDAO);
+        List<String> appIDs = roleDAO.getAssociatedApplicationIdsByRoleId(sharedRoleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN);
+        // The role should not be associated with any application.
+        assertTrue(appIDs.isEmpty());
+        // Assert the thread local properties to check whether the IS_FRAGMENT_APP is removed.
+        assertFalse(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
+    }
+
+    @Test
     public void testAddRoles() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
@@ -294,6 +378,96 @@ public class RoleDAOTest {
     }
 
     @Test
+    public void testGetRolesWithRequiredAttributes() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(2), ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+
+        identityUtil.when(IdentityUtil::getDefaultItemsPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE);
+        identityUtil.when(IdentityUtil::getMaximumItemPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
+
+        List<String> requiredAttributes = new ArrayList<>();
+        requiredAttributes.add(ROLE_PROPERTIES);
+        List<Role> roles = roleDAO.getRoles(10, 1, null, null, SAMPLE_TENANT_DOMAIN, requiredAttributes);
+        assertEquals(roles.size(), 3);
+        for (Role role : roles) {
+            assertNotNull(role.getRoleProperties());
+            assertEquals(role.getRoleProperties().get(0).getName(), IS_SHARED_ROLE);
+            assertEquals(role.getRoleProperties().get(0).getValue(), Boolean.FALSE.toString());
+        }
+    }
+
+    @Test
+    public void testGetRoleById() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+
+        RoleBasicInfo roleBasicInfo = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+
+        mockRealmConfiguration();
+        Role role = roleDAO.getRole(roleBasicInfo.getId(), SAMPLE_TENANT_DOMAIN);
+        assertEquals(roleBasicInfo.getId(), role.getId());
+        assertEquals(role.getRoleProperties().get(0).getName(), IS_SHARED_ROLE);
+        assertEquals(role.getRoleProperties().get(0).getValue(), Boolean.FALSE.toString());
+    }
+
+    @Test
+    public void testGetRoleByIdWithSharedRole() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Constructing a shared role scenario
+        RoleBasicInfo roleBasicInfo = addRole(SHARED_ORG_ROLE_NAME, ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_TENANT_DOMAIN)).thenReturn(2);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(2)).thenReturn(L1_ORG_TENANT_DOMAIN);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        lenient().when(organizationManager.resolveOrganizationId(anyString())).thenReturn(SAMPLE_ORG_ID);
+        RoleBasicInfo sharedRoleBasicInfo = addRole(SHARED_ORG_ROLE_NAME, ORGANIZATION_AUD,
+                L1_ORG_TENANT_ORG_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(roleBasicInfo.getId(), sharedRoleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN, L1_ORG_TENANT_DOMAIN);
+        organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(L1_ORG_TENANT_DOMAIN))
+                .thenReturn(true);
+        mockRealmConfiguration();
+        Role role = roleDAO.getRole(sharedRoleBasicInfo.getId(), L1_ORG_TENANT_DOMAIN);
+        assertEquals(sharedRoleBasicInfo.getId(), role.getId());
+        assertEquals(role.getRoleProperties().get(0).getName(), IS_SHARED_ROLE);
+        assertEquals(role.getRoleProperties().get(0).getValue(), Boolean.TRUE.toString());
+    }
+
+    @Test
     public void testGetRolesWithFilter() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
@@ -357,6 +531,50 @@ public class RoleDAOTest {
     }
 
     @Test
+    public void testDeleteRolesByApplicationAndReturnDeletedRoles() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.addDomainToName(anyString(), anyString())).thenCallRealMethod();
+
+        // Two roles associated with the application and one organization role that should not be deleted.
+        RoleBasicInfo appRole1 = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo appRole2 = addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(2), ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+        mockRealmConfiguration();
+
+        List<RoleBasicInfo> deletedRoles = roleDAO.deleteRolesByApplicationAndReturnRoles(SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN);
+
+        assertEquals(deletedRoles.size(), 2);
+        List<String> deletedRoleIds = deletedRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.toList());
+        assertTrue(deletedRoleIds.contains(appRole1.getId()));
+        assertTrue(deletedRoleIds.contains(appRole2.getId()));
+        // The deleted roles should carry their names.
+        List<String> deletedRoleNames = deletedRoles.stream().map(RoleBasicInfo::getName)
+                .collect(Collectors.toList());
+        assertTrue(deletedRoleNames.contains(roleNamesList.get(0)));
+        assertTrue(deletedRoleNames.contains(roleNamesList.get(1)));
+        assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN));
+        assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN));
+        // The organization role should remain intact.
+        assertTrue(roleDAO.isExistingRoleName(roleNamesList.get(2), ORGANIZATION_AUD, SAMPLE_ORG_ID,
+                SAMPLE_TENANT_DOMAIN));
+    }
+
+    @Test
     public void testGetPermissionListOfRole() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
@@ -374,6 +592,104 @@ public class RoleDAOTest {
         RoleBasicInfo role = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
         List<Permission> rolePermissions = roleDAO.getPermissionListOfRole(role.getId(), SAMPLE_TENANT_DOMAIN);
         Assert.assertEquals(getPermissionNameList(rolePermissions), getPermissionNameList(permissions));
+
+    }
+
+    @Test
+    public void testGetPermissionListOfSharedRole() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Constructing a shared role scenario
+        RoleBasicInfo roleBasicInfo = addRole(SHARED_ROLE_NAME, ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_TENANT_DOMAIN)).thenReturn(2);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(2)).thenReturn(L1_ORG_TENANT_DOMAIN);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        lenient().when(organizationManager.resolveOrganizationId(anyString())).thenReturn(SAMPLE_ORG_ID);
+        RoleBasicInfo sharedRoleBasicInfo = addRole(SHARED_ROLE_NAME, ORGANIZATION_AUD, L1_ORG_TENANT_ORG_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(roleBasicInfo.getId(), sharedRoleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN, L1_ORG_TENANT_DOMAIN);
+        organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(L1_ORG_TENANT_DOMAIN))
+                .thenReturn(true);
+
+        List<Permission> newPermissions = new ArrayList<>();
+        newPermissions.add(new Permission("view", "view"));
+        newPermissions.add(new Permission("update", "update"));
+        roleDAO.updatePermissionListOfRole(roleBasicInfo.getId(), newPermissions, permissions,
+                SAMPLE_TENANT_DOMAIN);
+
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(1)).thenReturn(SAMPLE_TENANT_DOMAIN);
+        List<Permission> sharedRolePermissions = roleDAO.getPermissionListOfRole(sharedRoleBasicInfo.getId(),
+                L1_ORG_TENANT_DOMAIN);
+        Assert.assertEquals(getPermissionNameList(sharedRolePermissions), getPermissionNameList(newPermissions));
+    }
+
+    @Test
+    public void testGetPermissionListOfRoles() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+        RoleBasicInfo role = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        List<String> roleIds = Arrays.asList(role.getId());
+        List<String> rolePermissions = roleDAO.getPermissionListOfRoles(roleIds, SAMPLE_TENANT_DOMAIN);
+        Assert.assertEquals(rolePermissions, getPermissionNameList(permissions));
+    }
+
+    @Test
+    public void testGetPermissionListOfSharedRolesInSubOrganization() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).
+                thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).
+                thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class))).
+                thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Constructing a shared role scenario
+        RoleBasicInfo roleBasicInfo = addRole("sharing-org-role-with-permission-001", APPLICATION_AUD,
+                SAMPLE_APP_ID, roleDAO);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SAMPLE_SUB_ORG_TENANT_DOMAIN)).thenReturn(2);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(2)).thenReturn(SAMPLE_SUB_ORG_TENANT_DOMAIN);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        lenient().when(organizationManager.resolveOrganizationId(anyString())).thenReturn(SAMPLE_ORG_ID);
+        RoleBasicInfo sharedRoleBasicInfo = addRole("sharing-org-role-with-permission-001", APPLICATION_AUD,
+                "test-app-id-3", SAMPLE_SUB_ORG_TENANT_DOMAIN, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(),
+                new ArrayList<>(), new HashMap<>(), roleDAO, true);
+        roleDAO.addMainRoleToSharedRoleRelationship(roleBasicInfo.getId(), sharedRoleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN, SAMPLE_SUB_ORG_TENANT_DOMAIN);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(1)).thenReturn(SAMPLE_TENANT_DOMAIN);
+
+        List<String> roleIds = Arrays.asList(sharedRoleBasicInfo.getId());
+        List<String> rolePermissions = roleDAO.getPermissionListOfRoles(roleIds, SAMPLE_SUB_ORG_TENANT_DOMAIN);
+        Assert.assertEquals(rolePermissions, getPermissionNameList(permissions));
     }
 
     @Test
@@ -498,6 +814,30 @@ public class RoleDAOTest {
     }
 
     @Test
+    public void testCountRolesForAFilter() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(2), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+
+        List<ExpressionNode> expressionNodes = getExpressionNodes("audienceId ne undefined");
+        int rolesCount = roleDAO.getRolesCount(expressionNodes, SAMPLE_TENANT_DOMAIN);
+        assertEquals(rolesCount, 3);
+    }
+
+    @Test
     public void testUpdateRoleName() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
@@ -520,6 +860,93 @@ public class RoleDAOTest {
 
         assertTrue(roleDAO.isExistingRoleName("newRole", APPLICATION_AUD, SAMPLE_APP_ID,
                 SAMPLE_TENANT_DOMAIN));
+
+    }
+
+    @Test
+    public void testUpdateSharedOrganizationRoleName() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Constructing a shared role scenario
+        RoleBasicInfo roleBasicInfo = addRole(SHARED_ORG_ROLE_NAME, ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_TENANT_DOMAIN)).thenReturn(2);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(2)).thenReturn(L1_ORG_TENANT_DOMAIN);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        lenient().when(organizationManager.resolveOrganizationId(anyString())).thenReturn(SAMPLE_ORG_ID);
+        RoleBasicInfo sharedRoleBasicInfo = addRole(SHARED_ORG_ROLE_NAME, ORGANIZATION_AUD,
+                L1_ORG_TENANT_ORG_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(roleBasicInfo.getId(), sharedRoleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN, L1_ORG_TENANT_DOMAIN);
+
+        // Updating role name of a shared organization audience role
+        roleDAO.updateRoleName(roleBasicInfo.getId(), UPDATED_SHARED_ORG_ROLE_NAME, ORGANIZATION_AUD);
+        RoleBasicInfo updatedRole = roleDAO.getRoleBasicInfoById(roleBasicInfo.getId(), SAMPLE_TENANT_DOMAIN);
+        assertEquals(updatedRole.getName(), UPDATED_SHARED_ORG_ROLE_NAME);
+
+        // Constructing a role exists scenario
+        RoleBasicInfo roleBasicInfo1 = addRole("sharing-org-role-100", ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+        assertThrows(IdentityRoleManagementClientException.class, () -> roleDAO.updateRoleName(roleBasicInfo1.getId(),
+                UPDATED_SHARED_ORG_ROLE_NAME, ORGANIZATION_AUD));
+    }
+
+    @Test
+    public void testUpdateRoleNameCauseForSharedRoleConflict() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+        // Constructing a shared role scenario
+        RoleBasicInfo roleBasicInfo = addRole(SHARED_ORG_ROLE_NAME_2, ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+        roleDAO.getRoleAudienceRefId(roleBasicInfo.getId(), SAMPLE_TENANT_DOMAIN);
+        RoleBasicInfo sharedRoleBasicInfo = addRole(SHARED_ORG_ROLE_NAME_2, ORGANIZATION_AUD,
+                L1_ORG_TENANT_ORG_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(roleBasicInfo.getId(), sharedRoleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN, L1_ORG_TENANT_DOMAIN);
+        addRole(SUB_ORG_ROLE_NAME, ORGANIZATION_AUD, L1_ORG_TENANT_ORG_ID, roleDAO);
+
+        // Updating role name of a shared organization audience role
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        RoleManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        lenient().when(organizationManager.resolveOrganizationId(anyString())).thenReturn(
+                L1_ORG_TENANT_ORG_ID);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_TENANT_DOMAIN)).thenReturn(2);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                .thenReturn(L1_ORG_TENANT_DOMAIN);
+
+        // Mocking isExistingRoleName method to return true for the first call and false for the second call
+        AtomicInteger callCount = new AtomicInteger(0);
+        doAnswer(invocation -> {
+            if (callCount.incrementAndGet() == 2) {
+                return true;
+            }
+            return false;
+        }).when(roleDAO).isExistingRoleName(anyString(), anyString(), anyString(), anyString());
+        MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(LoggerUtils::isEnableV2AuditLogs).thenReturn(true);
+
+        roleDAO.updateRoleName(roleBasicInfo.getId(), SUB_ORG_ROLE_NAME, SAMPLE_TENANT_DOMAIN);
+        loggerUtils.close();
     }
 
     @Test
@@ -626,7 +1053,7 @@ public class RoleDAOTest {
     }
 
     @Test
-    public void testGetRoleIdListOfUser() throws Exception {
+    public void testGetRoleIdListOfUserWithCaseSensitiveUsername() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
         mockCacheClearing(roleDAO);
@@ -637,6 +1064,8 @@ public class RoleDAOTest {
                 .thenAnswer(invocation -> getConnection());
         identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
         identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityUtil.when(() -> IdentityUtil.isUserStoreInUsernameCaseSensitive(anyString(), anyInt()))
+                .thenReturn(true);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
         userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
                 .thenReturn(false);
@@ -647,7 +1076,34 @@ public class RoleDAOTest {
         addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
         addRole("everyone", ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
         List<String> roles = roleDAO.getRoleIdListOfUser("userID1", SAMPLE_TENANT_DOMAIN);
-        assertEquals(roles.size(), 3);
+        assertEquals(roles.size(), 2);
+    }
+
+    @Test
+    public void testGetRoleIdListOfUserWithCaseInsensitiveUsername() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        mockRealmConfiguration();
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityUtil.when(() -> IdentityUtil.isUserStoreInUsernameCaseSensitive(anyString(), anyInt()))
+                .thenReturn(false);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.addDomainToName(anyString(), anyString())).thenCallRealMethod();
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole("everyone", ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+        List<String> roles = roleDAO.getRoleIdListOfUser("userID1", SAMPLE_TENANT_DOMAIN);
+        assertEquals(roles.size(), 2);
     }
 
     @Test
@@ -728,10 +1184,10 @@ public class RoleDAOTest {
         userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
                 .thenReturn(false);
         userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
-            addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
-            roleDAO.deleteRolesByApplication(SAMPLE_APP_ID, SAMPLE_TENANT_DOMAIN);
-            assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
-                    SAMPLE_TENANT_DOMAIN));
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        roleDAO.deleteRolesByApplication(SAMPLE_APP_ID, SAMPLE_TENANT_DOMAIN);
+        assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN));
     }
 
     @Test
@@ -760,6 +1216,49 @@ public class RoleDAOTest {
     }
 
     @Test
+    public void testGetUserListOfRoles() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityUtil.when(IdentityUtil::getDefaultItemsPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE);
+        identityUtil.when(IdentityUtil::getMaximumItemPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.addDomainToName(anyString(), anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Add roles with users.
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+
+        mockRealmConfiguration();
+
+        // Create filter expression nodes for role name filtering.
+        List<ExpressionNode> expressionNodes = getExpressionNodes("name eq " + roleNamesList.get(0));
+
+        // Test getUserListOfRoles with filter.
+        List<UserBasicInfo> users = roleDAO.getUserListOfRoles(expressionNodes, 10, 0, null, null,
+                SAMPLE_TENANT_DOMAIN, USER_DOMAIN_PRIMARY);
+
+        // Verify that the users are retrieved correctly.
+        assertNotNull(users);
+        assertEquals(users.size(), userNamesList.size());
+
+        String firstUser = users.get(0).getName();
+        String secondUser = users.get(1).getName();
+        assert userNamesList.contains(firstUser);
+        assert userNamesList.contains(secondUser);
+    }
+
+    @Test
     void testIsValidSubOrgPermission() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
@@ -782,6 +1281,101 @@ public class RoleDAOTest {
 
         // Test case: permission starts with CONSOLE_SCOPE_PREFIX
         assertFalse((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "console:applications"));
+    }
+
+    @Test(expectedExceptions = IdentityRoleManagementServerException.class)
+    public void testGetSharedRoleToMainRoleMappingsBySubOrgFailure() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+
+        // Adding main roles and shared roles
+        RoleBasicInfo mainRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_SUB_ORG_TENANT_DOMAIN);
+
+        // Mocking the NamedPreparedStatement to throw SQLException
+        NamedPreparedStatement namedPreparedStatement = mock(NamedPreparedStatement.class);
+        doThrow(new SQLException(MOCKED_EXCEPTION)).when(namedPreparedStatement).executeQuery();
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+
+        try (MockedConstruction<NamedPreparedStatement> mocked = mockConstruction(NamedPreparedStatement.class,
+                (mock, context) -> {
+                    doThrow(new SQLException(MOCKED_EXCEPTION)).when(mock).executeQuery();
+                })) {
+            // Test with valid UUIDs but simulated SQLException
+            List<String> sharedRoleUUIDs = new ArrayList<>();
+            sharedRoleUUIDs.add(sharedRole.getId());
+
+            // Invoking the method, expecting IdentityRoleManagementServerException
+            roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+        }
+    }
+
+    @Test
+    public void testGetSharedRoleToMainRoleMappingsBySubOrg() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+        Object[][] testCases = sharedRoleToMainRoleMappingsProvider(roleDAO);
+
+        for (Object[] testCase : testCases) {
+            assertRoleMappings(testCase, roleDAO);
+        }
+    }
+
+    private Object[][] sharedRoleToMainRoleMappingsProvider(RoleDAOImpl roleDAO) throws Exception {
+
+        RoleBasicInfo mainRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
+
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_SUB_ORG_TENANT_DOMAIN);
+
+        return new Object[][]{
+                // Test with shared role (should return the mapping for the shared role)
+                {Collections.singletonList(sharedRole.getId()), mainRole.getId(), 1},
+                // Test with main role (should return an empty mapping)
+                {Collections.singletonList(mainRole.getId()), mainRole.getId(), 0},
+                // Test with shared and main roles (should return the mapping only for the shared role)
+                {Arrays.asList(sharedRole.getId(), mainRole.getId()), mainRole.getId(), 1},
+                // Test with no shared or main roles (should return an empty mapping)
+                {Collections.emptyList(), mainRole.getId(), 0}
+        };
+    }
+
+    private void assertRoleMappings(Object[] testCase, RoleDAOImpl roleDAO) throws Exception {
+
+        @SuppressWarnings("unchecked")
+        List<String> sharedRoleUUIDs = (List<String>) testCase[0];
+        String expectedMainRoleId = (String) testCase[1];
+        int expectedMappingsCount = (int) testCase[2];
+
+        Map<String, String> roleMappings =
+                roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+
+        assertEquals(expectedMappingsCount, roleMappings.size(), "Unexpected number of role mappings");
+        if (!sharedRoleUUIDs.isEmpty() && roleMappings.containsKey(sharedRoleUUIDs.get(0))) {
+            assertEquals(expectedMainRoleId, roleMappings.get(sharedRoleUUIDs.get(0)),
+                    "Unexpected main role ID for shared role");
+        }
+    }
+
+    private RoleDAOImpl setupRoleDaoImpl() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+        return roleDAO;
     }
 
     private List<String> getUserNamesList(List<UserBasicInfo> users) {
@@ -816,9 +1410,46 @@ public class RoleDAOTest {
         if ("everyone".equals(roleName)) {
             return roleDAO.addRole(roleName, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), audience,
                     audienceId, SAMPLE_TENANT_DOMAIN);
+        } else if (L1_ORG_TENANT_ORG_ID.equals(audienceId)) {
+            return roleDAO.addRole(roleName, userIDsList, groupIDsList, permissions, audience, audienceId,
+                    L1_ORG_TENANT_DOMAIN);
         } else {
             return roleDAO.addRole(roleName, userIDsList, groupIDsList, permissions, audience, audienceId,
                     SAMPLE_TENANT_DOMAIN);
+        }
+    }
+
+    private RoleBasicInfo addRole(String roleName, String audience, String audienceId, String tenantDomain,
+                                  List<Permission> permissions, List<String> userIDsList, List<String> userNamesList,
+                                  List<String> groupIDsList, Map<String, String> groupNamesMap, RoleDAOImpl roleDAO,
+                                  boolean isOrganization) throws Exception {
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        RoleManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        lenient().when(organizationManager.getOrganizationNameById(anyString())).thenReturn("test-org");
+        lenient().when(organizationManager.resolveOrganizationId(anyString())).thenReturn(tenantDomain);
+        organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyString())).
+                thenReturn(isOrganization);
+        UserIDResolver userIDResolver = mock(UserIDResolver.class);
+        setPrivateFinalField(RoleDAOImpl.class, "userIDResolver", roleDAO, userIDResolver);
+        when(userIDResolver.getNamesByIDs(anyList(), anyString())).thenReturn(userNamesList);
+        if (!userIDsList.isEmpty()) {
+            lenient().when(userIDResolver.getNameByID(eq(userIDsList.get(0)), anyString()))
+                    .thenReturn(userNamesList.get(0));
+            lenient().when(userIDResolver.getNameByID(eq(userIDsList.get(1)), anyString()))
+                    .thenReturn(userNamesList.get(1));
+        }
+
+        GroupIDResolver groupIDResolver = mock(GroupIDResolver.class);
+        setPrivateFinalField(RoleDAOImpl.class, "groupIDResolver", roleDAO, groupIDResolver);
+        when(groupIDResolver.getNamesByIDs(anyList(), anyString())).thenReturn(groupNamesMap);
+
+        if ("everyone".equals(roleName)) {
+            return roleDAO.addRole(roleName, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), audience,
+                    audienceId, tenantDomain);
+        } else {
+            return roleDAO.addRole(roleName, userIDsList, groupIDsList, permissions, audience, audienceId,
+                    tenantDomain);
         }
     }
 
@@ -845,10 +1476,9 @@ public class RoleDAOTest {
 
         CarbonContext mockCarbonContext = mock(CarbonContext.class);
         carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
-        when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+        lenient().when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
         RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
-        when(mockUserRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
-        lenient().when(realmConfiguration.getEveryOneRoleName()).thenReturn("Internal/everyone");
+        lenient().when(mockUserRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
     }
 
     private List<String> getRoleNamesList(List<RoleBasicInfo> roles) {
@@ -877,6 +1507,7 @@ public class RoleDAOTest {
         }
         return ids.stream().sorted().collect(Collectors.toList());
     }
+
     private void initializeDataSource(String scriptPath) throws Exception {
 
         BasicDataSource dataSource = new BasicDataSource();
@@ -892,6 +1523,7 @@ public class RoleDAOTest {
     }
 
     private String getFilePath(String fileName) {
+
         if (StringUtils.isNotBlank(fileName)) {
             return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", fileName)
                     .toString();
@@ -905,6 +1537,8 @@ public class RoleDAOTest {
                 + "(1,'PRIMARY',-1234), (2,'SYSTEM',-1234), (3,'INTERNAL',-1234), (4,'APPLICATION',-1234), "
                 + "(5,'WORKFLOW',-1234), (6,'PRIMARY',1), (7,'SYSTEM',1), (8,'INTERNAL',1), (9,'APPLICATION',1), "
                 + "(10,'WORKFLOW',1)";
+        String audienceRefDataSQL = "INSERT INTO UM_HYBRID_ROLE_AUDIENCE (UM_AUDIENCE, UM_AUDIENCE_ID) VALUES " +
+                "('organization','test-org-id'), ('organization', 'test-org-id-001')";
         String aPIResourceSQL = "INSERT INTO API_RESOURCE (ID, NAME, IDENTIFIER, TENANT_ID, DESCRIPTION, TYPE," +
                 " REQUIRES_AUTHORIZATION) VALUES (1,'DOC','DOC',1,'DOC','RBAC',true);";
         String scopeSQL = "INSERT INTO SCOPE (ID,API_ID,NAME,DISPLAY_NAME,TENANT_ID,DESCRIPTION) VALUES " +
@@ -912,13 +1546,15 @@ public class RoleDAOTest {
                 ", (4,1,'update','update',1,'update')";
         String spAppSQL = "INSERT INTO SP_APP (ID, TENANT_ID, APP_NAME, USER_STORE, USERNAME, AUTH_TYPE, UUID) " +
                 "VALUES (1, 1, 'TEST_APP_NAME','TEST_USER_STORE', 'TEST_USERNAME', 'TEST_AUTH_TYPE', 'test-app-id'), " +
-                "(2, 1, 'TEST_APP_NAME2','TEST_USER_STORE', 'TEST_USERNAME', 'TEST_AUTH_TYPE', 'test-app-id-2')";
+                "(2, 1, 'TEST_APP_NAME2','TEST_USER_STORE', 'TEST_USERNAME', 'TEST_AUTH_TYPE', 'test-app-id-2'), " +
+                "(3, 2, 'TEST_APP_NAME','TEST_USER_STORE', 'TEST_USERNAME', 'TEST_AUTH_TYPE', 'test-app-id-3')";
         String idpSQL = "INSERT INTO IDP (ID, TENANT_ID, NAME, UUID) VALUES (1, 1, 'TEST_IDP_NAME', 'test-idp-id');";
         String idpGroupSQL = "INSERT INTO IDP_GROUP (ID, IDP_ID, TENANT_ID, GROUP_NAME, UUID) VALUES " +
                 "(1, 1, 1, 'group1', 'test-group1-id'), (2, 1, 1, 'group2', 'test-group2-id');";
 
         try (Connection connection = getConnection()) {
             connection.createStatement().executeUpdate(domainDataSQL);
+            connection.createStatement().executeUpdate(audienceRefDataSQL);
             connection.createStatement().executeUpdate(aPIResourceSQL);
             connection.createStatement().executeUpdate(scopeSQL);
             connection.createStatement().executeUpdate(spAppSQL);
@@ -931,6 +1567,7 @@ public class RoleDAOTest {
     }
 
     private Connection getConnection() throws Exception {
+
         if (dataSourceMap.get(RoleDAOTest.DB_NAME) != null) {
             return dataSourceMap.get(RoleDAOTest.DB_NAME).getConnection();
         }
@@ -985,16 +1622,41 @@ public class RoleDAOTest {
         }
     }
 
+    /**
+     * Set a private final field using reflection (compatible with Java 12+).
+     * Uses Unsafe API to modify static final fields.
+     *
+     * @param clazz     The class containing the field.
+     * @param fieldName The field name.
+     * @param instance  The instance (null for static fields).
+     * @param value     The value to set.
+     * @throws NoSuchFieldException   If the field doesn't exist.
+     * @throws IllegalAccessException If the field cannot be accessed.
+     */
     public void setPrivateFinalField(Class clazz, String fieldName, Object instance, Object value)
             throws NoSuchFieldException, IllegalAccessException {
 
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
 
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        try {
+            // Use Unsafe to modify static final fields in Java 12+
+            Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+            unsafeField.setAccessible(true);
+            sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
 
-        field.set(instance, value);
+            if (instance == null) {
+                // Static field
+                Object fieldBase = unsafe.staticFieldBase(field);
+                long fieldOffset = unsafe.staticFieldOffset(field);
+                unsafe.putObject(fieldBase, fieldOffset, value);
+            } else {
+                // Instance field
+                long fieldOffset = unsafe.objectFieldOffset(field);
+                unsafe.putObject(instance, fieldOffset, value);
+            }
+        } catch (Exception e) {
+            throw new IllegalAccessException("Unable to set field using Unsafe: " + e.getMessage());
+        }
     }
 }

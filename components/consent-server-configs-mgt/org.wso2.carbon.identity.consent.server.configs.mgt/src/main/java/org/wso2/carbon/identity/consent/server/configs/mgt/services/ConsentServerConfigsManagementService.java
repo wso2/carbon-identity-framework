@@ -34,4 +34,15 @@ public interface ConsentServerConfigsManagementService {
     */
     String getExternalConsentPageUrl(String tenantDomain) throws ConsentServerConfigsMgtException;
 
+    /**
+     * Method to check whether the external consent page is enforced at the organization level.
+     * When enforced, the external consent page is used regardless of the application-level
+     * useExternalConsentPage configuration.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return True if the external consent page is enforced at the organization level.
+     * @throws ConsentServerConfigsMgtException If an error occurred while checking the enforcement.
+     */
+    boolean isExternalConsentPageEnforced(String tenantDomain) throws ConsentServerConfigsMgtException;
+
 }

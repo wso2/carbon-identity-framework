@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -54,6 +54,8 @@ public class SQLConstants {
     public static final String API_RESOURCE_PROPERTY_ID_COLUMN_NAME = "PROPERTY_ID";
     public static final String API_RESOURCE_PROPERTY_NAME_COLUMN_NAME = "PROPERTY_NAME";
     public static final String API_RESOURCE_PROPERTY_VALUE_COLUMN_NAME = "PROPERTY_VALUE";
+    public static final String AUTHORIZATION_DETAILS_TYPE_COLUMN_NAME = "TYPE";
+    public static final String AUTHORIZATION_DETAILS_SCHEMA_COLUMN_NAME = "JSON_SCHEMA";
 
     // Placeholders.
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
@@ -124,6 +126,11 @@ public class SQLConstants {
             " S.DESCRIPTION AS SCOPE_DESCRIPTION" +
             " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE AR.ID = ? AND (AR.TENANT_ID = ?" +
             " OR AR.TENANT_ID IS NULL)";
+
+    /**
+     * @deprecated Logic moved to service layer. Use {@link #GET_API_RESOURCE_BY_ID} instead.
+     */
+    @Deprecated
     public static final String GET_API_RESOURCE_BY_ID_FOR_ORGANIZATIONS = "SELECT" +
             " AR.ID AS API_RESOURCE_ID," +
             " AR.NAME AS API_RESOURCE_NAME," +
@@ -168,9 +175,13 @@ public class SQLConstants {
             " WHERE ID = ?";
     public static final String UPDATE_SCOPE_METADATA = "UPDATE SCOPE SET DISPLAY_NAME  = ?, DESCRIPTION  = ? " +
             "WHERE NAME = ? AND TENANT_ID = ?";
+    public static final String UPDATE_SCOPE_METADATA_BY_ID = "UPDATE SCOPE SET DISPLAY_NAME  = ?, DESCRIPTION  = ? " +
+            "WHERE ID = ? AND TENANT_ID = ?";
     public static final String IS_SCOPE_EXIST_BY_ID = "SELECT ID FROM SCOPE WHERE ID = ? AND TENANT_ID = ?";
     public static final String GET_SCOPE_BY_NAME = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, TENANT_ID "
             + "FROM SCOPE WHERE NAME = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL)";
+    public static final String GET_SCOPE_BY_NAME_AND_API_ID = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, " +
+            "TENANT_ID FROM SCOPE WHERE NAME = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL) AND API_ID = ?";
     public static final String GET_SCOPE_BY_NAME_API_ID = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, " +
             "TENANT_ID FROM SCOPE WHERE NAME = ? AND API_ID = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL)";
     public static final String GET_SCOPES_BY_TENANT_ID = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, " +
@@ -183,6 +194,7 @@ public class SQLConstants {
     public static final String GET_SCOPES_BY_TENANT_ID_FOR_ORGANIZATIONS_TAIL = "(AR.TENANT_ID = ? OR AR.TENANT_ID " +
             "IS NULL) AND TYPE NOT IN ('TENANT', 'SYSTEM', 'CONSOLE_FEATURE')";
     public static final String DELETE_SCOPE_BY_NAME = "DELETE FROM SCOPE WHERE NAME = ? AND TENANT_ID = ?";
+    public static final String DELETE_SCOPE_BY_ID = "DELETE FROM SCOPE WHERE ID = ? AND TENANT_ID = ?";
     public static final String GET_API_RESOURCE_PROPERTIES_BY_API_ID = "SELECT ID, NAME, VALUE FROM " +
             "API_RESOURCE_PROPERTY WHERE API_ID = ?";
     public static final String GET_API_RESOURCE_PROPERTIES_BY_API_ID_H2 = "SELECT ID, NAME, `VALUE` FROM " +
@@ -205,4 +217,32 @@ public class SQLConstants {
             " S.DESCRIPTION AS SCOPE_DESCRIPTION" +
             " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE (S.TENANT_ID = ? " +
             "OR S.TENANT_ID IS NULL) AND S.NAME IN (" + SCOPE_LIST_PLACEHOLDER + ")";
+
+    public static final String ADD_AUTHORIZATION_DETAILS_TYPE = "INSERT INTO AUTHORIZATION_DETAILS_TYPES" +
+            " (ID, TYPE, API_ID, NAME, DESCRIPTION, JSON_SCHEMA, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public static final String GET_AUTHORIZATION_DETAILS_TYPE_BY_TYPE =
+            "SELECT ID, TYPE, API_ID, NAME, DESCRIPTION, JSON_SCHEMA, TENANT_ID" +
+            " FROM AUTHORIZATION_DETAILS_TYPES WHERE TYPE = ? AND TENANT_ID = ?";
+    public static final String GET_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE =
+            "SELECT ID, TYPE, API_ID, NAME, DESCRIPTION, JSON_SCHEMA, TENANT_ID" +
+            " FROM AUTHORIZATION_DETAILS_TYPES WHERE API_ID = ? AND TYPE = ? AND TENANT_ID = ?";
+    public static final String GET_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE_ID =
+            "SELECT ID, TYPE, API_ID, NAME, DESCRIPTION, JSON_SCHEMA, TENANT_ID" +
+            " FROM AUTHORIZATION_DETAILS_TYPES WHERE API_ID = ? AND ID = ? AND TENANT_ID = ?";
+    public static final String GET_AUTHORIZATION_DETAILS_TYPE_BY_API_ID =
+            "SELECT ID, TYPE, API_ID, NAME, DESCRIPTION, JSON_SCHEMA, TENANT_ID" +
+            " FROM AUTHORIZATION_DETAILS_TYPES WHERE API_ID = ? AND TENANT_ID = ?";
+    public static final String GET_AUTHORIZATION_DETAILS_TYPE_BY_TENANT_ID_FORMAT =
+            "SELECT ID, TYPE, API_ID, NAME, DESCRIPTION, JSON_SCHEMA, TENANT_ID" +
+            " FROM AUTHORIZATION_DETAILS_TYPES WHERE %s %s";
+    public static final String DELETE_AUTHORIZATION_DETAILS_TYPE_BY_API_ID = "DELETE FROM AUTHORIZATION_DETAILS_TYPES" +
+            " WHERE API_ID = ? AND ( TENANT_ID = ? OR TENANT_ID IS NULL)";
+    public static final String DELETE_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE_ID =
+            "DELETE FROM AUTHORIZATION_DETAILS_TYPES" +
+            " WHERE API_ID = ? AND ID = ? AND ( TENANT_ID = ? OR TENANT_ID IS NULL)";
+    public static final String DELETE_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE =
+            "DELETE FROM AUTHORIZATION_DETAILS_TYPES" +
+            " WHERE API_ID = ? AND TYPE = ? AND ( TENANT_ID = ? OR TENANT_ID IS NULL)";
+    public static final String UPDATE_AUTHORIZATION_DETAILS_TYPES = "UPDATE AUTHORIZATION_DETAILS_TYPES" +
+            " SET NAME = ?, TYPE = ?, DESCRIPTION = ?, JSON_SCHEMA = ? WHERE API_ID = ? AND ID = ? AND TENANT_ID = ?";
 }

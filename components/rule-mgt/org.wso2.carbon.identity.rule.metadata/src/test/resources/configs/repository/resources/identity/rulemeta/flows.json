@@ -1,0 +1,104 @@
+{
+  "preIssueAccessToken": [
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType",
+      "overrides": {
+        "value": {
+          "values": [
+            {
+              "name": "authorization_code",
+              "displayName": "authorization code"
+            },
+            {
+              "name": "password",
+              "displayName": "password"
+            },
+            {
+              "name": "refresh_token",
+              "displayName": "refresh token"
+            },
+            {
+              "name": "client_credentials",
+              "displayName": "client credentials"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "preIssueIdToken": [
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType",
+      "overrides": {
+        "value": {
+          "values": [
+            {
+              "name": "authorization_code",
+              "displayName": "authorization code"
+            },
+            {
+              "name": "password",
+              "displayName": "password"
+            },
+            {
+              "name": "refresh_token",
+              "displayName": "refresh token"
+            },
+            {
+              "name": "organization_switch",
+              "displayName": "organization switch"
+            },
+            {
+              "name": "urn:ietf:params:oauth:grant-type:device_code",
+              "displayName": "device code"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "preUpdatePassword": [
+    {
+      "fieldName": "flow",
+      "overrides": {
+        "field": {
+          "displayName": "flow"
+        },
+        "value": {
+          "values": [
+            {
+              "name": "admin_initiated_password_reset",
+              "displayName": "Admin initiated password reset"
+            },
+            {
+              "name": "admin_initiated_password_update",
+              "displayName": "Admin initiated password update"
+            },
+            {
+              "name": "admin_initiated_user_invite_to_set_password",
+              "displayName": "Admin initiated user invite to set password"
+            },
+            {
+              "name": "application_initiated_password_update",
+              "displayName": "Application initiated password update"
+            },
+            {
+              "name": "user_initiated_password_reset",
+              "displayName": "User initiated password reset"
+            },
+            {
+              "name": "user_initiated_password_update",
+              "displayName": "User initiated password update"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

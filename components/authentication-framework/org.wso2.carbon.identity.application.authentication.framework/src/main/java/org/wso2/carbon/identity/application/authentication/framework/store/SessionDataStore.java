@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,16 +70,25 @@ public class SessionDataStore {
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED, EXPIRY_TIME) " +
                     "VALUES (?,?,?,?,?)";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK =
-            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID in (" +
-                    "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "')";
+            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_STORE +
+                    "' AND EXISTS (" +
+                        "SELECT 1 FROM IDN_AUTH_SESSION_STORE DELETE_OP " +
+                        "WHERE DELETE_OP.OPERATION = '" + OPERATION_DELETE + "' " +
+                        "AND IDN_AUTH_SESSION_STORE.SESSION_ID = DELETE_OP.SESSION_ID " +
+                        "AND IDN_AUTH_SESSION_STORE.TIME_CREATED < DELETE_OP.TIME_CREATED)";
 
     private static final String SQL_DELETE_TEMP_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE EXPIRY_TIME < ?";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL =
-            "DELETE IDN_AUTH_SESSION_STORE_DELETE FROM IDN_AUTH_SESSION_STORE IDN_AUTH_SESSION_STORE_DELETE WHERE " +
-                    "OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID IN (SELECT SESSION_ID FROM " +
-                    "(SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "') " +
-                    "IDN_AUTH_SESSION_STORE_SELECT)";
+            "DELETE FROM IDN_AUTH_SESSION_STORE STORE_OP WHERE OPERATION = '" + OPERATION_STORE + "'" +
+                    "AND SESSION_ID IN (" +
+                        "SELECT STORE_OP.SESSION_ID FROM (" +
+                            "SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE DELETE_OP " +
+                            "WHERE OPERATION = '" + OPERATION_DELETE + "' " +
+                            "AND STORE_OP.SESSION_ID = SESSION_ID " +
+                            "AND STORE_OP.TIME_CREATED < DELETE_OP.TIME_CREATED" +
+                        ") AS STORE_OP" +
+                    ");";
     private static final String SQL_DELETE_DELETE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "' AND  EXPIRY_TIME < ?";
     private static final String SQL_DELETE_TEMP_RECORDS =
@@ -85,21 +97,61 @@ public class SessionDataStore {
     private static final String SQL_DESERIALIZE_OBJECT_MYSQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_BY_OPERATION_MYSQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_DB2SQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_DB2SQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
     private static final String SQL_DESERIALIZE_OBJECT_MSSQL =
             "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_MSSQL =
+            "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC";
     private static final String SQL_DESERIALIZE_OBJECT_POSTGRESQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_POSTGRESQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_INFORMIX =
             "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE " +
                     "WHERE SESSION_ID =? AND " +
                     "SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_INFORMIX =
+            "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE " +
+                    "WHERE SESSION_ID =? AND " +
+                    "SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_ORACLE =
             "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED " +
+                    "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
+                    "SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_ORACLE =
+            "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED " +
+                    "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
+                    "SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
+    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MYSQL =
+            "SELECT OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_DB2SQL =
+            "SELECT OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
+    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MSSQL =
+            "SELECT TOP 1 OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC";
+    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_POSTGRESQL =
+            "SELECT OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_INFORMIX =
+            "SELECT FIRST 1 OPERATION FROM IDN_AUTH_SESSION_STORE " +
+                    "WHERE SESSION_ID =? AND " +
+                    "SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_ORACLE =
+            "SELECT * FROM (SELECT OPERATION " +
                     "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
                     "SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
 
@@ -127,6 +179,10 @@ public class SessionDataStore {
     private static final String INFORMIX_DATABASE = "Informix";
 
     private static final int DEFAULT_DELETE_LIMIT = 50000;
+    private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 250;
+    private static final String BATCH_INSERT_CHUNK_SIZE_PROPERTY =
+            "JDBCPersistenceManager.SessionDataPersist.BatchInsertChunkSize";
+    private static int batchInsertChunkSize = DEFAULT_BATCH_INSERT_CHUNK_SIZE;
     public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
@@ -142,13 +198,16 @@ public class SessionDataStore {
     private String sqlDeleteTempDataTask;
     private String sqlDeleteDELETETask;
     private String sqlSelect;
+    private String sqlOperationSelect;
     private String sqlDeleteExpiredDataTask;
+    private String sqlGetLastOperation;
     private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
     private static boolean tempDataCleanupEnabled = false;
     private static boolean periodicTempDataCleanupEnabled = true;
     private static boolean sessionAndTempDataSeparationEnabled = false;
+    private static boolean checkExistingEntryForDeleteOperationInsert = false;
 
     static {
         try {
@@ -292,6 +351,30 @@ public class SessionDataStore {
                     sessionCleanupPeriod);
             sessionCleanUpService.activateCleanUp();
         }
+
+        String checkExistingEntryForDeleteOperationInsertProperty = IdentityUtil.getProperty(
+                "JDBCPersistenceManager.SessionDataPersist.CheckExistingEntryForDeleteOperationInsert");
+        if (StringUtils.isNotBlank(checkExistingEntryForDeleteOperationInsertProperty)) {
+            checkExistingEntryForDeleteOperationInsert = Boolean.parseBoolean(
+                    checkExistingEntryForDeleteOperationInsertProperty);
+        }
+
+        String batchInsertChunkSizeValue = IdentityUtil.getProperty(BATCH_INSERT_CHUNK_SIZE_PROPERTY);
+        if (StringUtils.isNotBlank(batchInsertChunkSizeValue)) {
+            try {
+                int parsedChunkSize = Integer.parseInt(batchInsertChunkSizeValue);
+                if (parsedChunkSize > 0) {
+                    batchInsertChunkSize = parsedChunkSize;
+                } else {
+                    log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
+                            + batchInsertChunkSizeValue + ". Value must be positive. Using default: "
+                            + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
+                }
+            } catch (NumberFormatException e) {
+                log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
+                        + batchInsertChunkSizeValue + ". Using default: " + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
+            }
+        }
     }
 
     public static SessionDataStore getInstance() {
@@ -310,12 +393,21 @@ public class SessionDataStore {
         return sessionContextDO != null ? sessionContextDO.getEntry() : null;
     }
 
-    public SessionContextDO getSessionContextData(String key, String type) {
+    /**
+     * Get session data for a given key, type and operation.
+     *
+     * @param key       Key
+     * @param type      Type
+     * @param operation Operation
+     * @return Session data object
+     */
+    public Object getSessionData(String key, String type, String operation) {
 
-        return getSessionContextDataByOperation(key, type, OPERATION_STORE);
+        SessionContextDO sessionContextDO = getSessionContextData(key, type, operation);
+        return sessionContextDO != null ? sessionContextDO.getEntry() : null;
     }
 
-    private SessionContextDO getSessionContextDataByOperation(String key, String type, String requiredOperation) {
+    public SessionContextDO getSessionContextData(String key, String type) {
 
         if (log.isDebugEnabled()) {
             log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type);
@@ -359,12 +451,12 @@ public class SessionDataStore {
             if (resultSet.next()) {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
-                if (StringUtils.equalsIgnoreCase(requiredOperation, operation)) {
+                if (StringUtils.equalsIgnoreCase(OPERATION_STORE, operation)) {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
-                IdentityApplicationManagementException e) {
+                 IdentityApplicationManagementException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while retrieving session data", e);
             }
@@ -372,6 +464,134 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
         return null;
+    }
+
+    /**
+     * Get Session context data for a given key, type and operation.
+     *
+     * @param key       Key
+     * @param type      Type
+     * @param operation Operation
+     * @return SessionContextDO
+     */
+    public SessionContextDO getSessionContextData(String key, String type, String operation) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type + " operation : " +
+                    operation);
+        }
+        if (!enablePersist) {
+            return null;
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+            if (StringUtils.isBlank(sqlOperationSelect)) {
+                String driverName = connection.getMetaData().getDriverName();
+                if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
+                        || driverName.contains(H2_DATABASE)) {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_BY_OPERATION_MYSQL;
+                } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_DB2SQL;
+                } else if (driverName.contains(MS_SQL_DATABASE)
+                        || driverName.contains(MICROSOFT_DATABASE)) {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_MSSQL;
+                } else if (driverName.contains(POSTGRESQL_DATABASE)) {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_POSTGRESQL;
+                } else if (driverName.contains(INFORMIX_DATABASE)) {
+                    // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_INFORMIX;
+                } else {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_ORACLE;
+                }
+            }
+            try (PreparedStatement preparedStatement = connection.prepareStatement(
+                    getSessionStoreDBQuery(sqlOperationSelect, type))) {
+                preparedStatement.setString(1, key);
+                preparedStatement.setString(2, type);
+                preparedStatement.setString(3, operation);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        long nanoTime = resultSet.getLong(3);
+                        return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
+                 IdentityApplicationManagementException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving session data", e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Validate last operation performed on the session data with given key and type.
+     *
+     * @param key               Session data key.
+     * @param type              Session data type.
+     * @param requiredOperation Required operation to validate.
+     * @return True if the last operation is same as the required operation.
+     */
+    public boolean validateLastOperationOnSessionData(String key, String type, String requiredOperation) {
+
+        if (!enablePersist) {
+            return false;
+        }
+        Connection connection = null;
+        try {
+            connection = IdentityDatabaseUtil.getSessionDBConnection(false);
+        } catch (IdentityRuntimeException e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        try {
+            if (StringUtils.isBlank(sqlGetLastOperation)) {
+                sqlGetLastOperation = getSqlGetLastOperation(connection);
+            }
+            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlGetLastOperation, type));
+            preparedStatement.setString(1, key);
+            preparedStatement.setString(2, type);
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                String operation = resultSet.getString(1);
+                if (StringUtils.equalsIgnoreCase(requiredOperation, operation)) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while checking session data", e);
+            }
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
+        return false;
+    }
+
+    private String getSqlGetLastOperation(Connection connection) throws SQLException {
+
+        String sqlGetLastOperationQuery;
+        String driverName = connection.getMetaData().getDriverName();
+        if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
+                || driverName.contains(H2_DATABASE)) {
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MYSQL;
+        } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_DB2SQL;
+        } else if (driverName.contains(MS_SQL_DATABASE)
+                || driverName.contains(MICROSOFT_DATABASE)) {
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MSSQL;
+        } else if (driverName.contains(POSTGRESQL_DATABASE)) {
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_POSTGRESQL;
+        } else if (driverName.contains(INFORMIX_DATABASE)) {
+            // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_INFORMIX;
+        } else {
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_ORACLE;
+        }
+        return sqlGetLastOperationQuery;
     }
 
     public void storeSessionData(String key, String type, Object entry) {
@@ -400,6 +620,124 @@ public class SessionDataStore {
             sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
         } else {
             removeSessionData(key, type, nanoTime);
+        }
+    }
+
+    /**
+     * Clears session data for a batch of keys (e.g., bulk OAuth token cache eviction).
+     * JDBC batching is engaged only when the async persist pool is disabled. When the async pool is enabled, keys are
+     * enqueued individually to preserve ordering with concurrent single-key writes;
+     * batching the async path is a follow-up.
+     *
+     * @param keys List of session data keys to clear.
+     * @param type The session data type.
+     */
+    public void clearSessionDataBatch(List<String> keys, String type) {
+
+        if (!enablePersist || keys == null || keys.isEmpty()) {
+            return;
+        }
+        long nanoTime = FrameworkUtils.getCurrentStandardNano();
+        if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key)) {
+                    sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
+                }
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Enqueued " + keys.size() + " SessionContextData entries to async persist queue. type: "
+                        + type);
+            }
+        } else {
+            removeSessionDataBatch(keys, type, nanoTime);
+            if (log.isDebugEnabled()) {
+                log.debug("Submitted " + keys.size() + " SessionContextData entries for synchronous batch removal. "
+                        + "type: " + type);
+            }
+        }
+    }
+
+    /**
+     * Removes session data for a batch of keys using JDBC batch operations. Each key gets a DELETE marker row
+     * inserted into the session store.
+     *
+     * @param keys     List of session data keys to remove.
+     * @param type     The session data type.
+     * @param nanoTime The operation timestamp in nanoseconds.
+     */
+    private void removeSessionDataBatch(List<String> keys, String type, long nanoTime) {
+
+        if (!enablePersist || keys == null || keys.isEmpty()) {
+            return;
+        }
+
+        if (tempDataCleanupEnabled && maxTempDataPoolSize > 0 && isTempCache(type)) {
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key)) {
+                    tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
+                }
+            }
+            return;
+        }
+
+        // Filter out keys that already have a DELETE marker, consistent with the single-key
+        // removeSessionData path. This is a per-key DB query, so it is only applied when
+        // checkExistingEntryForDeleteOperationInsert is explicitly enabled.
+        if (checkExistingEntryForDeleteOperationInsert) {
+            List<String> filteredKeys = new ArrayList<>();
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key) &&
+                        !validateLastOperationOnSessionData(key, type, OPERATION_DELETE)) {
+                    filteredKeys.add(key);
+                }
+            }
+            keys = filteredKeys;
+            if (keys.isEmpty()) {
+                return;
+            }
+        }
+
+        Connection connection = null;
+        try {
+            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
+        } catch (IdentityRuntimeException e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
+        PreparedStatement preparedStatement = null;
+        long timeoutNano = nanoTime + getCleanupTimeout(type, MultitenantConstants.INVALID_TENANT_ID);
+        try {
+            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlInsertDELETE, type));
+            int count = 0;
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key)) {
+                    preparedStatement.setString(1, key);
+                    preparedStatement.setString(2, type);
+                    preparedStatement.setString(3, OPERATION_DELETE);
+                    preparedStatement.setLong(4, nanoTime);
+                    preparedStatement.setLong(5, timeoutNano);
+                    preparedStatement.addBatch();
+                    count++;
+                    if (count % batchInsertChunkSize == 0) {
+                        preparedStatement.executeBatch();
+                        IdentityDatabaseUtil.commitTransaction(connection);
+                    }
+                }
+            }
+            if (count % batchInsertChunkSize != 0) {
+                preparedStatement.executeBatch();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Batch removed " + count + " SessionContextData entries from DB. type: " + type);
+            }
+        } catch (Exception e) {
+            // Only the current uncommitted chunk is rolled back. Previously committed chunks
+            // remain, matching the original per-entry commit semantics of removeSessionData.
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            log.error("Error while storing batch DELETE operation session data.", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
     }
 
@@ -572,7 +910,8 @@ public class SessionDataStore {
             tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
             return;
         }
-        if (getSessionContextDataByOperation(key, type, OPERATION_DELETE) != null) {
+        if (checkExistingEntryForDeleteOperationInsert &&
+                validateLastOperationOnSessionData(key, type, OPERATION_DELETE)) {
             return;
         }
 
@@ -638,6 +977,11 @@ public class SessionDataStore {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
+    }
+
+    public boolean isSessionDataCleanupEnabled() {
+
+        return sessionDataCleanupEnabled;
     }
 
     private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
@@ -736,7 +1080,13 @@ public class SessionDataStore {
             return TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout());
         } else if (tenantId != MultitenantConstants.INVALID_TENANT_ID) {
             String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-            return TimeUnit.SECONDS.toNanos(IdPManagementUtil.getRememberMeTimeout(tenantDomain));
+            int timeout = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
+            Optional<Integer> maximumSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+            if (maximumSessionTimeout.isPresent()) {
+                // Get the max value from remember me timeout and maximum session timeout to set the validity period.
+                timeout = Math.max(timeout, maximumSessionTimeout.get());
+            }
+            return TimeUnit.SECONDS.toNanos(timeout);
         } else {
             return TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
         }

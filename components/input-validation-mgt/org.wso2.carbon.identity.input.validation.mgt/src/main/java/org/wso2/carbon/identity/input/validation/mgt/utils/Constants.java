@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -51,6 +51,11 @@ public class Constants {
             }});
     public static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
     public static final String SUPER_TENANT_DOMAIN = "carbon.super";
+    public static final String PW_POLICY_HANDLER_ENABLED = "PasswordPolicy.PasswordPolicyValidationHandler.Enable";
+    public static final String PW_POLICY_ENABLE = "passwordPolicy.enable";
+    public static final String PW_POLICY_MIN_LENGTH = "passwordPolicy.min.length";
+    public static final String PW_POLICY_MAX_LENGTH = "passwordPolicy.max.length";
+    public static final String PW_POLICY_PATTERN = "passwordPolicy.pattern";
 
     /**
      * Class contains the configuration related constants.
@@ -69,6 +74,7 @@ public class Constants {
         public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
         public static final String ENABLE_VALIDATOR = "enable.validator";
         public static final String ENABLE_SPECIAL_CHARACTERS = "enable.special.characters";
+        public static final String MAX_PASSWORD_ALLOWED_LENGTH = "PasswordPolicy.MaxPasswordAllowedLength";
 
         // Keys for password regEx validation.
         public static final String JS_REGEX = "regex";
@@ -82,14 +88,31 @@ public class Constants {
         public static final String ALPHANUMERIC_REGEX_PATTERN_WITH_SPECIAL_CHARACTERS =
                 "^(?=.*[a-zA-Z])[a-zA-Z0-9!@#$&'+\\\\=^_.{|}~-]+$";
         public static final String DEFAULT_EMAIL_JAVA_REGEX_PATTERN =
-            "(^[\\u00C0-\\u00FFa-zA-Z0-9](?:(?![!#$'+=^_.{|}~\\-&]{2})[\\u00C0-\\u00FF\\w!#$'+=^_.{|}~\\-&]" +
-                    "){0,63}(?=[\\u00C0-\\u00FFa-zA-Z0-9_]).\\@(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}" +
-                    "(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10})";
+                "^" +
+                // Local-part: dot-atom format with restricted special characters including accented letters.
+                "(?=.{1,64}@)" +  // Local-part length limit check.
+                "[\\u00C0-\\u00FFa-zA-Z0-9!#$'+=^_{|}~&-]+" +  // Start with non-dot character
+                // (including accented letters).
+                "(?:\\.[\\u00C0-\\u00FFa-zA-Z0-9!#$'+=^_{|}~&-]+)*" +  // Additional dot-separated atoms.
+                // (including accented letters).
+                "@" +
+                // Domain: using original EmailValidator pattern for consistency.
+                "(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}" +  // Domain body.
+                "(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10}" +  // Domain ending.
+                "$";
         public static final String DEFAULT_EMAIL_JS_REGEX_PATTERN =
-            "(^[\\u00C0-\\u00FFa-zA-Z0-9](?:(?![!#$'+=^_.{|}~\\-&]{2})[\\u00C0-\\u00FF\\w!#$'+=^_.{|}~\\-&]" +
-                    "){0,63}(?=[\\u00C0-\\u00FFa-zA-Z0-9_]).\\@(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}" +
-                    "(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10})";
-
+                "^" +
+                // Local-part: dot-atom format with restricted special characters including accented letters.
+                "(?=.{1,64}@)" +  // Local-part length limit check.
+                "[\\u00C0-\\u00FFa-zA-Z0-9!#$'+=^_{|}~&-]+" +  // Start with non-dot character
+                // (including accented letters).
+                "(?:\\.[\\u00C0-\\u00FFa-zA-Z0-9!#$'+=^_{|}~&-]+)*" +  // Additional dot-separated atoms
+                // (including accented letters).
+                "@" +
+                // Domain: using original EmailValidator pattern for consistency.
+                "(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}" +  // Domain body.
+                "(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10}" +  // Domain ending.
+                "$";
         public static final String INPUT_VALIDATION_DEFAULT_VALIDATOR = "InputValidation.DefaultUserNameValidator";
 
         public static final String ALPHA_NUMERIC = "alphaNumeric";
@@ -186,6 +209,10 @@ public class Constants {
         ERROR_INVALID_VALIDATORS_COMBINATION("60027",
                 "INVALID VALIDATOR COMBINATION",
                 "Invalid validators combination is provided for field %s."),
+        ERROR_INVALID_ATTRIBUTE_VALUE_TYPE("60028", "INVALID VALUE FOR ATTRIBUTE",
+                "Attribute '%s' expects a value of type '%s'."),
+        ERROR_NOT_ALLOWED_ATTRIBUTE_VALUE("60029", "NOT ALLOWED VALUE FOR ATTRIBUTE",
+                "Invalid value '%s' for claim '%s'. Allowed values are: %s"),
 
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
@@ -196,7 +223,10 @@ public class Constants {
                 "Error occurred while adding the input validation configurations for the tenant: %s"),
         ERROR_WHILE_UPDATING_CONFIGURATIONS("65003",
                 "Unable to update configurations.",
-                "Error occurred while updating the input validation configurations for the tenant: %s");
+                "Error occurred while updating the input validation configurations for the tenant: %s"),
+        ERROR_WHILE_DELETING_CONFIGURATIONS("65004",
+                "Unable to delete configurations.",
+                "Error occurred while deleting the input validation configurations for the tenant: %s");
 
 
         private final String code;

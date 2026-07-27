@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,17 +21,26 @@ package org.wso2.carbon.identity.api.resource.mgt;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementConfigBuilder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
-import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 
-@WithH2Database(files = {"dbscripts/h2.sql"})
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+@WithRealmService
+@WithH2Database(files = {"dbscripts/h2.sql"})
 public class APIResourceManagementUtilTest {
 
     private APIResourceManager apiResourceManager;
@@ -40,15 +49,31 @@ public class APIResourceManagementUtilTest {
     private static final String CONSOLE_ORG_FEATURE_API = "CONSOLE_ORG_LEVEL";
 
     @BeforeClass
-    public void setUp() throws IdentityEventException {
+    public void setUp() throws Exception {
 
         apiResourceManager = APIResourceManagerImpl.getInstance();
+
+        // System APIs are registered under tenant id 0 (tenant-agnostic), invalidating the scope metadata cache
+        // under tenant 0. The shared test TenantManager maps every tenant id to "carbon.super", collapsing tenant 0
+        // and the super tenant into one owner-guarded cache region and triggering a cross-tenant SecurityException.
+        // Give each tenant id its own domain (as a real deployment does) so each tenant gets its own cache region.
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getTenantId(anyString())).thenReturn(MultitenantConstants.SUPER_TENANT_ID);
+        when(tenantManager.getDomain(anyInt())).thenAnswer(invocation -> {
+            int id = invocation.getArgument(0);
+            return id == MultitenantConstants.SUPER_TENANT_ID
+                    ? MultitenantConstants.SUPER_TENANT_DOMAIN_NAME : "tenant-" + id;
+        });
+        IdentityTenantUtil.setRealmService(realmService);
 
         // Trigger API resource configuration loading.
         APIResourceManagementConfigBuilder.getInstance();
 
         // Trigger System API register function on server startup.
         APIResourceManagementUtil.addSystemAPIs();
+        APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
     }
 
     @Test
@@ -85,5 +110,34 @@ public class APIResourceManagementUtilTest {
         apiResource = apiResourceManager.getAPIResourceByIdentifier(ORG_LEVEL_SERVER_CONFIG_API,
                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         Assert.assertEquals(ORGANIZATION_LEVEL_API, apiResource.getType());
+    }
+
+    @Test
+    void testIsSystemAPI_WithBusinessType() {
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("BUSINESS"));
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("business"));
+    }
+
+    @Test
+    void testIsSystemAPI_WithSystemType() {
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("SYSTEM"));
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("system"));
+    }
+
+    @Test
+    void testIsSystemAPI_WithMCPType() {
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("MCP"));
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("mcp"));
+    }
+
+    @Test
+    void testIsSystemAPI_WithUnknownType() {
+        Assert.assertTrue(APIResourceManagementUtil.isSystemAPI("INTERNAL"));
+        Assert.assertTrue(APIResourceManagementUtil.isSystemAPI("custom"));
+    }
+
+    @Test
+    void testIsSystemAPI_WithNullType() {
+        Assert.assertTrue(APIResourceManagementUtil.isSystemAPI(null));
     }
 }

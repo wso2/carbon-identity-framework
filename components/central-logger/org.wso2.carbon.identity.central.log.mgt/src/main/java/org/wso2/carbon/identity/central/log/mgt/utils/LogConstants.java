@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -99,6 +99,8 @@ public class LogConstants {
         public static final String GET_USER_CLAIM_VALUES_ACTION = "get-user-claim-values";
         public static final String UPDATE_USERS_OF_GROUP_ACTION = "update-users-of-group";
         public static final String UPDATE_GROUPS_OF_USER_ACTION = "update-groups-of-user";
+        public static final String CREATE_FEDERATED_USER_ASSOCIATION = "create-federated-user-association";
+        public static final String DELETE_FEDERATED_USER_ASSOCIATION = "delete-federated-user-association";
 
         public static final String ADD_GROUP_ACTION = "add-group";
         public static final String GET_GROUP_ACTION = "get-group";
@@ -158,5 +160,46 @@ public class LogConstants {
         public static final String ADDED_PERMISSIONS_FIELD = "AddedPermissions";
         public static final String DELETED_PERMISSIONS_FIELD = "DeletedPermissions";
         public static final String DELETED_IDP_GROUPS_FIELD = "DeletedIdpGroups";
+    }
+
+    /**
+     * Flow management related log constants.
+     */
+    public static class FlowManagement {
+
+        public static final String UPDATE_FLOW = "update-flow-";
+        public static final String UPDATE_FLOW_CONFIG = "update-flow-config-";
+        public static final String DELETE_FLOW = "delete-flow-";
+
+        private FlowManagement() {
+
+        }
+    }
+
+    /**
+     * Outbound provisioning related log constants.
+     */
+    public static class OutboundProvisioning {
+
+        public static final String OUTBOUND_PROVISIONING_COMPONENT = "outbound-provisioning";
+
+        public static final String EXECUTE_OUTBOUND_PROVISIONING = "execute-outbound-provisioning";
+        public static final String RESOLVE_PROVISIONING_CONNECTORS = "resolve-provisioning-connectors";
+        public static final String DETERMINE_PROVISIONING_OPERATION = "determine-provisioning-operation";
+        public static final String CHECK_PROVISIONING_ELIGIBILITY = "check-provisioning-eligibility";
+        public static final String PROVISION_USER = "provision-user";
+        public static final String PROVISION_GROUP = "provision-group";
+
+        public static final String CONNECTION = "connection";
+        public static final String CONNECTOR_TYPE = "connector-type";
+        public static final String PROVISIONING_OPERATION = "provisioning-operation";
+        public static final String ENTITY_TYPE = "entity-type";
+        public static final String ENTITY_NAME = "entity-name";
+        public static final String JIT_PROVISIONING = "jit-provisioning";
+        public static final String PROVISIONED_IDENTIFIER = "provisioned-identifier";
+
+        private OutboundProvisioning() {
+
+        }
     }
 }

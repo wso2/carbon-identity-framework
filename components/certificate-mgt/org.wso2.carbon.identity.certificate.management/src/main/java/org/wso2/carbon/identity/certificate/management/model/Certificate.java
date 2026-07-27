@@ -50,6 +50,11 @@ public class Certificate {
         return certificateContent;
     }
 
+    public String toString() {
+
+        return certificateContent;
+    }
+
     /**
      * Certificate builder.
      */

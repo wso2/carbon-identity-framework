@@ -32,8 +32,10 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
@@ -66,14 +68,15 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     protected static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     protected static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
     protected static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
-    private static final String REMOVE_FUNCTIONS = "var quit=function(){Log.error('quit function is restricted.')};" +
-            "var exit=function(){Log.error('exit function is restricted.')};" +
-            "var print=function(){Log.error('print function is restricted.')};" +
-            "var echo=function(){Log.error('echo function is restricted.')};" +
-            "var readFully=function(){Log.error('readFully function is restricted.')};" +
-            "var readLine=function(){Log.error('readLine function is restricted.')};" +
-            "var load=function(){Log.error('load function is restricted.')};" +
-            "var loadWithNewGlobal=function(){Log.error('loadWithNewGlobal function is restricted.')};" +
+    private static final String REMOVE_FUNCTIONS = "var quit=function(){};" +
+            "var exit=function(){};" +
+            "var print=function(){};" +
+            "var echo=function(){};" +
+            "var readFully=function(){};" +
+            "var readLine=function(){};" +
+            "var load=function(){};" +
+            "var printErr=function(){};" +
+            "var loadWithNewGlobal=function(){};" +
             "var $ARG=null;var $ENV=null;var $EXEC=null;" +
             "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +
             "Object.defineProperty(this, 'engine', {});";
@@ -320,9 +323,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
                     removeOption = true;
 
                     if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
-                        List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
-                            .getInstance().getLocalAuthenticators();
-                        for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
+                        for (LocalAuthenticatorConfig localAuthenticatorConfig : getLocalAuthenticatorConfigsList()) {
                             if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
                                 if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
                                         authenticators.contains(localAuthenticatorConfig.getName())) {
@@ -413,6 +414,20 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
             }
         } else {
             log.warn("The filtered authenticator list is empty, hence proceeding without filtering");
+        }
+    }
+
+    /**
+     * Get all both SYSTEM and USER defined local authenticator configurations.
+     */
+    protected List<LocalAuthenticatorConfig> getLocalAuthenticatorConfigsList() {
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        try {
+            return ApplicationAuthenticatorService.getInstance().getAllLocalAuthenticators(tenantDomain);
+        } catch (AuthenticatorMgtException e) {
+            throw new IdentityRuntimeException(String.format("Error while retrieving all local authenticator" +
+                    " configurations for tenant: %s", tenantDomain), e);
         }
     }
 

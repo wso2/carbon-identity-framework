@@ -27,6 +27,7 @@
             <class name="org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorderTest" />
             <class name="org.wso2.carbon.user.mgt.bulkImport.JsonConverterTest" />
             <class name="org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLoggerTest" />
+            <class name="org.wso2.carbon.user.mgt.listeners.UserManagementAuditLoggerTest" />
         </classes>
     </test>
 </suite>

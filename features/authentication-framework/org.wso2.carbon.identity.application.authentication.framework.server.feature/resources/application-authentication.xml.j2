@@ -46,6 +46,30 @@
     <IdentifierFirstConfirmationURL>{{authentication.identifier.first.endpoint.confirmation_url}}</IdentifierFirstConfirmationURL>
     {% endif %}
 
+    {% if authentication.endpoints.v2 is defined %}
+    <!-- V2 configs for oauth endpoints -->
+    <V2>
+        {% if authentication.endpoints.v2.login_url is defined %}
+        <AuthenticationEndpointURL>{{authentication.endpoints.v2.login_url}}</AuthenticationEndpointURL>
+        {% endif %}
+        {% if authentication.endpoints.v2.retry_url is defined %}
+        <AuthenticationEndpointRetryURL>{{authentication.endpoints.v2.retry_url}}</AuthenticationEndpointRetryURL>
+        {% endif %}
+        {% if authentication.endpoints.v2.request_missing_claims_url is defined %}
+        <AuthenticationEndpointMissingClaimsURL>{{authentication.endpoints.v2.request_missing_claims_url}}</AuthenticationEndpointMissingClaimsURL>
+        {% endif %}
+        {% if authentication.endpoints.v2.wait_url is defined %}
+        <AuthenticationEndpointWaitURL>{{authentication.endpoints.v2.wait_url}}</AuthenticationEndpointWaitURL>
+        {% endif %}
+        {% if authentication.endpoints.v2.prompt_url is defined %}
+        <AuthenticationEndpointPromptURL>{{authentication.endpoints.v2.prompt_url}}</AuthenticationEndpointPromptURL>
+        {% endif %}
+        {% if authentication.identifier.first.endpoint.v2.confirmation_url is defined %}
+        <IdentifierFirstConfirmationURL>{{authentication.identifier.first.endpoint.v2.confirmation_url}}</IdentifierFirstConfirmationURL>
+        {% endif %}
+    </V2>
+    {% endif %}
+
     <!--
         Extensions allow extending the default behaviour of the authentication
         process.

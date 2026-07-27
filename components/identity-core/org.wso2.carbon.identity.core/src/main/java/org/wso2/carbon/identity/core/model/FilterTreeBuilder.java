@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2019 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2025 WSO2 LLC. (https://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -67,19 +67,19 @@ public class FilterTreeBuilder {
         input.wordChars('*', '*');
         input.wordChars('/', '/');
 
-        tokenList = new ArrayList<>();
+        List<String> tempTokenList = new ArrayList<>();
         StringBuilder concatenatedString = new StringBuilder();
 
         while (input.nextToken() != StreamTokenizer.TT_EOF) {
             // The ttype 40 is for the '('.
             if (input.ttype == 40) {
-                tokenList.add("(");
+                tempTokenList.add("(");
             } else if (input.ttype == 41) {
                 // The ttype 41 is for the ')'.
                 concatenatedString = new StringBuilder(concatenatedString.toString().trim());
-                tokenList.add(concatenatedString.toString());
+                tempTokenList.add(concatenatedString.toString());
                 concatenatedString = new StringBuilder();
-                tokenList.add(")");
+                tempTokenList.add(")");
             } else if (input.ttype == StreamTokenizer.TT_WORD) {
                 // Concatenate the string by adding spaces in between.
                 if (!(input.sval.equalsIgnoreCase(IdentityCoreConstants.Filter.AND) || input.sval.equalsIgnoreCase
@@ -88,10 +88,10 @@ public class FilterTreeBuilder {
                 else {
                     concatenatedString = new StringBuilder(concatenatedString.toString().trim());
                     if (!concatenatedString.toString().equals("")) {
-                        tokenList.add(concatenatedString.toString());
+                        tempTokenList.add(concatenatedString.toString());
                         concatenatedString = new StringBuilder();
                     }
-                    tokenList.add(input.sval);
+                    tempTokenList.add(input.sval);
                 }
             } else if (input.ttype == '\"' || input.ttype == '\'') {
                 concatenatedString.append(" ").append(input.sval);
@@ -99,7 +99,36 @@ public class FilterTreeBuilder {
         }
         // Add to the list, if the filter is a simple filter.
         if (!(concatenatedString.toString().equals(""))) {
-            tokenList.add(concatenatedString.toString());
+            tempTokenList.add(concatenatedString.toString());
+        }
+
+        tokenList = new ArrayList<>();
+        boolean stringsConcatenated = false;
+
+        // Process temp tokens to handle value strings containing operators
+        for (int i = 0; i < tempTokenList.size(); i++) {
+            String token = tempTokenList.get(i).trim();
+            
+            if (stringsConcatenated) {
+                stringsConcatenated = false;
+                continue;
+            }
+
+            String[] splitToken = token.split("\\s+");
+            // Skip presence operator 'pr' since it's a unary operator that doesn't take a value
+            if (splitToken.length == 2 && !splitToken[1].equalsIgnoreCase(IdentityCoreConstants.Filter.PR) && 
+                (i + 1) < tempTokenList.size()) {
+                
+                String nextToken = tempTokenList.get(i + 1);
+                if (nextToken.equalsIgnoreCase(IdentityCoreConstants.Filter.AND) ||
+                    nextToken.equalsIgnoreCase(IdentityCoreConstants.Filter.OR) ||
+                    nextToken.equalsIgnoreCase(IdentityCoreConstants.Filter.NOT)) {
+                    
+                    token += " " + nextToken;
+                    stringsConcatenated = true;
+                }
+            }
+            tokenList.add(token);
         }
     }
 

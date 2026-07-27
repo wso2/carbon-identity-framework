@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.wso2.carbon.identity.configuration.mgt.core.constant;
+
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Constants related to configuration management.
@@ -71,6 +74,62 @@ public class ConfigurationConstants {
     public static final String PATH_SEPARATOR = "/";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
+    // An enum representing the types of resources that can be inherited.
+    public enum InheritedResourceType {
+        INPUT_VALIDATION_CONFIGURATIONS("input-validation-configurations", true),
+        FLOW_MGT_CONFIG("flow-mgt-config", true),
+        IMPERSONATION_CONFIGURATION("IMPERSONATION_CONFIGURATION", true),
+        // Resource Type for compatibility settings managed through /config-mgt endpoint.
+        COMPATIBILITY_SETTINGS("compatibility-settings", false),
+        FRAUD_DETECTION_CONFIG("fraud-detection", false),
+        // Resource Type for compatibility settings managed through /compatibility-settings endpoint.
+        COMPATIBILITY_SETTINGS_V2("compatibility-settings-v2", true),
+        // Resource Type for push device management settings management through /push-device-mgt endpoint
+        DEVICE_MANAGEMENT("DEVICE_MANAGEMENT", true);
+
+        private final String resourceTypeName;
+        private final boolean checkOrgVersionWhenInheriting;
+
+        InheritedResourceType(String resourceTypeName, boolean checkOrgVersionWhenInheriting) {
+
+            this.resourceTypeName = resourceTypeName;
+            this.checkOrgVersionWhenInheriting = checkOrgVersionWhenInheriting;
+        }
+
+        /**
+         * Get the resource type name.
+         *
+         * @return The resource type name.
+         */
+        public String getResourceTypeName() {
+
+            return resourceTypeName;
+        }
+
+        /**
+         * Check if organization version should be checked when inheriting.
+         *
+         * @return True if organization version should be checked when inheriting.
+         */
+        public boolean shouldCheckOrgVersionWhenInheriting() {
+
+            return checkOrgVersionWhenInheriting;
+        }
+
+        /**
+         * Get the inherited resource type by resource type name.
+         *
+         * @param resourceTypeName The resource type name.
+         * @return An Optional containing the inherited resource type if found, empty otherwise.
+         */
+        public static Optional<InheritedResourceType> getByResourceTypeName(String resourceTypeName) {
+
+            return Stream.of(InheritedResourceType.values())
+                    .filter(inheritedResourceType -> inheritedResourceType.getResourceTypeName()
+                            .equals(resourceTypeName))
+                    .findFirst();
+        }
+    }
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),
@@ -129,7 +188,13 @@ public class ConfigurationConstants {
         ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS("CONFIGM_00046", "Resource with the id: %s does not exists."),
         ERROR_CODE_INVALID_RESOURCE_ID("CONFIGM_00047", "Invalid resource id: %s."),
         ERROR_CODE_DELETE_RESOURCE("CONFIGM_00048", "Error while deleting the resource: %s."),
-        ERROR_CODE_CHECK_DB_METADATA("CONFIGM_00049", "Error occurred while checking the DB metadata.");
+        ERROR_CODE_CHECK_DB_METADATA("CONFIGM_00049", "Error occurred while checking the DB metadata."),
+        ERROR_CODE_RESOLVING_TENANT_DOMAIN("CONFIGM_00050", "Error occurred while resolving the tenant domain " +
+                "for the organization id: %s."),
+        ERROR_CODE_RESOLVING_TENANT_ID("CONFIGM_00051", "Error occurred while resolving the tenant id " +
+                "for the organization id: %s."),
+        ERROR_CODE_DEFAULT_RESOLVER_DOES_NOT_EXISTS("CONFIGM_00052", "Default Config Resolver " +
+                "does not exists for the resource type : %s.");
 
 
         private final String code;

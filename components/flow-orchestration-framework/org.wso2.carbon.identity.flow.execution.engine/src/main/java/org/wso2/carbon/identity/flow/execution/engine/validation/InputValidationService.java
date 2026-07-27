@@ -1,0 +1,858 @@
+/*
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.flow.execution.engine.validation;
+
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimValidationUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
+import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
+import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
+import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.user.api.UserStoreException;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_META_DATA_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.LENGTH_CONFIG;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_LENGTH;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_VARIANT;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PREFERENCE_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.REQUIRED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.VALIDATIONS;
+import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
+import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+
+/**
+ * This class is responsible for validating user inputs during the flow execution process.
+ * It retrieves validation configurations and applies them to the input fields.
+ */
+public class InputValidationService {
+
+    private static final Log LOG = LogFactory.getLog(InputValidationService.class);
+    private static final InputValidationService instance = new InputValidationService();
+    public static final String CONFIRMATION_CODE = "confirmationCode";
+    private static final String DATE_VARIANT = "DATE";
+    private static final String DATE_VALIDATOR = "DateValidator";
+    private static final String DISALLOW_FUTURE_CONDITION = "disallow.future";
+
+    private InputValidationService() {
+
+    }
+
+    public static InputValidationService getInstance() {
+
+        return instance;
+    }
+
+    /**
+     * Validate the required inputs.
+     *
+     * @param context Flow context.
+     * @throws FlowEngineException Flow engine exception.
+     * @deprecated Use {@link #resolveInputValidationResponse(FlowExecutionContext)} instead.
+     */
+    @Deprecated
+    public void validateInputs(FlowExecutionContext context) throws FlowEngineException {
+
+        validateRequiredInputs(context);
+    }
+
+    /**
+     * Validate the required inputs and extra inputs.
+     * 
+     * @param context Flow context.
+     * @throws FlowEngineClientException If a client error occurs during validation.
+     */
+    private void validateRequiredInputs(FlowExecutionContext context) throws FlowEngineException {
+
+        // Check if the actionId is empty and set it to default action.
+        String actionId = context.getCurrentActionId();
+        actionId = StringUtils.isBlank(actionId) ? DEFAULT_ACTION : actionId;
+        if (context.getCurrentStepInputs() == null || context.getCurrentStepInputs().isEmpty()) {
+            return;
+        }
+
+        String flowType = context.getFlowType();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Validating inputs for flow type: %s with action ID: %s", flowType, actionId));
+        }
+        if (context.getCurrentStepInputs().get(actionId) == null) {
+            throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_ACTION_ID, actionId);
+        }
+
+        // Fail if required inputs are not there.
+        if (context.getCurrentRequiredInputs().get(actionId) != null) {
+            for (String requiredInput : context.getCurrentRequiredInputs().get(actionId)) {
+                if (context.getUserInputData().get(requiredInput) == null ||
+                        context.getUserInputData().get(requiredInput).isEmpty()) {
+                    throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_USER_INPUT,
+                            flowType);
+                }
+            }
+        }
+
+        // Fail if extra inputs are there.
+        for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
+            if (!context.getCurrentStepInputs().get(actionId).contains(userInput.getKey())) {
+                throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_USER_INPUT, flowType);
+            }
+        }
+    }
+
+    /**
+     * Prepare the step inputs for the flow execution process.
+     *
+     * @param dataDTO Data transfer object containing components.
+     * @param context Flow context.
+     * @throws FlowEngineServerException If an error occurs while processing the inputs.
+     */
+    public void prepareStepInputs(DataDTO dataDTO, FlowExecutionContext context)
+            throws FlowEngineServerException {
+
+        if (dataDTO == null) {
+            return;
+        }
+        processStepInputs(dataDTO, context);
+        processFieldLengths(dataDTO, context.getCurrentNodeResponse());
+        processValidations(dataDTO, context);
+    }
+
+    /**
+     * Processes the current user inputs and adds the user claims to the registering user.
+     * Clear the user input data after processing.
+     *
+     * @param context Flow context.
+     */
+    public void handleUserInputs(FlowExecutionContext context) {
+
+        context.getUserInputData().forEach(
+                (key, value) -> {
+                    if (key.startsWith(CLAIM_URI_PREFIX)) {
+                        context.getFlowUser().addUpdatedClaim(key, value);
+                    } else if (CONSENT_KEY.equals(key) || PREFERENCE_KEY.equals(key)) {
+                        context.getFlowUser().addUserConsents(FlowUser.UserConsent.fromJson(value));
+                    }
+                }
+        );
+        context.getFlowUser().getClaims().forEach(
+                (key, value) -> {
+                    context.getUserInputData().remove(key);
+                }
+        );
+        context.getUserInputData().remove(CONSENT_KEY);
+        context.getUserInputData().remove(PREFERENCE_KEY);
+    }
+
+    /**
+     * Clears the user inputs from the flow context.
+     *
+     * @param context Flow context.
+     */
+    public void clearUserInputs(FlowExecutionContext context) {
+
+        if (context != null) {
+            context.getUserInputData().clear();
+        }
+    }
+
+    /**
+     * Processes the response based on the input validation result.
+     *
+     * @param context Flow execution context.
+     */
+    public ExecutorResponse resolveInputValidationResponse(FlowExecutionContext context) {
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        if (MapUtils.isNotEmpty(context.getUserInputData())) {
+            try {
+                validateRequiredInputs(context);
+                validateUserInputs(context);
+                handleUserInputs(context);
+                // Clear the current step inputs after successfully consuming user inputs so that
+                // subsequent nodes triggered in the same execution cycle do not re-trigger validation
+                // against stale step input expectations.
+                context.getCurrentStepInputs().clear();
+                context.getCurrentRequiredInputs().clear();
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Input validation passed for flow: " + context.getFlowType());
+                }
+                executorResponse.setResult(STATUS_COMPLETE);
+            } catch (FlowEngineException e) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Input validation failed for flow: " + context.getFlowType() +
+                            ", error: " + e.getMessage());
+                }
+                executorResponse.setErrorCode(e.getErrorCode());
+                executorResponse.setErrorMessage(e.getMessage());
+                executorResponse.setResult(STATUS_RETRY);
+            }
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("User input data is empty for flow: " + context.getFlowType() +
+                        ". Requesting user input.");
+            }
+            executorResponse.setResult(STATUS_USER_INPUT_REQUIRED);
+        }
+        return executorResponse;
+    }
+
+    /**
+     * Validate user inputs against claim uniqueness constraints.
+     *
+     * @param context Flow context.
+     * @throws FlowEngineClientException If claim uniqueness validation fails.
+     */
+    private void validateUserInputs(FlowExecutionContext context) throws FlowEngineException {
+
+        // TODO: This is a temporary workaround to skip claim uniqueness validation when the current executor is a
+        // UserResolveExecutor (e.g., in password recovery flows). This makes the engine aware of specific executor
+        // types, which is not ideal and will be removed as an immediate fix in the future.
+        // Refer: https://github.com/wso2/product-is/issues/27206
+        // The proper fix is to introduce an attribute collector executor for the flow, which would allow this
+        // to be handled in the graph building phase itself.
+        boolean skipUniquenessValidation = isUserResolveExecutor(context);
+        for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
+            if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+                validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
+                        skipUniquenessValidation);
+            } else if (userInput.getKey().equals(PASSWORD_KEY)) {
+                validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
+            }
+        }
+    }
+
+    /**
+     * Retrieve validation rules from claim metadata for the given claim URI.
+     * Validates claim uniqueness if configured and throws exception on failure.
+     *
+     * @param tenantDomain             Tenant domain.
+     * @param claimUri                 Claim URI.
+     * @param claimValue               Claim value to validate.
+     * @param skipUniquenessValidation Whether to skip claim uniqueness validation.
+     * @throws FlowEngineException If claim uniqueness validation fails.
+     */
+    private void validateUserClaims(String tenantDomain, String claimUri, String claimValue,
+                                   boolean skipUniquenessValidation)
+            throws FlowEngineException {
+
+        try {
+            if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
+                LOG.debug("ClaimMetadataManagementService is not available. Skipping claim validation.");
+                return;
+            }
+
+            Optional<LocalClaim> localClaim = FlowExecutionEngineDataHolder.getInstance()
+                    .getClaimMetadataManagementService().getLocalClaim(claimUri, tenantDomain);
+
+            if (!localClaim.isPresent() || localClaim.get().getClaimProperties() == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No claim metadata found for claim URI: " + claimUri);
+                }
+                return;
+            }
+
+            Map<String, String> claimProperties = localClaim.get().getClaimProperties();
+
+            // For username: validate against InputValidationManagementService configuration.
+            // For other claims: validate against the claim's RegEx property.
+            if (claimUri.equals(USERNAME_CLAIM_URI)) {
+                if (StringUtils.isNotBlank(claimValue)) {
+                    validateUsernameFormat(tenantDomain, claimValue);
+                }
+            } else {
+                String claimDisplayName = localClaim.get().getClaimProperties()
+                        .getOrDefault(ClaimConstants.DISPLAY_NAME_PROPERTY, claimUri);
+                String regexPattern = claimProperties.get(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
+                if (StringUtils.isNotBlank(regexPattern) && StringUtils.isNotBlank(claimValue)) {
+                    if (!claimValue.matches(regexPattern)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Claim regex validation failed for claim: " + claimUri);
+                        }
+                        throw new FlowEngineClientException(
+                                ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getCode(),
+                                String.format(ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getMessage(), claimDisplayName),
+                                ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getDescription());
+                    }
+                }
+            }
+
+            if (!skipUniquenessValidation) {
+                ClaimConstants.ClaimUniquenessScope uniquenessScope = ClaimValidationUtil
+                        .getClaimUniquenessScope(claimProperties);
+                if (ClaimValidationUtil.shouldValidateUniqueness(uniquenessScope) ||
+                        claimUri.equals(USERNAME_CLAIM_URI)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Uniqueness validation found for claim " + claimUri + " with scope: " +
+                                uniquenessScope);
+                    }
+                    if (StringUtils.isNotBlank(claimValue)) {
+                        validateClaimUniqueness(claimUri, claimValue);
+                    }
+                }
+            }
+        } catch (ClaimMetadataException e) {
+            throw handleServerException(ERROR_CODE_CLAIM_META_DATA_NOT_FOUND, e, claimUri, tenantDomain);
+        } catch (UserStoreException e) {
+            throw handleServerException(ERROR_CODE_GET_CLAIM_META_DATA_FAILURE, e, tenantDomain);
+        }
+    }
+
+    /**
+     * Validate claim uniqueness against the configured scope.
+     *
+     * @param claimUri        Claim URI.
+     * @param claimValue      Claim value to validate.
+     * @throws FlowEngineException If the claim value is not unique.
+     */
+    private static void validateClaimUniqueness(String claimUri, String claimValue)
+            throws FlowEngineException, UserStoreException {
+
+        boolean isDuplicated = ClaimValidationUtil.isClaimDuplicated(claimUri, claimValue);
+        if (isDuplicated) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Claim uniqueness validation failed for claim: " + claimUri);
+            }
+            throw handleClientException(ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED, claimUri);
+        }
+    }
+
+    /**
+     * Validate the username against the input validation configuration. Skips validation if
+     * {@code InputValidation.Username.Enabled} is not set to {@code true}.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param username     Username value to validate.
+     * @throws FlowEngineException If the username does not satisfy the configured format rules or
+     *                             an error occurs while retrieving the validation configuration.
+     */
+    private void validateUsernameFormat(String tenantDomain, String username) throws FlowEngineException {
+
+        boolean isUsernameValidationEnabled = Boolean.parseBoolean(
+                IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED));
+        if (!isUsernameValidationEnabled) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Username validation is disabled. Skipping username format validation.");
+            }
+            return;
+        }
+        try {
+            validateFieldWithConfiguredRules(tenantDomain, USERNAME, username);
+        } catch (InputValidationMgtException e) {
+            if (e instanceof InputValidationMgtClientException) {
+                LOG.debug("Username format validation failed for the given username.");
+                throw handleClientException(ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED, username);
+            }
+            throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
+        }
+    }
+
+    /**
+     * Validate the password against the input validation configuration retrieved from
+     * InputValidationManagementService.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param password     Password value to validate.
+     * @throws FlowEngineException If the password does not satisfy the configured format rules or
+     *                             an error occurs while retrieving the validation configuration.
+     */
+    private void validatePasswordFormat(String tenantDomain, String password) throws FlowEngineException {
+
+        try {
+            validateFieldWithConfiguredRules(tenantDomain, PASSWORD_KEY, password);
+        } catch (InputValidationMgtException e) {
+            if (e instanceof InputValidationMgtClientException) {
+                LOG.debug("Password format validation failed.");
+                throw handleClientException(ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED);
+            }
+            throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
+        }
+    }
+
+    /**
+     * Check whether the current executor in the flow context is a User Resolver executor.
+     *
+     * @param context Flow execution context.
+     * @return True if the current executor is a User Resolver executor, false otherwise.
+     */
+    private boolean isUserResolveExecutor(FlowExecutionContext context) {
+
+        if (context.getCurrentNode() == null || context.getCurrentNode().getExecutorConfig() == null) {
+            return false;
+        }
+        return Constants.ExecutorTypes.USER_RESOLVER.equals(
+                context.getCurrentNode().getExecutorConfig().getName());
+    }
+
+    /**
+     * Executes the input validation rules for a given field using InputValidationManagementService.
+     * Iterates both regex and rule-based configurations and invokes each configured validator.
+     * Returns without validation if InputValidationManagementService is unavailable.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param field        Field name as used in InputValidationManagementService (e.g., "username", "password").
+     * @param value        Value to validate.
+     * @throws InputValidationMgtException If an error occurs during validation or if any validation rule fails.
+     */
+    private void validateFieldWithConfiguredRules(String tenantDomain, String field, String value)
+            throws InputValidationMgtException {
+
+        if (FlowExecutionEngineDataHolder.getInstance().getInputValidationManagementService() == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("InputValidationManagementService is not available. Skipping " + field +
+                        " format validation.");
+            }
+            return;
+        }
+        List<ValidationConfiguration> configurations = FlowExecutionEngineDataHolder.getInstance()
+                .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
+        Map<String, Validator> validators = FlowExecutionEngineDataHolder.getInstance()
+                .getInputValidationManagementService().getValidators(tenantDomain);
+
+        for (ValidationConfiguration config : configurations) {
+            if (!field.equals(config.getField())) {
+                continue;
+            }
+            List<RulesConfiguration> rules = config.getRegEx() != null ? config.getRegEx() : config.getRules();
+            if (rules == null) {
+                continue;
+            }
+            for (RulesConfiguration rule : rules) {
+                Validator validator = validators.get(rule.getValidatorName());
+                if (validator == null) {
+                    continue;
+                }
+                ValidationContext validationContext = new ValidationContext();
+                validationContext.setField(field);
+                validationContext.setValue(value);
+                validationContext.setTenantDomain(tenantDomain);
+                validationContext.setProperties(rule.getProperties());
+                validator.validate(validationContext);
+            }
+        }
+    }
+
+    /**
+     * Processes the step inputs and sets them in the context.
+     *
+     * @param dataDTO Data transfer object containing components.
+     * @param context Flow context.
+     */
+    private void processStepInputs(DataDTO dataDTO, FlowExecutionContext context) {
+
+        // Clear the current step inputs and required inputs.
+        context.getCurrentStepInputs().clear();
+        context.getCurrentRequiredInputs().clear();
+
+        if (dataDTO.getComponents() != null) {
+            for (ComponentDTO component : dataDTO.getComponents()) {
+
+                if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(component.getType())) {
+                    context.getCurrentStepInputs().put(component.getId(), new HashSet<>());
+                }
+
+                if (!Constants.ComponentTypes.FORM.equalsIgnoreCase(component.getType())) {
+                    continue;
+                }
+
+                List<ComponentDTO> children = component.getComponents();
+                if (children == null || children.isEmpty()) {
+                    continue;
+                }
+
+                Set<String> inputIdentifiers = new HashSet<>();
+                Set<String> requiredInputIdentifiers = new HashSet<>();
+
+                for (ComponentDTO child : children) {
+                    if (Constants.ComponentTypes.INPUT.equalsIgnoreCase(child.getType())) {
+                        String identifier = getIdentifier(child);
+                        if (identifier != null) {
+                            if (isRequiredField(child)) {
+                                requiredInputIdentifiers.add(identifier);
+                            }
+                            inputIdentifiers.add(identifier);
+                        }
+                    }
+                    if (Constants.ComponentTypes.POLICY.equalsIgnoreCase(child.getType())) {
+                        inputIdentifiers.add(CONSENT_KEY);
+                    } else if (Constants.ComponentTypes.PREFERENCE.equalsIgnoreCase(child.getType())) {
+                        inputIdentifiers.add(PREFERENCE_KEY);
+                    }
+                    if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(child.getType())) {
+                        // If the button has an executor, add the required inputs defined from the executor.
+                        // Ideally these should be available within the form.
+                        if (child.getAction() != null && child.getAction().getExecutor() != null &&
+                                dataDTO.getRequiredParams() != null) {
+                            requiredInputIdentifiers.addAll(dataDTO.getRequiredParams());
+                        }
+                        context.getCurrentStepInputs().put(child.getId(), inputIdentifiers);
+                        context.getCurrentRequiredInputs().put(child.getId(), requiredInputIdentifiers);
+                    }
+                }
+            }
+        }
+
+        // If the dataDTO has required params, add them to the current step inputs and required inputs.
+        if ((dataDTO.getComponents() == null || dataDTO.getComponents().isEmpty()) &&
+                dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) {
+            handleRequiredInputs(dataDTO, context);
+        }
+
+        // If there are no action components, set the required params as the step inputs with the default action.
+        // This is to handle cases where the flow temporarily ends with static view and expects inputs when the flow
+        // resumes.
+        if ((dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) &&
+                context.getCurrentStepInputs().isEmpty()) {
+            handleRequiredInputs(dataDTO, context);
+        }
+
+        handleOptionalInputs(dataDTO, context);
+    }
+
+    /**
+     * Handle required inputs by adding them to the current step inputs and required inputs in the context.
+     *
+     * @param dataDTO Data transfer object containing components and required parameters.
+     * @param context Flow context.
+     */
+    private static void handleRequiredInputs(DataDTO dataDTO, FlowExecutionContext context) {
+
+        context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+        context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+    }
+
+    /**
+     * Handle optional inputs by adding them to the current step inputs in the context.
+     *
+     * @param dataDTO Data transfer object containing components and optional parameters.
+     * @param context Flow context.
+     */
+    private static void handleOptionalInputs(DataDTO dataDTO, FlowExecutionContext context) {
+
+        if (dataDTO.getOptionalParams() == null || dataDTO.getOptionalParams().isEmpty()) {
+            return;
+        }
+
+        if (context.getCurrentStepInputs().isEmpty()) {
+            context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>());
+        }
+
+        for (Map.Entry<String, Set<String>> entry : context.getCurrentStepInputs().entrySet()) {
+            entry.getValue().addAll(dataDTO.getOptionalParams());
+        }
+    }
+
+
+    /**
+     * Handle OTP field lengths. If the nodeResponse contains the OTP length, set the length for the OTP fields.
+     *
+     * @param dataDTO      DataDTO.
+     * @param nodeResponse NodeResponse.
+     */
+    private void processFieldLengths(DataDTO dataDTO, NodeResponse nodeResponse) {
+
+        if (nodeResponse == null || nodeResponse.getAdditionalInfo() == null ||
+                !nodeResponse.getAdditionalInfo().containsKey(OTP_LENGTH)) {
+            return;
+        }
+        int otpLength = Integer.parseInt(nodeResponse.getAdditionalInfo().get(OTP_LENGTH));
+        for (ComponentDTO component : dataDTO.getComponents()) {
+            if (Constants.ComponentTypes.INPUT.equals(component.getType())) {
+                if (OTP_VARIANT.equals(component.getVariant())) {
+                    component.addConfig(LENGTH_CONFIG, otpLength);
+                }
+            }
+            if (Constants.ComponentTypes.FORM.equals(component.getType())) {
+                for (ComponentDTO nestedComponent : component.getComponents()) {
+                    if (Constants.ComponentTypes.INPUT.equals(nestedComponent.getType())) {
+                        if (OTP_VARIANT.equals(nestedComponent.getVariant())) {
+                            nestedComponent.addConfig(LENGTH_CONFIG, otpLength);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Processes the validations for the given DataDTO and inputs.
+     *
+     * @param dataDTO Data transfer object containing components.
+     * @param context Flow context.
+     * @throws FlowEngineServerException If an error occurs while processing the validations.
+     */
+    private void processValidations(DataDTO dataDTO, FlowExecutionContext context)
+            throws FlowEngineServerException {
+
+        Map<String, Set<String>> inputs = context.getCurrentStepInputs();
+        if (inputs.isEmpty()) {
+            return;
+        }
+
+        List<String> allInputs = inputs.values().stream()
+                .flatMap(Collection::stream)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<String, ArrayList<ValidationDTO>> validationMap = new HashMap<>();
+        // Fetch validations for expected inputs upfront to avoid repeated calls.
+        for (String input : allInputs) {
+            if (USERNAME_CLAIM_URI.equals(input) || PASSWORD_KEY.equals(input)) {
+                validationMap.put(input, getValidationDTOs(context.getTenantDomain(), input));
+            }
+        }
+        // Process all components and apply validations at once.
+        processComponentValidations(dataDTO.getComponents(), validationMap, context.getTenantDomain());
+    }
+
+    private void processComponentValidations(List<ComponentDTO> components,
+                                             Map<String, ArrayList<ValidationDTO>> validationMap,
+                                             String tenantDomain) {
+
+        if (components == null || components.isEmpty()) {
+            return;
+        }
+
+        for (ComponentDTO component : components) {
+            if (Constants.ComponentTypes.INPUT.equals(component.getType())) {
+                String identifier = (String) component.getConfigs().get(IDENTIFIER);
+                applyValidationIfNeeded(component, identifier, validationMap);
+                applyDateValidationIfNeeded(component, identifier, tenantDomain);
+            } else if (Constants.ComponentTypes.FORM.equals(component.getType())) {
+                // Process nested components.
+                processComponentValidations(component.getComponents(), validationMap, tenantDomain);
+            }
+        }
+    }
+
+    private void applyValidationIfNeeded(ComponentDTO component, String identifier,
+                                         Map<String, ArrayList<ValidationDTO>> validationMap) {
+
+        if (identifier != null && validationMap.containsKey(identifier)) {
+            component.getConfigs().put(VALIDATIONS, validationMap.get(identifier));
+        }
+    }
+
+    /**
+     * Attach a client-side date validation rule to a date input component when its claim is
+     * configured to disallow future values (claim property {@code disallowFutureDate=true}).
+     * The rule is consumed by the client to show an inline error before submission. Server-side
+     * enforcement is handled separately by the user store operation listeners.
+     *
+     * @param component    Input component.
+     * @param identifier   Component identifier (claim URI for claim-backed inputs).
+     * @param tenantDomain Tenant domain.
+     */
+    private void applyDateValidationIfNeeded(ComponentDTO component, String identifier, String tenantDomain) {
+
+        if (identifier == null || !DATE_VARIANT.equalsIgnoreCase(component.getVariant())) {
+            return;
+        }
+        if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
+            return;
+        }
+        try {
+            Optional<LocalClaim> localClaim = FlowExecutionEngineDataHolder.getInstance()
+                    .getClaimMetadataManagementService().getLocalClaim(identifier, tenantDomain);
+            if (!localClaim.isPresent()) {
+                return;
+            }
+            String disallowFutureDate = localClaim.get()
+                    .getClaimProperty(ClaimConstants.DISALLOW_FUTURE_DATE_PROPERTY);
+            if (!Boolean.parseBoolean(disallowFutureDate)) {
+                return;
+            }
+            ValidationDTO dateValidation = new ValidationDTO();
+            dateValidation.setName(DATE_VALIDATOR);
+            dateValidation.setType(RULES);
+            List<ValidationDTO.Condition> conditions = new ArrayList<>();
+            conditions.add(new ValidationDTO.Condition(DISALLOW_FUTURE_CONDITION, Boolean.TRUE.toString()));
+            dateValidation.setConditions(conditions);
+            addValidationToComponent(component, dateValidation);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Attached future-date validation for claim: " + identifier);
+            }
+        } catch (ClaimMetadataException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while retrieving claim metadata for date validation of claim: " + identifier);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addValidationToComponent(ComponentDTO component, ValidationDTO validationDTO) {
+
+        Object existing = component.getConfigs().get(VALIDATIONS);
+        List<ValidationDTO> validations;
+        if (existing instanceof List) {
+            validations = (List<ValidationDTO>) existing;
+        } else {
+            validations = new ArrayList<>();
+            component.getConfigs().put(VALIDATIONS, validations);
+        }
+        validations.add(validationDTO);
+    }
+
+    private ArrayList<ValidationDTO> getValidationDTOs(String tenantDomain, String key)
+            throws FlowEngineServerException {
+
+        if (!USERNAME_CLAIM_URI.equals(key) && !PASSWORD_KEY.equals(key)) {
+            return new ArrayList<>();
+        }
+
+        if (USERNAME_CLAIM_URI.equals(key)) {
+            // Check whether the username validation is enabled.
+            boolean isUsernameValidationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED));
+            if (!isUsernameValidationEnabled) {
+                LOG.debug("Username validation is disabled. Skip adding validation rules for the username.");
+                return new ArrayList<>();
+            }
+
+            // Use "username" as the key to fetch the input validation configuration.
+            key = USERNAME;
+        }
+
+        Map<String, ValidationDTO> validationDTOs = new HashMap<>();
+
+        try {
+            List<ValidationConfiguration> validationConfigurations = FlowExecutionEngineDataHolder.getInstance()
+                    .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
+
+            for (ValidationConfiguration config : validationConfigurations) {
+                if (!key.equals(config.getField())) {
+                    continue;
+                }
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Validation configuration found for field: " + key);
+                }
+
+                processRuleValidations(config, validationDTOs);
+                processRegexValidations(config, validationDTOs);
+            }
+        } catch (InputValidationMgtException e) {
+            throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
+        }
+        return validationDTOs.isEmpty() ? new ArrayList<>() : new ArrayList<>(validationDTOs.values());
+    }
+
+    private void processRuleValidations(ValidationConfiguration config, Map<String, ValidationDTO> validationDTOs) {
+
+        processValidations(config.getRules(), RULES, validationDTOs);
+    }
+
+    private void processRegexValidations(ValidationConfiguration config, Map<String, ValidationDTO> validationDTOs) {
+
+        processValidations(config.getRegEx(), REGEX, validationDTOs);
+    }
+
+    private void processValidations(List<RulesConfiguration> rules, String type, Map<String,
+            ValidationDTO> validationDTOs) {
+
+        if (rules == null || rules.isEmpty()) {
+            return;
+        }
+
+        for (RulesConfiguration rule : rules) {
+            String validatorName = rule.getValidatorName();
+            List<ValidationDTO.Condition> conditions = createConditionsFromProperties(rule.getProperties());
+
+            ValidationDTO validationDTO = validationDTOs.computeIfAbsent(validatorName, k -> {
+                ValidationDTO newValidation = new ValidationDTO();
+                newValidation.setName(validatorName);
+                newValidation.setType(type);
+                newValidation.setConditions(new ArrayList<>());
+                return newValidation;
+            });
+            validationDTO.getConditions().addAll(conditions);
+        }
+    }
+
+    private List<ValidationDTO.Condition> createConditionsFromProperties(Map<String, String> properties) {
+
+        if (properties == null || properties.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return properties.entrySet().stream()
+                .map(entry -> new ValidationDTO.Condition(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private String getIdentifier(ComponentDTO componentDTO) {
+
+        Object identifier = componentDTO.getConfigs().get(IDENTIFIER);
+        return identifier != null ? String.valueOf(identifier) : null;
+    }
+
+    private boolean isRequiredField(ComponentDTO componentDTO) {
+
+        Object isRequired = componentDTO.getConfigs().get(REQUIRED);
+        return isRequired != null && (boolean) isRequired;
+    }
+}

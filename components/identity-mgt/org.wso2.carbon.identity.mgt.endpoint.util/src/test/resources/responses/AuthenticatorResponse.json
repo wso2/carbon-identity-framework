@@ -1,0 +1,19 @@
+{
+  "id": "Y3VzdG9tLWxvY2FsLWF1dGhlbnRpY2F0b3I",
+  "name": "custom-local-authenticator",
+  "displayName": "Local Authenticator",
+  "description": "Collect identifier and authenticate user accounts managed in the organization.",
+  "image": "https://imageGallery.com/flag.png",
+  "isEnabled": true,
+  "definedBy": "USER",
+  "type": "LOCAL",
+  "tags": [
+    "Custom"
+  ],
+  "endpoint": {
+    "uri": "https://myextension.com/authenticate",
+    "authentication": {
+      "type": "API_KEY"
+    }
+  }
+}

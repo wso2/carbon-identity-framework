@@ -21,7 +21,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticationException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 
 import java.util.List;
 
@@ -37,6 +37,8 @@ public class ApplicationAuthenticationServiceTest {
     private static final String LOCAL_AUTHENTICATOR_NAME = "LocalAuthenticator";
     private static final String FEDERATED_AUTHENTICATOR_NAME = "FederatedAuthenticator";
     private static final String NON_EXISTING_AUTHENTICATOR_NAME = "NonExistingAuthenticator";
+    private static final ApplicationAuthenticatorManager authenticatorManager =
+            ApplicationAuthenticatorManager.getInstance();
 
 
     @Mock
@@ -63,9 +65,9 @@ public class ApplicationAuthenticationServiceTest {
         when(federatedApplicationAuthenticator.getName()).thenReturn(FEDERATED_AUTHENTICATOR_NAME);
         when(localApplicationAuthenticator.getName()).thenReturn(LOCAL_AUTHENTICATOR_NAME);
 
-        FrameworkServiceComponent.getAuthenticators().add(requestPathApplicationAuthenticator);
-        FrameworkServiceComponent.getAuthenticators().add(federatedApplicationAuthenticator);
-        FrameworkServiceComponent.getAuthenticators().add(localApplicationAuthenticator);
+        authenticatorManager.addSystemDefinedAuthenticator(requestPathApplicationAuthenticator);
+        authenticatorManager.addSystemDefinedAuthenticator(federatedApplicationAuthenticator);
+        authenticatorManager.addSystemDefinedAuthenticator(localApplicationAuthenticator);
     }
 
     @AfterMethod

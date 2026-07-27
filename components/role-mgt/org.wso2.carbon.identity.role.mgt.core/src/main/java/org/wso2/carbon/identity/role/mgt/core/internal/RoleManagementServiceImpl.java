@@ -22,6 +22,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -47,6 +48,13 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID
 /**
  * Implementation of the {@link RoleManagementService} interface.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.role.mgt.core.RoleManagementService",
+                "service.scope=singleton"
+        }
+)
 public class RoleManagementServiceImpl implements RoleManagementService {
 
     private static final Log LOG = LogFactory.getLog(RoleManagementServiceImpl.class);

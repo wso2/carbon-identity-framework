@@ -1,0 +1,12 @@
+{
+  "category": "DEFAULT",
+  "description": "Extend flows with external services.",
+  "displayOrder": 13,
+  "id": "flow-extension",
+  "image": "assets/images/logos/flow-extension.svg",
+  "name": "Flow Extension",
+  "services": [],
+  "disabled": false,
+  "tags": [ "Custom" ],
+  "templateId": "flow-extension"
+}

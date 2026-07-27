@@ -1,0 +1,10 @@
+{
+  "id": "external-custom-authenticator",
+  "name": "External (Federated) User Authentication",
+  "description": "Authenticate and provision federated users.",
+  "image": "",
+  "category": "DEFAULT",
+  "displayOrder": -1,
+  "tags": [ "Custom" ],
+  "type": "custom-authenticator"
+}

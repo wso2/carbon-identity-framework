@@ -29,19 +29,14 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.registry.core.Collection;
-import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.registry.core.Resource;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
-import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
-import org.wso2.carbon.security.SecurityConstants;
 import org.wso2.carbon.security.SecurityServiceHolder;
 import org.wso2.carbon.security.keystore.KeyStoreManagementService;
 import org.wso2.carbon.security.keystore.KeyStoreManagementServiceImpl;
+import org.wso2.carbon.security.keystore.service.IdentityKeyStoreGenerator;
+import org.wso2.carbon.security.keystore.service.IdentityKeyStoreGeneratorImpl;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -66,13 +61,8 @@ public class SecurityMgtServiceComponent {
             BundleContext bundleCtx = ctxt.getBundleContext();
             bundleCtx.registerService(KeyStoreManagementService.class.getName(), new KeyStoreManagementServiceImpl(),
                     null);
-            try {
-                addKeystores();
-            } catch (Exception e) {
-                String msg = "Error while adding key stores.";
-                log.error(msg, e);
-                throw new RuntimeException(msg, e);
-            }
+            bundleCtx.registerService(IdentityKeyStoreGenerator.class.getName(), new IdentityKeyStoreGeneratorImpl(),
+                    null);
 
             log.debug("Security Mgt bundle is activated");
         } catch (Throwable e) {
@@ -194,31 +184,5 @@ public class SecurityMgtServiceComponent {
 
     public static RegistryService getRegistryService(){
         return registryService;
-    }
-
-    private void addKeystores() throws RegistryException {
-        Registry registry = SecurityServiceHolder.getRegistryService().getGovernanceSystemRegistry();
-        try {
-            boolean transactionStarted = Transaction.isStarted();
-            if (!transactionStarted) {
-                registry.beginTransaction();
-            }
-            if (!registry.resourceExists(SecurityConstants.KEY_STORES)) {
-                Collection kstores = registry.newCollection();
-                registry.put(SecurityConstants.KEY_STORES, kstores);
-
-                Resource primResource = registry.newResource();
-                if (!registry.resourceExists(RegistryResources.SecurityManagement.PRIMARY_KEYSTORE_PHANTOM_RESOURCE)) {
-                    registry.put(RegistryResources.SecurityManagement.PRIMARY_KEYSTORE_PHANTOM_RESOURCE,
-                            primResource);
-                }
-            }
-            if (!transactionStarted) {
-                registry.commitTransaction();
-            }
-        } catch (Exception e) {
-            registry.rollbackTransaction();
-            throw e;
-        }
     }
 }

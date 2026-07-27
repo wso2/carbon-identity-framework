@@ -18,25 +18,30 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
-import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The authenticator endpoint configuration model for the user defined authenticator configurations.
  */
 public class UserDefinedAuthenticatorEndpointConfig {
 
+    private static final Log LOG = LogFactory.getLog(UserDefinedAuthenticatorEndpointConfig.class);
     private final EndpointConfig endpointConfig;
 
     private UserDefinedAuthenticatorEndpointConfig(UserDefinedAuthenticatorEndpointConfigBuilder builder) {
 
         endpointConfig = builder.endpointConfig;
     }
-    
+
     public EndpointConfig getEndpointConfig() {
 
         return endpointConfig;
@@ -70,10 +75,83 @@ public class UserDefinedAuthenticatorEndpointConfig {
     public Map<String, String> getAuthenticatorEndpointAuthenticationProperties() {
 
         Map<String, String> propertyMap = new HashMap<>();
-        for (AuthProperty prop: endpointConfig.getAuthentication().getProperties()) {
+        for (AuthProperty prop : endpointConfig.getAuthentication().getProperties()) {
             propertyMap.put(prop.getName(), prop.getValue());
         }
         return propertyMap;
+    }
+
+    /**
+     * Get the authentication properties of the authenticator endpoint shaped for the response view.
+     *
+     * @return Authentication properties with decrypted user-visible confidential properties.
+     */
+    public Map<String, Object> getResolvedEndpointAuthenticationProperties() {
+
+        Authentication authentication = endpointConfig.getAuthentication();
+        Map<String, Object> propertyMap = new HashMap<>();
+        switch (authentication.getType()) {
+            case BASIC:
+                addDecryptedProperty(propertyMap, authentication, Authentication.Property.USERNAME);
+                break;
+            case API_KEY:
+                addStoredProperty(propertyMap, authentication, Authentication.Property.HEADER);
+                break;
+            case CLIENT_CREDENTIAL:
+                addDecryptedProperty(propertyMap, authentication, Authentication.Property.CLIENT_ID);
+                addStoredProperty(propertyMap, authentication, Authentication.Property.TOKEN_ENDPOINT);
+                addStoredProperty(propertyMap, authentication, Authentication.Property.SCOPES);
+                break;
+            case PASSWORD_CREDENTIAL:
+                addDecryptedProperty(propertyMap, authentication, Authentication.Property.CLIENT_ID);
+                addDecryptedProperty(propertyMap, authentication, Authentication.Property.USERNAME);
+                addStoredProperty(propertyMap, authentication, Authentication.Property.TOKEN_ENDPOINT);
+                addStoredProperty(propertyMap, authentication, Authentication.Property.SCOPES);
+                break;
+            case BEARER:
+            case NONE:
+            default:
+                break;
+        }
+        return propertyMap;
+    }
+
+    private void addDecryptedProperty(Map<String, Object> propertyMap, Authentication authentication,
+                                      Authentication.Property property) {
+
+        AuthProperty decrypted = authentication.getPropertyWithDecryptedValue(property.getName());
+        if (decrypted != null) {
+            propertyMap.put(property.getName(), decrypted.getValue());
+        }
+    }
+
+    private void addStoredProperty(Map<String, Object> propertyMap, Authentication authentication,
+                                   Authentication.Property property) {
+
+        AuthProperty prop = authentication.getProperty(property);
+        if (prop != null) {
+            propertyMap.put(property.getName(), prop.getValue());
+        }
+    }
+
+    /**
+     * Get the allowed headers of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return Allowed headers of the authenticator endpoint.
+     */
+    public List<String> getAuthenticatorEndpointAllowedHeaders() {
+
+        return endpointConfig.getAllowedHeaders();
+    }
+
+    /**
+     * Get the allowed parameters of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return Allowed parameters of the authenticator endpoint.
+     */
+    public List<String> getAuthenticatorEndpointAllowedParameters() {
+
+        return endpointConfig.getAllowedParameters();
     }
 
     /**
@@ -84,9 +162,12 @@ public class UserDefinedAuthenticatorEndpointConfig {
         private String uri;
         private String authenticationType;
         private Map<String, String> authenticationProperties;
+        private List<String> allowedHeaders;
+        private List<String> allowedParameters;
         private EndpointConfig endpointConfig;
 
         public UserDefinedAuthenticatorEndpointConfigBuilder() {
+
         }
 
         public UserDefinedAuthenticatorEndpointConfigBuilder uri(String uri) {
@@ -107,18 +188,50 @@ public class UserDefinedAuthenticatorEndpointConfig {
             this.authenticationType = authenticationType;
             return this;
         }
-        
+
+        public UserDefinedAuthenticatorEndpointConfigBuilder allowedHeaders(List<String> allowedHeaders) {
+
+            this.allowedHeaders = allowedHeaders;
+            return this;
+        }
+
+        public UserDefinedAuthenticatorEndpointConfigBuilder allowedParameters(List<String> allowedParameters) {
+
+            this.allowedParameters = allowedParameters;
+            return this;
+        }
+
         public UserDefinedAuthenticatorEndpointConfig build() {
 
             EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
             endpointConfigBuilder.uri(uri);
-            endpointConfigBuilder.authentication(new Authentication.AuthenticationBuilder()
-                        .type(Authentication.Type.valueOf(authenticationType))
-                        .properties(authenticationProperties)
-                        .build());
+            endpointConfigBuilder.authentication(resolveAuthentication());
+            endpointConfigBuilder.allowedHeaders(allowedHeaders);
+            endpointConfigBuilder.allowedParameters(allowedParameters);
             endpointConfig = endpointConfigBuilder.build();
 
             return new UserDefinedAuthenticatorEndpointConfig(this);
+        }
+
+        private Authentication resolveAuthentication() {
+
+            if (Objects.equals(authenticationType, Authentication.Type.NONE.getName())) {
+                return new Authentication.NoneAuthBuilder().build();
+            }
+
+            if (authenticationProperties == null || authenticationProperties.isEmpty()) {
+                if (authenticationType != null) {
+                    LOG.debug("Ignoring the authentication type: " + authenticationType +
+                            " since the authentication properties are not provided.");
+                }
+                return null;
+            }
+
+            // Both authenticationType and authenticationProperties is required to build the authentication.
+            return new Authentication.AuthenticationBuilder()
+                    .type(Authentication.Type.valueOfName(authenticationType))
+                    .properties(authenticationProperties)
+                    .build();
         }
     }
 }

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>7.7.2-SNAPSHOT</version>
+        <version>7.11.164-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -45,6 +45,11 @@
         <dependency>
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.ruedigermoeller</groupId>
+            <artifactId>fst</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -75,6 +80,16 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.organization.user.sharing</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.framework.async.operation.status.mgt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.commons-codec</groupId>
@@ -119,7 +134,7 @@
             <artifactId>org.wso2.carbon.identity.user.profile</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
@@ -132,28 +147,17 @@
         </dependency>
 <!--        GraalVM related dependencies-->
         <dependency>
-            <groupId>org.graalvm.sdk</groupId>
+            <groupId>org.wso2.orbit.graalvm.sdk</groupId>
             <artifactId>graal-sdk</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.js</groupId>
-            <artifactId>js</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.truffle</groupId>
-            <artifactId>truffle-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.regex</groupId>
-            <artifactId>regex</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ibm.icu</groupId>
-            <artifactId>icu4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -207,6 +211,10 @@
             <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.workflow.mgt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.orbit.commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
         </dependency>
@@ -233,20 +241,26 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.role.v2.mgt.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.flow.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <inherited>true</inherited>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -260,7 +274,6 @@
                         <Import-Package>
                             javax.xml.namespace,
                             javax.xml.stream,
-                            org.eclipse.equinox.http.helper,
 
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
@@ -304,9 +317,20 @@
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.configuration.mgt.core.constant; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.role.v2.mgt.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.consent.mgt.core.listener; version="${carbon.consent.mgt.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.mgt.listener; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.util;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.organization.user.sharing;
+                            version="${org.wso2.carbon.identity.organization.management.version.range}",
+                            org.wso2.carbon.identity.organization.management.organization.user.sharing.models;
+                            version="${org.wso2.carbon.identity.organization.management.version.range}",
                         </Import-Package>
                         <Export-Package>!org.wso2.carbon.identity.application.authentication.framework.internal,
                             org.wso2.carbon.identity.application.authentication.framework.*;

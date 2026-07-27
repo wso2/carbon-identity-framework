@@ -94,6 +94,15 @@
          <AuthenticatorConfig name="SAMLSSOAuthenticator" enabled="true">
             <!--Parameter name="SignAuth2SAMLUsingSuperTenant">true</Parameter-->
             <!--Parameter name="SAML2SSOManager">org.wso2.carbon.identity.application.authenticator.samlsso.manager.DefaultSAML2SSOManager</Parameter-->
+            <Parameter name="RemoteCertificateClientConnectionTimeout">1000</Parameter>
+            <Parameter name="RemoteCertificateClientReadTimeout">1000</Parameter>
+            <Parameter name="RemoteCertificateClientConnectionRequestTimeout">1000</Parameter>
+            <Parameter name="RemoteCertificateClientConnectionPoolSize">20</Parameter>
+            <Parameter name="RemoteCertificateClientMaxConnectionPerRoute">3</Parameter>
+            <Parameter name="RemoteCertificateRetryCount">0</Parameter>
+            <Parameter name="RemoteCertificateClientResponseLimit">512000</Parameter>
+            <Parameter name="RemoteCertificateRefreshRetryBlockDuration">300000</Parameter>
+            <Parameter name="RemoteCertificateCacheMaxLifetime">86400000</Parameter>
         </AuthenticatorConfig>
         <AuthenticatorConfig name="OpenIDConnectAuthenticator" enabled="true">
             <!--Parameter name="IDTokenHandler">org.wso2.carbon.identity.application.authenticator.oidc.DefaultIDTokenHandler</Parameter-->

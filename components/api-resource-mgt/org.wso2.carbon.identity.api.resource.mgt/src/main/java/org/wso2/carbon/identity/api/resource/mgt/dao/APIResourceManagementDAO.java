@@ -155,6 +155,20 @@ public interface APIResourceManagementDAO {
     }
 
     /**
+     * Update scope metadata by scope id.
+     *
+     * @param scope       Scope.
+     * @param apiResource API resource.
+     * @param tenantId    Tenant Id.
+     * @throws APIResourceMgtException If an error occurs while updating scope metadata.
+     */
+    default void updateScopeMetadataById(Scope scope, APIResource apiResource, Integer tenantId)
+            throws APIResourceMgtException {
+
+        // no implementation
+    }
+
+    /**
      * Delete the {@link APIResource} for the given id.
      *
      * @param apiId    API resource id.
@@ -239,6 +253,19 @@ public interface APIResourceManagementDAO {
      * @throws APIResourceMgtException If an error occurs while deleting the scope.
      */
     void deleteScope(String apiId, String scopeName, Integer tenantId) throws APIResourceMgtException;
+
+    /**
+     * Delete the scope by given scope id.
+     *
+     * @param apiId    API resource id.
+     * @param scopeId  Scope id.
+     * @param tenantId Tenant Id.
+     * @throws APIResourceMgtException If an error occurs while deleting the scope.
+     */
+    default void deleteScopeById(String apiId, String scopeId, Integer tenantId) throws APIResourceMgtException {
+
+        // no implementation.
+    }
 
     /**
      * Put scopes to the given API resource.

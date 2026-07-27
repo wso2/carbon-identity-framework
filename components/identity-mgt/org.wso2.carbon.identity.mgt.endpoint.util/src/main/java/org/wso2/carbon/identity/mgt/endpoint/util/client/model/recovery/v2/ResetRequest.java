@@ -95,6 +95,11 @@ public class ResetRequest {
         this.password = password;
     }
 
+    public void setPassword(char[] password) {
+
+        this.password = password != null ? new String(password) : null;
+    }
+
     /**
      * (OPTIONAL) Additional META properties.
      **/

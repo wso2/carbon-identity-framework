@@ -25,11 +25,13 @@ public class RoleMgtDAOFactory {
 
     private static RoleMgtDAOFactory factory = new RoleMgtDAOFactory();
     private RoleDAO roleDAO;
+    private RoleDAO cacheBackedRoleDAO;
     private GroupDAO groupDAO;
 
     private RoleMgtDAOFactory() {
 
         this.roleDAO = new RoleDAOImpl();
+        this.cacheBackedRoleDAO = new CacheBackedRoleDAO();
         this.groupDAO = new GroupDAOImpl();
     }
 
@@ -41,6 +43,11 @@ public class RoleMgtDAOFactory {
     public RoleDAO getRoleDAO() {
 
         return roleDAO;
+    }
+
+    public RoleDAO getCacheBackedRoleDAO() {
+
+        return cacheBackedRoleDAO;
     }
 
     public GroupDAO getGroupDAO() {

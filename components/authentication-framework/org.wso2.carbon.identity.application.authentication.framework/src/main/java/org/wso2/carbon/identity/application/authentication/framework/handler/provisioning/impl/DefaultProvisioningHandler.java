@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
@@ -36,6 +37,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -54,6 +58,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -76,7 +81,12 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.ErrorMessages.ERROR_CODE_EMAIL_DOMAIN_ASSOCIATED_WITH_DIFFERENT_ORGANIZATION;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.ErrorMessages.ERROR_CODE_EMAIL_DOMAIN_NOT_MAPPED_TO_ORGANIZATION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_WORKFLOW_CREATED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
+import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE;
 
 /**
  * Default provisioning handler.
@@ -165,6 +175,14 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     @Override
     public void handleWithV2Roles(List<String> roleIdList, String subject, Map<String, String> attributes,
+                  String provisioningUserStoreId, String tenantDomain, 
+                  AuthenticationContext context) throws FrameworkException {
+
+        handleWithV2Roles(roleIdList, subject, attributes, provisioningUserStoreId, tenantDomain);
+    }
+
+    @Override
+    public void handleWithV2Roles(List<String> roleIdList, String subject, Map<String, String> attributes,
                        String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
 
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -203,7 +221,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             handleV2Roles(username, userStoreManager, realm, roleIdList, tenantDomain);
 
         } catch (org.wso2.carbon.user.api.UserStoreException | FederatedAssociationManagerException e) {
-            throw new FrameworkException("Error while provisioning user : " + subject, e);
+            handleProvisioningException(e, subject);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
@@ -257,9 +275,15 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                     // Claim mappings which do not come with the IDP claim mapping set but must not delete.
                     Set<String> indelibleClaimSet = getIndelibleClaims();
+                    boolean isGroupAndRoleSeparationEnabled = IdentityUtil
+                            .isGroupsVsRolesSeparationImprovementsEnabled();
+                    boolean showLegacyRoleClaim = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
                     toBeDeletedFromExistingUserClaims.removeIf(claim -> claim.getClaimUri().contains("/identity/")
-                            || indelibleClaimSet.contains(claim.getClaimUri()) ||
-                            userClaims.containsKey(claim.getClaimUri()));
+                            || indelibleClaimSet.contains(claim.getClaimUri())
+                            || (isGroupAndRoleSeparationEnabled
+                                    && !showLegacyRoleClaim
+                                    && FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(claim.getClaimUri()))
+                            || userClaims.containsKey(claim.getClaimUri()));
 
                     // Do not delete the claims updated locally if the attributeSyncMethod is set to preserve
                     // the local claims.
@@ -271,11 +295,21 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     for (Claim claim : toBeDeletedFromExistingUserClaims) {
                         toBeDeletedUserClaims.add(claim.getClaimUri());
                     }
+                    // If claim is not modified, remove it from userClaims to avoid unnecessary updates.
+                    for (Claim claim : existingUserClaimList) {
+                        if (userClaims.containsKey(claim.getClaimUri()) &&
+                                userClaims.get(claim.getClaimUri()).equals(claim.getValue())) {
+                            userClaims.remove(claim.getClaimUri());
+                        }
+                    }
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 userClaims.remove(USERNAME_CLAIM);
-                userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                userClaims.remove(USER_ID_CLAIM);
+                if (!userClaims.isEmpty()) {
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                }
                     /*
                     Since the user is exist following code is get all active claims of user and crosschecking against
                     tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
@@ -298,6 +332,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             }
         } else {
+            IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                    .name(Flow.Name.JUST_IN_TIME_PROVISION)
+                    .initiatingPersona(Flow.InitiatingPersona.USER)
+                    .build());
+
             password = resolvePassword(userClaims);
             // Check for inconsistencies in username attribute and the username claim.
             if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
@@ -321,7 +360,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     setJitProvisionedSource(tenantDomain, idp, userClaims);
                 }
                 userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
+
+                FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, userStoreDomain, tenantDomain);
+
             } catch (UserStoreException e) {
+
+                FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getMessage(), userClaims,
+                        tenantDomain, userStoreDomain, idp);
                 // Add user operation will fail if a user operation workflow is already defined for the same user.
                 if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
                     userWorkflowEngaged = true;
@@ -336,6 +381,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
                 UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
                 Arrays.fill(password, '\0');
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
             }
 
             if (userWorkflowEngaged ||
@@ -444,6 +490,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throws UserStoreException, FrameworkException {
 
         try {
+            // Get the IDP group sync method from thread local.
+            String idpGroupSyncMethod = getIdpGroupSyncMethod();
+
+            // Check if manually added local roles should be preserved (backward compatible property).
             boolean includeManuallyAddedLocalRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
 
@@ -459,35 +509,134 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     organizationId, tenantDomain, rolesToAdd);
 
             List<String> currentRoleIdList = roleManagementService.getRoleIdListOfUser(userId, tenantDomain);
-            List<String> rolesToDelete;
+            List<String> rolesToDelete = new ArrayList<>();
 
-            rolesToAdd.removeAll(currentRoleIdList);
-            if (includeManuallyAddedLocalRoles) {
-                rolesToDelete = new ArrayList<>();
+            // Get the everyone role ID to exclude from deletion.
+            String everyoneRoleId = getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm);
+
+            if (FrameworkConstants.OVERRIDE_ALL.equals(idpGroupSyncMethod)) {
+                /*
+                 * OVERRIDE_ALL: Replace all roles of the user with IDP roles.
+                 * Remove all existing roles (except everyone role) and add only roles from IDP.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP group sync method is set to OVERRIDE_ALL. Replacing all roles with IDP roles " +
+                            "for user: " + LoggerUtils.getMaskedContent(username));
+                }
+
+                rolesToDelete = currentRoleIdList.stream()
+                        .filter(roleId -> !rolesToAdd.contains(roleId))
+                        .collect(Collectors.toList());
+
+                rolesToAdd.removeAll(currentRoleIdList);
+
             } else {
-                rolesToDelete = new ArrayList<>(currentRoleIdList);
-                rolesToDelete.removeAll(rolesToAdd);
+                /*
+                 * MERGE_WITH_EXISTING: Merge IDP roles with existing roles of the user.
+                 * Behavior depends on includeManuallyAddedLocalRoles property.
+                 * - If true: Only add new IDP roles without removing any existing roles.
+                 * - If false: Remove roles not in IDP list and add new IDP roles.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP group sync method is set to MERGE_WITH_EXISTING for user: " +
+                            LoggerUtils.getMaskedContent(username) + ". includeManuallyAddedLocalRoles: " +
+                            includeManuallyAddedLocalRoles);
+                }
+
+                rolesToAdd.removeAll(currentRoleIdList);
+
+                if (!includeManuallyAddedLocalRoles) {
+                    /*
+                     * This is kept to preserve backward compatibility. If the property to include manually
+                     * added local roles is not enabled, the behavior will be same as OVERRIDE_ALL to remove
+                     * all existing roles that are not in the IDP role list and add new IDP roles.
+                     */
+                    rolesToDelete = new ArrayList<>(currentRoleIdList);
+                    rolesToDelete.removeAll(rolesToAdd);
+                }
             }
+
             // Remove everyone role from deleting roles.
-            rolesToDelete.remove(getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm));
+            rolesToDelete.remove(everyoneRoleId);
 
             // Assign the user to the adding roles.
             for (String roleId : rolesToAdd) {
-                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                    roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
-                            new ArrayList<>(), tenantDomain);
-                }
+                assignUserToRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
             }
             // Remove the assignment of the user from the deleting roles.
             for (String roleId : rolesToDelete) {
-                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                    roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
-                            Arrays.asList(userId), tenantDomain);
-                }
+                removeUserFromRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
             }
         } catch (UserSessionException | IdentityRoleManagementException | OrganizationManagementException e) {
             throw new FrameworkException("Error while retrieving roles of user: " + username, e);
         }
+    }
+
+    /**
+     * Get IDP group sync method from thread local.
+     *
+     * @return IDP group sync method. Defaults to MERGE_WITH_EXISTING if not set.
+     */
+    private String getIdpGroupSyncMethod() {
+
+        Object idpGroupSyncMethodObj = IdentityUtil.threadLocalProperties.get()
+                .get(FrameworkConstants.IDP_GROUP_SYNC_METHOD);
+        if (idpGroupSyncMethodObj != null && StringUtils.isNotBlank(idpGroupSyncMethodObj.toString())) {
+            return idpGroupSyncMethodObj.toString();
+        }
+        // Default to MERGE_WITH_EXISTING (backward compatible behavior) if not set or blank.
+        return FrameworkConstants.MERGE_WITH_EXISTING;
+    }
+
+    /**
+     * Helper method to assign a user to a V2 role and handle workflow engagement.
+     */
+    private void assignUserToRoleV2(String userId, String username, String roleId, String tenantDomain,
+                                    RoleManagementService roleManagementService)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
+                        new ArrayList<>(), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            handleWorkflowEngagement(e, roleId, username, "assigning role");
+        }
+    }
+
+    /**
+     * Helper method to remove a user from a V2 role and handle workflow engagement.
+     */
+    private void removeUserFromRoleV2(String userId, String username, String roleId, String tenantDomain,
+                                      RoleManagementService roleManagementService)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
+                        Arrays.asList(userId), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            handleWorkflowEngagement(e, roleId, username, "removing role");
+        }
+    }
+
+    /**
+     * Handles the workflow exception check.
+     */
+    private void handleWorkflowEngagement(IdentityRoleManagementException e, String roleId, String username,
+                                          String actionContext) throws IdentityRoleManagementException {
+
+        if (ROLE_WORKFLOW_CREATED.getCode().equals(e.getErrorCode()) ||
+                ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode().equals(e.getErrorCode())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Workflow engaged for " + actionContext + ": " + roleId + " to user: " +
+                        LoggerUtils.getMaskedContent(username));
+            }
+            return;
+        }
+        throw e;
     }
 
     /**
@@ -647,19 +796,26 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     }
 
     private Map<String, String> prepareClaimMappings(Map<String, String> attributes) {
+
         Map<String, String> userClaims = new HashMap<>();
+        boolean allowNonStandardClaimUri = FrameworkUtils.allowNonStandardClaimUri();
         if (attributes != null && !attributes.isEmpty()) {
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String claimURI = entry.getKey();
                 String claimValue = entry.getValue();
-                /*
-                 For claimValues not mapped to local claim dialect uris, need to skip to prevent user provision failure.
-                 Password is a different case where we have to keep for password provisioning.
-                 */
-                if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue)) &&
-                        (claimURI.equals(FrameworkConstants.PASSWORD) ||
+                if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue))) {
+                    if (allowNonStandardClaimUri) {
+                        userClaims.put(claimURI, claimValue);
+                    } else {
+                        /*
+                         For claimValues not mapped to local claim dialect URIs, need to skip to prevent user provision
+                         failure. Password is a different case where we have to keep for password provisioning.
+                         */
+                        if ((claimURI.equals(FrameworkConstants.PASSWORD) ||
                                 claimURI.contains(LOCAL_DEFAULT_CLAIM_DIALECT))) {
-                    userClaims.put(claimURI, claimValue);
+                            userClaims.put(claimURI, claimValue);
+                        }
+                    }
                 }
             }
         }
@@ -895,5 +1051,39 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     IdentityUtil.getProperty(ALLOW_ASSOCIATING_TO_EXISTING_USER));
         }
         return allowAssociationToExistingUser;
+    }
+
+    /**
+     * Handle provisioning exceptions and trigger diagnostic logs for organization discovery validation errors.
+     *
+     * @param e       The exception to handle.
+     * @param subject The subject being provisioned.
+     * @throws FrameworkException If the error is a server error or unhandled exception.
+     */
+    private void handleProvisioningException(Exception e, String subject) throws FrameworkException {
+
+        if (e instanceof UserStoreException) {
+            UserStoreException userStoreException = (UserStoreException) e;
+            String errorCode = userStoreException.getErrorCode();
+
+            // Trigger diagnostic log for organization discovery errors.
+            if (ERROR_CODE_EMAIL_DOMAIN_NOT_MAPPED_TO_ORGANIZATION.getCode().equals(errorCode)
+                    || ERROR_CODE_EMAIL_DOMAIN_ASSOCIATED_WITH_DIFFERENT_ORGANIZATION.getCode().equals(errorCode)) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            FrameworkConstants.LogConstants.ActionIDs.JIT_PROVISIONING)
+                            .resultMessage(userStoreException.getMessage())
+                            .inputParam(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
+                                    ? LoggerUtils.getMaskedContent(subject)
+                                    : subject)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                return;
+            }
+        }
+        throw new FrameworkException("Error while provisioning user : " + subject, e);
     }
 }

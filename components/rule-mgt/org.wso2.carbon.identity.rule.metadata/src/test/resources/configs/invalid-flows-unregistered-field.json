@@ -1,0 +1,13 @@
+{
+  "preIssueAccessToken": [
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType"
+    },
+    {
+      "fieldName": "invalid"
+    }
+  ]
+}

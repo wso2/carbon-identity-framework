@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -50,6 +50,23 @@ public class IdentityEventConstants {
 
         public static final String PRE_AUTHENTICATION = "PRE_AUTHENTICATION";
         public static final String POST_AUTHENTICATION = "POST_AUTHENTICATION";
+        public static final String AUTHENTICATION_STEP_SUCCESS = "AUTHENTICATION_STEP_SUCCESS";
+        public static final String AUTHENTICATION_STEP_FAILURE = "AUTHENTICATION_STEP_FAILURE";
+        public static final String AUTHENTICATION_SUCCESS = "AUTHENTICATION_SUCCESS";
+        public static final String AUTHENTICATION_FAILURE = "AUTHENTICATION_FAILURE";
+        public static final String SESSION_CREATE = "SESSION_CREATE";
+        public static final String SESSION_UPDATE = "SESSION_UPDATE";
+        public static final String SESSION_TERMINATE = "SESSION_TERMINATE";
+        /**
+         * Session termination event version 2.
+         * This event is used to publish both single session and bulk session termination events,
+         *  consolidating multiple session terminations into a single event instead of emitting an event,
+         *  for each terminated session individually.
+         */
+        public static final String SESSION_TERMINATE_V2 = "SESSION_TERMINATE_V2";
+        public static final String SESSION_EXPIRE = "SESSION_EXPIRE";
+        public static final String SESSION_EXTEND = "SESSION_EXTEND";
+        public static final String VERIFICATION = "VERIFICATION";
         public static final String PRE_SET_USER_CLAIMS = "PRE_SET_USER_CLAIMS";
         public static final String POST_SET_USER_CLAIMS = "POST_SET_USER_CLAIMS";
         public static final String PRE_ADD_USER= "PRE_ADD_USER";
@@ -59,6 +76,7 @@ public class IdentityEventConstants {
         public static final String PRE_UPDATE_CREDENTIAL_BY_ADMIN= "PRE_UPDATE_CREDENTIAL_BY_ADMIN";
         public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN= "POST_UPDATE_CREDENTIAL_BY_ADMIN";
         public static final String POST_UPDATE_CREDENTIAL_BY_SCIM= "POST_UPDATE_CREDENTIAL_BY_SCIM";
+        public static final String POST_UPDATE_CREDENTIAL_BY_ME_API= "POST_UPDATE_CREDENTIAL_BY_ME_API";
         public static final String PRE_DELETE_USER= "PRE_DELETE_USER";
         public static final String POST_DELETE_USER= "POST_DELETE_USER";
         public static final String PRE_SET_USER_CLAIM= "PRE_SET_USER_CLAIM";
@@ -155,6 +173,7 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID = "POST_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID";
         public static final String PRE_DELETE_USER_WITH_ID = "PRE_DELETE_USER_WITH_ID";
         public static final String POST_DELETE_USER_WITH_ID = "POST_DELETE_USER_WITH_ID";
+        public static final String POST_DELETE_MAIN_APPLICATION_WITH_ID = "POST_DELETE_MAIN_APPLICATION_WITH_ID";
         public static final String PRE_SET_USER_CLAIM_VALUE_WITH_ID = "PRE_SET_USER_CLAIM_VALUE_WITH_ID";
         public static final String POST_SET_USER_CLAIM_VALUE_WITH_ID = "POST_SET_USER_CLAIM_VALUE_WITH_ID";
         public static final String PRE_SET_USER_CLAIM_VALUES_WITH_ID = "PRE_SET_USER_CLAIM_VALUES_WITH_ID";
@@ -182,6 +201,7 @@ public class IdentityEventConstants {
         public static final String POST_SELF_SIGNUP_CONFIRM = "POST_SELF_SIGNUP_CONFIRM";
         public static final String PRE_EMAIL_CHANGE_VERIFICATION = "PRE_EMAIL_CHANGE_VERIFICATION";
         public static final String POST_EMAIL_CHANGE_VERIFICATION = "POST_EMAIL_CHANGE_VERIFICATION";
+        public static final String POST_MOBILE_CHANGE_VERIFICATION = "POST_MOBILE_CHANGE_VERIFICATION";
         public static final String PRE_LOCK_ACCOUNT = "PRE_LOCK_ACCOUNT";
         public static final String POST_LOCK_ACCOUNT = "POST_LOCK_ACCOUNT";
         public static final String PRE_UNLOCK_ACCOUNT = "PRE_UNLOCK_ACCOUNT";
@@ -234,6 +254,8 @@ public class IdentityEventConstants {
         public static final String POST_GET_ROLES_V2_EVENT = "POST_GET_ROLES_V2_EVENT";
         public static final String PRE_GET_ROLES_V2_COUNT_EVENT = "PRE_GET_ROLES_V2_COUNT_EVENT";
         public static final String POST_GET_ROLES_V2_COUNT_EVENT = "POST_GET_ROLES_V2_COUNT_EVENT";
+        public static final String PRE_GET_ROLES_V2_FILTERED_COUNT_EVENT = "PRE_GET_ROLES_V2_COUNT_EVENT";
+        public static final String POST_GET_ROLES_V2_FILTERED_COUNT_EVENT = "POST_GET_ROLES_V2_COUNT_EVENT";
         public static final String PRE_GET_ROLE_V2_EVENT = "PRE_GET_ROLE_V2_EVENT";
         public static final String POST_GET_ROLE_V2_EVENT = "POST_GET_ROLE_V2_EVENT";
         public static final String PRE_UPDATE_ROLE_V2_NAME_EVENT = "PRE_UPDATE_ROLE_V2_NAME_EVENT";
@@ -311,6 +333,19 @@ public class IdentityEventConstants {
         public static final String POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
                 "POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
 
+        public static final String USER_REGISTRATION_FAILED = "USER_REGISTRATION_FAILED";
+        public static final String USER_REGISTRATION_SUCCESS = "USER_REGISTRATION_SUCCESS";
+
+        // Deprecated. Use POST_USER_PROFILE_UPDATE instead
+        public static final String USER_PROFILE_UPDATE = "USER_PROFILE_UPDATE";
+        public static final String POST_USER_PROFILE_UPDATE = "POST_USER_PROFILE_UPDATE";
+        public static final String TOKEN_ISSUED = "TOKEN_ISSUED";
+        public static final String TOKEN_REVOKED = "TOKEN_REVOKED";
+
+        public static final String POST_ISSUE_ACCESS_TOKEN_V2 = "POST_ISSUE_ACCESS_TOKEN_V2";
+
+        // Flow Event constants.
+        public static final String POST_FLOW_EXECUTION_STEP_EVENT = "POST_FLOW_EXECUTION_STEP_EVENT";
     }
 
     /**
@@ -326,7 +361,7 @@ public class IdentityEventConstants {
         SESSION_UPDATE,
         SESSION_TERMINATE,
         SESSION_EXPIRE,
-        SESSION_EXTEND
+        SESSION_EXTEND,
     }
 
     public class EventProperty {
@@ -374,6 +409,7 @@ public class IdentityEventConstants {
         public static final String PROFILE_NAME = "PROFILE_NAME";
         public static final String VERIFIED_CHANNEL = "VERIFIED_CHANNEL";
         public static final String VERIFIED_EMAIL = "VERIFIED_EMAIL";
+        public static final String VERIFIED_MOBILE = "VERIFIED_MOBILE";
         public static final String RECOVERY_SCENARIO = "RECOVERY_SCENARIO";
         public static final String USER_RECOVERY_DATA = "USER_RECOVERY_DATA";
         public static final String GET_USER_RECOVERY_DATA_SCENARIO = "GET_USER_RECOVERY_DATA_SCENARIO";
@@ -381,6 +417,7 @@ public class IdentityEventConstants {
                 "GET_USER_RECOVERY_DATA_SCENARIO_WITH_CODE_EXPIRY_VALIDATION";
         public static final String GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION =
                 "GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION";
+        public static final String INITIATOR_TYPE = "INITIATOR_TYPE";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";
@@ -393,6 +430,7 @@ public class IdentityEventConstants {
         public static final String SORT_ORDER = "SORT_ORDER";
         public static final String USER = "USER";
         public static final String FILTER = "FILTER";
+        public static final String SEARCH_FILTER = "SEARCH_FILTER";
         public static final String USER_CLAIM_SEARCH_ENTRIES = "USER_CLAIM_SEARCH_ENTRIES";
         public static final String LOGIN_IDENTIFIERS = "LOGIN_IDENTIFIERS";
         public static final String CONTEXT = "context";
@@ -437,22 +475,60 @@ public class IdentityEventConstants {
         public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
         public static final String AUDIENCE = "audience";
         public static final String AUDIENCE_ID = "audienceId";
+        public static final String AUDIENCE_NAME = "audienceName";
 
         public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
         public static final String REQUIRED_ATTRIBUTES = "requiredAttributes";
+        public static final String SKIP_LOCAL_USER_CLAIM_UPDATE = "skipLocalUserClaimUpdate";
 
         // API Resource and Application Authorized API related event properties.
         public static final String API_RESOURCE = "API_RESOURCE";
         public static final String API_ID = "API_ID";
         public static final String SCOPE_NAME = "SCOPE_NAME";
+        public static final String SCOPE_ID = "SCOPE_ID";
         public static final String ADDED_SCOPES = "ADDED_SCOPES";
         public static final String SCOPE = "SCOPE";
         public static final String DELETED_SCOPES = "DELETED_SCOPES";
         public static final String OLD_SCOPES = "OLD_SCOPES";
         public static final String NEW_SCOPES = "NEW_SCOPES";
         public static final String AUTHORIZED_API = "AUTHORIZED_API";
+        public static final String ADDED_AUTHORIZATION_DETAILS_TYPES = "ADDED_AUTHORIZATION_DETAILS_TYPES";
+        public static final String DELETED_AUTHORIZATION_DETAILS_TYPES = "DELETED_AUTHORIZATION_DETAILS_TYPES";
+
+        public static final String ERROR_CODE = "ERROR_CODE";
+        public static final String ERROR_MESSAGE = "ERROR_MESSAGE";
 
         public static final String SCENARIO = "SCENARIO";
+
+        public static final String STEP_ID = "STEP_ID";
+        public static final String CURRENT_AUTHENTICATOR = "CURRENT_AUTHENTICATOR";
+        public static final String IDP = "IDP";
+
+        public static final String USER_CLAIMS_ADDED = "USER_CLAIMS_ADDED";
+        public static final String USER_CLAIMS_MODIFIED = "USER_CLAIMS_MODIFIED";
+        public static final String USER_CLAIMS_DELETED = "USER_CLAIMS_DELETED";
+        public static final String SESSION_IDS = "SESSION_IDS";
+
+        public static final String CONSUMER_KEY = "CONSUMER_KEY";
+        public static final String IAT = "IAT";
+        public static final String JTI = "JTI";
+        public static final String TOKEN_TYPE = "TOKEN_TYPE";
+        public static final String GRANT_TYPE = "GRANT_TYPE";
+        public static final String TOKEN_ID = "TOKEN_ID";
+        public static final String USER_TYPE = "USER_TYPE";
+        public static final String CLIENT_ID = "CLIENT_ID";
+        public static final String ISSUER_ORGANIZATION_ID = "ISSUER_ORGANIZATION_ID";
+        public static final String ACCESSING_ORGANIZATION_ID = "ACCESSING_ORGANIZATION_ID";
+        public static final String APP_RESIDENT_TENANT_ID = "APP_RESIDENT_TENANT_ID";
+        public static final String EXISTING_TOKEN_USED = "EXISTING_TOKEN_USED";
+        public static final String SERVICE_PROVIDER = "SERVICE_PROVIDER";
+        public static final String ROOT_TENANT_DOMAIN = "ROOT_TENANT_DOMAIN";
+        public static final String IS_FEDERATED_USER = "IS_FEDERATED_USER";
+
+        public static final String CONSUMER_KEYS = "CONSUMER_KEYS";
+
+        public static final String IS_ORGANIZATION_USER = "IS_ORGANIZATION_USER";
+        public static final String USER_RESIDENT_ORGANIZATION_ID = "USER_RESIDENT_ORGANIZATION_ID";
 
         public class Scenario {
 
@@ -460,8 +536,23 @@ public class IdentityEventConstants {
 
                 public static final String POST_CREDENTIAL_UPDATE_BY_ADMIN = "POST_CREDENTIAL_UPDATE_BY_ADMIN";
                 public static final String POST_CREDENTIAL_UPDATE_BY_USER = "POST_CREDENTIAL_UPDATE_BY_USER";
+                public static final String POST_USER_PROFILE_UPDATE_BY_ADMIN = "POST_USER_PROFILE_UPDATE_BY_ADMIN";
+                public static final String POST_USER_PROFILE_UPDATE_BY_USER = "POST_USER_PROFILE_UPDATE_BY_USER";
             }
         }
+
+        public static final String IS_PASSWORD_UPDATE_ACTION = "isPasswordUpdateAction";
+        public static final String VERIFIED_BY_END_USER = "VerifiedByEndUser";
+
+        // Flow Event related properties
+        public static final String FLOW_TYPE = "FLOW_TYPE";
+        public static final String STEP_TYPE = "STEP_TYPE";
+        public static final String CURRENT_NODE_ID = "CURRENT_NODE_ID";
+        public static final String CURRENT_NODE_TYPE = "CURRENT_NODE_TYPE";
+        public static final String CONTEXT_ID = "CONTEXT_ID";
+        public static final String CURRENT_NODE_RESPONSE_STATUS = "CURRENT_NODE_RESPONSE_STATUS";
+        public static final String CURRENT_NODE_RESPONSE_TYPE = "CURRENT_NODE_RESPONSE_TYPE";
+        public static final String EXECUTOR_NAME = "EXECUTOR_NAME";
     }
 
     public class ErrorMessage {

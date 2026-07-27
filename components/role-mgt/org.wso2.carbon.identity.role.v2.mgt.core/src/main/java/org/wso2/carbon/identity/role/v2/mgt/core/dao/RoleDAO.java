@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -230,6 +231,26 @@ public interface RoleDAO {
     List<UserBasicInfo> getUserListOfRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Get user list of the given role filter.
+     *
+     * @param expressionNodes List of expressionNodes.
+     * @param limit           Limit value.
+     * @param offset          Offset value.
+     * @param sortBy          SortBy value.
+     * @param sortOrder       Sort order value.
+     * @param tenantDomain    Tenant domain.
+     * @param userStoreDomain User store domain.
+     * @return List of users.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<UserBasicInfo> getUserListOfRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+                                                   String sortBy, String sortOrder, String tenantDomain,
+                                                   String userStoreDomain) throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getUserListOfRoles method is not implemented");
+    }
+
+    /**
      * Update the list of groups in the given role.
      *
      * @param roleId             Role ID.
@@ -335,6 +356,16 @@ public interface RoleDAO {
     int getRolesCount(String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Retrieve available total roles count in a tenant for a given specific search filter.
+     *
+     * @param expressionNodes List of expressionNodes.
+     * @param tenantDomain    Tenant domain.
+     * @return The list count of roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    int getRolesCount(List<ExpressionNode> expressionNodes, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
      * Get role without users.
      *
      * @param roleId       Role ID.
@@ -356,6 +387,23 @@ public interface RoleDAO {
     void addMainRoleToSharedRoleRelationship(String mainRoleUUID, String sharedRoleUUID, String mainRoleTenantDomain,
                                              String sharedRoleTenantDomain)
             throws IdentityRoleManagementException;
+
+    /**
+     * Add main role to shared role relationship.
+     *
+     * @param mainRoleID           Main role ID.
+     * @param sharedRoleID         Shared role ID.
+     * @param sharedRoleName        Shared role name.
+     * @param mainRoleTenantDomain   Main role tenant domain.
+     * @param sharedRoleTenantDomain Shared role tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while adding shared role to main role relationship.
+     */
+    default void addMainRoleToSharedRoleRelationship(int mainRoleID, int sharedRoleID, String sharedRoleName,
+                                             String mainRoleTenantDomain, String sharedRoleTenantDomain)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("addMainRoleToSharedRoleRelationship method is not implemented");
+    }
 
     /**
      * Get role list of user.
@@ -427,8 +475,27 @@ public interface RoleDAO {
      * @param applicationId Idp Group IDs.
      * @param tenantDomain  Tenant domain.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     * @deprecated Use {@link #deleteRolesByApplicationAndReturnRoles(String, String)} which returns the
+     * deleted roles so that the corresponding events can be published.
      */
+    @Deprecated
     void deleteRolesByApplication(String applicationId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Delete all roles associated app by id and return the deleted roles.
+     *
+     * @param applicationId Application ID.
+     * @param tenantDomain  Tenant domain.
+     * @return The list of roles (basic info) that were deleted.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<RoleBasicInfo> deleteRolesByApplicationAndReturnRoles(String applicationId,
+                                                                              String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        deleteRolesByApplication(applicationId, tenantDomain);
+        return new ArrayList<>();
+    }
 
     /**
      * Get main role to shared role mappings by subOrg.
@@ -440,6 +507,20 @@ public interface RoleDAO {
      */
     Map<String, String> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
             throws IdentityRoleManagementException;
+
+    /**
+     * Get shared role to main role mappings by subOrg.
+     *
+     * @param roleIds            Shared role IDs.
+     * @param subOrgTenantDomain Sub Organization tenant domain.
+     * @return The map of shared role id to main roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getSharedRoleToMainRoleMappingsBySubOrg method is not implemented");
+    }
 
     /**
      * Get associated applications by role id.
@@ -472,5 +553,18 @@ public interface RoleDAO {
     default List<RoleDTO> getSharedHybridRoles(String roleId, int tenantId) throws IdentityRoleManagementException {
 
         return null;
+    }
+
+    /**
+     * Check whether the given role is a shared role in the given tenant.
+     *
+     * @param roleId       The role ID of the tenant.
+     * @param tenantDomain The tenant domain.
+     * @return True if the role is a shared role.
+     * @throws IdentityRoleManagementException If an error occurs while checking the shared role.
+     */
+    default boolean isSharedRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return false;
     }
 }

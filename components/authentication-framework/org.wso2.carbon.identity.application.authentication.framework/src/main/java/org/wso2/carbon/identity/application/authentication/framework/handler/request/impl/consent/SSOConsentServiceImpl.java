@@ -21,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
@@ -109,6 +110,14 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.IDENTITY_
 /**
  * Implementation of {@link SSOConsentService}.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request.impl." +
+                        "consent.SSOConsentService",
+                "service.scope=singleton"
+        }
+)
 public class SSOConsentServiceImpl implements SSOConsentService {
 
     private static final Log log = LogFactory.getLog(SSOConsentServiceImpl.class);

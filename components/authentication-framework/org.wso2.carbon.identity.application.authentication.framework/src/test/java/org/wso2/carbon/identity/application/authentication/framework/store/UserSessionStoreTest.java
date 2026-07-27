@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -28,13 +30,21 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,7 +53,6 @@ import javax.sql.DataSource;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Test class that includes unit tests of UserSessionStore
@@ -51,18 +60,45 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class UserSessionStoreTest extends DataStoreBaseTest {
 
     private static final String DB_NAME = "USER_SESSION_STORE";
+    private static final int IDLE_SESSION_TIMEOUT = 600;
+    private static final String TENANT_DOMAIN = "wso2.com";
+    private static final int TENANT_ID = 1;
+
+    @Mock
+    private ResultSet mockResultSet;
+
+    private MockedStatic<IdentityDatabaseUtil> mockedIdentityDatabaseUtil;
+    private MockedStatic<JdbcUtils> mockedJdbcUtils;
+    private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
+    private MockedStatic<IdPManagementUtil> mockedIdPManagementUtil;
 
     @BeforeClass
     public void setUp() throws Exception {
 
-        initMocks(this);
+        MockitoAnnotations.openMocks(this);
         initH2DB(DB_NAME, getDatabaseScriptFilePath("user_session_store_h2.sql"));
+
+        mockedIdentityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+        mockedJdbcUtils = mockStatic(JdbcUtils.class);
+        mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+
+        mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        mockedIdPManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(TENANT_DOMAIN)).
+                thenReturn(IDLE_SESSION_TIMEOUT);
+        // Default: max session timeout not configured.
+        mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                .thenReturn(Optional.empty());
     }
 
     @AfterClass
     public void tearDown() throws Exception {
 
         closeH2DB(DB_NAME);
+        mockedIdentityDatabaseUtil.close();
+        mockedJdbcUtils.close();
+        mockedIdentityTenantUtil.close();
+        mockedIdPManagementUtil.close();
     }
 
     @DataProvider
@@ -71,6 +107,15 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         return new Object[][]{
                 {"00000001", "testuser1", -1234, "PRIMARY", -1},
                 {"00000002", "testuser2", -1234, "Abc.com", -1},
+                {"00000003", "testuser3", -1234, "PRIMARY", 1}
+        };
+    }
+
+    @DataProvider
+    public Object[][] getFederatedUser() {
+
+        return new Object[][]{
+                {"00000003", "testuser3", "carbon.super", "PRIMARY", "FEDERATED"},
         };
     }
 
@@ -141,9 +186,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testStoreUserData(String userId, String username, int tenantId, String userDomain, int idpId) throws
             Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);) {
-            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
@@ -153,9 +197,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testExceptionAtStoreUserDataForDuplicatedUserID(String userId, String username, int tenantId, String
             userDomain, int idpId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
@@ -165,9 +208,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testExceptionAtStoreUserDataForInvalidUser(String userId, String username, int tenantId, String
             userDomain, int idpId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
@@ -176,12 +218,43 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testGetUserIdForAllUserParams(String expectedUserId, String username, int tenantId, String userDomain,
                                               int idpId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, false, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
             String actualUserId = UserSessionStore.getInstance().getUserId(username, tenantId, userDomain, idpId);
             Assert.assertEquals(actualUserId, expectedUserId, "Expected userId not received for user: " + username +
                     " of userstore domain: " + userDomain + ", tenant: " + tenantId + " and idp id: " + idpId);
+        }
+    }
+
+    @Test(dataProvider = "getFederatedUser", dependsOnMethods = {"testStoreUserData"})
+    public void testGetUserFromUserId(String userId, String username, String tenantDomain, String userDomain,
+                                      String idpName) throws Exception {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(-1234)).thenReturn("carbon.super");
+
+            AuthenticatedUser user = UserSessionStore.getInstance().getUser(userId);
+            Assert.assertEquals(user.getUserName(), username, "Expected username not received for user id: "
+                    + userId);
+            Assert.assertEquals(user.getUserStoreDomain(), userDomain.toUpperCase(), "Expected userDomain " +
+                    "not received for user id: " + userId);
+            Assert.assertEquals(user.getTenantDomain(), tenantDomain, "Expected tenantDomain " +
+                    "not received for user id: " + userId);
+            Assert.assertEquals(user.getFederatedIdPName(), idpName, "Expected idpName " +
+                    "not received for user id: " + userId);
+            AuthenticatedUser invalidUser = UserSessionStore.getInstance().getUser("invalidUserId");
+            Assert.assertNull(invalidUser, "Expected null for invalid user id.");
+        }
+    }
+
+    @Test(dependsOnMethods = {"testStoreUserData"}, expectedExceptions = UserSessionException.class)
+    public void testGetUserForNullUserId() throws Exception {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(-1234)).thenReturn("carbon.super");
+            UserSessionStore.getInstance().getUser(null);
         }
     }
 
@@ -189,9 +262,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testGetUserIdWithoutIdPParam(String expectedUserId, String username, int tenantId, String userDomain,
                                              int idpId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, false, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
             String actualUserId = UserSessionStore.getInstance().getUserId(username, tenantId, userDomain);
             Assert.assertEquals(actualUserId, expectedUserId, "Expected userId not received for user: " + username +
                     " of userstore domain: " + userDomain + ", tenant: " + tenantId);
@@ -202,9 +274,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testGetUserIdsOfUserStore(String expectedUserId, String username, int tenantId, String userDomain, int
             idpId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, false, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
             List<String> userIdsOfUserStore
                     = UserSessionStore.getInstance().getUserIdsOfUserStore(userDomain, tenantId);
             Assert.assertTrue(userIdsOfUserStore.contains(expectedUserId), "Expected userId not found in the user " +
@@ -222,9 +293,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     @Test(dataProvider = "getValidSessionsForUsers")
     public void testStoreUserSessionData(String userId, String sessionId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
             UserSessionStore.getInstance().storeUserSessionData(userId, sessionId);
         }
     }
@@ -234,9 +304,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testExceptionAtStoreUserSessionDataForDuplicatedSession(String userId, String sessionId) throws
             Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
             UserSessionStore.getInstance().storeUserSessionData(userId, sessionId);
         }
     }
@@ -244,9 +313,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     @Test(dataProvider = "getValidSessionsForUsers", dependsOnMethods = {"testStoreUserSessionData"})
     public void testIsExistingMappingForValidSession(String userId, String sessionId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, false, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
             Assert.assertTrue(UserSessionStore.getInstance().isExistingMapping(userId, sessionId), "Expected session:" +
                     " " + sessionId + " to be available for user id: " + userId);
         }
@@ -255,9 +323,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     @Test(dataProvider = "getInvalidSessionsForUsers", dependsOnMethods = {"testStoreUserSessionData"})
     public void testIsExistingMappingForInvalidSession(String userId, String sessionId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, false, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
             Assert.assertFalse(UserSessionStore.getInstance().isExistingMapping(userId, sessionId),
                     "Expected session: " + sessionId + " to be unavailable for user id: " + userId);
         }
@@ -266,9 +333,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     @Test(dataProvider = "getValidSessionsForUsers", dependsOnMethods = {"testStoreUserSessionData"})
     public void testGetSessionId(String userId, String expectedSessionId) throws Exception {
 
-        try (Connection connection = getConnection(DB_NAME);
-             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            mockIdentityDataBaseUtilConnection(connection, false, identityDatabaseUtil);
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
             List<String> sessionIdsOfUser = UserSessionStore.getInstance().getSessionId(userId);
             Assert.assertTrue(sessionIdsOfUser.contains(expectedSessionId), "Expected session:" +
                     " " + expectedSessionId + " is unavailable for user id: " + userId);
@@ -279,19 +345,72 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testStoreAppSessionData(String sessionId, String subject, int appID, String inboundAuth)
             throws Exception {
 
-        try (MockedStatic<JdbcUtils> jdbcUtils = mockStatic(JdbcUtils.class)) {
-            mockJdbcUtilsTemplate(getDatasource(DB_NAME), jdbcUtils);
-            UserSessionStore.getInstance().storeAppSessionData(sessionId, subject, appID, inboundAuth);
-        }
+        mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
+        UserSessionStore.getInstance().storeAppSessionData(sessionId, subject, appID, inboundAuth);
     }
 
     @Test(dataProvider = "getSessionMetadata", dependsOnMethods = {"testStoreUserSessionData"})
     public void testStoreSessionMetaData(String sessionId, Map<String, String> metaData) throws Exception {
 
-        try (MockedStatic<JdbcUtils> jdbcUtils = mockStatic(JdbcUtils.class)) {
-            mockJdbcUtilsTemplate(getDatasource(DB_NAME), jdbcUtils);
-            UserSessionStore.getInstance().storeSessionMetaData(sessionId, metaData);
-        }
+        mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
+        UserSessionStore.getInstance().storeSessionMetaData(sessionId, metaData);
+    }
+
+    @Test(dependsOnMethods = {"testStoreSessionMetaData"})
+    public void testGetActiveSessionCount() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), true, mockedIdentityDatabaseUtil);
+        mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
+        populateTestDataForActiveSessions();
+
+        Assert.assertEquals(UserSessionStore.getInstance().getActiveSessionCount(TENANT_DOMAIN), 2);
+        cleanupTestData();
+    }
+
+    /**
+     * Test getActiveSessionCount when maximum session lifetime is configured and sessions exceed it.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionCount"})
+    public void testGetActiveSessionCountWithMaxSessionTimeoutExceeded() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), true, mockedIdentityDatabaseUtil);
+        mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
+
+        cleanupTestData();
+        // Set max session timeout to 900 seconds (15 minutes).
+        int maxSessionTimeout = 900;
+        mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                .thenReturn(Optional.of(maxSessionTimeout));
+
+        populateTestDataWithMaxSessionTimeout(maxSessionTimeout);
+
+        // Only session3 and session4 should be active (not expired by idle or max lifetime).
+        // session1 is expired by idle timeout.
+        // session2 is deleted.
+        // session5 is expired by max lifetime (created 100000 seconds ago, max is 900 seconds).
+        Assert.assertEquals(UserSessionStore.getInstance().getActiveSessionCount(TENANT_DOMAIN), 2);
+        cleanupTestData();
+    }
+
+    /**
+     * Test getActiveSessionCount when maximum session lifetime is not configured.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionCountWithMaxSessionTimeoutExceeded"})
+    public void testGetActiveSessionCountWithoutMaxSessionTimeout() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), true, mockedIdentityDatabaseUtil);
+        mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
+
+        cleanupTestData();
+        // Max session timeout not configured.
+        mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                .thenReturn(Optional.empty());
+
+        populateTestDataWithMaxSessionTimeout(900);
+
+        // Should work same as before - only idle timeout is checked.
+        Assert.assertEquals(UserSessionStore.getInstance().getActiveSessionCount(TENANT_DOMAIN), 3);
+        cleanupTestData();
     }
 
     private void mockIdentityDataBaseUtilConnection(Connection connection, Boolean shouldApplyTransaction,
@@ -319,5 +438,156 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
                 .thenReturn(new JdbcTemplate(dataSource1));
         jdbcUtils.when(() -> JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION))
                 .thenReturn(new JdbcTemplate(dataSource1));
+    }
+
+    private void populateTestDataForActiveSessions() throws SQLException {
+
+        createUserSessionMapping("user1", "session1");
+        createUserSessionMapping("user2", "session2");
+        createUserSessionMapping("user3", "session3");
+        createUserSessionMapping("user4", "session4");
+
+        createSession("session1", "CREATE",
+                System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(IDLE_SESSION_TIMEOUT) - 20000);
+        createSession("session2", "CREATE", System.currentTimeMillis() - 10000);
+        createSession("session3", "CREATE", System.currentTimeMillis() - 20000);
+        createSession("session4", "CREATE", System.currentTimeMillis() - 30000);
+        createSession("session2", "DELETE", System.currentTimeMillis() - 5000);
+
+        addSessionMetadata("session1",
+                String.valueOf(System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(IDLE_SESSION_TIMEOUT) - 20000));
+        addSessionMetadata("session2", String.valueOf(System.currentTimeMillis() - 10000));
+        addSessionMetadata("session3", String.valueOf(System.currentTimeMillis() - 20000));
+        addSessionMetadata("session4", String.valueOf(System.currentTimeMillis() - 30000));
+    }
+
+    /**
+     * Populate test data for active sessions with max session timeout testing.
+     * Creates sessions where some exceed the max session lifetime.
+     *
+     * @param maxSessionTimeoutSeconds Maximum session timeout in seconds.
+     * @throws SQLException If an error occurs during data population.
+     */
+    private void populateTestDataWithMaxSessionTimeout(int maxSessionTimeoutSeconds) throws SQLException {
+
+        createUserSessionMapping("user1", "session1");
+        createUserSessionMapping("user2", "session2");
+        createUserSessionMapping("user3", "session3");
+        createUserSessionMapping("user4", "session4");
+        createUserSessionMapping("user5", "session5");
+
+        long currentTime = System.currentTimeMillis();
+        long idleTimeoutMillis = TimeUnit.SECONDS.toMillis(IDLE_SESSION_TIMEOUT);
+        long maxSessionTimeoutMillis = TimeUnit.SECONDS.toMillis(maxSessionTimeoutSeconds);
+
+        // session1: Expired by idle timeout (created before idle timeout threshold).
+        createSession("session1", "CREATE", currentTime - idleTimeoutMillis - 20000);
+        createSessionWithLoginTime("session1", currentTime - idleTimeoutMillis - 20000);
+        addSessionMetadata("session1", String.valueOf(currentTime - idleTimeoutMillis - 20000));
+
+        // session2: Created recently but deleted (should not be counted).
+        createSession("session2", "CREATE", currentTime - 10000);
+        createSessionWithLoginTime("session2", currentTime - 10000);
+        addSessionMetadata("session2", String.valueOf(currentTime - 10000));
+        createSession("session2", "DELETE", currentTime - 5000);
+
+        // session3: Active within both idle and max lifetime.
+        createSession("session3", "CREATE", currentTime - 20000);
+        createSessionWithLoginTime("session3", currentTime - 20000);
+        addSessionMetadata("session3", String.valueOf(currentTime - 20000));
+
+        // session4: Active within both idle and max lifetime.
+        createSession("session4", "CREATE", currentTime - 30000);
+        createSessionWithLoginTime("session4", currentTime - 30000);
+        addSessionMetadata("session4", String.valueOf(currentTime - 30000));
+
+        // session5: Expired by max lifetime (created beyond max session timeout).
+        createSession("session5", "CREATE", currentTime - maxSessionTimeoutMillis - 100000);
+        createSessionWithLoginTime("session5", currentTime - maxSessionTimeoutMillis - 100000);
+        addSessionMetadata("session5", String.valueOf(currentTime - 50000)); // Last access recent.
+    }
+
+    private void createUserSessionMapping(String userId, String sessionId) throws SQLException {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            String sql = "INSERT INTO IDN_AUTH_USER_SESSION_MAPPING (USER_ID, SESSION_ID) VALUES (?, ?)";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, userId);
+                stmt.setString(2, sessionId);
+                stmt.executeUpdate();
+            }
+            connection.commit();
+        }
+    }
+
+    private void createSession(String sessionId, String operation, long timeCreated) throws SQLException {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            String sql = "INSERT INTO IDN_AUTH_SESSION_STORE (SESSION_ID, SESSION_TYPE, OPERATION, TIME_CREATED, " +
+                    "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, sessionId);
+                stmt.setString(2, "AppAuthFrameworkSessionContextCache");
+                stmt.setString(3, operation);
+                stmt.setLong(4, timeCreated);
+                stmt.setInt(5, operation.equals("DELETE") ? -1 : TENANT_ID);
+                stmt.executeUpdate();
+            }
+            connection.commit();
+        }
+    }
+
+    private void addSessionMetadata(String sessionId, String value) throws SQLException {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            String sql = "INSERT INTO IDN_AUTH_SESSION_META_DATA (SESSION_ID, PROPERTY_TYPE, `VALUE`) VALUES (?, ?, ?)";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, sessionId);
+                stmt.setString(2, "Last Access Time");
+                stmt.setString(3, value);
+                stmt.executeUpdate();
+            }
+            connection.commit();
+        }
+    }
+
+    /**
+     * Add login time metadata for a session (used for max session timeout validation).
+     *
+     * @param sessionId Session ID.
+     * @param loginTime Login time in milliseconds.
+     * @throws SQLException If an error occurs during data insertion.
+     */
+    private void createSessionWithLoginTime(String sessionId, long loginTime) throws SQLException {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            String sql = "INSERT INTO IDN_AUTH_SESSION_META_DATA (SESSION_ID, PROPERTY_TYPE, `VALUE`) VALUES (?, ?, ?)";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, sessionId);
+                stmt.setString(2, SessionMgtConstants.LOGIN_TIME);
+                stmt.setString(3, String.valueOf(loginTime));
+                stmt.executeUpdate();
+            }
+            connection.commit();
+        }
+    }
+
+    private void cleanupTestData() throws SQLException {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            String[] cleanupStatements = {
+                    "DELETE FROM IDN_AUTH_SESSION_STORE",
+                    "DELETE FROM IDN_AUTH_USER_SESSION_MAPPING",
+                    "DELETE FROM IDN_AUTH_SESSION_META_DATA",
+                    "DELETE FROM IDN_AUTH_SESSION_APP_INFO"
+            };
+
+            for (String sql : cleanupStatements) {
+                try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                    stmt.executeUpdate();
+                }
+            }
+            connection.commit();
+        }
     }
 }

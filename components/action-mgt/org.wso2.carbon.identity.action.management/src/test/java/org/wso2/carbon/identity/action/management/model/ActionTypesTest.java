@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.model;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.management.api.model.Action;
 
 /**
  * Test class for ActionTypes.
@@ -47,7 +48,15 @@ public class ActionTypesTest {
                         Action.ActionTypes.Category.PRE_POST},
                 {Action.ActionTypes.AUTHENTICATION, "authentication", "AUTHENTICATION", "Authentication",
                         "Configure an extension point for user authentication via a custom service.",
-                        Action.ActionTypes.Category.IN_FLOW}
+                        Action.ActionTypes.Category.IN_FLOW},
+                {Action.ActionTypes.PRE_ISSUE_ID_TOKEN, "preIssueIdToken", "PRE_ISSUE_ID_TOKEN",
+                        "Pre Issue ID Token",
+                        "Configure an extension point for modifying ID token via a custom service.",
+                        Action.ActionTypes.Category.PRE_POST},
+                {Action.ActionTypes.FLOW_EXTENSION, "flowExtension", "FLOW_EXTENSION",
+                        "Flow Extension",
+                        "Configure an extension point within any flow via a custom service.",
+                        Action.ActionTypes.Category.FLOW_EXTENSION}
         };
     }
 
@@ -70,8 +79,10 @@ public class ActionTypesTest {
                 {Action.ActionTypes.Category.PRE_POST,
                         new Action.ActionTypes[]{Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN,
                                 Action.ActionTypes.PRE_UPDATE_PASSWORD, Action.ActionTypes.PRE_UPDATE_PROFILE,
-                                Action.ActionTypes.PRE_REGISTRATION}},
-                {Action.ActionTypes.Category.IN_FLOW, new Action.ActionTypes[]{Action.ActionTypes.AUTHENTICATION}}
+                                Action.ActionTypes.PRE_REGISTRATION, Action.ActionTypes.PRE_ISSUE_ID_TOKEN}},
+                {Action.ActionTypes.Category.IN_FLOW, new Action.ActionTypes[]{Action.ActionTypes.AUTHENTICATION}},
+                {Action.ActionTypes.Category.FLOW_EXTENSION,
+                        new Action.ActionTypes[]{Action.ActionTypes.FLOW_EXTENSION}}
         };
     }
 

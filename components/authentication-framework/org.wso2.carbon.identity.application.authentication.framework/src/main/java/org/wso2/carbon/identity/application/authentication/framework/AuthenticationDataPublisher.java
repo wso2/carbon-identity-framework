@@ -45,7 +45,7 @@ public interface AuthenticationDataPublisher extends IdentityMessageHandler {
                                           Map<String, Object> params);
 
     /**
-     * Published authentication step failure
+     * Published authentication step failure for the external webhooks and any AuthenticationDataPublisher.
      *
      * @param request Incoming Http request to framework for authentication
      * @param context Authentication Context
@@ -55,7 +55,7 @@ public interface AuthenticationDataPublisher extends IdentityMessageHandler {
                                           Map<String, Object> params);
 
     /**
-     * Publishes authentication success
+     * Publishes authentication success for the external webhooks and any AuthenticationDataPublisher.
      *
      * @param request Incoming request for authentication
      * @param context Authentication context
@@ -65,7 +65,7 @@ public interface AuthenticationDataPublisher extends IdentityMessageHandler {
                                              Map<String, Object> params);
 
     /**
-     * Publishes authentication failure
+     * Publishes authentication failure for the external webhooks and any AuthenticationDataPublisher.
      *
      * @param request Incoming authentication request
      * @param context Authentication context

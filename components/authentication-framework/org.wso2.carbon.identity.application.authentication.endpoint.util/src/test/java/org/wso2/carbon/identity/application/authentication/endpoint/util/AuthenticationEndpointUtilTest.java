@@ -26,9 +26,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -54,6 +55,9 @@ public class AuthenticationEndpointUtilTest {
 
     @Mock
     private AxisConfiguration mockAxisConfiguration;
+
+    @Mock
+    private ConfigurationFacade mockedConfigurationFacade;
 
     final String USERNAME = "TestUser";
     final String USERSTORE_NAME = "WSO2.COM";
@@ -215,6 +219,55 @@ public class AuthenticationEndpointUtilTest {
             identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(TENANT_DOMAIN);
             boolean validity = AuthenticationEndpointUtil.isValidURL(urlString);
             Assert.assertEquals(validity, expectedValidity, "URL validity failed for " + urlString);
+        }
+    }
+
+    @DataProvider(name = "URLProvider")
+    public Object[][] isSafeURLData() {
+
+        return new Object[][]{
+                {"http://example.com", true},
+                {"http://example.com?query=string", true},
+                {"a.com/page", true},
+                {null, false},
+                {"null", false},
+                {"   ", false},
+                {"NULL", false},
+                {"javascript:alert(1)", false},
+                {"ftp://malicious.com/exploit", false},
+                {"FILE://C:/windows/system32/cmd.exe", false},
+                {"FTP://attacker.org/file.txt", false},
+                {"data:text/html,<script>alert('xss')</script>", false},
+                {"http://example.com/malicious?url=javascript:alert(1)", false},
+                {"somepath/ftp:user@host", false},
+                {"data:image/jpeg;base64,something.jpg", false}
+        };
+    }
+
+    @Test(dataProvider = "URLProvider")
+    public void testISchemeSafeURL(String url, boolean expectedValidity) throws Exception {
+
+        boolean validity = AuthenticationEndpointUtil.isSchemeSafeURL(url);
+        Assert.assertEquals(validity, expectedValidity);
+    }
+
+    @DataProvider
+    public Object[][] provideIsConsentPageRedirectParamsAllowed() {
+        return new Object[][]{
+                {true},
+                {false}
+        };
+    }
+
+    @Test(dataProvider = "provideIsConsentPageRedirectParamsAllowed")
+    public void testIsConsentPageRedirectParamsAllowed(boolean allowConsentPageRedirectParams) {
+
+        try (MockedStatic<ConfigurationFacade> configFacadeMock = mockStatic(ConfigurationFacade.class)) {
+            configFacadeMock.when(ConfigurationFacade::getInstance).thenReturn(mockedConfigurationFacade);
+            when(mockedConfigurationFacade.isConsentPageRedirectParamsAllowed())
+                    .thenReturn(allowConsentPageRedirectParams);
+            Assert.assertEquals(AuthenticationEndpointUtil.isConsentPageRedirectParamsAllowed(),
+                    allowConsentPageRedirectParams);
         }
     }
 }

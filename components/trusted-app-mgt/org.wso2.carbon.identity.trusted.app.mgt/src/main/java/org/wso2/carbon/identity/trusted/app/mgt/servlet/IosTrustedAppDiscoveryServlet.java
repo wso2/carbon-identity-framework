@@ -22,6 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.trusted.app.mgt.exceptions.TrustedAppMgtException;
 import org.wso2.carbon.identity.trusted.app.mgt.internal.TrustedAppMgtDataHolder;
 import org.wso2.carbon.identity.trusted.app.mgt.model.TrustedIosApp;
@@ -31,11 +32,13 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.APPS_ATTRIBUTE;
+import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.CP_IOS_TRUSTED_APPS;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.CT_APPLICATION_JSON;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.HTTP_RESP_HEADER_CACHE_CONTROL;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.HTTP_RESP_HEADER_PRAGMA;
@@ -46,6 +49,15 @@ import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.IOS_CREDE
 /**
  * Servlet to discover iOS based trusted apps.
  */
+@Component(
+        service = Servlet.class,
+        immediate = true,
+        property = {
+                "osgi.http.whiteboard.servlet.pattern=" + CP_IOS_TRUSTED_APPS,
+                "osgi.http.whiteboard.servlet.name=IosTrustedAppDiscoveryServlet",
+                "osgi.http.whiteboard.servlet.asyncSupported=true"
+        }
+)
 public class IosTrustedAppDiscoveryServlet extends HttpServlet {
 
     private static final Log LOG = LogFactory.getLog(IosTrustedAppDiscoveryServlet.class);
@@ -71,7 +83,7 @@ public class IosTrustedAppDiscoveryServlet extends HttpServlet {
         }
     }
 
-        private String generateJsonResponse(List<TrustedIosApp> trustedApps) {
+    private String generateJsonResponse(List<TrustedIosApp> trustedApps) {
 
         JsonObject responseObject = new JsonObject();
         JsonObject webCredentials = new JsonObject();

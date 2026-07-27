@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -31,14 +32,23 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultSequenceHandlerUtils;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -52,12 +62,23 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_CODE_DEFAULT;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 
 /**
  * This PostAuthentication Handler is responsible for handling the association of user accounts with local users.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request." +
+                        "PostAuthenticationHandler",
+                "service.scope=singleton"
+        }
+)
 public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthAssociationHandler.class);
@@ -69,6 +90,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
      * @return instance of PostAuthAssociationHandler
      */
     public static PostAuthAssociationHandler getInstance() {
+
         return instance;
     }
 
@@ -114,25 +136,47 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
-                if (stepConfig.isSubjectIdentifierStep()) {
+            if (authenticator instanceof FederatedApplicationAuthenticator &&
+                    !FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(authenticator.getName()) &&
+                    stepConfig.isSubjectIdentifierStep()) {
+                if (log.isDebugEnabled()) {
+                    log.debug(authenticator.getName() + " has been set up for subject identifier step.");
+                }
+                /* If AlwaysSendMappedLocalSubjectId is selected, need to get the local user associated with the
+                 * federated idp.
+                 */
+                String associatedLocalUserName = null;
+                if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
+                    associatedLocalUserName = getUserNameAssociatedWith(context, stepConfig);
+                }
+                if (StringUtils.isNotEmpty(associatedLocalUserName)) {
                     if (log.isDebugEnabled()) {
-                        log.debug(authenticator.getName() + " has been set up for subject identifier step.");
+                        log.debug("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
+                                + "equavlent local user : " + associatedLocalUserName);
                     }
-                     /*
-                    If AlwaysSendMappedLocalSubjectId is selected, need to get the local user associated with the
-                    federated idp.
-                     */
-                    String associatedLocalUserName = null;
-                    if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
-                        associatedLocalUserName = getUserNameAssociatedWith(context, stepConfig);
-                    }
-                    if (StringUtils.isNotEmpty(associatedLocalUserName)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
-                                    + "equavlent local user : " + associatedLocalUserName);
+                    setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
+                } else {
+                    String tenantDomain = context.getTenantDomain();
+                    String spName = context.getServiceProviderName();
+                    try {
+                        ServiceProvider serviceProvider =
+                                FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
+                                        .getServiceProvider(spName, tenantDomain);
+
+                        if (FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(serviceProvider)) {
+                            ClaimConfig serviceProviderClaimConfig = serviceProvider.getClaimConfig();
+                            UserLinkStrategy userLinkStrategy =
+                                    resolveLocalUserLinkingStrategy(serviceProviderClaimConfig);
+                            if (userLinkStrategy == UserLinkStrategy.MANDATORY) {
+                                throw new PostAuthenticationFailedException(
+                                        ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getErrorCode(),
+                                        "Federated user is not associated with any local user.");
+                            }
                         }
-                        setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
+                    } catch (IdentityApplicationManagementException e) {
+                        throw new PostAuthenticationFailedException(
+                                ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS.getErrorCode(),
+                                "Error while retrieving service provider.", e);
                     }
                 }
             }
@@ -157,6 +201,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                 associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
         AuthenticatedUser user =
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUsername);
+        resolveSharedUser(user, context);
         sequenceConfig.setAuthenticatedUser(user);
         stepConfig.setAuthenticatedUser(user);
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
@@ -186,6 +231,47 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             log.debug("Authenticated User Tenant Domain: " + tenantDomain);
         }
     }
+
+    /**
+     * Check if the authenticated user is a shared user to the accessing organization.
+     * If so, update the user details to reflect resident profile details.
+     *
+     * @param user    Authenticated user.
+     * @param context Authentication context.
+     * @throws PostAuthenticationFailedException Post Authentication failed exception.
+     */
+    private void resolveSharedUser(AuthenticatedUser user, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        if (!FrameworkUtils.useResidentUserIdForAuthenticatedSharedUsers()) {
+            return;
+        }
+
+        OrganizationManager organizationManager = FrameworkServiceDataHolder.getInstance().getOrganizationManager();
+        OrganizationUserSharingService organizationUserSharingService =
+                FrameworkServiceDataHolder.getInstance().getOrganizationUserSharingService();
+        try {
+            UserAssociation association = organizationUserSharingService.getUserAssociation(
+                    user.getUserId(), organizationManager.resolveOrganizationId(user.getTenantDomain()));
+            if (association != null) {
+                user.setSharedUser(true);
+                user.setUserId(association.getAssociatedUserId());
+                user.setUserResidentOrganization(association.getUserResidentOrganizationId());
+                user.setAccessingOrganization(organizationManager.resolveOrganizationId(context.getTenantDomain()));
+                user.setTenantDomain(organizationManager.resolveTenantDomain(
+                        association.getUserResidentOrganizationId()));
+                user.setAuthenticatedSubjectIdentifier(user.getUserName() + UserCoreConstants.TENANT_DOMAIN_COMBINER +
+                        organizationManager.resolveTenantDomain(association.getUserResidentOrganizationId()));
+            }
+        } catch (OrganizationManagementException e) {
+            throw new PostAuthenticationFailedException(ERROR_CODE_DEFAULT.getErrorCode(),
+                    "Error while resolving the organization of the user: " + user.getLoggableMaskedUserId(), e);
+        } catch (UserIdNotFoundException e) {
+            throw new PostAuthenticationFailedException(ERROR_CODE_DEFAULT.getErrorCode(),
+                    "Authenticated user ID not found for: " + user.getLoggableMaskedUserId(), e);
+        }
+    }
+
     /**
      * To get the local user name associated with the given federated IDP and the subject identifier.
      *
@@ -200,6 +286,10 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         String associatesUserName;
         String originalExternalIdpSubjectValueForThisStep = stepConfig.getAuthenticatedUser()
                 .getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+            originalExternalIdpSubjectValueForThisStep = FrameworkUtils.getExternalSubject(stepConfig,
+                    context.getTenantDomain());
+        }
         try {
             FrameworkUtils.startTenantFlow(context.getTenantDomain());
             FederatedAssociationManager federatedAssociationManager = FrameworkUtils.getFederatedAssociationManager();
@@ -233,8 +323,8 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     /**
      * To get the claim mapping based on user local.
      *
-     * @param context    Authentication Context.
-     * @param mappedAttrs    Mapped user attributes.
+     * @param context     Authentication Context.
+     * @param mappedAttrs Mapped user attributes.
      * @return claim mapping.
      */
     @SuppressWarnings("unchecked")
@@ -295,5 +385,35 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                             ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getMessage(),
                     context.getSequenceConfig().getAuthenticatedUser().getUserName()), e);
         }
+    }
+
+    /**
+     * Method to get the assert local user behaviour based on the service provider claim configuration.
+     *
+     * @param claimConfig Claim configuration of the service provider.
+     * @return Assert local user behaviour.
+     */
+    private static UserLinkStrategy resolveLocalUserLinkingStrategy(
+            ClaimConfig claimConfig) {
+
+        if (claimConfig == null) {
+            return UserLinkStrategy.DISABLED;
+        }
+
+        if (claimConfig.isMappedLocalSubjectMandatory()) {
+            return UserLinkStrategy.MANDATORY;
+        } else if (claimConfig.isAlwaysSendMappedLocalSubjectId()) {
+            return UserLinkStrategy.OPTIONAL;
+        } else {
+            return UserLinkStrategy.DISABLED;
+        }
+    }
+
+    /**
+     * Enum to represent the user link strategy.
+     */
+    public enum UserLinkStrategy {
+
+        DISABLED, OPTIONAL, MANDATORY
     }
 }

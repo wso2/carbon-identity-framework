@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -22,8 +22,12 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
+import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
@@ -36,12 +40,19 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -56,6 +67,8 @@ public class JsGraalAuthenticationContextTest {
     private static final String LAST_ATTEMPTED_USER_USERSTORE_DOMAIN = "lastAttemptedUserstoreDomain";
     private static final String SERVICE_PROVIDER_NAME = "service_provider_js_test";
     private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
+    private static final String TEST_CLAIM_VALUE = "TestClaimVal1";
+    private static final String TEST_REMOTE_CLAIM_URI = "Test.Remote.Claim.Uri";
 
     private Context context;
 
@@ -81,9 +94,11 @@ public class JsGraalAuthenticationContextTest {
                 ClaimMapping.build("Test.Remote.Claim.Url.2", "Test.Remote.Claim.Url.2", "", false);
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.getUserAttributes().put(claimMapping1, "TestClaimVal1");
+        authenticatedUser.getUserAttributes().put(claimMapping1, TEST_CLAIM_VALUE);
         authenticatedUser.getUserAttributes().put(claimMapping2, "TestClaimVal2");
+        authenticatedUser.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
@@ -142,7 +157,9 @@ public class JsGraalAuthenticationContextTest {
     public void testRemoteAddition() throws IOException {
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
@@ -243,5 +260,111 @@ public class JsGraalAuthenticationContextTest {
         assertFalse(result.isNull());
         assertEquals(result.asString(), BASIC_AUTHENTICATOR,
                 "Authenticator of the step in AuthenticationContext is not accessible from JSAuthenticationContext");
+    }
+
+    @Test
+    public void testGetPasswordResetCompleteFromWrappedContext() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setPasswordResetComplete(true);
+
+        JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+        bindings.putMember("context", jsAuthenticationContext);
+
+        Value result = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.passwordResetComplete", POLYGLOT_SOURCE).build());
+        assertFalse(result.isNull());
+        assertTrue(result.asBoolean());
+    }
+
+    @Test
+    public void testGetPasswordResetCompleteFalseFromWrappedContext() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setPasswordResetComplete(false);
+
+        JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+        bindings.putMember("context", jsAuthenticationContext);
+
+        Value result = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.passwordResetComplete", POLYGLOT_SOURCE).build());
+        assertFalse(result.isNull());
+        assertFalse(result.asBoolean());
+    }
+
+    /**
+     * Data provider for cross-tenant claim access scenarios.
+     *
+     * Columns: isSaas, isCrossTenantEnabled, isTenantQualified,
+     *          userTenantDomain, authContextTenantDomain, carbonContextTenantDomain, expectedClaimValue
+     */
+    @DataProvider(name = "crossTenantClaimAccessDataProvider")
+    public Object[][] getCrossTenantClaimAccessData() {
+
+        return new Object[][]{
+                // Non-SaaS, tenant-qualified=false: validated against authCtx tenant.
+                {false, false, false, "t2.com", "t2.com", "carbon.super", TEST_CLAIM_VALUE},
+                {false, false, false, "t1.com", "t2.com", "carbon.super", null},
+                // Non-SaaS, tenant-qualified=true: validated against PCC tenant.
+                {false, false, true,  "t2.com", "t3.com", "t2.com", TEST_CLAIM_VALUE},
+                {false, false, true,  "t1.com", "t3.com", "t2.com", null},
+                // SaaS + cross-tenant enabled: bypass tenant check → claim accessible.
+                {true,  true,  false, "t2.com", "t1.com", "carbon.super", TEST_CLAIM_VALUE},
+                // SaaS + cross-tenant disabled: falls through to normal check → blocked.
+                {true,  false, false, "t2.com", "t1.com", "carbon.super", null},
+        };
+    }
+
+    /**
+     * Verifies cross-tenant claim access behaviour of {@link JsClaims#isAuthenticatedUserInCurrentTenant()} across
+     * non-SaaS and SaaS scenarios, including the SaaS.EnableCrossTenantOperations config check.
+     */
+    @Test(dataProvider = "crossTenantClaimAccessDataProvider")
+    public void testCrossTenantClaimAccess(boolean isSaasApp, boolean isCrossTenantEnabled,
+            boolean isTenantQualified, String userTenantDomain, String authContextTenantDomain,
+            String carbonContextTenantDomain, String expectedClaimValue) throws IOException {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+
+        ClaimMapping claimMapping =
+                ClaimMapping.build(TEST_REMOTE_CLAIM_URI, TEST_REMOTE_CLAIM_URI, "", false);
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.getUserAttributes().put(claimMapping, TEST_CLAIM_VALUE);
+        authenticatedUser.setTenantDomain(userTenantDomain);
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setTenantDomain(authContextTenantDomain);
+        setupAuthContextWithStepData(authenticationContext, authenticatedUser);
+
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.isSaasApp()).thenReturn(isSaasApp);
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+        authenticationContext.getSequenceConfig().setApplicationConfig(appConfig);
+
+        JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+        bindings.putMember("context", jsAuthenticationContext);
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableCrossTenantOperations"))
+                    .thenReturn(String.valueOf(isCrossTenantEnabled));
+
+            Value result = context.eval(
+                    Source.newBuilder(POLYGLOT_LANGUAGE,
+                            "context.steps[1].subject.remoteClaims['" + TEST_REMOTE_CLAIM_URI + "']",
+                            POLYGLOT_SOURCE).build());
+            if (expectedClaimValue == null) {
+                assertTrue(result.isNull(), "Cross-tenant claim access should be blocked");
+            } else {
+                assertFalse(result.isNull());
+                assertEquals(result.asString(), expectedClaimValue,
+                        "Cross-tenant claim access should be allowed");
+            }
+        }
     }
 }

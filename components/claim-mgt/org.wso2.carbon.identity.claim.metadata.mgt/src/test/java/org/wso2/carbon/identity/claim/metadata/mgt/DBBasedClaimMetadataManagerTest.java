@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedClaimDialectDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDialectDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServerException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
@@ -56,9 +56,9 @@ import static org.testng.Assert.assertTrue;
 public class DBBasedClaimMetadataManagerTest {
 
     private DBBasedClaimMetadataManager claimMetadataManager;
-    private final CacheBackedClaimDialectDAO mockClaimDialectDAO = Mockito.mock(CacheBackedClaimDialectDAO.class);
-    private final CacheBackedLocalClaimDAO mockLocalClaimDAO = Mockito.mock(CacheBackedLocalClaimDAO.class);
-    private final CacheBackedExternalClaimDAO mockExternalClaimDAO = Mockito.mock(CacheBackedExternalClaimDAO.class);
+    private final ClaimDialectDAO mockClaimDialectDAO = Mockito.mock(ClaimDialectDAO.class);
+    private final LocalClaimDAO mockLocalClaimDAO = Mockito.mock(LocalClaimDAO.class);
+    private final ExternalClaimDAO mockExternalClaimDAO = Mockito.mock(ExternalClaimDAO.class);
     private final String LOCAL_CLAIM_DIALECT = "http://wso2.org/claims";
     private final String EXT_CLAIM_DIALECT_1 = "http://abc.org";
     private final String EXT_CLAIM_DIALECT_2 = "http://def.org";
@@ -151,7 +151,6 @@ public class DBBasedClaimMetadataManagerTest {
         ClaimDialect claimDialect = new ClaimDialect(EXT_CLAIM_DIALECT_1);
         claimMetadataManager.removeClaimDialect(claimDialect, 1);
         verify(mockClaimDialectDAO, times(1)).removeClaimDialect(claimDialect, 1);
-        verify(mockExternalClaimDAO, times(1)).removeExternalClaimCache(EXT_CLAIM_DIALECT_1, 1);
     }
 
     @Test
@@ -281,10 +280,10 @@ public class DBBasedClaimMetadataManagerTest {
     public void testRemoveClaimMappingAttributes() throws ClaimMetadataException, UserStoreException {
 
         claimMetadataManager.removeClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
-        verify(mockLocalClaimDAO, times(1)).removeClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
+        verify(mockLocalClaimDAO, times(1)).deleteClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
 
         doThrow(new UserStoreException("User store error")).when(mockLocalClaimDAO)
-                .removeClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
+                .deleteClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
         assertThrows(ClaimMetadataServerException.class, () -> {
             claimMetadataManager.removeClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
         });
@@ -341,7 +340,6 @@ public class DBBasedClaimMetadataManagerTest {
         clearInvocations(mockExternalClaimDAO, mockClaimDialectDAO);
         claimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, 1);
         verify(mockClaimDialectDAO, times(1)).renameClaimDialect(oldClaimDialect, newClaimDialect, 1);
-        verify(mockExternalClaimDAO, times(1)).removeExternalClaimCache(EXT_CLAIM_DIALECT_1, 1);
     }
 
     @Test

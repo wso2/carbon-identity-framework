@@ -383,6 +383,21 @@ public interface ApplicationDAO {
     }
 
     /**
+     * Method that returns the shared application id in the given shared organization for the given main application.
+     *
+     * @param mainAppId   Main application id.
+     * @param ownerOrgId  Owner organization id of the main application.
+     * @param sharedOrgId Shared organization id for which the shared application id is requested.
+     * @return Shared application id in the given shared organization for the given main application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining shared application id.
+     */
+    default String getSharedAppId(String mainAppId, String ownerOrgId, String sharedOrgId)
+            throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
      * Method that returns the id the owner organization of the main application of the given shared app.
      *
      * @param sharedAppId Shared application id.
@@ -473,5 +488,34 @@ public interface ApplicationDAO {
     default List<TrustedApp> getTrustedApps(PlatformType platformType) throws IdentityApplicationManagementException {
 
         return new ArrayList<>();
+    }
+
+    /**
+     * Retrieve the service provider resource IDs associated with the default federated IDP authenticator.
+     *
+     * @param idpName                  Name of the identity provider.
+     * @param defaultAuthenticatorName default authenticator name.
+     * @param tenantDomain             Tenant domain of Identity Provider.
+     * @return SPs resource ID list.
+     * @throws IdentityApplicationManagementException Error when getting SP resource IDs.
+     */
+    default String[] getSPsAssociatedWithFederatedIDPAuthenticator(String idpName,
+                                                                   String defaultAuthenticatorName,
+                                                                   String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return new String[0];
+    }
+
+    /**
+     * Update the local and outbound authentication configuration of a service provider.
+     *
+     * @param applicationDTO Updated service provider instance.
+     * @param tenantDomain   Tenant domain of Service Provider.
+     * @throws IdentityApplicationManagementException Error when updating local and outbound auth configs for the SP.
+     */
+    default void updateApplicationLocalAndOutboundAuthConfig(ServiceProvider applicationDTO, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
     }
 }

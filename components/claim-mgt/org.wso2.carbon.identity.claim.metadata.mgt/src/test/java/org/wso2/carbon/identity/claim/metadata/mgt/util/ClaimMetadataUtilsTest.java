@@ -15,8 +15,11 @@
  */
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.AttributeMappingDTO;
@@ -28,6 +31,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.ClaimMapping;
 
@@ -36,6 +40,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.mockito.Mockito.mockStatic;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UNIQUENESS_VALIDATION_SCOPE;
 
 /**
  * Covers unit tests for ClaimMetadataUtils class
@@ -60,11 +67,27 @@ public class ClaimMetadataUtilsTest {
 
     ExternalClaimDTO externalClaimDTO;
 
+    private MockedStatic<IdentityUtil> identityUtilMock;
+
     @BeforeClass
     public void setUp() throws Exception {
         setUpClaimDialects();
         setUpLocalClaims();
         setUpExternalClaims();
+    }
+
+    @BeforeMethod
+    public void setUpMocks() {
+
+        identityUtilMock = mockStatic(IdentityUtil.class);
+    }
+
+    @AfterMethod
+    public void tearDownMocks() {
+
+        if (identityUtilMock != null) {
+            identityUtilMock.close();
+        }
     }
 
     private void setUpClaimDialects() {
@@ -390,7 +413,38 @@ public class ClaimMetadataUtilsTest {
 
         LocalClaim localClaim4 = new LocalClaim(localClaimURI4, attributeMappingList, claimPropertiesMap2);
 
-        return new Object[][] {{localClaim1}, {localClaim2}, {localClaim3}, {localClaim4}};
+        String localClaimURI5 = "testLocalClaimURI5";
+
+        Map<String, String> claimPropertiesMap3 = new HashMap<>();
+        claimPropertiesMap3.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "username");
+        claimPropertiesMap3.put(ClaimConstants.DESCRIPTION_PROPERTY, "Username of the system");
+        claimPropertiesMap3.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[\\S]{5,30}$");
+        claimPropertiesMap3.put(ClaimConstants.DISPLAY_ORDER_PROPERTY, "1");
+        claimPropertiesMap3.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "false");
+        claimPropertiesMap3.put(ClaimConstants.REQUIRED_PROPERTY, "false");
+        claimPropertiesMap3.put(ClaimConstants.READ_ONLY_PROPERTY, "false");
+        claimPropertiesMap3.put(ClaimConstants.DEFAULT_ATTRIBUTE, "uid");
+        claimPropertiesMap3.put(ClaimConstants.EXTENDED_VALUED_PROPERTY, "true");
+
+        LocalClaim localClaim5 = new LocalClaim(localClaimURI5, attributeMappingList, claimPropertiesMap3);
+
+        String localClaimURI6 = "testLocalClaimURI6";
+
+        Map<String, String> claimPropertiesMap4 = new HashMap<>();
+        claimPropertiesMap4.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "username");
+        claimPropertiesMap4.put(ClaimConstants.DESCRIPTION_PROPERTY, "Username of the system");
+        claimPropertiesMap4.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[\\S]{5,30}$");
+        claimPropertiesMap4.put(ClaimConstants.DISPLAY_ORDER_PROPERTY, "1");
+        claimPropertiesMap4.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "false");
+        claimPropertiesMap4.put(ClaimConstants.REQUIRED_PROPERTY, "false");
+        claimPropertiesMap4.put(ClaimConstants.READ_ONLY_PROPERTY, "false");
+        claimPropertiesMap4.put(ClaimConstants.DEFAULT_ATTRIBUTE, "uid");
+        claimPropertiesMap4.put(ClaimConstants.EXTENDED_VALUED_PROPERTY, "false");
+
+        LocalClaim localClaim6 = new LocalClaim(localClaimURI6, attributeMappingList, claimPropertiesMap4);
+
+        return new Object[][] {{localClaim1}, {localClaim2}, {localClaim3}, {localClaim4},
+                {localClaim5}, {localClaim6}};
 
     }
 
@@ -437,6 +491,11 @@ public class ClaimMetadataUtilsTest {
         if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
             Assert.assertEquals(claimMapping.getClaim().isReadOnly(), Boolean.parseBoolean(claimProperties.get(
                     ClaimConstants.READ_ONLY_PROPERTY)));
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.EXTENDED_VALUED_PROPERTY)) {
+            Assert.assertEquals(claimMapping.getClaim().isExtendedValued(), Boolean.parseBoolean(claimProperties.get(
+                    ClaimConstants.EXTENDED_VALUED_PROPERTY)));
         }
 
         for (AttributeMapping attributeMapping : localClaim.getMappedAttributes()) {
@@ -504,4 +563,37 @@ public class ClaimMetadataUtilsTest {
 
     }
 
+    @DataProvider(name = "uniquenessScopeData")
+    public Object[][] getUniquenessScopeData() {
+        return new Object[][]{
+            {"true", ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE},
+            {"false", ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES},
+            {null, ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES},
+            {"", ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES}
+        };
+    }
+
+    @Test(dataProvider = "uniquenessScopeData")
+    public void testGetServerLevelClaimUniquenessScope(String configValue,
+                                                       ClaimConstants.ClaimUniquenessScope expectedScope) {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(UNIQUENESS_VALIDATION_SCOPE)).thenReturn(configValue);
+
+        ClaimConstants.ClaimUniquenessScope actualScope = ClaimMetadataUtils.getServerLevelClaimUniquenessScope();
+
+        Assert.assertEquals(actualScope, expectedScope,
+                "Incorrect uniqueness scope for config value: " + configValue);
+    }
+
+    @Test
+    public void testGetServerLevelClaimUniquenessScopeWithInvalidValue() {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(UNIQUENESS_VALIDATION_SCOPE))
+                .thenReturn("invalid_value");
+
+        ClaimConstants.ClaimUniquenessScope actualScope = ClaimMetadataUtils.getServerLevelClaimUniquenessScope();
+
+        Assert.assertEquals(actualScope, ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES,
+                "Should default to ACROSS_USERSTORES for invalid config value");
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2018-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
@@ -54,6 +55,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AccountLookupAttributeMappingConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
@@ -104,6 +106,14 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 /**
  * This is post authentication handler responsible for JIT provisioning.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request." +
+                        "PostAuthenticationHandler",
+                "service.scope=singleton"
+        }
+)
 public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(JITProvisioningPostAuthenticationHandler.class);
@@ -300,6 +310,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 ExternalIdPConfig externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
                 Map<String, String> localClaimValues;
+                Map<ClaimMapping, String> federatedClaimValues = stepConfig.getAuthenticatedUser().getUserAttributes();
                 if (stepConfig.isSubjectAttributeStep()) {
                     localClaimValues = (Map<String, String>) context
                             .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
@@ -317,9 +328,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         localClaimValues = new HashMap<>();
                     }
 
+                    String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+                    if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+                        externalSubject = FrameworkUtils.getExternalSubject(stepConfig, context.getTenantDomain());
+                    }
                     String associatedLocalUser =
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
+                                    externalSubject,
                                     context.getTenantDomain());
                     boolean isUserAllowsToLoginIdp =  Boolean.parseBoolean(IdentityUtil
                             .getProperty(ALLOW_LOGIN_TO_IDP));
@@ -340,9 +355,18 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         return PostAuthnHandlerFlowStatus.INCOMPLETE;
                     }
                     if (StringUtils.isEmpty(associatedLocalUser) && externalIdPConfig.isAssociateLocalUserEnabled()) {
-                        //TODO: Revisit this to allow defining multiple attributes to map the local user and
-                        // when the non-email user registration is done.
-                        if (StringUtils.isNotBlank(localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
+
+                        AccountLookupAttributeMappingConfig[] accountLookupAttributeMappingConfigs =
+                                externalIdPConfig.getAccountLookupAttributeMappings();
+                        boolean isEmailUsernameLookup =
+                                ArrayUtils.isEmpty(accountLookupAttributeMappingConfigs);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Account lookup attribute mappings are not configured for the IDP: "
+                                    + externalIdPConfig.getIdPName() + ". Hence, using email address claim for account "
+                                    + "lookup matching with local username.");
+                        }
+                        if (isEmailUsernameLookup &&
+                                StringUtils.isNotBlank(localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
                             try {
                                 String emailUsername = localClaimValues.get(EMAIL_ADDRESS_CLAIM);
                                 UserRealm realm = getUserRealm(context.getTenantDomain());
@@ -356,8 +380,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                     FrameworkUtils.getFederatedAssociationManager()
                                             .createFederatedAssociation(new User(user),
                                                     stepConfig.getAuthenticatedIdP(),
-                                                    stepConfig.getAuthenticatedUser()
-                                                            .getAuthenticatedSubjectIdentifier());
+                                                    externalSubject);
                                     associatedLocalUser = user.getDomainQualifiedUsername();
                                 }
                             } catch (UserStoreException e) {
@@ -366,7 +389,41 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             } catch (FrameworkException | FederatedAssociationManagerException e) {
                                 handleExceptions(e.getMessage(), e.getErrorCode(), e);
                             }
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Account lookup attribute mappings configured for IDP: " +
+                                        externalIdPConfig.getIdPName() + ". Attempting to match user using mapped " +
+                                        "attributes.");
+                            }
+                            Map<String, String> localClaimValuesForLookup =
+                                    getLocalClaimsForAccountLookup(federatedClaimValues,
+                                            externalIdPConfig.getAccountLookupAttributeMappings());
+
+                            org.wso2.carbon.user.core.common.User user = getLocalUser(context.getTenantDomain(),
+                                    externalIdPConfig.getProvisioningUserStoreId(), localClaimValuesForLookup);
+
+                            try {
+                                if (user != null) {
+                                    FrameworkUtils.getFederatedAssociationManager()
+                                            .createFederatedAssociation(new User(user),
+                                                    stepConfig.getAuthenticatedIdP(),
+                                                    externalSubject);
+                                    associatedLocalUser = user.getDomainQualifiedUsername();
+                                } else {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug("No local user found for the account lookup attributes: "
+                                                + localClaimValuesForLookup + " in tenant domain: "
+                                                + context.getTenantDomain());
+                                    }
+                                }
+                            } catch (FederatedAssociationManagerException | FrameworkException e) {
+                                handleExceptions(e.getMessage(), e.getErrorCode(), e);
+                            }
                         }
+                    }
+                    if (externalIdPConfig.isSkipJITOnAttrAccountLookupEnabled() &&
+                            StringUtils.isEmpty(associatedLocalUser)) {
+                        continue;
                     }
                     if (StringUtils.isNotBlank(associatedLocalUser) && !isUserAllowsToLoginIdp) {
                         // Check if the associated local account is locked.
@@ -378,6 +435,16 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             String retryParam =
                                     "&authFailure=true&authFailureMsg=error.user.account.locked&errorCode=" +
                                             UserCoreConstants.ErrorCode.USER_IS_LOCKED;
+                            // Check if the associated local account is pending verification.
+                            if (isPendingAccountVerification(associatedLocalUser, context.getTenantDomain())) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug(String.format("The email is not verified for the user: %s in the " +
+                                            "tenant domain: %s ", associatedLocalUser, context.getTenantDomain()));
+                                }
+                                retryParam =
+                                        "&authFailure=true&authFailureMsg=account.confirmation.pending&errorCode=" +
+                                                IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE;
+                            }
                             handleAccountLockLoginFailure(retryURL, context, response, retryParam);
                             return PostAuthnHandlerFlowStatus.INCOMPLETE;
                         }
@@ -410,6 +477,87 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
         return SUCCESS_COMPLETED;
+    }
+
+    /**
+     * Retrieve the local claim value map from the federated claims of the user based on the account lookup attribute
+     * mapping for JIT provisioning configuration of an IDP.
+     *
+     * @param federatedClaimValues           Federated claim values of the user.
+     * @param accountLookupAttributeMappings Account lookup attribute mappings for JIT provisioning
+     * @return Map of local claim values to be used for account lookup.
+     */
+    private Map<String, String> getLocalClaimsForAccountLookup(Map<ClaimMapping, String> federatedClaimValues,
+                                                               AccountLookupAttributeMappingConfig[]
+                                                                       accountLookupAttributeMappings) {
+
+        if (accountLookupAttributeMappings == null || accountLookupAttributeMappings.length == 0) {
+            return new HashMap<>();
+        }
+        Map<String, String> localClaimValues = new HashMap<>();
+        for (AccountLookupAttributeMappingConfig accountLookupAttributeMappingConfig : accountLookupAttributeMappings) {
+            String remoteClaimUri = accountLookupAttributeMappingConfig.getFederatedAttribute();
+            String localClaimUri = accountLookupAttributeMappingConfig.getLocalAttribute();
+            if (StringUtils.isNotBlank(remoteClaimUri) && StringUtils.isNotBlank(localClaimUri)) {
+                for (Map.Entry<ClaimMapping, String> claimEntry : federatedClaimValues.entrySet()) {
+                    ClaimMapping claimMapping = claimEntry.getKey();
+                    if (claimMapping.getRemoteClaim() != null &&
+                            remoteClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
+                        localClaimValues.put(localClaimUri, federatedClaimValues.get(claimMapping));
+                        break;
+                    }
+                }
+            }
+        }
+        return localClaimValues;
+    }
+
+    /**
+     * To resolve the local user with a given local claim values.
+     *
+     * @param tenantDomain    Tenant domain of the user.
+     * @param userStoreDomain User store domain of the user.
+     * @param localClaims     Local claim values for user lookup.
+     * @return Matching local user account
+     * @throws PostAuthenticationFailedException If an error occurs while retrieving the user.
+     */
+    private org.wso2.carbon.user.core.common.User getLocalUser(String tenantDomain, String userStoreDomain,
+                                                               Map<String, String> localClaims)
+            throws PostAuthenticationFailedException {
+
+        org.wso2.carbon.user.core.common.User user = null;
+
+        try {
+            UserRealm realm = getUserRealm(tenantDomain);
+            AbstractUserStoreManager userStoreManager =
+                    (AbstractUserStoreManager) getUserStoreManager(userStoreDomain, realm);
+            for (Map.Entry<String, String> entry : localClaims.entrySet()) {
+                String localClaimKey = entry.getKey();
+                String localClaimValue = entry.getValue();
+                List<org.wso2.carbon.user.core.common.User> users =
+                        userStoreManager.getUserListWithID(localClaimKey, localClaimValue, null);
+                if (users.size() == 1) {
+                    user = users.get(0);
+                    break;
+                } else if (users.size() > 1) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Multiple users found with the claim: " + localClaimKey + " and value: "
+                                + localClaimValue + " in tenant domain: " + tenantDomain);
+                    }
+                    throw new PostAuthenticationFailedException(
+                            ErrorMessages.ERROR_MULTIPLE_MATCHING_LOCAL_ACCOUNTS.getCode(),
+                            ErrorMessages.ERROR_MULTIPLE_MATCHING_LOCAL_ACCOUNTS.getMessage());
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No user found with the claim: " + localClaimKey + " and value: " + localClaimValue +
+                                " in tenant domain: " + tenantDomain);
+                    }
+                }
+            }
+        } catch (UserStoreException e) {
+            handleExceptions(e.getMessage(), "", e);
+        }
+        return user;
     }
 
     private String getUsernameFederatedUser(StepConfig stepConfig, SequenceConfig sequenceConfig,
@@ -503,20 +651,50 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return false;
     }
 
+    /**
+     * Check whether the user account is pending email verification.
+     *
+     * @param username     Username.
+     * @param tenantDomain Tenant domain.
+     * @return Whether user is pending email verification or not.
+     * @throws PostAuthenticationFailedException If error occurred while checking pending email verification status.
+     */
+    private boolean isPendingAccountVerification(String username, String tenantDomain)
+            throws PostAuthenticationFailedException {
+
+        try {
+            UserRealm realm = (UserRealm) FrameworkServiceDataHolder.getInstance().getRealmService()
+                    .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
+            UserStoreManager userStoreManager = realm.getUserStoreManager();
+            Map<String, String> claimValues = userStoreManager.getUserClaimValues(username, new String[]{
+                    FrameworkConstants.ACCOUNT_STATE_CLAIM_URI}, UserCoreConstants.DEFAULT_PROFILE);
+            String accountStateClaim = claimValues.get(FrameworkConstants.ACCOUNT_STATE_CLAIM_URI);
+            return FrameworkConstants.AccountStatus.PENDING_LR.equals(accountStateClaim) ||
+                    FrameworkConstants.AccountStatus.PENDING_AP.equals(accountStateClaim) ||
+                    FrameworkConstants.AccountStatus.PENDING_EV.equals(accountStateClaim) ||
+                    FrameworkConstants.AccountStatus.PENDING_SR.equals(accountStateClaim);
+        } catch (UserStoreException e) {
+            throw new PostAuthenticationFailedException(
+                    ErrorMessages.ERROR_WHILE_CHECKING_PENDING_VERIFICATION_STATUS.getCode(),
+                    String.format(ErrorMessages.ERROR_WHILE_CHECKING_PENDING_VERIFICATION_STATUS.getMessage(),
+                            username), e);
+        }
+    }
+
     private void handleAccountLockLoginFailure(String retryPage, AuthenticationContext context,
                                                HttpServletResponse response, String retryParam)
             throws PostAuthenticationFailedException {
 
         try {
-            // ToDo: Add support to configure enable/disable authentication failure reason.
-            boolean showAuthFailureReason = true;
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
                     "sp=" + context.getServiceProviderName());
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
                     String.format("%s=", FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID)
                             + context.getContextIdentifier());
-            if (!showAuthFailureReason) {
-                retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
+            if (!doShowFailureReason()) {
+                retryParam =
+                        "&authFailure=true&authFailureMsg=login.failed.generic&errorCode=" +
+                                IdentityCoreConstants.LOGIN_FAILED_GENERIC_ERROR_CODE;
             }
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage, retryParam);
             context.setRetrying(false);
@@ -690,7 +868,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
             uriBuilder.addParameter(FrameworkConstants.SERVICE_PROVIDER, context.getSequenceConfig()
                     .getApplicationConfig().getApplicationName());
-            uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
+            if (!externalIdPConfig.isModifyUserNameAllowed() || (externalIdPConfig.isModifyUserNameAllowed() &&
+                    FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr())) {
+                uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
+            }
             uriBuilder.addParameter(FrameworkConstants.SKIP_SIGN_UP_ENABLE_CHECK, String.valueOf(true));
             uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
             addMissingClaims(uriBuilder, context);
@@ -830,8 +1011,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
 
-        localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
-                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+        String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+            externalSubject = FrameworkUtils.getExternalSubject(stepConfig, context.getTenantDomain());
+        }
+        localClaimValues.put(FrameworkConstants.ASSOCIATED_ID, externalSubject);
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
 
         /*
@@ -853,6 +1037,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         } catch (FrameworkException e) {
             handleExceptions(String.format(ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY.getMessage(), username),
                     ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY.getCode(), e);
+        }
+
+        if (context.getProperty(FrameworkConstants.USED_TIME_WINDOWS) != null) {
+            localClaimValues.put(FrameworkConstants.USED_TIME_WINDOWS,
+                    context.getProperty(FrameworkConstants.USED_TIME_WINDOWS).toString());
         }
 
         // Remove role claim from local claims as roles are specifically handled.
@@ -885,6 +1074,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             excludeUnmappedRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
         }
+
+        FrameworkUtils.addRegistrationEventContext(context);
+
         try {
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 // This block handle the JIT provisioning in legacy authz runtime with v1 roles.
@@ -945,6 +1137,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     String.format(ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getMessage(),
                             username, externalIdPConfig.getName()),
                     ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getCode(), e);
+        } finally {
+            FrameworkUtils.removeRegistrationEventContext();
         }
     }
 
@@ -959,8 +1153,12 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     private void handleConsents(HttpServletRequest request, StepConfig stepConfig, String tenantDomain)
             throws PostAuthenticationFailedException {
 
+        String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+            externalSubject = FrameworkUtils.getExternalSubject(stepConfig, tenantDomain);
+        }
         String userName = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), tenantDomain);
+                externalSubject, tenantDomain);
         String consent = request.getParameter("consent");
         String policyURL = request.getParameter("policy");
         if (StringUtils.isNotEmpty(consent)) {
@@ -1153,6 +1351,25 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return userStoreManager;
     }
 
+    private UserStoreManager getUserStoreManager(String userStoreDomain, UserRealm realm) throws UserStoreException {
+
+        UserStoreManager userStoreManager;
+        try {
+            if (userStoreDomain != null && !userStoreDomain.isEmpty()) {
+                userStoreManager = realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain);
+            } else {
+                userStoreManager = realm.getUserStoreManager();
+            }
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new UserStoreException(ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER.getMessage(), e);
+        }
+
+        if (userStoreManager == null) {
+            throw new UserStoreException(ErrorMessages.ERROR_INVALID_USER_STORE.getMessage(), null);
+        }
+        return userStoreManager;
+    }
+
     private String getUserStoreDomain(String provisioningUserStoreId, UserRealm realm, String subject)
             throws UserStoreException {
 
@@ -1194,5 +1411,15 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             throw new FrameworkException("Error while retrieving app associated roles for application: "
                     + applicationId, e);
         }
+    }
+
+    /**
+     * To check whether to show the authentication failure reason or not.
+     *
+     * @return Show authentication failure reason or not.
+     */
+    private boolean doShowFailureReason() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.Config.SHOW_FAILURE_REASON));
     }
 }

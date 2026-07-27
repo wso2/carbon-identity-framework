@@ -214,7 +214,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
         DefaultAuthenticationSequence sequence = seqMgtDAO.getDefaultAuthenticationSeq(sequenceName, tenantDomain);
 
         if (sequence != null) {
-            addDefaultAuthSeqToCache(sequence, tenantDomain);
+            addDefaultAuthSeqToCacheOnRead(sequence, tenantDomain);
         }
         return sequence;
     }
@@ -233,7 +233,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
                 String sequenceInXML = marshalDefaultAuthSeq(sequence.getContent(), tenantDomain);
                 String updatedSequenceInXML = removeUnsupportedXMLElements(sequenceInXML);
                 sequence.setContentXml(updatedSequenceInXML);
-                addDefaultAuthSeqToCache(sequence, tenantDomain);
+                addDefaultAuthSeqToCacheOnRead(sequence, tenantDomain);
             }
         }
         return sequence;
@@ -317,6 +317,17 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
             DefaultAuthSeqMgtCacheEntry entry = new DefaultAuthSeqMgtCacheEntry(sequence);
             DefaultAuthSeqMgtCache.getInstance().addToCache(sequence.getName(), entry, tenantDomain);
+            if (log.isDebugEnabled()) {
+                log.debug("Default authentication sequence for tenant: " + tenantDomain + " is added to cache.");
+            }
+        }
+    }
+
+    private void addDefaultAuthSeqToCacheOnRead(DefaultAuthenticationSequence sequence, String tenantDomain) {
+
+        if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
+            DefaultAuthSeqMgtCacheEntry entry = new DefaultAuthSeqMgtCacheEntry(sequence);
+            DefaultAuthSeqMgtCache.getInstance().addToCacheOnRead(sequence.getName(), entry, tenantDomain);
             if (log.isDebugEnabled()) {
                 log.debug("Default authentication sequence for tenant: " + tenantDomain + " is added to cache.");
             }

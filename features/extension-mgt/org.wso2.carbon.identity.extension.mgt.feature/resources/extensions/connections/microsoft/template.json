@@ -18,7 +18,7 @@
         "certificate": {
             "certificates": []
         },
-        "alias": "https://localhost:9444/oauth2/token",
+        "alias": "",
         "idpIssuerName": "",
         "claims": {
             "userIdClaim": {

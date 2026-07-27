@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,9 +23,12 @@ package org.wso2.carbon.identity.role.v2.mgt.core.model;
  */
 public class RoleBasicInfo extends Entity {
 
+    private static final long serialVersionUID = 1L;
     private String audience;
     private String audienceId;
     private String audienceName;
+    private int roleId;
+
     public RoleBasicInfo() {
 
     }
@@ -91,5 +94,23 @@ public class RoleBasicInfo extends Entity {
     public void setAudienceName(String audienceName) {
 
         this.audienceName = audienceName;
+    }
+
+    /**
+     * Get the role id.
+     *
+     * @return the role id.
+     */
+    public int getRoleId() {
+        return roleId;
+    }
+
+    /**
+     * Set the role id.
+     *
+     * @param roleId the role id.
+     */
+    public void setRoleId(int roleId) {
+        this.roleId = roleId;
     }
 }

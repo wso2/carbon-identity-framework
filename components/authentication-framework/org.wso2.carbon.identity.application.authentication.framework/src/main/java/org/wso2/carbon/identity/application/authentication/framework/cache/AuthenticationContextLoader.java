@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
@@ -171,8 +171,14 @@ public class AuthenticationContextLoader {
                 StepConfig stepConfig = entry.getValue();
                 for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
                     if (authenticatorConfig.getApplicationAuthenticator() == null) {
-                        authenticatorConfig.setApplicationAuthenticator(FrameworkUtils.
-                                getAppAuthenticatorByName(authenticatorConfig.getName()));
+                        try {
+                            authenticatorConfig.setApplicationAuthenticator(
+                                    ApplicationAuthenticatorManager.getInstance().getApplicationAuthenticatorByName(
+                                            authenticatorConfig.getName(), context.getTenantDomain()));
+                        } catch (FrameworkException e) {
+                            throw new SessionDataStorageOptimizationException(String.format("An error occurred while " +
+                                    "resolving authenticator:%s", authenticatorConfig.getName()), e);
+                        }
                     }
                     if (authenticatorConfig.getIdps() == null && authenticatorConfig.getIdpNames() == null) {
                         authenticatorConfig.setIdPs(Collections.emptyMap());
@@ -308,11 +314,11 @@ public class AuthenticationContextLoader {
     private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain)
             throws SessionDataStorageOptimizationException {
 
-        IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;
         try {
-            idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
+            idp = ApplicationAuthenticatorManager.getInstance().getSerializableIdPByResourceId(
+                    resourceId, tenantDomain);
+
             if (idp == null) {
                 throw new SessionDataStorageOptimizationClientException(
                         String.format("Cannot find the Identity Provider by the resource ID: %s " +
@@ -326,7 +332,7 @@ public class AuthenticationContextLoader {
             throw new SessionDataStorageOptimizationServerException(
                     String.format("IDP management server error. Failed to get the Identity Provider by " +
                                     "resource id: %s tenant domain: %s", resourceId, tenantDomain), e);
-        } catch (IdentityProviderManagementException e) {
+        } catch (IdentityProviderManagementException | FrameworkException e) {
             throw new SessionDataStorageOptimizationServerException(
                     String.format("Failed to get the Identity Provider by resource id: %s tenant domain: %s",
                             resourceId, tenantDomain), e);

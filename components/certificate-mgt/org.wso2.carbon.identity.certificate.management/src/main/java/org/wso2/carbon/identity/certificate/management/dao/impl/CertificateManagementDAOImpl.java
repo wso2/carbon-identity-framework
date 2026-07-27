@@ -57,7 +57,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                         int index = 1;
                         preparedStatement.setString(index++, certificateId);
                         preparedStatement.setString(index++, certificate.getName());
-                        preparedStatement.setBlob(index++, certByteStream, certificateLength);
+                        preparedStatement.setBinaryStream(index++, certByteStream, certificateLength);
                             preparedStatement.setInt(index, tenantId);
                         }, certificate, false);
                 return null;
@@ -109,7 +109,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 template.executeUpdate(CertificateMgtSQLConstants.Query.UPDATE_CERTIFICATE_CONTENT,
                     preparedStatement -> {
                         int index = 1;
-                        preparedStatement.setBlob(index++, certByteStream, certificateLength);
+                        preparedStatement.setBinaryStream(index++, certByteStream, certificateLength);
                         preparedStatement.setString(index++, certificateId);
                         preparedStatement.setInt(index, tenantId);
                     });

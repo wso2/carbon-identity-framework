@@ -1,0 +1,145 @@
+{
+  "preIssueAccessToken": [
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType",
+      "overrides": {
+        "value": {
+          "values": [
+            {
+              "name": "authorization_code",
+              "displayName": "authorization code"
+            },
+            {
+              "name": "password",
+              "displayName": "password"
+            },
+            {
+              "name": "refresh_token",
+              "displayName": "refresh token"
+            },
+            {
+              "name": "client_credentials",
+              "displayName": "client credentials"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "preIssueIdToken": [
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType",
+      "overrides": {
+        "value": {
+          "values": [
+            {
+              "name": "authorization_code",
+              "displayName": "authorization code"
+            },
+            {
+              "name": "password",
+              "displayName": "password"
+            },
+            {
+              "name": "refresh_token",
+              "displayName": "refresh token"
+            },
+            {
+              "name": "organization_switch",
+              "displayName": "organization switch"
+            },
+            {
+              "name": "urn:ietf:params:oauth:grant-type:device_code",
+              "displayName": "device code"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "preUpdatePassword": [
+    {
+      "fieldName": "flow",
+      "overrides": {
+        "field": {
+          "displayName": "flow"
+        },
+        "value": {
+          "values": [
+            {
+              "name": "adminInitiatedPasswordReset",
+              "displayName": "Admin initiated password reset"
+            },
+            {
+              "name": "adminInitiatedPasswordUpdate",
+              "displayName": "Admin initiated password update"
+            },
+            {
+              "name": "adminInitiatedUserInviteToSetPassword",
+              "displayName": "Admin initiated user invite to set password"
+            },
+            {
+              "name": "applicationInitiatedPasswordUpdate",
+              "displayName": "Application initiated password update"
+            },
+            {
+              "name": "userInitiatedPasswordReset",
+              "displayName": "User initiated password reset"
+            },
+            {
+              "name": "userInitiatedPasswordUpdate",
+              "displayName": "User initiated password update"
+            },
+            {
+              "name": "adminInitiatedRegistration",
+              "displayName": "Admin initiated registration"
+            },
+            {
+              "name": "applicationInitiatedRegistration",
+              "displayName": "Application initiated registration"
+            },
+            {
+              "name": "userInitiatedRegistration",
+              "displayName": "User initiated registration"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "preUpdateProfile": [
+    {
+      "fieldName": "flow",
+      "overrides": {
+        "field": {
+          "displayName": "flow"
+        },
+        "value": {
+          "values": [
+            {
+              "name": "adminInitiatedProfileUpdate",
+              "displayName": "Admin initiated profile update"
+            },
+            {
+              "name": "applicationInitiatedProfileUpdate",
+              "displayName": "Application initiated profile update"
+            },
+            {
+              "name": "userInitiatedProfileUpdate",
+              "displayName": "User initiated profile update"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fieldName": "claim"
+    }
+  ]
+}

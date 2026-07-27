@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -24,7 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -112,6 +112,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String authenticationEndpointPath = fetchAuthenticationEndpointPath();
         String recoveryEndpointHostName = fetchRecoveryEndpointHostName();
         String recoveryEndpointPath = fetchRecoveryEndpointPath();
+        String accountsHostName = fetchAccountsHostName();
+        String accountsPath = fetchAccountsPath();
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
         String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
@@ -137,6 +139,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         recoveryEndpointHostName, proxyPort);
             }
+            if (accountsHostName != null && accountsPath != null &&
+                    urlPathForPublicUrl.contains(accountsPath)) {
+                absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
+                        accountsHostName, proxyPort);
+            }
         }
         String absolutePublicURL = fetchAbsolutePublicUrl(absolutePublicUrlWithoutURLPath, relativePublicUrl);
         return new ServiceURLImpl(protocol, proxyHostName, internalHostName, proxyPort, transportPort, tenantDomain,
@@ -149,10 +156,13 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedUrlContext = buildUrlPath(urlPaths);
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
+        if (IdentityTenantUtil.shouldUseTenantQualifiedURLs() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
-            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
-                setURL(resolvedUrlStringBuilder, tenantDomain);
+            String accessingOrganization = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .getAccessingOrganizationId();
+            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain) ||
+                    StringUtils.isNotBlank(accessingOrganization)) {
+                setURL(resolvedUrlStringBuilder, tenantDomain, accessingOrganization);
             }
         }
 
@@ -388,6 +398,20 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return preprocessEndpointPath(recoveryEndpointPath);
     }
 
+    protected String fetchAccountsHostName() throws URLBuilderException {
+
+        String accountsHostName = IdentityUtil.
+                getProperty(IdentityCoreConstants.ACCOUNTS_HOST_NAME);
+        return resolveHostName(accountsHostName);
+    }
+
+    protected String fetchAccountsPath() {
+
+        String accountsPath = IdentityUtil
+                .getProperty(IdentityCoreConstants.ACCOUNTS_PATH);
+        return preprocessEndpointPath(accountsPath);
+    }
+
     protected String preprocessEndpointPath(String endpointPath) {
 
         if (StringUtils.isNotBlank(endpointPath)) {
@@ -495,7 +519,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
     }
 
-    private void setURL(StringBuilder resolvedUrlStringBuilder, String tenantDomain) {
+    private void setURL(StringBuilder resolvedUrlStringBuilder, String tenantDomain, String accessingOrganization) {
 
         // ####### Organization perspective resource URL building.
         // if organization ID is explicitly set, build an organization qualified URL.
@@ -520,6 +544,10 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
         if (StringUtils.isNotEmpty(organizationId)) {
             resolvedUrlStringBuilder.append("/o/").append(organizationId);
+            return;
+        } else if (StringUtils.isNotBlank(accessingOrganization)) {
+            // If the accessing organization is available, build the URL in the form of /t/<tenant-domain>/o/<org-id>
+            resolvedUrlStringBuilder.append("/t/").append(tenantDomain).append("/o/").append(accessingOrganization);
             return;
         }
         // ####### Tenant perspective resource URL building.

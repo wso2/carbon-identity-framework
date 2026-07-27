@@ -22,6 +22,7 @@
   "identity_mgt.inactive_account_suspension.suspend_when_inactive_for": "identity_mgt.events.schemes.'suspension.notification'.properties.'account.disable.delay'",
   "identity_mgt.inactive_account_suspension.notify_when_inactive_for": "identity_mgt.events.schemes.'suspension.notification'.properties.delays",
   "identity_mgt.inactive_account_suspension.trigger_notifications_at": "identity_mgt.events.schemes.'suspension.notification'.properties.'trigger.time'",
+  "identity_mgt.inactive_account_suspension.date_format": "identity_mgt.events.schemes.'suspension.notification'.properties.'date.format'",
 
   "identity_mgt.analytics_login_data_publisher.subscriptions": "identity_mgt.events.schemes.analyticsLoginDataPublisher.subscriptions",
   "identity_mgt.analytics_login_data_publisher.enable": "identity_mgt.events.schemes.analyticsLoginDataPublisher.properties.enable",
@@ -29,6 +30,9 @@
 
   "identity_mgt.analytics_login_data_publisher_v110.subscriptions": "identity_mgt.events.schemes.analyticsLoginDataPublisherV110.subscriptions",
   "identity_mgt.analytics_login_data_publisher_v110.enable": "identity_mgt.events.schemes.analyticsLoginDataPublisherV110.properties.enable",
+
+  "identity_mgt.analytics_b2b_login_data_publisher.subscriptions": "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.subscriptions",
+  "identity_mgt.analytics_b2b_login_data_publisher.enable": "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.properties.enable",
 
   "identity_mgt.analytics_session_data_publisher.subscriptions": "identity_mgt.events.schemes.analyticsSessionDataPublisher.subscriptions",
   "identity_mgt.analytics_session_data_publisher.enable": "identity_mgt.events.schemes.analyticsSessionDataPublisher.properties.enable",
@@ -40,5 +44,10 @@
   "identity_mgt.saml_logout_handler.enable": "identity_mgt.events.schemes.SAMLLogoutHandler.properties.enable",
 
   "identity_mgt.oidc_logout_event_handler.subscriptions": "identity_mgt.events.schemes.OIDCLogoutEventHandler.subscriptions",
-  "identity_mgt.oidc_logout_event_handler.enable": "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable"
+  "identity_mgt.oidc_logout_event_handler.enable": "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable",
+
+  "identity_mgt.dpop_event_handler.subscriptions": "identity_mgt.events.schemes.dpopEventHandler.subscriptions",
+
+  "identity_mgt.workflow_pending_user_authn_handler.enable": "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.properties.enable",
+  "oauth.client_secret_hash_algorithm":"oauth.hash_token_algorithm"
 }

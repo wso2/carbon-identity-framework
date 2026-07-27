@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org)
+ * Copyright (c) 2022-2026, WSO2 Inc. (http://www.wso2.org)
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.provisioning.listener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -60,6 +61,13 @@ import java.util.Set;
 /**
  * Used for handle provisioning errors.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.user.core.listener.UserManagementErrorEventListener",
+                "service.scope=singleton"
+        }
+)
 public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEventListener {
 
     private static final Log log = LogFactory.getLog(ProvisioningErrorListener.class);
@@ -288,13 +296,13 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
 
         if (threadLocalServiceProvider != null) {
             String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
             if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
                 try {
                     serviceProvider = ApplicationManagementService.getInstance()
                             .getServiceProviderNameByClientId(
                                     threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
+                                    IdentityApplicationConstants.OAuth2.NAME,
+                                    threadLocalServiceProvider.getTenantDomain());
                 } catch (IdentityApplicationManagementException e) {
                     log.error("Error while provisioning", e);
                     return true;

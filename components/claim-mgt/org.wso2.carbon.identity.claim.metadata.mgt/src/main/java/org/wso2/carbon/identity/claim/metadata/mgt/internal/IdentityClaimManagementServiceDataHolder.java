@@ -21,6 +21,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -48,6 +50,8 @@ public class IdentityClaimManagementServiceDataHolder {
     private static List<ClaimMetadataMgtListener> claimMetadataMgtListeners = new ArrayList<>();
     private ClaimConfigInitDAO claimConfigInitDAO;
     private ClaimConfig claimConfig;
+    private OrganizationManager organizationManager;
+    private OrgResourceResolverService orgResourceResolverService;
 
     private IdentityClaimManagementServiceDataHolder() {
 
@@ -157,5 +161,45 @@ public class IdentityClaimManagementServiceDataHolder {
     public void setClaimConfig(ClaimConfig claimConfig) {
 
         this.claimConfig = claimConfig;
+    }
+
+    /**
+     * Set the organization manager.
+     *
+     * @param organizationManager Organization manager.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Get the organization manager.
+     *
+     * @return Organization manager.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Get the organization resource resolver service.
+     *
+     * @return Organization resource resolver service.
+     */
+    public OrgResourceResolverService getOrgResourceResolverService() {
+
+        return orgResourceResolverService;
+    }
+
+    /**
+     * Set the organization resource resolver service.
+     *
+     * @param orgResourceResolverService Organization resource resolver service instance.
+     */
+    public void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        this.orgResourceResolverService = orgResourceResolverService;
     }
 }

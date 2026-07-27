@@ -322,6 +322,21 @@ public class NotificationApi {
      */
     public User setUserPasswordPost(ResetPasswordRequest resetPasswordRequest) throws ApiException {
 
+        // Call the overloaded method with null headers.
+        return setUserPasswordPost(resetPasswordRequest, null);
+    }
+
+    /**
+     * This API will be used to reset user password using the confirmation key received through recovery process.
+     *
+     * @param resetPasswordRequest The request for password reset.
+     * @param headers              Adding headers for request set user password api.
+     * @return The user object.
+     * @throws ApiException API exception.
+     */
+    public User setUserPasswordPost(ResetPasswordRequest resetPasswordRequest, Map<String, String> headers)
+            throws ApiException {
+
         Object localVarPostBody = resetPasswordRequest;
 
         // verify the required parameter 'resetPasswordRequest' is set
@@ -350,6 +365,9 @@ public class NotificationApi {
         // query params
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        if (headers != null) {
+            localVarHeaderParams.putAll(headers);
+        }
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
         final String[] localVarAccepts = {
@@ -366,8 +384,9 @@ public class NotificationApi {
         GenericType<User> localVarReturnType = new GenericType<User>() {
         };
 
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams,
-                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody,
+                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
+                localVarReturnType);
     }
 
     /**
@@ -377,6 +396,19 @@ public class NotificationApi {
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body.
      */
     public void validateCodePostCall(CodeValidationRequest code) throws ApiException {
+
+        // Call the overloaded method with null headers.
+        validateCodePostCall(code, null);
+    }
+
+    /**
+     * This API is used to validate code of self registered users.
+     *
+     * @param code    Code retried after user self registration and optional property parameters (required).
+     * @param headers Adding headers for request validate code api.
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body.
+     */
+    public void validateCodePostCall(CodeValidationRequest code, Map<String, String> headers) throws ApiException {
 
         // verify the required parameter 'code' is set
         if (code == null) {
@@ -393,6 +425,9 @@ public class NotificationApi {
         apiClient.setBasePath(basePath);
 
         Map<String, String> headerParams = new HashMap<>();
+        if (headers != null) {
+            headerParams.putAll(headers);
+        }
         if (headerAccept != null) {
             headerParams.put("Accept", headerAccept);
         }

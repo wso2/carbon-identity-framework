@@ -211,6 +211,34 @@
           ]
         }
       ]
+    },
+    "legacy_scim2_core": {
+      "schemas.remove_from_default_schema" : [
+        {
+          "id": "urn:ietf:params:scim:schemas:core:2.0:User",
+          "attributes": [
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager",
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax"
+          ]
+        }
+      ],
+      "schemas.add_to_default_schema": [
+        {
+          "id": "urn:ietf:params:scim:schemas:core:2.0",
+          "attributes": [
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager",
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax"
+          ]
+        }
+      ]
+    }
+  },
+  "oauth.jwks_endpoint.enable_x5t_in_response": {
+    "true": {
+      "oauth.jwks_endpoint.is_x5t_required": true
+    },
+    "false": {
+      "oauth.jwks_endpoint.is_x5t_required": false
     }
   },
   "server.legacy_mode": {
@@ -247,6 +275,200 @@
       "console.ui.legacy_mode.applicationListSystemApps": false,
       "console.ui.legacy_mode.applicationSystemAppsSettings": true,
       "console.ui.legacy_mode.roleMapping": false
+    }
+  },
+  "preserve_previous_product_behaviour.version": {
+    "IS_7.0.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
+      "oauth.oidc.user_info.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
+      "scim2.enable_group_based_user_filter_improvements": false,
+      "scim2.enable_error_code_for_password_policy_violations": false,
+      "user_store_commons.enable_circuit_breaker_for_user_stores": false,
+      "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": true,
+      "event.default_listener.email_domain_validation_handler.enable": false,
+      "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+      "session_management.filter_by_unique_session_id_for_user": false,
+      "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+      "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+      "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
+      "console.identity_providers.disabled_features": [],
+      "localization.prioritize_param": false,
+      "attribute.return_previous_additional_properties.enable": true,
+      "oauth.introspect.allow_cross_sub_org": true,
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "server.enable_admin_services": true,
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
+        "POST_ADD_ORGANIZATION"
+      ],
+      "flow_execution.enable_legacy_flows": true,
+      "organization_discovery.default_param": "orgName",
+      "console.ui.organizations.organization_display_name.enable": false,
+      "console.ui.organizations.organization_handle.enable": false,
+      "notification_templates.super_organization_display_name.enable": false,
+      "multi_tenancy.stratos.public_cloud_setup": true,
+      "token_exchange.implicit_association.include_primary_when_secondary_present": false,
+      "scim.restrict_federated_user_access": false,
+      "scim2.return_conflict_on_claim_uniqueness_violation": false,
+      "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
+      "scim2.throw_userstore_exception_on_user_creation_error": false,
+      "authentication.local_authenticators.hide_user_existence": false,
+      "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
+      "oauth.authorize_internal_scopes": true,
+      "oauth.enable_legacy_session_bound_token_behaviour": true,
+      "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
+      "authenticationendpoint.authenticator_validation.enabled": false,
+      "identifier_first.preserve_case_sensitivity.enabled": false,
+      "application_mgt.enable_cross_tenant_authorized_api_validation": false,
+      "oauth.callback.restrict_fragment_components": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled": true,
+      "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
+      "saml.artifact.disable_double_encoding": false,
+      "outbound_provisioning_management.enable_scim_patch_for_updates": false,
+      "outbound_provisioning_management.confidential_data_protection_enabled": false,
+      "outbound_provisioning_management.enable_scim_compliant_email_attribute": false,
+      "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": false,
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false,
+      "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
+      "api.filters.single_character_wildcard": "_",
+      "identity_secret_manager.secret_value_clob_column_exists": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ]
+    },
+    "IS_7.1.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
+      "oauth.return_sp_id_to_apps": true,
+      "oauth.jwt.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
+      "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+      "session_management.filter_by_unique_session_id_for_user": false,
+      "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+      "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+      "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
+      "console.identity_providers.disabled_features": [],
+      "localization.prioritize_param": false,
+      "attribute.return_previous_additional_properties.enable": true,
+      "oauth.introspect.allow_cross_sub_org": true,
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "server.enable_admin_services": true,
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
+        "POST_ADD_ORGANIZATION"
+      ],
+      "flow_execution.enable_legacy_flows": true,
+      "organization_discovery.default_param": "orgName",
+      "console.ui.organizations.organization_display_name.enable": false,
+      "console.ui.organizations.organization_handle.enable": false,
+      "notification_templates.super_organization_display_name.enable": false,
+      "multi_tenancy.stratos.public_cloud_setup": true,
+      "token_exchange.implicit_association.include_primary_when_secondary_present": false,
+      "scim.restrict_federated_user_access": false,
+      "scim2.return_conflict_on_claim_uniqueness_violation": false,
+      "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
+      "scim2.throw_userstore_exception_on_user_creation_error": false,
+      "authentication.local_authenticators.hide_user_existence": false,
+      "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
+      "oauth.authorize_internal_scopes": true,
+      "identifier_first.preserve_case_sensitivity.enabled": false,
+      "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": false,
+      "oauth.enable_legacy_session_bound_token_behaviour": true,
+      "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
+      "authenticationendpoint.authenticator_validation.enabled": false,
+      "application_mgt.enable_cross_tenant_authorized_api_validation": false,
+      "oauth.callback.restrict_fragment_components": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled": true,
+      "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true,
+      "resolve_tenant_domain_from_username.enabled": true,
+      "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
+      "saml.artifact.disable_double_encoding": false,
+      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
+      "outbound_provisioning_management.enable_scim_patch_for_updates": false,
+      "outbound_provisioning_management.confidential_data_protection_enabled": false,
+      "outbound_provisioning_management.enable_scim_compliant_email_attribute": false,
+      "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": false,
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false,
+      "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
+      "api.filters.single_character_wildcard": "_",
+      "use_resident_user_id_for_authenticated_shared_users.enabled": false,
+      "identity_secret_manager.secret_value_clob_column_exists": false,
+      "authentication.include_auth_failure_reason_in_api_based_response": false,
+      "authentication.include_multi_options_in_api_based_auth_response": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "actions.action_request.case_insensitive_header_filtering": false,
+      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ]
+    },
+    "IS_7.2.0": {
+      "authenticationendpoint.authenticator_validation.enabled": false,
+      "application_mgt.enable_cross_tenant_authorized_api_validation": false,
+      "oauth.callback.restrict_fragment_components": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled": true,
+      "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true,
+      "resolve_tenant_domain_from_username.enabled": true,
+      "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
+      "saml.artifact.disable_double_encoding": false,
+      "outbound_provisioning_management.enable_scim_patch_for_updates": false,
+      "outbound_provisioning_management.confidential_data_protection_enabled": false,
+      "outbound_provisioning_management.enable_scim_compliant_email_attribute": false,
+      "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": false,
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false,
+      "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
+      "api.filters.single_character_wildcard": "_",
+      "use_resident_user_id_for_authenticated_shared_users.enabled": false,
+      "identity_secret_manager.secret_value_clob_column_exists": false,
+      "authentication.include_auth_failure_reason_in_api_based_response": false,
+      "authentication.include_multi_options_in_api_based_auth_response": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": false,
+      "actions.action_request.case_insensitive_header_filtering": false,
+      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
+      "oauth.dcrm.decode_redirect_uris_in_response": false
+    },
+    "IS_7.3.0": {
+      "oauth.dcrm.decode_redirect_uris_in_response": false,
+      "consent_mgt.enable_v2_api": false,
+      "identity_mgt.events.schemes.ConsentEventHook.properties.enable": false,
+      "identity_mgt.events.schemes.ConsentPurposeEventHook.properties.enable": false,
+      "webhooks.event_profiles.disabled_channels": [
+        "https://schemas.identity.wso2.org/events/consent-purpose",
+        "https://schemas.identity.wso2.org/events/consent"
+      ],
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ]
     }
   }
 }

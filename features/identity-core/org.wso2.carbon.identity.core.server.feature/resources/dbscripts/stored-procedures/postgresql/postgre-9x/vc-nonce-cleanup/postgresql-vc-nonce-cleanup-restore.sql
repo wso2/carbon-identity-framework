@@ -1,0 +1,61 @@
+CREATE OR REPLACE FUNCTION WSO2_VC_NONCE_CLEANUP_RESTORE_SP() RETURNS VOID AS $$
+DECLARE
+
+rowCount bigint;
+enableLog boolean;
+logLevel VARCHAR(10);
+
+BEGIN
+
+-- ------------------------------------------
+-- CONFIGURABLE ATTRIBUTES
+-- ------------------------------------------
+enableLog := TRUE; -- ENABLE LOGGING [DEFAULT : TRUE]
+logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE
+
+IF (enableLog) THEN
+RAISE NOTICE 'WSO2_VC_NONCE_CLEANUP_RESTORE_SP STARTED .... !';
+RAISE NOTICE '';
+END IF;
+
+SELECT COUNT(1) INTO rowCount
+FROM PG_CATALOG.PG_TABLES
+WHERE SCHEMANAME = CURRENT_SCHEMA()
+  AND TABLENAME IN ('idn_vc_nonce');
+
+IF (rowCount = 1)
+THEN
+    SELECT COUNT(1) INTO rowCount
+    FROM PG_CATALOG.PG_TABLES
+    WHERE SCHEMANAME = CURRENT_SCHEMA()
+      AND TABLENAME IN ('bak_idn_vc_nonce');
+
+    IF (rowCount = 1)
+    THEN
+        IF (enableLog AND logLevel IN ('TRACE')) THEN
+            RAISE NOTICE 'CLEANUP DATA RESTORATION STARTED ON IDN_VC_NONCE TABLE !';
+        END IF;
+
+        INSERT INTO IDN_VC_NONCE
+        SELECT A.*
+        FROM BAK_IDN_VC_NONCE A
+                 LEFT JOIN IDN_VC_NONCE B
+                           ON A.TENANT_ID = B.TENANT_ID AND A.NONCE = B.NONCE
+        WHERE B.NONCE IS NULL;
+
+        GET DIAGNOSTICS rowCount := ROW_COUNT;
+
+        IF (enableLog) THEN
+            RAISE NOTICE 'CLEANUP DATA RESTORATION COMPLETED ON IDN_VC_NONCE WITH %', rowCount;
+        END IF;
+    END IF;
+END IF;
+
+IF (enableLog) THEN
+RAISE NOTICE 'WSO2_VC_NONCE_CLEANUP_RESTORE_SP COMPLETED .... !';
+RAISE NOTICE '';
+END IF;
+
+END;
+$$
+LANGUAGE 'plpgsql';

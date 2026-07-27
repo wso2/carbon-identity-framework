@@ -53,6 +53,11 @@ public class RandomPasswordContainerCache
         super.addToCache(key, entry, CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 
+    public void addToCacheOnRead(RandomPasswordContainerCacheKey key, RandomPasswordContainerCacheEntry entry) {
+
+         super.addToCacheOnRead(key, entry, CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+    }
+
     public RandomPasswordContainerCacheEntry getValueFromCache(RandomPasswordContainerCacheKey key) {
 
         RandomPasswordContainerCacheEntry cacheEntry = super.getValueFromCache(key,

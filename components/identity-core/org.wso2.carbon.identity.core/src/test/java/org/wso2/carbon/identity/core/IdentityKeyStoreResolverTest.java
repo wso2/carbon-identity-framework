@@ -28,8 +28,10 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
@@ -43,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.*;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.InboundProtocol;
 
 /**
  * Test cases for IdentityKeyStoreResolver.
@@ -84,6 +86,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
 
     private MockedStatic<IdentityConfigParser> identityConfigParser;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private MockedStatic<KeystoreUtils> keystoreUtils;
 
     private IdentityKeyStoreResolver identityKeyStoreResolver;
 
@@ -143,6 +146,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
         when(keyStoreManager.getCertificate("CUSTOM/" + CUSTOM_KEY_STORE, null)).thenReturn(customCertificate);
 
         identityKeyStoreResolver = IdentityKeyStoreResolver.getInstance();
+        keystoreUtils = mockStatic(KeystoreUtils.class);
     }
 
     @AfterClass
@@ -150,6 +154,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
 
         identityConfigParser.close();
         identityTenantUtil.close();
+        keystoreUtils.close();
     }
 
     @Test
@@ -210,6 +215,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "KeyStoreDataProvider")
     public void testGetKeyStore(String tenantDomain, InboundProtocol inboundProtocol, KeyStore expectedKeyStore) throws Exception {
 
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain.replace(".", "-"), tenantDomain)).thenReturn(".jks");
         assertEquals(expectedKeyStore, identityKeyStoreResolver.getKeyStore(tenantDomain, inboundProtocol));
     }
 
@@ -229,6 +235,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "PrivateKeyDataProvider")
     public void testGetPrivateKey(String tenantDomain, InboundProtocol inboundProtocol, PrivateKey expectedKey)  throws Exception {
 
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain.replace(".", "-"), tenantDomain)).thenReturn(".jks");
         assertEquals(expectedKey, identityKeyStoreResolver.getPrivateKey(tenantDomain, inboundProtocol));
     }
 
@@ -248,7 +255,36 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "PublicCertificateDataProvider")
     public void testGetCertificate(String tenantDomain, InboundProtocol inboundProtocol, X509Certificate expectedCert) throws Exception {
 
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain.replace(".", "-"), tenantDomain)).thenReturn(".jks");
         assertEquals(expectedCert, identityKeyStoreResolver.getCertificate(tenantDomain, inboundProtocol));
+    }
+
+    @Test
+    public void testGetCustomKeyStore_Success() throws Exception {
+
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(TENANT_DOMAIN)).thenReturn(".jks");
+        KeyStore result = identityKeyStoreResolver.getCustomKeyStore(TENANT_DOMAIN, CUSTOM_KEY_STORE);
+        assertEquals(customKeyStore, result);
+    }
+
+    @Test(expectedExceptions = IdentityKeyStoreResolverException.class)
+    public void testGetCustomKeyStore_InvalidTenantDomain() throws Exception {
+
+        identityKeyStoreResolver.getCustomKeyStore("", CUSTOM_KEY_STORE);
+    }
+
+    @Test(expectedExceptions = IdentityKeyStoreResolverException.class)
+    public void testGetCustomKeyStore_InvalidKeyStoreName() throws Exception {
+
+        identityKeyStoreResolver.getCustomKeyStore(TENANT_DOMAIN, "");
+    }
+
+    @Test(expectedExceptions = IdentityKeyStoreResolverException.class)
+    public void testGetTrustStore_Exception() throws Exception {
+
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(Integer.valueOf(TENANT_ID));
+        when(keyStoreManager.getTrustStore()).thenThrow(new org.wso2.carbon.CarbonException("error"));
+        identityKeyStoreResolver.getTrustStore(TENANT_DOMAIN);
     }
 
     private KeyStore getKeyStoreFromFile(String keystoreName, String password, String home) throws Exception {

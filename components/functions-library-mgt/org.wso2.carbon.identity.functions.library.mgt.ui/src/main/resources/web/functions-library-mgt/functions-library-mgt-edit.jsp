@@ -91,7 +91,6 @@
                     location.href = '#';
                 } else {
                     try {
-                        eval(prepareScript(content));
                         functionLibName = functionLibName + ".js";
                         if (functionLibName != oldFunctionLibName) {
                             CARBON.showConfirmationDialog('<fmt:message key="update.function.library.name.warn"/>',

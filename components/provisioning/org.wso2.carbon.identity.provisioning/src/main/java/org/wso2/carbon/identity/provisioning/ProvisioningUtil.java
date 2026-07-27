@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.common.model.OutboundProvisioningCon
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -617,5 +618,16 @@ public class ProvisioningUtil {
                     .parseBoolean(IdentityUtil.getProperty(APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED));
         }
         return applicationBasedOutboundProvisioningEnabled;
+    }
+
+    /**
+     * Mask the given value if it is required.
+     *
+     * @param value Value to be masked.
+     * @return Masked/unmasked value.
+     */
+    public static String maskIfRequired(String value) {
+
+        return LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(value) : value;
     }
 }

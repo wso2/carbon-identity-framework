@@ -19,6 +19,10 @@ environments.]
 
 -
 
+### Developer Checklist (Mandatory)
+
+- [ ] Complete the **Developer Checklist** in the related `product-is` issue to track any behavioral change or migration impact.
+
 
 ### Checklist (for reviewing)
 

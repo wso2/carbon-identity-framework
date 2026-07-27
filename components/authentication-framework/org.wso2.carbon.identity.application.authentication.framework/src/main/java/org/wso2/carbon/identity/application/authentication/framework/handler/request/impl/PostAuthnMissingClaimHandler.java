@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -41,6 +42,9 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.Claim;
@@ -76,6 +80,14 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DI
 /**
  * Post authentication handler for missing claims.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request." +
+                        "PostAuthenticationHandler",
+                "service.scope=singleton"
+        }
+)
 public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthnMissingClaimHandler.class);
@@ -134,6 +146,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             return flowStatus;
         } else {
             try {
+                if (isOtpVerificationTriggeredAndCompleted(context)) {
+                    return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+                }
                 handlePostAuthenticationForMissingClaimsResponse(request, response, context);
             } catch (PostAuthenticationFailedException e) {
                 if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR) != null) {
@@ -145,6 +160,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             }
             if (log.isDebugEnabled()) {
                 log.debug("Successfully returning from missing claim handler");
+            }
+            if (context.getProperty(FrameworkConstants.OTP_VERIFICATION_PENDING_CLAIM) != null) {
+                return PostAuthnHandlerFlowStatus.INCOMPLETE;
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -444,7 +462,16 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 UserRealm realm = getUserRealm(user.getTenantDomain());
                 AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
 
+                IdentityUtil.threadLocalProperties.get().put(
+                        FrameworkConstants.IS_PROGRESSIVE_PROFILE_VERIFICATION, "true");
                 userStoreManager.setUserClaimValuesWithID(user.getUserId(), localIdpClaims, null);
+                /* If the `otpVerificationTriggeredClaims` set in the local thread, redirect to OTP verification page
+                 and set relevant properties to the authentication context. */
+                if (IdentityUtil.threadLocalProperties.get()
+                        .get(FrameworkConstants.CLAIM_FOR_PENDING_OTP_VERIFICATION) != null) {
+                    setOtpVerificationPendingClaimToContext(context, claims);
+                    redirectToOtpVerificationPage(response, context);
+                }
             } catch (UserStoreException e) {
                 if (e instanceof UserStoreClientException) {
                     context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());
@@ -501,8 +528,109 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         return user;
     }
 
+    private AuthenticatedUser getAssociatedAuthenticatedUser(AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
+        for (Map.Entry<Integer, StepConfig> entry : context.getSequenceConfig().getStepMap().entrySet()) {
+            StepConfig stepConfig = entry.getValue();
+            if (stepConfig.isSubjectAttributeStep()) {
+
+                if (stepConfig.getAuthenticatedUser() != null) {
+                    user = stepConfig.getAuthenticatedUser();
+                }
+
+                if (!user.isFederatedUser()) {
+                    return user;
+                } else {
+                    String associatedID;
+                    String subject = user.getAuthenticatedSubjectIdentifier();
+                    try {
+                        FederatedAssociationManager federatedAssociationManager = FrameworkUtils
+                                .getFederatedAssociationManager();
+                        associatedID = federatedAssociationManager.getUserForFederatedAssociation(context
+                                .getTenantDomain(), stepConfig.getAuthenticatedIdP(), subject);
+                        if (StringUtils.isNotBlank(associatedID)) {
+                            String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
+                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER
+                                            + context.getTenantDomain());
+                            UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedID));
+                            user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
+                                    fullQualifiedAssociatedUserId);
+                            return user;
+                        }
+                    } catch (FederatedAssociationManagerException | FrameworkException e) {
+                        throw new PostAuthenticationFailedException("Error while handling missing mandatory claims. " +
+                                "Error in association.", "Error while getting association for " + subject, e);
+                    }
+                }
+                break;
+            }
+        }
+        return user;
+    }
+
     private ClaimMetadataManagementService getClaimMetadataManagementService() {
 
         return FrameworkServiceDataHolder.getInstance().getClaimMetadataManagementService();
+    }
+
+    private void redirectToOtpVerificationPage(HttpServletResponse response, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        try {
+            ServiceURLBuilder uriBuilder = ServiceURLBuilder.create();
+            uriBuilder = uriBuilder.addPath(FrameworkConstants.VERIFY_ENDPOINT);
+            uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
+            response.sendRedirect(uriBuilder.build().getAbsolutePublicURL());
+        } catch (IOException | URLBuilderException e) {
+            throw new PostAuthenticationFailedException("URL generation failed",
+                    "Error occurred while building the redirect URL for the OTP verification page.", e);
+        }
+    }
+
+    private void setOtpVerificationPendingClaimToContext(AuthenticationContext context, Map<String,
+            String> claimValues) throws PostAuthenticationFailedException {
+
+        /* Store the pending claim and its value in the authentication context based the otpVerificationTriggeredClaim.
+         This allows to ensure the value is verified and saved to the user claim. */
+        String triggeredClaim = IdentityUtil.threadLocalProperties.get()
+                .remove(FrameworkConstants.CLAIM_FOR_PENDING_OTP_VERIFICATION).toString();
+
+        String recoveryScenario = "PROGRESSIVE_PROFILE_MOBILE_VERIFICATION_ON_UPDATE";
+        if (FrameworkConstants.VERIFIED_MOBILE_NUMBERS_CLAIM.equals(triggeredClaim)) {
+            recoveryScenario = "PROGRESSIVE_PROFILE_MOBILE_VERIFICATION_ON_VERIFIED_LIST_UPDATE";
+        }
+        context.addEndpointParam("recoveryScenario", recoveryScenario);
+        context.addEndpointParam(
+                FrameworkConstants.USERNAME, getAssociatedAuthenticatedUser(context).toFullQualifiedUsername());
+
+        Map<String, String> pendingClaim = new HashMap<>();
+        pendingClaim.put("uri", triggeredClaim);
+        pendingClaim.put("value", claimValues.get(triggeredClaim));
+        context.setProperty(FrameworkConstants.OTP_VERIFICATION_PENDING_CLAIM, pendingClaim);
+    }
+
+    private boolean isOtpVerificationTriggeredAndCompleted(AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        Map<String, String> pendingClaim =
+                (Map<String, String>) context.getProperty(FrameworkConstants.OTP_VERIFICATION_PENDING_CLAIM);
+        if (pendingClaim == null) {
+            return false;
+        }
+
+        AuthenticatedUser user = getAssociatedAuthenticatedUser(context);
+        try {
+            UserRealm realm = getUserRealm(user.getTenantDomain());
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
+            String storedClaim = userStoreManager.getUserClaimValueWithID(
+                    user.getUserId(), pendingClaim.get("uri"), null
+            );
+            return StringUtils.equals(storedClaim, pendingClaim.get("value"));
+        } catch (UserStoreException | UserIdNotFoundException e) {
+            throw new PostAuthenticationFailedException("Error while handling missing mandatory claims.",
+                    "Error occurred while retrieving the user claims", e);
+        }
     }
 }

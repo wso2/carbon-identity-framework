@@ -45,10 +45,10 @@ public class UserRegistrationDSComponent {
     }
 
     @Reference(
-             name = "registry.service", 
-             service = org.wso2.carbon.registry.core.service.RegistryService.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
+             name = "registry.service",
+             service = org.wso2.carbon.registry.core.service.RegistryService.class,
+             cardinality = ReferenceCardinality.MANDATORY,
+             policy = ReferencePolicy.DYNAMIC,
              unbind = "unsetRegistryService")
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
@@ -62,10 +62,10 @@ public class UserRegistrationDSComponent {
     }
 
     @Reference(
-             name = "user.realmservice.default", 
-             service = org.wso2.carbon.user.core.service.RealmService.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
+             name = "user.realmservice.default",
+             service = org.wso2.carbon.user.core.service.RealmService.class,
+             cardinality = ReferenceCardinality.MANDATORY,
+             policy = ReferencePolicy.DYNAMIC,
              unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
@@ -97,5 +97,5 @@ public class UserRegistrationDSComponent {
         }
         UserRegistrationDSComponent.realmService = null;
     }
-}
 
+}

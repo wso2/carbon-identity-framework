@@ -71,7 +71,7 @@ public abstract class AbstractProvisioningConnectorFactory {
         connector = buildConnector(provisioningProperties);
         entry = new ProvisioningConnectorCacheEntry();
         entry.setProvisioningConnector(connector);
-        ProvisioningConnectorCache.getInstance().addToCache(cacheKey, entry, tenantDomain);
+        ProvisioningConnectorCache.getInstance().addToCacheOnRead(cacheKey, entry, tenantDomain);
 
         return connector;
 

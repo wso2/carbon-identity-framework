@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,11 +19,15 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
@@ -34,6 +38,7 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderBy
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
@@ -45,6 +50,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,10 +69,23 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
  * Default Role Management Listener implementation of Role Management V2 Listener,
  * and application based role management.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener",
+                "service.scope=singleton"
+        }
+)
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener",
+                "service.scope=singleton"
+        }
+)
 public class DefaultRoleManagementListener extends AbstractApplicationMgtListener implements RoleManagementListener {
 
-    private static final AuthorizedAPIManagementService authorizedAPIManagementService =
-            new AuthorizedAPIManagementServiceImpl();
+    private static final Log LOG = LogFactory.getLog(DefaultRoleManagementListener.class);
 
     @Override
     public int getExecutionOrderId() {
@@ -92,7 +111,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             throws IdentityRoleManagementException {
 
         if (APPLICATION.equalsIgnoreCase(audience)) {
-            validateApplicationRoleAudience(audienceId, tenantDomain);
+            validateApplicationTypeAndRoleAudience(audienceId, tenantDomain);
             validatePermissionsForApplication(permissions, audienceId, tenantDomain);
         }
     }
@@ -513,28 +532,48 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     /**
-     * Validate application role audience.
+     * Validate application type and the role audience of the application. The application type will be set to the
+     * thread local properties.
      *
      * @param applicationId Application ID.
      * @param tenantDomain  Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while validating application role audience.
      */
-    private void validateApplicationRoleAudience(String applicationId, String tenantDomain)
+    private void validateApplicationTypeAndRoleAudience(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         try {
-            ServiceProvider app = ApplicationManagementService.getInstance()
-                    .getApplicationByResourceId(applicationId, tenantDomain);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Validating application type and role audience for applicationId: " + applicationId +
+                        " in tenant: " + tenantDomain);
+            }
+            ApplicationBasicInfo app = ApplicationManagementService.getInstance()
+                    .getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
             if (app == null) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Invalid audience. No application found with application id: " + applicationId +
                                 " and tenant domain : " + tenantDomain);
             }
             String allowedAudienceForRoleAssociation = ApplicationManagementService.getInstance()
-                    .getAllowedAudienceForRoleAssociation(app.getApplicationResourceId(), tenantDomain);
+                    .getAllowedAudienceForRoleAssociation(applicationId, tenantDomain);
             if (!APPLICATION.equalsIgnoreCase(allowedAudienceForRoleAssociation.toLowerCase())) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Application: " + applicationId + " does not have Application role audience type");
+            }
+
+            // Set thread local property to identify that the application is a fragment application. This property
+            // will be used in the role management component to identify the application type.
+            if (IdentityUtil.threadLocalProperties.get().get(ApplicationConstants.IS_FRAGMENT_APP) != null) {
+                IdentityUtil.threadLocalProperties.get().remove(ApplicationConstants.IS_FRAGMENT_APP);
+            }
+            // If the mainAppId is not null, the passed applicationId is a fragment application.
+            String mainAppId = ApplicationManagementService.getInstance().getMainAppId(applicationId);
+            if (mainAppId != null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Application: " + applicationId +
+                            " is identified as a fragment application with mainAppId: " + mainAppId);
+                }
+                IdentityUtil.threadLocalProperties.get().put(ApplicationConstants.IS_FRAGMENT_APP, Boolean.TRUE);
             }
         } catch (IdentityApplicationManagementException e) {
             String errorMessage = "Error while retrieving the application for the given id: " + applicationId;
@@ -579,6 +618,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
 
         List<AuthorizedScopes> authorizedScopesList;
         try {
+            AuthorizedAPIManagementService authorizedAPIManagementService = new AuthorizedAPIManagementServiceImpl();
             authorizedScopesList = authorizedAPIManagementService.getAuthorizedScopes(appId, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
             throw new IdentityRoleManagementException("Error while retrieving authorized scopes.",
@@ -675,6 +715,20 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             throw new IdentityApplicationManagementException(
                     String.format("Error occurred while deleting roles created for the application: %s.",
                             serviceProvider.getApplicationName()), e);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        // Clear role basic info cache when application is updated, This is necessary because RoleBasicInfo contains
+        // audienceName (application name). When application name changes, cached role basic info becomes stale.
+        RoleManagementUtils.clearRoleBasicInfoCacheByTenant(tenantDomain);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cleared role basic info cache for tenant: " + tenantDomain +
+                    " due to application update: " + serviceProvider.getApplicationResourceId());
         }
         return true;
     }

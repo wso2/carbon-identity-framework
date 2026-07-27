@@ -18,18 +18,24 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.MapUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.utils.ServerConstants;
+import org.wso2.securevault.SecretResolver;
 
 import javax.xml.namespace.QName;
 import java.nio.file.Paths;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.securevault.commons.MiscellaneousUtil.resolve;
 
 public class IdentityConfigParserTest {
 
@@ -104,5 +110,41 @@ public class IdentityConfigParserTest {
         assertEquals(element.getLocalPart(), "TestElement", "Local part should be 'TestElement'");
         assertEquals(element.getNamespaceURI(), IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, "Namespace part " +
                 "should be " + IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE);
+    }
+
+    @Test(dependsOnMethods = "testGetInstance")
+    public void testSecureVaultPropertyResolution() {
+        // Test that ClockSkew element can be retrieved and contains expected value
+        OMElement clockSkewElement = IdentityConfigParser.getInstance().getConfigElement("ClockSkew");
+        assertEquals(clockSkewElement.getText(), "300", "ClockSkew value should be 300");
+
+        // Test secure vault resolution with null resolver returns original text
+        String propertyValue = resolve(clockSkewElement.getText(), null);
+        assertEquals(propertyValue, "300", "Property value should match when no secret resolver is provided");
+    }
+
+    @Test(dependsOnMethods = "testGetInstance")
+    public void testSecureVaultPropertyResolutionWithResolver() {
+        // Create a mock SecretResolver
+        SecretResolver mockSecretResolver = mock(SecretResolver.class);
+
+        // Configure the mock to return true for isInitialized and isTokenProtected
+        when(mockSecretResolver.isInitialized()).thenReturn(true);
+        when(mockSecretResolver.isTokenProtected(anyString())).thenReturn(true);
+
+        // Configure the mock to return a resolved secret value
+        String encryptedValue = "secretAlias:ClockSkew";
+        String resolvedSecret = "600";
+        when(mockSecretResolver.resolve(encryptedValue)).thenReturn(resolvedSecret);
+
+        // Test secure vault resolution with provided resolver
+        String propertyValue = resolve(encryptedValue, mockSecretResolver);
+        assertEquals(propertyValue, resolvedSecret, "Property value should be resolved when secret resolver is provided");
+
+        // Test with non-encrypted value - should return original text
+        String plainValue = "300";
+        when(mockSecretResolver.isTokenProtected(plainValue)).thenReturn(false);
+        String plainPropertyValue = resolve(plainValue, mockSecretResolver);
+        assertEquals(plainPropertyValue, plainValue, "Plain value should be returned as-is when not token protected");
     }
 }

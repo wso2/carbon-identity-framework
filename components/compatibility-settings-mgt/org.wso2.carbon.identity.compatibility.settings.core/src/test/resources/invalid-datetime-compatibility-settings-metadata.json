@@ -1,0 +1,9 @@
+{
+  "authentication": {
+    "enableLegacyAuthFlow": {
+      "timestampReference": "invalid-date-time-format",
+      "targetValue": "true",
+      "defaultValue": "false"
+    }
+  }
+}

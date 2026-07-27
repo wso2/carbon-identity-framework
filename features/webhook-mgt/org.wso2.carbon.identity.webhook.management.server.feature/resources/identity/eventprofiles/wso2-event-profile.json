@@ -1,0 +1,204 @@
+{
+  "profile": "WSO2",
+  "uri": "https://schemas.identity.wso2.org/events",
+  "channels": [
+    {
+      "name": "Logins",
+      "description": "Login success or failed",
+      "uri": "https://schemas.identity.wso2.org/events/login",
+      "events": [
+        {
+          "eventName": "Login success",
+          "eventDescription": "Notify if login is successful",
+          "eventUri": "https://schemas.identity.wso2.org/events/login/event-type/loginSuccess"
+        },
+        {
+          "eventName": "Login failed",
+          "eventDescription": "Notify if login failed",
+          "eventUri": "https://schemas.identity.wso2.org/events/login/event-type/loginFailed"
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "description": "Sessions established, presented or revoked",
+      "uri": "https://schemas.identity.wso2.org/events/session",
+      "events": [
+        {
+          "eventName": "Session established",
+          "eventDescription": "Notify if session is established",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionEstablished"
+        },
+        {
+          "eventName": "Session presented",
+          "eventDescription": "Notify if session is presented",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionPresented"
+        },
+        {
+          "eventName": "Session revoked",
+          "eventDescription": "Notify if session is revoked",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionRevoked"
+        }
+      ]
+    },
+    {
+      "name": "User account management",
+      "description": "User created, profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
+      "uri": "https://schemas.identity.wso2.org/events/user",
+      "events": [
+        {
+          "eventName": "User created",
+          "eventDescription": "Notify if user is created",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userCreated"
+        },
+        {
+          "eventName": "User profile updated",
+          "eventDescription": "Notify if user profile is updated",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userProfileUpdated"
+        },
+        {
+          "eventName": "User account disabled",
+          "eventDescription": "Notify if user account is disabled",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userDisabled"
+        },
+        {
+          "eventName": "User account enabled",
+          "eventDescription": "Notify if user account is enabled",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userEnabled"
+        },
+        {
+          "eventName": "User account locked",
+          "eventDescription": "Notify if user account is locked",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userAccountLocked"
+        },
+        {
+          "eventName": "User account unlocked",
+          "eventDescription": "Notify if user account is unlocked",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userAccountUnlocked"
+        },
+        {
+          "eventName": "User account deleted",
+          "eventDescription": "Notify if user account is deleted",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userDeleted"
+        }
+      ]
+    },
+    {
+      "name": "Registrations",
+      "description": "Registration success or failed",
+      "uri": "https://schemas.identity.wso2.org/events/registration",
+      "events": [
+        {
+          "eventName": "Registration success",
+          "eventDescription": "Notify if user registration is successful",
+          "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationSuccess"
+        },
+        {
+          "eventName": "Registration failed",
+          "eventDescription": "Notify if user registration failed",
+          "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationFailed"
+        }
+      ]
+    },
+    {
+      "name": "Tokens",
+      "description": "Access token issued or revoked",
+      "uri": "https://schemas.identity.wso2.org/events/token",
+      "events": [
+        {
+          "eventName": "Access token issued",
+          "eventDescription": "Notify if access token is issued",
+          "eventUri": "https://schemas.identity.wso2.org/events/token/event-type/accessTokenIssued"
+        },
+        {
+          "eventName": "Access token revoked",
+          "eventDescription": "Notify if access token is revoked",
+          "eventUri": "https://schemas.identity.wso2.org/events/token/event-type/accessTokenRevoked"
+        }
+      ]
+    },
+    {
+      "name": "Credential updates",
+      "description": "Password created or updated",
+      "uri": "https://schemas.identity.wso2.org/events/credential",
+      "events": [
+        {
+          "eventName": "Credential updated",
+          "eventDescription": "Notify if password is created or updated",
+          "eventUri": "https://schemas.identity.wso2.org/events/credential/event-type/credentialUpdated"
+        }
+      ]
+    },
+    {
+      "name": "Consent purpose",
+      "description": "Consent purpose updated",
+      "uri": "https://schemas.identity.wso2.org/events/consent-purpose",
+      "events": [
+        {
+          "eventName": "Purpose version added",
+          "eventDescription": "Notify if a new version is added to a consent purpose",
+          "eventUri": "https://schemas.identity.wso2.org/events/consent-purpose/event-type/purposeVersionAdded"
+        }
+      ]
+    },
+    {
+      "name": "Consents",
+      "description": "Consent accepted, rejected, or revoked",
+      "uri": "https://schemas.identity.wso2.org/events/consent",
+      "events": [
+        {
+          "eventName": "Consent added",
+          "eventDescription": "Notify if a user consent is accepted or rejected",
+          "eventUri": "https://schemas.identity.wso2.org/events/consent/event-type/consentAdded"
+        },
+        {
+          "eventName": "Consent revoked",
+          "eventDescription": "Notify if a user consent is revoked",
+          "eventUri": "https://schemas.identity.wso2.org/events/consent/event-type/consentRevoked"
+        }
+      ]
+    },
+    {
+      "name": "Role management",
+      "description": "Role created, updated, deleted, or role user/group/IdP-group/permission assignments changed",
+      "uri": "https://schemas.identity.wso2.org/events/role",
+      "events": [
+        {
+          "eventName": "Role created",
+          "eventDescription": "Notify if a role is created",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleCreated"
+        },
+        {
+          "eventName": "Role metadata updated",
+          "eventDescription": "Notify if role metadata (e.g. name) is updated",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleMetaUpdated"
+        },
+        {
+          "eventName": "Role deleted",
+          "eventDescription": "Notify if a role is deleted",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleDeleted"
+        },
+        {
+          "eventName": "Role users updated",
+          "eventDescription": "Notifies when users are assigned to or unassigned from a role",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleUsersUpdated"
+        },
+        {
+          "eventName": "Role groups updated",
+          "eventDescription": "Notifies when local groups are assigned to or unassigned from a role",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleGroupsUpdated"
+        },
+        {
+          "eventName": "Role IdP groups updated",
+          "eventDescription": "Notifies when federated IdP groups are assigned to or unassigned from a role",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleIdpGroupsUpdated"
+        },
+        {
+          "eventName": "Role permissions updated",
+          "eventDescription": "Notifies when permissions are granted to or revoked from a role",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/rolePermissionsUpdated"
+        }
+      ]
+    }
+  ]
+}

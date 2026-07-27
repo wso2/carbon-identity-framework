@@ -21,7 +21,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
-import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -49,7 +48,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
     private static final Log log = LogFactory.getLog(DefaultClaimMetadataStore.class);
 
-    private final UnifiedClaimMetadataManager unifiedClaimMetadataManager = new UnifiedClaimMetadataManager();
+    private final UnifiedClaimMetadataManager unifiedClaimMetadataManager = new CacheBackedUnifiedClaimMetadataManager();
 
     private int tenantId;
 
@@ -458,7 +457,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         // Filter the local claim `role` when groups vs roles separation is enabled. This claim is
         // considered as a legacy claim going forward, thus `roles` and `groups` claims should be used
         // instead.
-        if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() && UserCoreConstants.ROLE_CLAIM.
+        if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() &&
+                !IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled() && UserCoreConstants.ROLE_CLAIM.
                 equals(localClaim.getClaimURI())) {
             if (log.isDebugEnabled()) {
                 log.debug("Skipping the legacy role claim: " + localClaim.getClaimURI() + ", when getting " +

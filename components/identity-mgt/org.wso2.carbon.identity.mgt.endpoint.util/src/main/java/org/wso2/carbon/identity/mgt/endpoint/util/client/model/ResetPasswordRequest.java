@@ -72,6 +72,9 @@ public class ResetPasswordRequest {
         this.password = password;
     }
 
+    public void setPassword(char[] password) {
+        this.password = password != null ? new String(password) : null;
+    }
 
     /**
      **/

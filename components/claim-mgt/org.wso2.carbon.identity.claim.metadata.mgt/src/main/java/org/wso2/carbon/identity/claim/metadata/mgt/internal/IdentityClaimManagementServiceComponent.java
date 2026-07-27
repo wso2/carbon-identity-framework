@@ -38,6 +38,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataTenantM
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
@@ -251,5 +253,63 @@ public class IdentityClaimManagementServiceComponent {
                     " got removed and default Claim config init DAO implementation:" +
                     DefaultClaimConfigInitDAO.class.getName() + " registered.");
         }
+    }
+
+    /**
+     * Sets the {@link OrganizationManager} reference used for managing organizations.
+     *
+     * @param organizationManager The {@link OrganizationManager} instance being bound.
+     */
+    @Reference(
+            name = "organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        log.debug("OrganizationManager set in Claim Management bundle.");
+    }
+
+    /**
+     * Unsets the {@link OrganizationManager} reference when the OSGi service is unregistered.
+     *
+     * @param organizationManager The {@link OrganizationManager} instance being unbound.
+     */
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setOrganizationManager(null);
+        log.debug("OrganizationManager unset in Claim Management bundle.");
+    }
+
+    /**
+     * Sets the {@link OrgResourceResolverService} reference used for resolving resources in the
+     * organization hierarchy.
+     *
+     * @param orgResourceResolverService The {@link OrgResourceResolverService} instance being bound.
+     */
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service",
+            service = OrgResourceResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrgResourceResolverService")
+    protected void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance()
+                .setOrgResourceResolverService(orgResourceResolverService);
+        log.debug("OrgResourceResolverService set in Claim Management bundle.");
+    }
+
+    /**
+     * Unsets the {@link OrgResourceResolverService} reference when the OSGi service is unregistered.
+     *
+     * @param orgResourceResolverService The {@link OrgResourceResolverService} instance being unbound.
+     */
+    protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setOrgResourceResolverService(null);
+        log.debug("OrgResourceResolverService unset in Claim Management bundle.");
     }
 }

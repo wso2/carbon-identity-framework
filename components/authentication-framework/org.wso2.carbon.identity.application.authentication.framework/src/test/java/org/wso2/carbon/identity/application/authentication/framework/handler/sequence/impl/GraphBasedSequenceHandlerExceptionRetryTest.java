@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -28,13 +29,14 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
@@ -43,8 +45,9 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
@@ -55,6 +58,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
@@ -65,6 +69,7 @@ import static org.mockito.Mockito.mock;
 public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSequenceHandlerAbstractTest {
 
     private static final String CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES = "RetriesOnTest";
+    private MockedStatic<Utils> utilsStaticMock;
 
     @BeforeClass
     public void setUpMocks() {
@@ -72,12 +77,14 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         IdentityEventService identityEventService = mock(IdentityEventService.class);
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        utilsStaticMock = mockStatic(Utils.class);
     }
 
     @AfterClass
     public void tearDown() {
 
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+        utilsStaticMock.close();
     }
 
     public void testExceptionRetry() throws Exception {
@@ -88,13 +95,13 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
         LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
         CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
                 new FailingMockAuthenticator("FailingMockAuthenticator"));
 
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(new LongWaitStatusStoreService
                 (cacheBackedDao, 5000));
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
-                (BiFunction<JsNashornAuthenticatedUser, List<String>, Boolean>) this::hasAnyOfTheRolesFunction);
+                (BiFunction<JsGraalAuthenticatedUser, List<String>, Boolean>) this::hasAnyOfTheRolesFunction);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-exception-retry.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -110,6 +117,9 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
+        utilsStaticMock.when(() ->
+                Utils.isClaimAndOIDCScopeInheritanceEnabled("test_domain")).thenReturn(true);
+
         graphBasedSequenceHandler.handle(req, resp, context);
 
         Integer currentAttempts = (Integer) context.getProperties().get(CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES);
@@ -118,7 +128,7 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
         Assert.assertEquals(currentAttempts.intValue(), 2);
     }
 
-    public boolean hasAnyOfTheRolesFunction(JsNashornAuthenticatedUser jsAuthenticatedUser, List<String> args) {
+    public boolean hasAnyOfTheRolesFunction(JsGraalAuthenticatedUser jsAuthenticatedUser, List<String> args) {
 
         return args.stream().anyMatch(s -> s.contains("Role1"));
     }

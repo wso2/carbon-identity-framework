@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<ServiceProvider>
+    <ApplicationID>1</ApplicationID>
+    <ApplicationName>default</ApplicationName>
+    <Description>Default Service Provider</Description>
+    <InboundAuthenticationConfig>
+        <InboundAuthenticationRequestConfigs>
+            <InboundAuthenticationRequestConfig>
+                <InboundAuthKey>default</InboundAuthKey>
+                <InboundAuthType></InboundAuthType>
+                <Properties></Properties>
+            </InboundAuthenticationRequestConfig>
+        </InboundAuthenticationRequestConfigs>
+    </InboundAuthenticationConfig>
+    <LocalAndOutBoundAuthenticationConfig>
+        <AuthenticationSteps>
+            <AuthenticationStep>
+                <StepOrder>1</StepOrder>
+                <FederatedIdentityProviders>
+                    <IdentityProvider>
+                        <IdentityProviderName>identityProviderIDP_IS</IdentityProviderName>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAuthenticatorConfig>SAMLSSOAuthenticator</DefaultAuthenticatorConfig>
+                        <FederatedAuthenticatorConfigs>
+                            <FederatedAuthenticatorConfig>
+                                <Name>SAMLSSOAuthenticator</Name>
+                                <IsEnabled>true</IsEnabled>
+                            </FederatedAuthenticatorConfig>
+                        </FederatedAuthenticatorConfigs>
+                    </IdentityProvider>
+                </FederatedIdentityProviders>
+                <SubjectStep>false</SubjectStep>
+                <AttributeStep>false</AttributeStep>
+            </AuthenticationStep>
+        </AuthenticationSteps>
+        <AuthenticationType>federated</AuthenticationType>
+    </LocalAndOutBoundAuthenticationConfig>
+    <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
+    <InboundProvisioningConfig></InboundProvisioningConfig>
+    <OutboundProvisioningConfig>
+        <ProvisioningIdentityProviders>
+            <DefaultProvisioningConnectorConfig>
+                <Blocking>false</Blocking>
+                <Enabled>true</Enabled>
+                <Name>ProvisioningConnector</Name>
+            </DefaultProvisioningConnectorConfig>
+            <IdentityProviderName>identityProviderIDP_IS</IdentityProviderName>
+        </ProvisioningIdentityProviders>
+    </OutboundProvisioningConfig>
+    <ClaimConfig>
+        <AlwaysSendMappedLocalSubjectId>true</AlwaysSendMappedLocalSubjectId>
+    </ClaimConfig>
+    <PermissionAndRoleConfig></PermissionAndRoleConfig>
+</ServiceProvider>

@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.servlet;
 
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 
 import java.io.IOException;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +34,15 @@ import javax.servlet.http.HttpServletResponse;
  * authenticationendpoint. In case of invalid sessionDataKey, initiates redirection forcing application to
  * start authentication flow with new sessionDataKey
  */
+@Component(
+        service = Servlet.class,
+        immediate = true,
+        property = {
+                "osgi.http.whiteboard.servlet.pattern=/logincontext",
+                "osgi.http.whiteboard.servlet.name=LoginContextServlet",
+                "osgi.http.whiteboard.servlet.asyncSupported=true"
+        }
+)
 public class LoginContextServlet extends HttpServlet {
 
     @Override

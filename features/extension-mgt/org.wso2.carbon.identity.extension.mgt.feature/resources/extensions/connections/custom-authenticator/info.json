@@ -1,0 +1,10 @@
+{
+  "id": "custom-authenticator",
+  "name": "Custom Authenticator",
+  "description": "Enable login for users with external authentication service.",
+  "image": "custom-authenticator",
+  "category": "DEFAULT",
+  "displayOrder": -1,
+  "tags": ["Custom"],
+  "type": "custom-authenticator"
+}

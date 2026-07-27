@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.xerces.impl.Constants;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -40,10 +41,13 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.DiscoverableGroup;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -54,6 +58,8 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -62,8 +68,12 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -71,6 +81,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -78,10 +89,17 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.sax.SAXSource;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USER_GROUPS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.ENABLE_V2_AUDIT_LOGS;
@@ -90,7 +108,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_A
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TENANT_DOMAIN_PLACEHOLDER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Few common utility functions related to Application (aka. Service Provider) Management.
@@ -110,11 +127,69 @@ public class ApplicationMgtUtil {
     private static final String DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME =
             UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME + "/" + CarbonConstants.REGISTRY_SYSTEM_USERNAME;
     private static final String BASE_URL_PLACEHOLDER = "<PROTOCOL>://<HOSTNAME>:<PORT>";
+    private static final String BASE_URL_CUSTOM_PLACEHOLDER = "<CUSTOM_PROTOCOL>://<CUSTOM_HOSTNAME>:<CUSTOM_PORT>";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
     private ApplicationMgtUtil() {
 
+    }
+
+    /**
+     * Enter an application management flow in the {@link IdentityContext} so that downstream components
+     * (e.g. event handlers/webhooks) can identify the application operation being performed.
+     * <p>
+     * If a flow is already active in the current context, a new flow will not be started (the existing flow is
+     * preserved). The flow is also not started if the initiating persona cannot be resolved from the actor.
+     * <p>
+     * Callers must invoke {@link IdentityContext#exitFlow()} in a finally block only when this method returns
+     * {@code true}.
+     *
+     * @param flowName The name of the application management flow being started.
+     * @return {@code true} if a new flow was started (and must be exited by the caller); {@code false} otherwise.
+     */
+    public static boolean enterApplicationManagementFlow(Flow.Name flowName) {
+
+        IdentityContext identityContext = IdentityContext.getThreadLocalIdentityContext();
+        if (identityContext.getCurrentFlow() != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("A flow is already active in the identity context. Hence, not starting the flow: "
+                        + flowName);
+            }
+            return false;
+        }
+        Flow.InitiatingPersona initiatingPersona = resolveFlowInitiatingPersona();
+        if (initiatingPersona == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Unable to resolve the initiating persona. Hence, not entering the flow: " + flowName);
+            }
+            return false;
+        }
+        identityContext.enterFlow(new Flow.Builder()
+                .name(flowName)
+                .initiatingPersona(initiatingPersona)
+                .build());
+        return true;
+    }
+
+    /**
+     * Resolve the initiating persona for an application management flow based on the actor set in the current
+     * identity context.
+     *
+     * @return The resolved initiating persona, or {@code null} if it cannot be determined.
+     */
+    private static Flow.InitiatingPersona resolveFlowInitiatingPersona() {
+
+        IdentityContext identityContext = IdentityContext.getThreadLocalIdentityContext();
+        if (identityContext.isApplicationActor()) {
+            return Flow.InitiatingPersona.APPLICATION;
+        } else if (identityContext.isUserActor()) {
+            return Flow.InitiatingPersona.ADMIN;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Actor is not set in the identity context.");
+        }
+        return null;
     }
 
     public static org.wso2.carbon.user.api.Permission[] buildPermissions(String applicationName,
@@ -659,14 +734,9 @@ public class ApplicationMgtUtil {
             throws IdentityApplicationManagementException {
 
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            // Disable external entity processing to prevent XXE attacks.
-            unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-            return (ServiceProvider) unmarshaller.unmarshal(spFileStream.getFileStream());
-
-        } catch (JAXBException e) {
+            InputSource inputSource = new InputSource(spFileStream.getFileStream());
+            return getSecureSaxParserFactory(inputSource);
+        } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
         } catch (Exception e) {
@@ -675,6 +745,46 @@ public class ApplicationMgtUtil {
                     "Provider configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain),
                     e);
         }
+    }
+
+    /**
+     * This method is used to get the service provider object from the input source.
+     * @return ServiceProvider object.
+     * @throws ParserConfigurationException if a parser cannot be created which satisfies the requested configuration.
+     * @throws SAXException if any parse errors occur.
+     * @throws JAXBException if any unexpected errors occur during unmarshalling.
+     */
+    public static ServiceProvider getSecureSaxParserFactory(InputSource inputsource) throws
+            ParserConfigurationException, SAXException, JAXBException {
+
+        // Creating secure parser by disabling XXE.
+        SAXParserFactory spf = getSaxParserFactory();
+        Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(), inputsource);
+        JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
+    }
+
+    /**
+     * This method is used to get the secure SAX parser factory.
+     * @return SAXParserFactory object.
+     */
+    public static SAXParserFactory getSaxParserFactory() {
+
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setNamespaceAware(true);
+        spf.setXIncludeAware(false);
+        try {
+            spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+            spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+            spf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
+            spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (SAXException | ParserConfigurationException e) {
+            log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or "
+                    + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE
+                    + " or secure-processing.");
+        }
+        return spf;
     }
 
     /**
@@ -1062,7 +1172,7 @@ public class ApplicationMgtUtil {
     public static boolean isLegacyAuditLogsDisabledInAppMgt() {
 
         return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
-                || isLegacyAuditLogsDisabled();
+                || isEnableV2AuditLogs();
     }
 
     /**
@@ -1076,6 +1186,38 @@ public class ApplicationMgtUtil {
 
         String basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
         return StringUtils.replace(absoluteUrl, basePath, BASE_URL_PLACEHOLDER);
+    }
+
+    /**
+     * This method use to replace the hostname and port with placeholders of URLs.
+     *
+     * @param absoluteUrl The absolute URL which need to be modified.
+     * @param appName     The application name.
+     * @return The URL which origin replaced placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String replaceUrlOriginWithPlaceholders(String absoluteUrl, String appName)
+            throws URLBuilderException {
+
+        if (StringUtils.isEmpty(appName)) {
+            return replaceUrlOriginWithPlaceholders(absoluteUrl);
+        }
+        String basePath = StringUtils.EMPTY;
+        if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
+            basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+        } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            basePath = IdentityUtil.getProperty(MYACCOUNT_ACCESS_ORIGIN);
+        }
+        if (StringUtils.isEmpty(basePath)) {
+            return replaceUrlOriginWithPlaceholders(absoluteUrl);
+        }
+        absoluteUrl = StringUtils.replace(absoluteUrl, basePath, BASE_URL_PLACEHOLDER);
+
+        if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            absoluteUrl = StringUtils.replace(absoluteUrl, consoleBasePath, BASE_URL_CUSTOM_PLACEHOLDER);
+        }
+        return absoluteUrl;
     }
 
     /**
@@ -1103,20 +1245,52 @@ public class ApplicationMgtUtil {
     public static String resolveOriginUrlFromPlaceholders(String absoluteUrl, String appName)
             throws URLBuilderException {
 
+        return resolveOriginUrlFromPlaceholders(absoluteUrl, appName, false);
+    }
+
+    /**
+     * This method is used to replace placeholders with the hostname and port of URLs for the portal apps.
+     *
+     * @param absoluteUrl                       The URL which need to resolve from placeholders.
+     * @param appName                           Application name.
+     * @param subOrgAppWithBaseURLPlaceholder   If provided app is a shared app containing baseURL placeholder.
+     * @return The resolved URL from placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String resolveOriginUrlFromPlaceholders(String absoluteUrl, String appName,
+                                                          boolean subOrgAppWithBaseURLPlaceholder)
+            throws URLBuilderException {
+
         if (StringUtils.isEmpty(appName)) {
             return resolveOriginUrlFromPlaceholders(absoluteUrl);
         }
         String basePath = StringUtils.EMPTY;
-        if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
+        if (subOrgAppWithBaseURLPlaceholder) {
+            basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+        } else if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
         } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(MYACCOUNT_ACCESS_ORIGIN);
         }
 
         if (StringUtils.isEmpty(basePath)) {
-            return resolveOriginUrlFromPlaceholders(absoluteUrl);
+            basePath = getAbsolutePublicUrlWithoutPath();
         }
-        return StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+        absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+
+        if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            if (StringUtils.isEmpty(consoleBasePath)) {
+                consoleBasePath = getAbsolutePublicUrlWithoutPath();
+            }
+            absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_CUSTOM_PLACEHOLDER, consoleBasePath);
+        }
+        return absoluteUrl;
+    }
+
+    private static String getAbsolutePublicUrlWithoutPath() throws URLBuilderException {
+
+        return ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
     }
 
     /**
@@ -1246,6 +1420,7 @@ public class ApplicationMgtUtil {
                 }
                 break;
             case ApplicationConstants.ApplicationVersion.APP_VERSION_V2:
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V3:
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + currentVersion);
@@ -1265,5 +1440,135 @@ public class ApplicationMgtUtil {
                     .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType();
         }
         return inboundConfigType;
+    }
+
+    /**
+     * Get the AbstractUserStoreManager for the given tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return UserStoreManager.
+     * @throws IdentityApplicationManagementException If an error occurred while getting the AbstractUserStoreManager
+     *                                               instance of the tenant.
+     */
+    public static AbstractUserStoreManager getUserStoreManager(String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        RealmService realmService = ApplicationManagementServiceComponentHolder.getInstance().getRealmService();
+        UserStoreManager userStoreManager;
+        try {
+            userStoreManager =
+                    realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain))
+                            .getUserStoreManager();
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
+                    ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), e);
+        }
+        if (userStoreManager == null) {
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
+                    ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription());
+        }
+        if (!(userStoreManager instanceof AbstractUserStoreManager)) {
+            throw new IdentityApplicationManagementServerException(UNSUPPORTED_USER_STORE_MANAGER.getCode(),
+                    String.format(UNSUPPORTED_USER_STORE_MANAGER.getDescription(), tenantDomain));
+        }
+        return (AbstractUserStoreManager) userStoreManager;
+    }
+
+    /**
+     * Get the group IDs of the logged-in user.
+     *
+     * @return Array of group IDs of the logged-in user.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving the group IDs of the
+     *                                                logged-in user.
+     */
+    public static String[] getLoggedInUserGroupIDList() throws IdentityApplicationManagementException {
+
+        String loggedInUserId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        AbstractUserStoreManager userStoreManager = getUserStoreManager(tenantDomain);
+        try {
+            List<Group> groupList = userStoreManager.getGroupListOfUser(loggedInUserId, null, null);
+            if (groupList != null) {
+                return groupList.stream().map(Group::getGroupID)
+                        .filter(Objects::nonNull)
+                        .map(UserCoreUtil::removeDomainFromName)
+                        .toArray(String[]::new);
+            }
+            return new String[0];
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USER_GROUPS.getCode(),
+                    ERROR_RETRIEVING_USER_GROUPS.getDescription(), e);
+        }
+    }
+
+    /**
+     * This method is used to build the discoverable groups list from the database result.
+     * Note: Group association list should be sorted by domain and provide group IDs in order.
+     * Where `discoverableGroups` list keeps the complete list of discoverable groups and
+     *  currentDomainGroups  list keeps the list of groups in the current iterating domain.
+     * The method will add the `currentDomainGroups` list to the `discoverableGroups` list
+     * if the domain name is change from the previous iteration.
+     * If the domain name is same, the group will be added to the `currentDomainGroups` list.
+     *
+     * @param discoverableGroups  All list of discoverable groups.
+     * @param currentDomainGroups List of groups in the current iterating domain.
+     * @param tenantDomain        Tenant domain.
+     * @param domainName          Current iterating domain name.
+     * @param groupID             Group ID.
+     * @throws IdentityApplicationManagementException If an error occurred while adding the discoverable group.
+     */
+    public static void addDiscoverableGroup(List<DiscoverableGroup> discoverableGroups,
+                                            List<GroupBasicInfo> currentDomainGroups, String tenantDomain,
+                                            String domainName, String groupID)
+            throws IdentityApplicationManagementException {
+
+        if (domainName == null && groupID == null) {
+            discoverableGroups.get(discoverableGroups.size() - 1)
+                    .setGroups(currentDomainGroups.toArray(new GroupBasicInfo[0]));
+            return;
+        }
+
+        AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
+        GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
+        groupBasicInfo.setId(groupID);
+        try {
+            String groupName = userStoreManager.getGroupNameByGroupId(groupID);
+            groupBasicInfo.setName(UserCoreUtil.removeDomainFromName(groupName));
+            if (!discoverableGroups.isEmpty() && StringUtils.equals(domainName,
+                    discoverableGroups.get(discoverableGroups.size() - 1).getUserStore())) {
+                currentDomainGroups.add(groupBasicInfo);
+            } else {
+                if (!discoverableGroups.isEmpty()) {
+                    discoverableGroups.get(discoverableGroups.size() - 1)
+                            .setGroups(currentDomainGroups.toArray(new GroupBasicInfo[0]));
+                }
+                currentDomainGroups.clear();
+                currentDomainGroups.add(groupBasicInfo);
+                DiscoverableGroup discoverableGroup = new DiscoverableGroup();
+                discoverableGroup.setUserStore(domainName);
+                discoverableGroups.add(discoverableGroup);
+            }
+        } catch (UserStoreException e) {
+            log.warn("Error while retrieving group name for group ID: " + groupID, e);
+        }
+    }
+
+    /**
+     * Check if a Service Provider property should be updated.
+     *
+     * @param expectedValue Expected value for the property.
+     * @param propertyName  Name of the SP property.
+     * @param application   The application that will be updated.
+     * @return true if the property should be updated, false otherwise.
+     */
+    public static boolean shouldUpdateSpProperty(String expectedValue, String propertyName,
+                                                 ServiceProvider application) {
+
+        Optional<String> existingValue = Arrays.stream(application.getSpProperties())
+                .filter(p -> propertyName.equals(p.getName()))
+                .map(ServiceProviderProperty::getValue)
+                .findFirst();
+
+        return !existingValue.isPresent() || !Objects.equals(expectedValue, existingValue.get());
     }
 }

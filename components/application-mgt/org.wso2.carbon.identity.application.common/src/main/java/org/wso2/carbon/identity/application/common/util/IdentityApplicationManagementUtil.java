@@ -101,6 +101,8 @@ public class IdentityApplicationManagementUtil {
     private static final int MODE_SINGLE_LINE = 4;
     private static final int MODE_MULTI_LINE = 5;
     private static final Pattern JS_LOOP_PATTERN = Pattern.compile("\\b(for|while|forEach)\\b");
+    private static final Pattern JS_ARRAY_FILL_PATTERN = Pattern.compile("Array\\s*\\([^)]*\\)\\s*\\.\\s*fill\\s*\\(");
+    private static final Pattern JS_STRING_REPEAT_PATTERN = Pattern.compile("\\.\\s*repeat\\s*\\(");
 
     private static ThreadLocal<Boolean> allowUpdateSystemApplicationThreadLocal = new ThreadLocal<>();
 
@@ -1004,6 +1006,32 @@ public class IdentityApplicationManagementUtil {
     }
 
     /**
+     * Use to check if a given adaptive auth script contains Array(N).fill constructs.
+     *
+     * @param script Adaptive auth script.
+     * @return True if Array(N).fill construct is present.
+     */
+    public static boolean isArrayFillPresentInAdaptiveAuthScript(String script) {
+
+        script = getCleanedAdaptiveAuthScript(script);
+        Matcher matcher = JS_ARRAY_FILL_PATTERN.matcher(script);
+        return matcher.find();
+    }
+
+    /**
+     * Use to check if a given adaptive auth script contains string repeat method calls.
+     *
+     * @param script Adaptive auth script.
+     * @return True if string repeat method call is present.
+     */
+    public static boolean isStringRepeatPresentInAdaptiveAuthScript(String script) {
+
+        script = getCleanedAdaptiveAuthScript(script);
+        Matcher matcher = JS_STRING_REPEAT_PATTERN.matcher(script);
+        return matcher.find();
+    }
+
+    /**
      * Check if loops are allowed in adaptive auth scripts.
      *
      * @return true is loops are allowed.
@@ -1095,5 +1123,26 @@ public class IdentityApplicationManagementUtil {
             }
         }
         return cleanedScript.toString();
+    }
+
+    /**
+     * Compare the app version with allowed minimum app version.
+     *
+     * @param appVersion App version.
+     * @return True if the app version is greater than or equal to the allowed minimum app version.
+     */
+    public static boolean isAppVersionAllowed(String appVersion, String allowedAppVersion) {
+
+        String[] appVersionDigits = appVersion.substring(1).split("\\.");
+        String[] allowedVersionDigits = allowedAppVersion.substring(1).split("\\.");
+
+        for (int i = 0; i < appVersionDigits.length; i++) {
+            if (appVersionDigits[i].equals(allowedVersionDigits[i])) {
+                continue;
+            } else {
+                return Integer.parseInt(appVersionDigits[i]) >= Integer.parseInt(allowedVersionDigits[i]);
+            }
+        }
+        return true;
     }
 }

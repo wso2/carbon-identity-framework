@@ -1,0 +1,54 @@
+<!--
+  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<Server>
+    <AuthenticationEndpointURL>https://localhost:9443/authenticationendpoint/login.do</AuthenticationEndpointURL>
+    <AuthenticationEndpointRetryURL>https://localhost:9443/authenticationendpoint/retry.do</AuthenticationEndpointRetryURL>
+    <AuthenticationEndpointErrorURL>https://localhost:9443/authenticationendpoint/error.do</AuthenticationEndpointErrorURL>
+    <AuthenticationEndpointWaitURL>https://localhost:9443/authenticationendpoint/wait.do</AuthenticationEndpointWaitURL>
+    <IdentifierFirstConfirmationURL>https://localhost:9443/authenticationendpoint/idf-confirm.do</IdentifierFirstConfirmationURL>
+    <AuthenticationEndpointPromptURL>https://localhost:9443/authenticationendpoint/prompt.do</AuthenticationEndpointPromptURL>
+    <AuthenticationEndpointMissingClaimsURL>https://localhost:9443/authenticationendpoint/missing-claims.do</AuthenticationEndpointMissingClaimsURL>
+    <AuthenticationEndpointURLV2>https://localhost:9443/authenticationendpoint/v2/login.do</AuthenticationEndpointURLV2>
+    <AuthenticationEndpointRetryURLV2>https://localhost:9443/authenticationendpoint/v2/retry.do</AuthenticationEndpointRetryURLV2>
+    <AuthenticationEndpointErrorURLV2>https://localhost:9443/authenticationendpoint/v2/error.do</AuthenticationEndpointErrorURLV2>
+    <AuthenticationEndpointWaitURLV2>https://localhost:9443/authenticationendpoint/v2/wait.do</AuthenticationEndpointWaitURLV2>
+    <IdentifierFirstConfirmationURLV2>https://localhost:9443/authenticationendpoint/v2/idf-confirm.do</IdentifierFirstConfirmationURLV2>
+    <AuthenticationEndpointPromptURLV2>https://localhost:9443/authenticationendpoint/v2/prompt.do</AuthenticationEndpointPromptURLV2>
+    <AuthenticationEndpointMissingClaimsURLV2>https://localhost:9443/authenticationendpoint/v2/missing-claims.do</AuthenticationEndpointMissingClaimsURLV2>
+    <TenantDataEndpointURLs>
+        <URL>https://localhost:9443/tenant-data</URL>
+    </TenantDataEndpointURLs>
+    <TenantDomainDropdownEnabled>true</TenantDomainDropdownEnabled>
+    <MaxLoginAttemptCount>5</MaxLoginAttemptCount>
+    <AuthenticatorConfigs>
+        <AuthenticatorConfig name="TestAuthenticator" enabled="true">
+            <Parameter name="param1">value1</Parameter>
+            <Parameter name="param2">value2</Parameter>
+        </AuthenticatorConfig>
+    </AuthenticatorConfigs>
+    <Extensions>
+        <Extension name="SampleExtension" class="org.wso2.sample.SampleExtension"/>
+    </Extensions>
+    <CacheTimeouts>
+        <CacheTimeout name="SampleCache" timeout="300"/>
+    </CacheTimeouts>
+    <AuthenticatorNameMappings>
+        <AuthenticatorNameMapping name="TestAuthenticator" alias="TestAuth"/>
+    </AuthenticatorNameMappings>
+</Server>

@@ -1,17 +1,19 @@
 /*
- *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.configuration.mgt.core;
@@ -28,6 +30,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
@@ -35,6 +38,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceIdentifier;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
@@ -44,39 +48,54 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.apache.commons.io.FileUtils;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.sql.DataSource;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE3_UPDATED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_DOMAIN_ABC;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_ID_ABC;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.TEST_ORG_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestSQLConstants.REMOVE_CREATED_TIME_COLUMN_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.closeH2Base;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getInheritableSampleResourceTypeAdd;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleAttribute1;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleAttribute3;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResource1Add;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResource2Add;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResource3Add;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResourceType2Add;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResourceTypeAdd;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleSearchCondition;
@@ -86,13 +105,24 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.get
 
 public class ConfigurationManagerTest {
 
+    private static final String EXTERNAL_CONSENT_RESOURCE_TYPE_NAME = "external_consent_page_configurations";
+    private static final String EXTERNAL_CONSENT_RESOURCE_NAME = "external_consent_page";
+    private static final String EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE = "external_consent_page_url";
+    private static final String EXTERNAL_CONSENT_ENFORCE_ATTRIBUTE = "enforce_external_consent_page";
+    private static final String EXTERNAL_CONSENT_PAGE_URL_VALUE = "https://localhost:9443/consent-mgt/consent";
+
     private ConfigurationManager configurationManager;
     private Connection connection;
+    private OrganizationManager organizationManager;
+    private OrgResourceResolverService orgResourceResolverService;
 
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private MockedStatic<IdentityUtil> identityUtil;
+    private MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
+    private MockedStatic<Utils> utilsMockedStatic;
+
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -116,6 +146,14 @@ public class ConfigurationManagerTest {
         identityUtil = mockStatic(IdentityUtil.class);
         prepareConfigs(privilegedCarbonContext, identityTenantUtil, identityUtil);
 
+        organizationManager = mock(OrganizationManager.class);
+        ConfigurationManagerComponentDataHolder.getInstance().setOrganizationManager(organizationManager);
+        organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
+        utilsMockedStatic = mockStatic(Utils.class);
+
+        orgResourceResolverService = mock(OrgResourceResolverService.class);
+        ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
+
         ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled(true);
     }
 
@@ -129,6 +167,8 @@ public class ConfigurationManagerTest {
         privilegedCarbonContext.close();
         identityTenantUtil.close();
         identityUtil.close();
+        organizationManagementUtilMockedStatic.close();
+        utilsMockedStatic.close();
     }
 
     @Test(priority = 1)
@@ -217,6 +257,7 @@ public class ConfigurationManagerTest {
 
         Resource resource = configurationManager.addResource(resourceType.getName(), resourceTypeAdd);
         assertNotNull(resource.getResourceId(), "Created resource type id cannot be null");
+        assertTrue(resource.isHasAttribute());
     }
 
     @Test(priority = 10, expectedExceptions = ConfigurationManagementClientException.class)
@@ -611,10 +652,180 @@ public class ConfigurationManagerTest {
                 resourcesByType.getResources().size() == 0);
     }
 
+    @Test (priority = 35)
+    public void testGetInheritedResourcesByType() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
+        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
+
+        ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(List.of(resource1));
+
+        Resources returnedResources = configurationManager.getResourcesByType(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME);
+        verify(orgResourceResolverService, times(1)).getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any());
+        org.testng.Assert.assertFalse(returnedResources.getResources().isEmpty());
+    }
+
+    @Test (priority = 34)
+    public void testGetInheritedResourcesByTypeInheritanceDisabled() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(false);
+        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
+
+        ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(List.of(resource1));
+
+        Resources returnedResources = configurationManager.getResourcesByType(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME);
+        verify(orgResourceResolverService, times(0)).getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any());
+        org.testng.Assert.assertFalse(returnedResources.getResources().isEmpty());
+    }
+
+    @Test (priority = 36)
+    public void testGetInheritedResource() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
+        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
+
+        ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(resource1);
+
+        Resource returnedResource = configurationManager.getResource(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME,
+                SAMPLE_RESOURCE_NAME1, true);
+        verify(orgResourceResolverService, times(1)).getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any());
+        Assert.assertNotNull(returnedResource);
+    }
+
+    @Test(priority = 37)
+    public void testAddResourceWithoutAttributes() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
+        ResourceAdd resourceTypeAdd = getSampleResource3Add();
+
+        Resource resource = configurationManager.addResource(resourceType.getName(), resourceTypeAdd);
+        assertFalse(resource.isHasAttribute());
+    }
+
+    @Test(priority = 38)
+    public void testAddExternalConsentResourceWhenEnforcedWithoutUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        ResourceAdd resourceAdd = getExternalConsentResourceAdd("true", null);
+        Resource resource = configurationManager.addResource(resourceType.getName(), resourceAdd);
+
+        assertNotNull(resource.getResourceId(), "Created resource id cannot be null");
+    }
+
+    @Test(priority = 39)
+    public void testReplaceExternalConsentResourceWhenEnforcedWithBlankUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd("true", EXTERNAL_CONSENT_PAGE_URL_VALUE));
+        Resource replacedResource =
+                configurationManager.replaceResource(resourceType.getName(), getExternalConsentResourceAdd("true", " "));
+
+        assertEquals("Resource ids should match after replace.", resource.getResourceId(),
+                replacedResource.getResourceId());
+    }
+
+    @Test(priority = 40)
+    public void testAddExternalConsentEnforcementAttributeWithoutUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd(null, null));
+        Attribute attribute = configurationManager.addAttribute(resourceType.getName(), resource.getResourceName(),
+                new Attribute(EXTERNAL_CONSENT_ENFORCE_ATTRIBUTE, "true"));
+
+        assertEquals("Added attribute key does not match.", EXTERNAL_CONSENT_ENFORCE_ATTRIBUTE, attribute.getKey());
+        assertEquals("Added attribute value does not match.", "true", attribute.getValue());
+    }
+
+    @Test(priority = 41)
+    public void testReplaceExternalConsentUrlAttributeWhenEnforcedWithBlankUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd("true", EXTERNAL_CONSENT_PAGE_URL_VALUE));
+        Attribute replacedAttribute = configurationManager.replaceAttribute(resourceType.getName(),
+                resource.getResourceName(), new Attribute(EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE, " "));
+
+        assertEquals("Replaced attribute key does not match.", EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE,
+                replacedAttribute.getKey());
+        assertEquals("Replaced attribute value does not match.", " ", replacedAttribute.getValue());
+    }
+
+    @Test(priority = 42)
+    public void testDeleteExternalConsentUrlAttributeWhenEnforced() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd("true", EXTERNAL_CONSENT_PAGE_URL_VALUE));
+
+        configurationManager.deleteAttribute(resourceType.getName(), resource.getResourceName(),
+                EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE);
+        try {
+            configurationManager.getAttribute(resourceType.getName(), resource.getResourceName(),
+                    EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE);
+            fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        } catch (ConfigurationManagementClientException e) {
+            // Expected path. Attribute should be absent after delete.
+        }
+    }
+
+    @Test(priority = 43)
+    public void testAddExternalConsentResourceWhenEnforcedWithUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd("true", EXTERNAL_CONSENT_PAGE_URL_VALUE));
+
+        assertNotNull(resource.getResourceId(), "Created resource id cannot be null");
+    }
+
     private void removeCreatedTimeColumn() throws DataAccessException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         jdbcTemplate.executeUpdate(REMOVE_CREATED_TIME_COLUMN_H2);
+    }
+
+    private ResourceTypeAdd getExternalConsentResourceTypeAdd() {
+
+        ResourceTypeAdd resourceTypeAdd = new ResourceTypeAdd();
+        resourceTypeAdd.setName(EXTERNAL_CONSENT_RESOURCE_TYPE_NAME);
+        resourceTypeAdd.setDescription("Resource type for external consent page configurations.");
+        return resourceTypeAdd;
+    }
+
+    private ResourceAdd getExternalConsentResourceAdd(String enforceValue, String urlValue) {
+
+        ResourceAdd resourceAdd = new ResourceAdd();
+        resourceAdd.setName(EXTERNAL_CONSENT_RESOURCE_NAME);
+        List<Attribute> attributes = new ArrayList<>();
+
+        if (enforceValue != null) {
+            attributes.add(new Attribute(EXTERNAL_CONSENT_ENFORCE_ATTRIBUTE, enforceValue));
+        }
+        if (urlValue != null) {
+            attributes.add(new Attribute(EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE, urlValue));
+        }
+        resourceAdd.setAttributes(attributes.isEmpty() ? null : attributes);
+        return resourceAdd;
     }
 
     private void mockIdentityTenantUtilForTheTest(MockedStatic<IdentityTenantUtil> identityTenantUtil) {
@@ -679,6 +890,77 @@ public class ConfigurationManagerTest {
                 .thenReturn(SUPER_TENANT_DOMAIN_NAME);
 
         configurationManager = new ConfigurationManagerImpl(configurationHolder);
+    }
+
+    @Test(priority = 44)
+    public void testAddAndGetDefaultConfigResolver() {
+
+        ConfigurationManagerComponentDataHolder dataHolder =
+                ConfigurationManagerComponentDataHolder.getInstance();
+        DefaultConfigResolver resolver = mock(DefaultConfigResolver.class);
+        when(resolver.getResourceIdentifier()).thenReturn(new ResourceIdentifier("testType", "testName"));
+        try {
+            dataHolder.addDefaultConfigResolver(resolver);
+            assertEquals("Resolver should be present after bind", resolver,
+                    dataHolder.getDefaultConfigResolver("testType", "testName"));
+        } finally {
+            dataHolder.removeDefaultConfigResolver(resolver);
+        }
+        assertNull("Resolver should be absent after unbind",
+                dataHolder.getDefaultConfigResolver("testType", "testName"));
+    }
+
+    @Test(priority = 45)
+    public void testGetDefaultResourceUsesMatchingResolver() throws Exception {
+
+        ConfigurationManagerComponentDataHolder dataHolder =
+                ConfigurationManagerComponentDataHolder.getInstance();
+        Resource expected = new Resource();
+        expected.setResourceName("default");
+
+        DefaultConfigResolver matching = mock(DefaultConfigResolver.class);
+        when(matching.getResourceIdentifier()).thenReturn(new ResourceIdentifier("anyType", "anyName"));
+        when(matching.getDefaultConfigs(anyString(), anyString())).thenReturn(expected);
+
+        DefaultConfigResolver shouldNotBeCalled = mock(DefaultConfigResolver.class);
+        when(shouldNotBeCalled.getResourceIdentifier())
+                .thenReturn(new ResourceIdentifier("otherType", "otherName"));
+
+        try {
+            dataHolder.addDefaultConfigResolver(matching);
+            dataHolder.addDefaultConfigResolver(shouldNotBeCalled);
+
+            Resource actual = configurationManager.getDefaultResource("anyType", "anyName");
+
+            assertEquals(expected, actual);
+            verify(matching, times(1)).getDefaultConfigs("anyType", "anyName");
+            verify(shouldNotBeCalled, times(0)).getDefaultConfigs(anyString(), anyString());
+        } finally {
+            dataHolder.removeDefaultConfigResolver(matching);
+            dataHolder.removeDefaultConfigResolver(shouldNotBeCalled);
+        }
+    }
+
+    @Test(priority = 46, expectedExceptions = ConfigurationManagementException.class)
+    public void testGetDefaultResourceThrowsWhenNoResolverMatches() throws Exception {
+
+        ConfigurationManagerComponentDataHolder dataHolder =
+                ConfigurationManagerComponentDataHolder.getInstance();
+        DefaultConfigResolver nonMatching = mock(DefaultConfigResolver.class);
+        when(nonMatching.getResourceIdentifier()).thenReturn(new ResourceIdentifier("someType", "someName"));
+
+        try {
+            dataHolder.addDefaultConfigResolver(nonMatching);
+            configurationManager.getDefaultResource("unknownType", "unknownName");
+        } finally {
+            dataHolder.removeDefaultConfigResolver(nonMatching);
+        }
+    }
+
+    @Test(priority = 47, expectedExceptions = ConfigurationManagementException.class)
+    public void testGetDefaultResourceThrowsWhenNoResolversRegistered() throws Exception {
+
+        configurationManager.getDefaultResource("anyType", "anyName");
     }
 
     private void mockCarbonContextForTenant(int tenantId, String tenantDomain,

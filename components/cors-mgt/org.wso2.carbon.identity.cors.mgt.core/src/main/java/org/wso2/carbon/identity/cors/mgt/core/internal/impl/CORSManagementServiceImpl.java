@@ -21,28 +21,40 @@ package org.wso2.carbon.identity.cors.mgt.core.internal.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
 import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceException;
+import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceServerException;
 import org.wso2.carbon.identity.cors.mgt.core.internal.CORSManagementServiceHolder;
 import org.wso2.carbon.identity.cors.mgt.core.internal.util.CORSConfigurationUtils;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 import org.wso2.carbon.identity.cors.mgt.core.model.Origin;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_CONFIG_RETRIEVE;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_DUPLICATE_ORIGINS;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_ORIGIN_NOT_PRESENT;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_ORIGIN_PRESENT;
@@ -52,6 +64,13 @@ import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.ha
 /**
  * Implementation of the CORSService.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.cors.mgt.core.CORSManagementService",
+                "service.scope=singleton"
+        }
+)
 public class CORSManagementServiceImpl implements CORSManagementService {
 
     private static final Log log = LogFactory.getLog(CORSManagementServiceImpl.class);
@@ -62,9 +81,24 @@ public class CORSManagementServiceImpl implements CORSManagementService {
     @Override
     public List<CORSOrigin> getTenantCORSOrigins(String tenantDomain) throws CORSManagementServiceException {
 
-        int tenantId = getTenantId(tenantDomain);
+        List<CORSOrigin> corsOrigins;
+        OrganizationManager organizationManager = CORSManagementServiceHolder.getInstance().getOrganizationManager();
+        try {
+            String organizationId = organizationManager.resolveOrganizationId(tenantDomain);
+            OrgResourceResolverService orgResourceManagementService =
+                    CORSManagementServiceHolder.getInstance().getOrgResourceResolverService();
+            corsOrigins = orgResourceManagementService.getResourcesFromOrgHierarchy(
+                    organizationId,
+                    LambdaExceptionUtils.rethrowFunction(this::getCorsOrigins),
+                    new MergeAllAggregationStrategy<>(this::mergeAndRemoveDuplicates)
+            );
+        } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
+            throw new CORSManagementServiceException(
+                    String.format(ERROR_CODE_CORS_CONFIG_RETRIEVE.getDescription(), tenantDomain),
+                    ERROR_CODE_CORS_CONFIG_RETRIEVE.getCode(), e);
+        }
 
-        return Collections.unmodifiableList(getCORSOriginDAO().getCORSOriginsByTenantId(tenantId));
+        return Collections.unmodifiableList(corsOrigins);
     }
 
     /**
@@ -291,5 +325,28 @@ public class CORSManagementServiceImpl implements CORSManagementService {
             log.error(String.format(ERROR_CODE_VALIDATE_APP_ID.getDescription(), applicationId), e);
             throw handleClientException(ERROR_CODE_VALIDATE_APP_ID, applicationId);
         }
+    }
+
+    private Optional<List<CORSOrigin>> getCorsOrigins(String orgId)
+            throws OrganizationManagementException, CORSManagementServiceServerException {
+
+        List<CORSOrigin> corsOrigins = getCORSOriginDAO().getCORSOriginsByTenantDomain(
+                CORSManagementServiceHolder.getInstance().getOrganizationManager().resolveTenantDomain(orgId));
+        return Optional.ofNullable(corsOrigins);
+    }
+
+    private List<CORSOrigin> mergeAndRemoveDuplicates(
+            List<CORSOrigin> corsOrigins, List<CORSOrigin> newCorsOrigins) {
+
+        Set<String> existingCorsOrigins = corsOrigins.stream()
+                .map(CORSOrigin::getId)
+                .collect(Collectors.toSet());
+        List<CORSOrigin> mergedList = new ArrayList<>(corsOrigins);
+        for (CORSOrigin corsOrigin : newCorsOrigins) {
+            if (!existingCorsOrigins.contains(corsOrigin.getId())) {
+                mergedList.add(corsOrigin);
+            }
+        }
+        return mergedList;
     }
 }

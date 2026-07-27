@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,12 +19,15 @@
 package org.wso2.carbon.identity.api.resource.mgt;
 
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResourceMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.application.common.model.APIResource;
@@ -34,17 +37,32 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
-import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.APIResourceTypes;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_ROOT_ORGANIZATION_TENANT_DOMAIN;
 
 @WithAxisConfiguration
 @WithCarbonHome
@@ -53,19 +71,43 @@ import static org.mockito.Mockito.mock;
 @WithH2Database(files = {"dbscripts/h2.sql"})
 public class APIResourceManagerTest {
 
+    private final String postFix1 = "test1";
+    private final String postFix2 = "test2";
+    private final String postFix3 = "test3";
+    private final String apiResourceID = "sampleAPIResourceID";
+
     private String tenantDomain;
+    private String subOrgTenantDomain;
     private APIResourceManager apiResourceManager;
     @Mock
     private IdentityEventService identityEventService;
 
     @BeforeMethod
-    public void setUp() throws IdentityEventException {
+    public void setUp() throws Exception {
 
         apiResourceManager = APIResourceManagerImpl.getInstance();
         tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+        // System API resources are stored under tenant id 0 (tenant-agnostic), so adding one invalidates the scope
+        // metadata cache under tenant 0 while normal resources use the real tenant. The shared test TenantManager
+        // maps every tenant id to "carbon.super", collapsing those into one owner-guarded cache region and causing a
+        // cross-tenant SecurityException. Give each tenant id its own domain (as a real deployment does) so each
+        // tenant gets its own cache region.
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getTenantId(anyString())).thenReturn(MultitenantConstants.SUPER_TENANT_ID);
+        when(tenantManager.getDomain(anyInt())).thenAnswer(invocation -> {
+            int id = invocation.getArgument(0);
+            return id == MultitenantConstants.SUPER_TENANT_ID
+                    ? MultitenantConstants.SUPER_TENANT_DOMAIN_NAME : "tenant-" + id;
+        });
+        IdentityTenantUtil.setRealmService(realmService);
+
         identityEventService = mock(IdentityEventService.class);
         doNothing().when(identityEventService).handleEvent(any());
         APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
     }
 
     @AfterMethod
@@ -97,17 +139,95 @@ public class APIResourceManagerTest {
     @Test
     public void testGetAPIResourceById() throws Exception {
 
-        APIResource createdAPIResource = apiResourceManager.addAPIResource(createAPIResource("test1"),
-                tenantDomain);
+        APIResource createdAPIResource = apiResourceManager.addAPIResource(
+                createAPIResource(postFix1, APIResourceTypes.BUSINESS), tenantDomain);
         APIResource apiResource = apiResourceManager.getAPIResourceById(createdAPIResource.getId(), tenantDomain);
         Assert.assertNotNull(apiResource);
         Assert.assertEquals(apiResource.getId(), createdAPIResource.getId());
     }
 
+    @DataProvider(name = "getAPIResourceByIdForSubOrgDataProvider")
+    public Object[][] getAPIResourceByIdForSubOrgDataProvider() {
+
+        return new Object[][]{
+                {APIResourceTypes.BUSINESS, true},
+                {APIResourceTypes.ORGANIZATION, true},
+                {APIResourceTypes.CONSOLE_ORG_FEATURE, true},
+                {APIResourceTypes.CONSOLE_ORG_LEVEL, true},
+                {APIResourceTypes.SYSTEM, false},
+                {APIResourceTypes.TENANT, false},
+                {APIResourceTypes.CONSOLE_FEATURE, false}
+        };
+    }
+
+    @Test(dataProvider = "getAPIResourceByIdForSubOrgDataProvider")
+    public void testGetAPIResourceByIdForSubOrg(String apiResourceType, boolean isAccessibleToSubOrg) throws Exception {
+
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(subOrgTenantDomain))
+                    .thenReturn(true);
+            organizationManagementUtil.when(() -> OrganizationManagementUtil
+                            .getRootOrgTenantDomainBySubOrgTenantDomain(subOrgTenantDomain)).thenReturn(tenantDomain);
+
+            APIResource createdAPIResource = apiResourceManager.addAPIResource(createAPIResource(postFix1,
+                    apiResourceType), tenantDomain);
+            APIResource apiResource = apiResourceManager.getAPIResourceById(createdAPIResource.getId(),
+                    subOrgTenantDomain);
+
+            if (isAccessibleToSubOrg) {
+                Assert.assertNotNull(apiResource);
+                Assert.assertEquals(apiResource.getId(), createdAPIResource.getId());
+            } else {
+                Assert.assertNull(apiResource);
+            }
+        }
+    }
+
+    @Test
+    public void testGetAPIResourceByInvalidIdForSubOrg() throws Exception {
+
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(subOrgTenantDomain))
+                    .thenReturn(true);
+            organizationManagementUtil.when(() -> OrganizationManagementUtil
+                    .getRootOrgTenantDomainBySubOrgTenantDomain(subOrgTenantDomain)).thenReturn(tenantDomain);
+
+            APIResource apiResource = apiResourceManager.getAPIResourceById(apiResourceID, subOrgTenantDomain);
+            Assert.assertNull(apiResource);
+        }
+    }
+
+    @Test
+    public void testGetAPIResourceByIdForSubOrgException() throws Exception {
+
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(subOrgTenantDomain))
+                    .thenReturn(true);
+            organizationManagementUtil.when(() -> OrganizationManagementUtil
+                            .getRootOrgTenantDomainBySubOrgTenantDomain(subOrgTenantDomain))
+                    .thenThrow(new OrganizationManagementException("Test exception."));
+
+            try {
+                apiResourceManager.getAPIResourceById(apiResourceID, subOrgTenantDomain);
+                Assert.fail("Expected OrganizationManagementException to be thrown.");
+            } catch (APIResourceMgtException e) {
+                Assert.assertTrue(e.getMessage()
+                        .contains(ERROR_CODE_ERROR_WHILE_RETRIEVING_ROOT_ORGANIZATION_TENANT_DOMAIN.getMessage()));
+                Assert.assertTrue(e.getCause() instanceof OrganizationManagementException);
+            }
+        }
+    }
+
     @DataProvider(name = "addAPIResourceDataProvider")
     public Object[][] addAPIResourceDataProvider() {
 
-        APIResource apiResource1 = createAPIResource("1");
+        APIResource apiResource1 = createAPIResource("1", APIResourceTypes.BUSINESS);
         APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
                 .name("testAPIResource name 2")
                 .identifier("testAPIResource identifier 2")
@@ -138,7 +258,7 @@ public class APIResourceManagerTest {
     @DataProvider(name = "addAPIResourceExceptionDataProvider")
     public Object[][] addAPIResourceExceptionDataProvider() {
 
-        APIResource apiResource1 = createAPIResource("test1");
+        APIResource apiResource1 = createAPIResource(postFix1, APIResourceTypes.BUSINESS);
 
         APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
                 .name("testAPIResource name 2")
@@ -169,8 +289,8 @@ public class APIResourceManagerTest {
     @Test
     public void testDeleteAPIResourceById() throws Exception {
 
-        APIResource createdAPIResource = apiResourceManager.addAPIResource(createAPIResource("test1"),
-                tenantDomain);
+        APIResource createdAPIResource = apiResourceManager.addAPIResource(
+                createAPIResource(postFix1, APIResourceTypes.BUSINESS), tenantDomain);
         apiResourceManager.deleteAPIResourceById(createdAPIResource.getId(), tenantDomain);
         Assert.assertNull(apiResourceManager.getAPIResourceById(createdAPIResource.getId(), tenantDomain));
     }
@@ -178,8 +298,8 @@ public class APIResourceManagerTest {
     @DataProvider
     public Object[][] updateAPIResourceTestData() {
 
-        APIResource apiResource1 = createAPIResource("test1");
-        APIResource apiResource2 = createAPIResource("test2");
+        APIResource apiResource1 = createAPIResource(postFix1, APIResourceTypes.BUSINESS);
+        APIResource apiResource2 = createAPIResource(postFix2, APIResourceTypes.BUSINESS);
 
         return new Object[][]{
                 // Update API resource with scopes.
@@ -236,7 +356,7 @@ public class APIResourceManagerTest {
     @Test(dataProvider = "getAPIResourceByIdentifierDataProvider")
     public void testGetAPIResourceByIdentifier(String identifier) throws Exception {
 
-        apiResourceManager.addAPIResource(createAPIResource("test1"), tenantDomain);
+        apiResourceManager.addAPIResource(createAPIResource(postFix1, APIResourceTypes.BUSINESS), tenantDomain);
         APIResource apiResource = apiResourceManager.getAPIResourceByIdentifier(identifier, tenantDomain);
         Assert.assertNotNull(apiResource);
     }
@@ -244,8 +364,8 @@ public class APIResourceManagerTest {
     @Test
     public void testGetAPIScopesById() throws Exception {
 
-        APIResource createdAPIResource = apiResourceManager.addAPIResource(createAPIResource("test1"),
-                tenantDomain);
+        APIResource createdAPIResource = apiResourceManager.addAPIResource(
+                createAPIResource(postFix1, APIResourceTypes.BUSINESS), tenantDomain);
         List<Scope> scopes = apiResourceManager.getAPIScopesById(createdAPIResource.getId(), tenantDomain);
         Assert.assertNotNull(scopes);
     }
@@ -253,8 +373,8 @@ public class APIResourceManagerTest {
     @Test
     public void testDeleteAPIScopesById() throws Exception {
 
-        APIResource createdAPIResource = apiResourceManager.addAPIResource(createAPIResource("test1"),
-                tenantDomain);
+        APIResource createdAPIResource = apiResourceManager.addAPIResource(
+                createAPIResource(postFix1, APIResourceTypes.BUSINESS), tenantDomain);
         apiResourceManager.deleteAPIScopesById(createdAPIResource.getId(), tenantDomain);
         List<Scope> scopes = apiResourceManager.getAPIScopesById(createdAPIResource.getId(), tenantDomain);
         Assert.assertTrue(scopes.isEmpty());
@@ -263,8 +383,8 @@ public class APIResourceManagerTest {
     @Test
     public void testDeleteAPIScopeByScopeId() throws Exception {
 
-        APIResource createdAPIResource = apiResourceManager.addAPIResource(createAPIResource("test1"),
-                tenantDomain);
+        APIResource createdAPIResource = apiResourceManager.addAPIResource(
+                createAPIResource(postFix1, APIResourceTypes.BUSINESS), tenantDomain);
         List<Scope> scopes = createdAPIResource.getScopes();
         apiResourceManager.deleteAPIScopeByScopeName(createdAPIResource.getId(), scopes.get(0).getName(), tenantDomain);
         scopes = apiResourceManager.getAPIScopesById(createdAPIResource.getId(), tenantDomain);
@@ -274,8 +394,8 @@ public class APIResourceManagerTest {
     @DataProvider(name = "putScopesDataProvider")
     public Object[][] putScopesDataProvider() {
 
-        APIResource apiResource1 = createAPIResource("test1");
-        APIResource apiResource2 = createAPIResource("test2");
+        APIResource apiResource1 = createAPIResource(postFix1, APIResourceTypes.BUSINESS);
+        APIResource apiResource2 = createAPIResource(postFix2, APIResourceTypes.BUSINESS);
 
         return new Object[][]{
                 // Update API resource with scopes.
@@ -316,6 +436,62 @@ public class APIResourceManagerTest {
         Assert.assertEquals(scopes.size(), expected);
     }
 
+    @Test
+    public void testDeleteScopeById() throws Exception {
+
+        try (MockedConstruction<CacheBackedAPIResourceMgtDAO> mockedDAO = mockConstruction(
+                CacheBackedAPIResourceMgtDAO.class);
+             MockedStatic<APIResourceManagementServiceComponentHolder> mockedServiceHolder = mockStatic(
+                     APIResourceManagementServiceComponentHolder.class)) {
+
+            APIResourceManagementServiceComponentHolder apiResourceManagementServiceComponentHolder =
+                    mock(APIResourceManagementServiceComponentHolder.class);
+            mockedServiceHolder.when(APIResourceManagementServiceComponentHolder::getInstance)
+                    .thenReturn(apiResourceManagementServiceComponentHolder);
+            IdentityEventService identityEventService = mock(IdentityEventService.class);
+            when(apiResourceManagementServiceComponentHolder.getIdentityEventService())
+                    .thenReturn(identityEventService);
+
+            apiResourceManager.deleteAPIScopeByScopeId("test-id", "test-id", "test-domain");
+
+            verify(identityEventService, times(2)).handleEvent(any(Event.class));
+        }
+    }
+
+    @Test
+    public void testUpdateScopeMetadataById() throws Exception {
+
+        try (MockedConstruction<CacheBackedAPIResourceMgtDAO> mockedDAO = mockConstruction(
+                CacheBackedAPIResourceMgtDAO.class);
+             MockedStatic<APIResourceManagementServiceComponentHolder> mockedServiceHolder = mockStatic(
+                     APIResourceManagementServiceComponentHolder.class)) {
+
+            APIResourceManagementServiceComponentHolder apiResourceManagementServiceComponentHolder =
+                    mock(APIResourceManagementServiceComponentHolder.class);
+            mockedServiceHolder.when(APIResourceManagementServiceComponentHolder::getInstance)
+                    .thenReturn(apiResourceManagementServiceComponentHolder);
+            IdentityEventService identityEventService = mock(IdentityEventService.class);
+            when(apiResourceManagementServiceComponentHolder.getIdentityEventService())
+                    .thenReturn(identityEventService);
+
+            // Create a scope with updated metadata.
+            Scope updatedScope = new Scope.ScopeBuilder()
+                    .id("test-scope-id")
+                    .name("test-scope")
+                    .displayName("Updated Display Name")
+                    .description("Updated Description")
+                    .build();
+
+            // Create a mock API resource.
+            APIResource apiResource = createAPIResource("test", APIResourceTypes.BUSINESS);
+
+            apiResourceManager.updateScopeMetadataById(updatedScope, apiResource, "test-domain");
+
+            // Verify that identity event service handleEvent was called twice (pre and post events).
+            verify(identityEventService, times(2)).handleEvent(any(Event.class));
+        }
+    }
+
     /**
      * Create scope with the given name.
      *
@@ -337,7 +513,7 @@ public class APIResourceManagerTest {
      * @param postFix Postfix to be appended to each API resource and scope information.
      * @return API resource.
      */
-    private static APIResource createAPIResource(String postFix) {
+    private static APIResource createAPIResource(String postFix, String type) {
 
         List<Scope> scopes = new ArrayList<>();
         scopes.add(createScope("testScopeOne " + postFix));
@@ -347,7 +523,7 @@ public class APIResourceManagerTest {
                 .name("testAPIResource name " + postFix)
                 .identifier("testAPIResource identifier " + postFix)
                 .description("testAPIResource description " + postFix)
-                .type("BUSINESS")
+                .type(type)
                 .requiresAuthorization(true)
                 .scopes(scopes);
         return apiResourceBuilder.build();
@@ -355,9 +531,9 @@ public class APIResourceManagerTest {
 
     private void addTestAPIResources() throws Exception {
 
-        APIResource apiResource1 = createAPIResource("test1");
-        APIResource apiResource2 = createAPIResource("test2");
-        APIResource apiResource3 = createAPIResource("test3");
+        APIResource apiResource1 = createAPIResource(postFix1, APIResourceTypes.BUSINESS);
+        APIResource apiResource2 = createAPIResource(postFix2, APIResourceTypes.BUSINESS);
+        APIResource apiResource3 = createAPIResource(postFix3, APIResourceTypes.BUSINESS);
         apiResourceManager.addAPIResource(apiResource1, tenantDomain);
         apiResourceManager.addAPIResource(apiResource2, tenantDomain);
         apiResourceManager.addAPIResource(apiResource3, tenantDomain);

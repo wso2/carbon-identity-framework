@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.application.common.model.AccountLookupAttributeMappingConfig;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -42,8 +43,10 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -55,7 +58,14 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -67,6 +77,7 @@ import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
+import org.wso2.carbon.tenant.mgt.util.TenantMgtUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.security.KeystoreUtils;
@@ -93,27 +104,40 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Date;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOKEN_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PASSWORD_EXPIRY_RULES_GROUPS;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PASSWORD_EXPIRY_RULES_KEY_PREFIX;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLConstants.DEFINED_BY_COLUMN;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
@@ -124,9 +148,10 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_ID
 public class IdPManagementDAO {
 
     private static final Log log = LogFactory.getLog(IdPManagementDAO.class);
-    private final IdPSecretsProcessor idpSecretsProcessorService = new IdPSecretsProcessor();;
+    private final IdPSecretsProcessor idpSecretsProcessorService = new IdPSecretsProcessor();
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
+    private static final String USE_ENTITY_ID_AS_ISSUER = "OAuth.OpenIDConnect.UseEntityIdAsIssuer";
     private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
             = "OnDemandConfig.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
     private static final String ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED
@@ -836,29 +861,50 @@ public class IdPManagementDAO {
     int getCountOfFilteredIdPs(int tenantId, List<ExpressionNode> expressionNode)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL;
         int countOfFilteredIdp = 0;
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
         appendFilterQuery(expressionNode, filterQueryBuilder);
-        Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
-        sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() +
-                IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL_TAIL;
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
-            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
-                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+        String filterClause = filterQueryBuilder.getFilterQuery();
+        Map<Integer, String> filterValues = filterQueryBuilder.getFilterAttributeValue();
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String dbName = dbConnection.getMetaData().getDatabaseProductName();
+
+            String sqlTail;
+            if (dbName.contains("MySQL") || dbName.contains("MariaDB") || dbName.contains("H2")) {
+                sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_MYSQL_TAIL;
+            } else if (dbName.contains("Oracle") || dbName.contains("DB2") || dbName.contains("Informix")) {
+                sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_ORACLE_TAIL;
+            } else if (dbName.contains("Microsoft") || dbName.contains("PostgreSQL")) {
+                sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_MSSQL_TAIL;
+            } else {
+                String message = "Error while loading IdP count from DB: Database driver " +
+                        "could not be identified or not supported.";
+                throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                        .ERROR_CODE_CONNECTING_DATABASE, message);
             }
-            prepStmt.setInt(filterAttributeValue.entrySet().size() + 1, tenantId);
-            try (ResultSet rs = prepStmt.executeQuery()) {
-                if (rs.next()) {
-                    countOfFilteredIdp = Integer.parseInt(rs.getString(1));
+
+            String sql = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL
+                    + filterClause
+                    + sqlTail;
+
+            try (PreparedStatement prepStmt = dbConnection.prepareStatement(sql)) {
+                for (Map.Entry<Integer,String> entry : filterValues.entrySet()) {
+                    prepStmt.setString(entry.getKey(), entry.getValue());
+                }
+                prepStmt.setInt(filterValues.size() + 1, tenantId);
+
+                try (ResultSet rs = prepStmt.executeQuery()) {
+                    if (rs.next()) {
+                        countOfFilteredIdp = Integer.parseInt(rs.getString(1));
+                    }
                 }
             }
         } catch (SQLException e) {
-            String message = "Error occurred while retrieving Identity Provider count for a tenant : " +
-                    IdentityTenantUtil.getTenantDomain(tenantId);
-            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_CONNECTING_DATABASE, message, e);
+            String message = "Error occurred while retrieving Identity Provider count for tenant: "
+                    + IdentityTenantUtil.getTenantDomain(tenantId);
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_CONNECTING_DATABASE, message, e);
         }
         return countOfFilteredIdp;
     }
@@ -964,12 +1010,15 @@ public class IdPManagementDAO {
                         filter.append(attributeName).append(" = ? AND ");
                         filterQueryBuilder.setFilterAttributeValue(value);
                     } else if (IdPManagementConstants.SW.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue(value + "%");
                     } else if (IdPManagementConstants.EW.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value);
                     } else if (IdPManagementConstants.CO.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
                     } else {
@@ -1003,15 +1052,23 @@ public class IdPManagementDAO {
         List<IdentityProviderProperty> idpProperties = new ArrayList<IdentityProviderProperty>();
         boolean isRecoveryNotificationPasswordRecoveryEnabled = false;
         boolean isEmailLinkNotificationPasswordRecoveryEnabled = false;
+        boolean isEmailOTPNotificationPasswordRecoveryEnabled = false;
         boolean isSmsOtpNotificationPasswordRecoveryEnabled = false;
 
         boolean isUsernameRecoveryEnabled = false;
         boolean isEmailUsernameRecoveryEnabled = false;
         boolean isSmsUsernameRecoveryEnabled = false;
 
+        boolean isAdminForcePasswordResetEmailLinkEnabled = false;
+        boolean isAdminForcePasswordResetEmailOTPEnabled = false;
+        boolean isAdminForcePasswordResetSMSOTPEnabled = false;
+        boolean isAdminForcePasswordResetOfflineEnabled = false;
+
         try {
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
-                    IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt =
+                    isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
+                            IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, idpId);
             rs = prepStmt.executeQuery();
@@ -1024,6 +1081,10 @@ public class IdPManagementDAO {
                 }
                 if (IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
                     isEmailLinkNotificationPasswordRecoveryEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isEmailOTPNotificationPasswordRecoveryEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
                 }
                 if (IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
@@ -1039,20 +1100,41 @@ public class IdPManagementDAO {
                 if (IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
                     isSmsUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
                 }
+                if (IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(property.getName())) {
+                    isAdminForcePasswordResetEmailLinkEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(property.getName())) {
+                    isAdminForcePasswordResetEmailOTPEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY.equals(property.getName())) {
+                    isAdminForcePasswordResetSMSOTPEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(property.getName())) {
+                    isAdminForcePasswordResetOfflineEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
             }
             // If recovery notification are inconsistent, correct the configurations.
-            if (isRecoveryNotificationPasswordRecoveryEnabled && !isEmailLinkNotificationPasswordRecoveryEnabled
-                    && !isSmsOtpNotificationPasswordRecoveryEnabled) {
+            if (isRecoveryNotificationPasswordRecoveryEnabled && !isEmailLinkNotificationPasswordRecoveryEnabled &&
+                    !isEmailOTPNotificationPasswordRecoveryEnabled && !isSmsOtpNotificationPasswordRecoveryEnabled) {
                 performConfigCorrectionForPasswordRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
             }
             // If username recovery configs are inconsistent, correct the configurations.
             if (isUsernameRecoveryEnabled && !isEmailUsernameRecoveryEnabled && !isSmsUsernameRecoveryEnabled) {
                 performConfigCorrectionForUsernameRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
             }
-        } catch (DataAccessException e) {
+            // If admin force password reset configs are inconsistent, correct the configurations.
+            if (!isAdminForcePasswordResetEmailLinkEnabled && !isAdminForcePasswordResetEmailOTPEnabled
+                    && !isAdminForcePasswordResetSMSOTPEnabled && !isAdminForcePasswordResetOfflineEnabled) {
+                performConfigCorrectionForAdminForcedPasswordResetConfigs(idpProperties);
+            }
+        } catch (SQLException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
@@ -1074,8 +1156,9 @@ public class IdPManagementDAO {
 
         PreparedStatement prepStmt = null;
         try {
-            boolean isOracleDB = isOracleDB();
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            boolean isOracleDB = isOracleDB(databaseProductName);
+            String sqlStmt = isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
                     IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
@@ -1097,7 +1180,7 @@ public class IdPManagementDAO {
             }
             prepStmt.executeBatch();
 
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             String errorMsg = "Error while adding IDP properties for IDP ID: " + idpId + " and tenant ID:" + tenantId;
             throw new SQLException(errorMsg, e);
         } finally {
@@ -1139,7 +1222,7 @@ public class IdPManagementDAO {
      */
     private FederatedAuthenticatorConfig[] getFederatedAuthenticatorConfigs(
             Connection dbConnection, String idPName, IdentityProvider federatedIdp, int tenantId)
-            throws IdentityProviderManagementClientException, SQLException {
+            throws IdentityProviderManagementException, SQLException {
 
         int idPId = getIdentityProviderIdentifier(dbConnection, idPName, tenantId);
 
@@ -1161,7 +1244,8 @@ public class IdPManagementDAO {
             rs = prepStmt1.executeQuery();
 
             while (rs.next()) {
-                FederatedAuthenticatorConfig authnConfig = new FederatedAuthenticatorConfig();
+                FederatedAuthenticatorConfig authnConfig = createFederatedAuthenticatorConfig(DefinedByType.valueOf(
+                                rs.getString(DEFINED_BY_COLUMN)));
                 int authnId = rs.getInt("ID");
                 authnConfig.setName(rs.getString("NAME"));
 
@@ -1172,28 +1256,23 @@ public class IdPManagementDAO {
                 }
 
                 authnConfig.setDisplayName(rs.getString("DISPLAY_NAME"));
-                authnConfig.setDefinedByType(DefinedByType.valueOf(rs.getString("DEFINED_BY")));
 
                 if (defaultAuthName != null && authnConfig.getName().equals(defaultAuthName)) {
                     federatedIdp.getDefaultAuthenticatorConfig().setDisplayName(authnConfig.getDisplayName());
                 }
 
-                sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_AUTH_PROPS_SQL;
-                prepStmt2 = dbConnection.prepareStatement(sqlStmt);
-                prepStmt2.setInt(1, authnId);
-                proprs = prepStmt2.executeQuery();
                 Set<Property> properties = new HashSet<Property>();
-                while (proprs.next()) {
-                    Property property = new Property();
-                    property.setName(proprs.getString("PROPERTY_KEY"));
-                    property.setValue(proprs.getString("PROPERTY_VALUE"));
-                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(proprs.getString("IS_SECRET"))) {
-                        property.setConfidential(true);
-                    }
-                    properties.add(property);
+                if (isIdpPropertyInheritanceEnabled(IdentityTenantUtil.getTenantDomain(tenantId)) &&
+                        federatedIdp != null &&
+                        IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
+                                federatedIdp.getIdentityProviderName()) &&
+                        IdPManagementConstants.INHERITED_FEDERATED_AUTHENTICATORS.contains(authnConfig.getName())) {
+                    properties = resolveInheritedFederatedAuthenticatorProperties(
+                            tenantId, authnConfig.getName(), dbConnection);
+                } else {
+                    properties = getFederatedAuthenticatorProperties(dbConnection, authnId);
                 }
                 authnConfig.setProperties(properties.toArray(new Property[properties.size()]));
-
                 if (isEmailOTPAuthenticator(authnConfig.getName())) {
                     // This is to support backward compatibility.
                     updateEmailOTPCharTypeProperty(authnConfig, true);
@@ -1203,10 +1282,129 @@ public class IdPManagementDAO {
 
             return federatedAuthenticatorConfigs
                     .toArray(new FederatedAuthenticatorConfig[federatedAuthenticatorConfigs.size()]);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementException("Error while resolving organization ID for tenant: " +
+                    IdentityTenantUtil.getTenantDomain(tenantId), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, proprs, prepStmt2);
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt1);
         }
+    }
+
+    /**
+     * Traverse upward the organization hierarchy and resolve the inherited properties for the given federated
+     * authenticator.
+     *
+     * @param tenantId          The tenant ID.
+     * @param authenticatorName The name of the federated authenticator.
+     * @param dbConnection      The database connection.
+     * @return A set of inherited properties for the federated authenticator.
+     * @throws IdentityProviderManagementException If an error occurs while resolving the properties.
+     */
+    private Set<Property> resolveInheritedFederatedAuthenticatorProperties(int tenantId, String authenticatorName,
+                                                                           Connection dbConnection)
+            throws IdentityProviderManagementException {
+
+        Set<Property> inheritedProperties = new HashSet<>();
+        OrgResourceResolverService orgResourceResolverService = IdpMgtServiceComponentHolder.getInstance()
+                .getOrgResourceResolverService();
+        OrganizationManager orgManager =
+                IdpMgtServiceComponentHolder.getInstance().getOrganizationManager();
+        try {
+            String orgId = orgManager.resolveOrganizationId(IdentityTenantUtil.getTenantDomain(tenantId));
+            inheritedProperties = orgResourceResolverService.getResourcesFromOrgHierarchy(
+                    orgId,
+                    LambdaExceptionUtils.rethrowFunction(
+                            orgID -> federatedAuthenticatorPropertyResolver(orgID, authenticatorName,
+                                    dbConnection)),
+                    new MergeAllAggregationStrategy<>(this::mergePropertySets));
+            return inheritedProperties;
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementException("Error while resolving organization ID for tenant: " +
+                    IdentityTenantUtil.getTenantDomain(tenantId), e);
+        } catch (OrgResourceHierarchyTraverseException e) {
+            throw new IdentityProviderManagementException("Error while resolving federated authenticator properties " +
+                    "for tenant: " + IdentityTenantUtil.getTenantDomain(tenantId), e);
+        }
+    }
+
+    /**
+     * Resolves the properties of the given federated authenticator in the given organization.
+     *
+     * @param orgId            The organization ID.
+     * @param authenticatorName The name of the federated authenticator.
+     * @param dbConnection      The database connection.
+     * @return An optional set of properties for the federated authenticator.
+     * @throws IdentityProviderManagementException If an error occurs while resolving the properties.
+     */
+    private Optional<Set<Property>> federatedAuthenticatorPropertyResolver(String orgId, String authenticatorName,
+                                                                 Connection dbConnection)
+            throws IdentityProviderManagementException {
+
+        OrganizationManager organizationManager = IdpMgtServiceComponentHolder.getInstance().getOrganizationManager();
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(organizationManager.resolveTenantDomain(orgId));
+            int residentIdpId = getIdentityProviderIdentifier(dbConnection,
+                    IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME, tenantId);
+            int authenticatorId = getAuthenticatorIdentifier(dbConnection, residentIdpId, authenticatorName);
+            return Optional.of(getFederatedAuthenticatorProperties(dbConnection, authenticatorId));
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementServerException("Error while retriving federated authenticator " +
+                    "properties of" + authenticatorName + " in organization: " + orgId, e);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementServerException("Error while resolving tenant domain of: " + orgId, e);
+        }
+    }
+
+    /**
+     * Get federated authenticator properties for the given authenticator id.
+     *
+     * @param dbConnection   database connection.
+     * @param authenticatorId authenticator id.
+     * @return Set of properties.
+     * @throws SQLException if an error occurs while executing the SQL query.
+     */
+    private Set<Property> getFederatedAuthenticatorProperties(Connection dbConnection, int authenticatorId)
+            throws SQLException {
+
+        Set<Property> properties = new HashSet<Property>();
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_AUTH_PROPS_SQL;
+        PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt);
+        prepStmt.setInt(1, authenticatorId);
+        ResultSet props = prepStmt.executeQuery();
+        while (props.next()) {
+            Property property = new Property();
+            property.setName(props.getString("PROPERTY_KEY"));
+            property.setValue(props.getString("PROPERTY_VALUE"));
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(props.getString("IS_SECRET"))) {
+                property.setConfidential(true);
+            }
+            properties.add(property);
+        }
+        return properties;
+    }
+
+    /**
+     * Merges two sets of properties, ensuring that properties with the same name are not duplicated.
+     *
+     * @param set1 The first set of properties.
+     * @param set2 The second set of properties.
+     * @return A new set containing the merged properties.
+     */
+    private Set<Property> mergePropertySets(Set<Property> set1, Set<Property> set2) {
+
+        Set<String> existingPropertyNames = set1.stream()
+                .map(Property::getName)
+                .collect(Collectors.toSet());
+        Set<Property> mergedSet = new HashSet<>(set1);
+
+        for (Property property : set2) {
+            if (!existingPropertyNames.contains(property.getName()) &&
+                    IdPManagementConstants.INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES.contains(property.getName())) {
+                mergedSet.add(property);
+            }
+        }
+        return mergedSet;
     }
 
     /**
@@ -2182,11 +2380,13 @@ public class IdPManagementDAO {
                             String blobValue = getBlobValue(rs2.getBinaryStream("PROPERTY_BLOB_VALUE"));
 
                             String propertyType = rs2.getString("PROPERTY_TYPE");
+                            if (propertyType != null) {
+                                propertyType = propertyType.trim();
+                            }
                             String isSecret = rs2.getString("IS_SECRET");
 
                             property.setName(name);
-                            if (propertyType != null && IdentityApplicationConstants.ConfigElements.
-                                    PROPERTY_TYPE_BLOB.equals(propertyType.trim())) {
+                            if (IdentityApplicationConstants.ConfigElements.PROPERTY_TYPE_BLOB.equals(propertyType)) {
                                 property.setValue(blobValue);
                             } else {
                                 property.setValue(value);
@@ -2328,13 +2528,24 @@ public class IdPManagementDAO {
         Property property =
                 IdentityApplicationManagementUtil.getProperty(fedAuthnConfig.getProperties(), propertyName);
 
-        if (property == null || IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            // In tenant qualified mode we have to always give send the calculated URL and not the value stored in DB.
+        if (property == null) {
             property = new Property();
             property.setName(propertyName);
-            // Set the calculated SAML endpoint URL.
             property.setValue(epUrl);
         }
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            // In tenant qualified mode we have to always give send the calculated URL and not the value stored in DB.
+            String existingValue = property.getValue();
+            property = new Property();
+            property.setName(propertyName);
+            if (isUseEntityIDAsIssuerEnabled()) {
+                // If the flag to use entity ID as issuer is enabled, we give priority to the existing value in DB.
+                property.setValue(existingValue);
+            } else {
+                property.setValue(epUrl);
+            }
+        }
+
         return property;
     }
 
@@ -2618,37 +2829,46 @@ public class IdPManagementDAO {
             oauth1AccessTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.ACCESS_TOKEN, true, true);
         }
 
-        oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, oauth2AuthzEPUrlV2,
-                tenantDomain);
-        oauth2ParEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.PAR, oauth2ParEPUrl, oauth2ParEPUrlV2, tenantDomain);
-        oauth2TokenEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, oauth2TokenEPUrlV2, tenantDomain);
-        oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, oauth2RevokeEPUrlV2,
-                tenantDomain);
-        oauth2IntrospectEpUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl, oauth2IntrospectEpUrlV2,
-                tenantDomain);
-        oauth2IntrospectEpUrl = addTenantPathParamInLegacyMode(oauth2IntrospectEpUrl, tenantDomain);
-        oauth2UserInfoEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl, oauth2UserInfoEPUrlV2,
-                        tenantDomain);
-        oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl,
-                oidcCheckSessionEPUrlV2,
-                tenantDomain);
-        oidcLogoutEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl, oidcLogoutEPUrlV2, tenantDomain);
-        oAuth2DCREPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl, oAuth2DCREPUrlV2, tenantDomain);
-        oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
-        oAuth2JWKSPage =
-                resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage, oAuth2JWKSPageV2, tenantDomain);
-        oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
-        oIDCDiscoveryEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, oIDCDiscoveryEPUrlV2,
-                        tenantDomain);
-        oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
-        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, null, tenantDomain);
+        try {
+            // Initiating a tenant flow to resolve tenant qualified URLs. Here the tenant domain appending to the
+            // carbon context is the tenant domain where the configurations needs to be retrieved.
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+
+            oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, oauth2AuthzEPUrlV2,
+                    tenantDomain);
+            oauth2ParEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.PAR, oauth2ParEPUrl, oauth2ParEPUrlV2, tenantDomain);
+            oauth2TokenEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, oauth2TokenEPUrlV2, tenantDomain);
+            oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, oauth2RevokeEPUrlV2,
+                    tenantDomain);
+            oauth2IntrospectEpUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl, oauth2IntrospectEpUrlV2,
+                            tenantDomain);
+            oauth2IntrospectEpUrl = addTenantPathParamInLegacyMode(oauth2IntrospectEpUrl, tenantDomain);
+            oauth2UserInfoEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl, oauth2UserInfoEPUrlV2,
+                            tenantDomain);
+            oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl,
+                    oidcCheckSessionEPUrlV2,
+                    tenantDomain);
+            oidcLogoutEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl, oidcLogoutEPUrlV2, tenantDomain);
+            oAuth2DCREPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl, oAuth2DCREPUrlV2, tenantDomain);
+            oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
+            oAuth2JWKSPage =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage, oAuth2JWKSPageV2, tenantDomain);
+            oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
+            oIDCDiscoveryEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, oIDCDiscoveryEPUrlV2,
+                            tenantDomain);
+            oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
+            passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, null, tenantDomain);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
 
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
@@ -2809,8 +3029,16 @@ public class IdPManagementDAO {
         Property idPEntityIdProp;
         // When the tenant qualified urls are enabled, we need to see the oauth2 token endpoint.
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            idPEntityIdProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
-                    OPENID_IDP_ENTITY_ID);
+            if (isUseEntityIDAsIssuerEnabled()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Using the configured entity ID as the issuer in the " + tenantDomain+ " tenant.");
+                }
+                idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
+                        OPENID_IDP_ENTITY_ID);
+            } else {
+                idPEntityIdProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
+                        OPENID_IDP_ENTITY_ID);
+            }
         } else {
             idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn, OPENID_IDP_ENTITY_ID);
         }
@@ -2864,6 +3092,17 @@ public class IdPManagementDAO {
         Property discoveryUrlProp = resolveFedAuthnProperty(oIDCDiscoveryEPUrl, oidcFedAuthn,
                 IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL);
         propertiesList.add(discoveryUrlProp);
+
+        Property jwtScopeAsArrayProp = IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+        if (jwtScopeAsArrayProp == null) {
+            jwtScopeAsArrayProp = new Property();
+            jwtScopeAsArrayProp.setName(
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+            jwtScopeAsArrayProp.setValue(
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT);
+        }
+        propertiesList.add(jwtScopeAsArrayProp);
 
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[0]));
         fedAuthnConfigs.add(oidcFedAuthn);
@@ -3075,6 +3314,12 @@ public class IdPManagementDAO {
         return idpName;
     }
 
+    // Check whether config is enabled to configure Entity ID in Resident IDP
+    private boolean isUseEntityIDAsIssuerEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(USE_ENTITY_ID_AS_ISSUER));
+    }
+
     /**
      * @param dbConnection
      * @param idPName
@@ -3198,10 +3443,8 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
-                // Retrieve encrypted secrets from DB, decrypt and set to the federated authenticator configs.
-                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0) {
-                    federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
-                }
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                federatedIdp = decryptSystemDefinedFederatedAuthenticatorSecrets(tenantDomain, federatedIdp);
 
                 if (defaultAuthenticatorName != null && federatedIdp.getFederatedAuthenticatorConfigs() != null) {
                     federatedIdp.setDefaultAuthenticatorConfig(IdentityApplicationManagementUtil
@@ -3222,6 +3465,9 @@ public class IdPManagementDAO {
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
 
+                // Decrypt provisioning connector secrets.
+                federatedIdp = decryptProvisioningConnectorConfigSecrets(tenantDomain, federatedIdp);
+
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
@@ -3231,8 +3477,12 @@ public class IdPManagementDAO {
 
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, idpId, tenantId));
-
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
+                    // Resolve resident IdP properties from the organization hierarchy if inheritance is enabled.
+                    if (isIdpPropertyInheritanceEnabled(tenantDomain)) {
+                        propertyList = resolveResidentIdpProperties(tenantDomain, federatedIdp, dbConnection);
+                    }
+                    // Populate non-existing properties with default values.
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
                 }
 
@@ -3249,6 +3499,9 @@ public class IdPManagementDAO {
         } catch (SecretManagementException e) {
             throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider : " +
                     idPName + " in tenant : " + tenantDomain, e);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementException("Error while checking if the tenant: " + tenantDomain +
+                    " is an organization.", e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -3256,6 +3509,189 @@ public class IdPManagementDAO {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
         }
+    }
+
+    /**
+     * Decrypts the secrets of system defined federated authenticators if there are any.
+     *
+     * @param tenantDomain Tenant domain of the IDP.
+     * @param federatedIdp The federated IDP which may contain system defined federated authenticators.
+     * @return The federated IDP with decrypted secrets in system defined federated authenticators.
+     * @throws SecretManagementException When an error occurs while decrypting the secrets.
+     */
+    private IdentityProvider decryptSystemDefinedFederatedAuthenticatorSecrets(String tenantDomain,
+                                                                           IdentityProvider federatedIdp)
+            throws SecretManagementException {
+
+        if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
+                federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+            try {
+                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                    PrivilegedCarbonContext.startTenantFlow();
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                }
+                federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
+            } finally {
+                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                    PrivilegedCarbonContext.endTenantFlow();
+                }
+            }
+        }
+        return federatedIdp;
+    }
+
+    /**
+     * Decrypts the secrets of provisioning connectors if there are any.
+     *
+     * @param tenantDomain Tenant domain of the IDP.
+     * @param federatedIdp The federated IDP which may contain provisioning connectors with secrets.
+     * @return The federated IDP with decrypted secrets in provisioning connectors.
+     * @throws SecretManagementException When an error occurs while decrypting the secrets.
+     */
+    private IdentityProvider decryptProvisioningConnectorConfigSecrets(String tenantDomain,
+                                                                       IdentityProvider federatedIdp)
+            throws SecretManagementException {
+
+        if (federatedIdp.getProvisioningConnectorConfigs() != null &&
+                federatedIdp.getProvisioningConnectorConfigs().length > 0) {
+            try {
+                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                    PrivilegedCarbonContext.startTenantFlow();
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                }
+                federatedIdp = idpSecretsProcessorService.decryptProvisioningConnectorSecrets(federatedIdp);
+            } finally {
+                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                    PrivilegedCarbonContext.endTenantFlow();
+                }
+            }
+        }
+        return federatedIdp;
+    }
+
+    /**
+     * Checks whether the resident IDP properties should be inherited from the organization hierarchy.
+     *
+     * @param tenantDomain Tenant domain of the IDP.
+     * @return true if inheritance is enabled, false otherwise.
+     * @throws OrganizationManagementException When an error occurs while checking if the tenant is an organization.
+     */
+    private boolean isIdpPropertyInheritanceEnabled(String tenantDomain) throws OrganizationManagementException {
+
+        return OrganizationManagementUtil.isOrganization(tenantDomain) &&
+                !TenantMgtUtil.isTenantCreation() &&
+                Utils.isLoginAndRegistrationConfigInheritanceEnabled(tenantDomain);
+    }
+
+    /**
+     * Handles inheritance of the the resident IDP properties from the organization hierarchy.
+     *
+     * @param tenantDomain  Tenant domain of the IDP.
+     * @param federatedIdp  The federated IDP.
+     * @param dbConnection  Database connection.
+     * @return List of inherited IdentityProviderProperties of the resident IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    private List<IdentityProviderProperty> resolveResidentIdpProperties(String tenantDomain,
+                                                                        IdentityProvider federatedIdp,
+                                                                        Connection dbConnection)
+            throws IdentityProviderManagementException {
+
+        OrganizationManager organizationManager =
+                IdpMgtServiceComponentHolder.getInstance().getOrganizationManager();
+        OrgResourceResolverService orgResourceResolverService =
+                IdpMgtServiceComponentHolder.getInstance().getOrgResourceResolverService();
+
+        try {
+            String orgId = organizationManager.resolveOrganizationId(tenantDomain);
+            return orgResourceResolverService.getResourcesFromOrgHierarchy(
+                    orgId,
+                    LambdaExceptionUtils.rethrowFunction(
+                            orgID -> idpPropertyRetriever(orgID, federatedIdp, dbConnection)),
+                    new MergeAllAggregationStrategy<>(this::mergePropertyLists));
+        } catch (OrganizationManagementException e) {
+                throw new IdentityProviderManagementException("Error occurred while retrieving organization " +
+                        "information for tenant : " + tenantDomain, e);
+        } catch (OrgResourceHierarchyTraverseException e) {
+            throw new IdentityProviderManagementException("Error occurred while traversing the organization " +
+                    "hierarchy for tenant : " + tenantDomain, e);
+        }
+    }
+
+    /**
+     * Retrieves the IDP properties from the database.
+     *
+     * @param orgId               Organization ID.
+     * @param identityProvider    Identity Provider.
+     * @param dbConnection        Database connection.
+     * @return List of IdentityProviderProperties of a specific IDP.
+     * @throws OrganizationManagementException OrganizationManagementException
+     * @throws SQLException                      SQLException
+     * @throws IdentityProviderManagementClientException IdentityProviderManagementClientException
+     */
+    private Optional<List<IdentityProviderProperty>> idpPropertyRetriever(String orgId,
+                                                                          IdentityProvider identityProvider,
+                                                                          Connection dbConnection)
+            throws IdentityProviderManagementException {
+
+        OrganizationManager organizationManager =
+                IdpMgtServiceComponentHolder.getInstance().getOrganizationManager();
+        try {
+            String tenantDomain = organizationManager.resolveTenantDomain(orgId);
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+            return Optional.of(filterIdentityProperties(identityProvider, getIdentityPropertiesByIdpId(dbConnection,
+                    getIdentityProviderIdentifier(dbConnection, IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
+                            tenantId), tenantId)));
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementServerException("Error while retrieving resident IDP properties of " +
+                    orgId, e);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementServerException("Error while resolving tenant domain of: " + orgId, e);
+        }
+    }
+
+    /**
+     * Merges two lists of IdentityProviderProperty objects.
+     *
+     * @param list1 First list of IdentityProviderProperty objects.
+     * @param list2 Second list of IdentityProviderProperty objects.
+     * @return Merged list of IdentityProviderProperty objects.
+     */
+    private List<IdentityProviderProperty> mergePropertyLists(List<IdentityProviderProperty> list1,
+                                                              List<IdentityProviderProperty> list2) {
+
+        /* Filter properties that should not be inherited.
+         * startsWith is used since password expiery rules are in the format of
+         * passwordExpiry.rulex where x is the rule number.
+         */
+        list2 = list2.stream()
+                .filter(property -> {
+                    if (IdPManagementConstants.INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES.contains(
+                            property.getName())) {
+                        return false;
+                    }
+
+                    if (property.getName().startsWith(PASSWORD_EXPIRY_RULES_KEY_PREFIX)) {
+                        String[] ruleTokens = property.getValue().split(",");
+                        if (Arrays.stream(ruleTokens).anyMatch(token -> PASSWORD_EXPIRY_RULES_GROUPS.equals(token))) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }).collect(Collectors.toList());
+
+        for (IdentityProviderProperty property : list2) {
+            if (list1.stream().noneMatch(p -> p.getName().equals(property.getName()))) {
+                list1.add(property);
+            }
+        }
+        return list1;
     }
 
     /**
@@ -3268,7 +3704,8 @@ public class IdPManagementDAO {
      */
     private List<IdentityProviderProperty> filterIdentityProperties(IdentityProvider federatedIdp,
                                                                     List<IdentityProviderProperty>
-                                                                            identityProviderProperties) {
+                                                                            identityProviderProperties)
+            throws IdentityProviderManagementException {
 
         JustInTimeProvisioningConfig justInTimeProvisioningConfig = federatedIdp.getJustInTimeProvisioningConfig();
         FederatedAssociationConfig federatedAssociationConfig = new FederatedAssociationConfig();
@@ -3288,11 +3725,32 @@ public class IdPManagementDAO {
                         .equals(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED)) {
                     justInTimeProvisioningConfig
                             .setAssociateLocalUserEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (identityProviderProperty.getName()
+                        .equals(IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE)) {
+                    justInTimeProvisioningConfig.setSkipJITOnAttrAccLookUpFailureEnabled(
+                            Boolean.parseBoolean(identityProviderProperty.getValue()));
                 } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                         .equals(identityProviderProperty.getName())) {
                     justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
+                } else if (IdPManagementConstants.SYNC_IDP_GROUP_METHOD
+                        .equals(identityProviderProperty.getName())) {
+                    justInTimeProvisioningConfig.setIdpGroupSyncMethod(identityProviderProperty.getValue());
                 }
             });
+
+            // For migrated IDPs that have NULL attributeSyncMethod, apply the server-level configuration.
+            if (StringUtils.isBlank(justInTimeProvisioningConfig.getAttributeSyncMethod())) {
+                if (IdPManagementUtil.isPreserveLocallyAddedClaims()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Attribute sync method is not defined for the IDP. " +
+                                "Applying the server-level PRESERVE_LOCAL configuration.");
+                    }
+                    justInTimeProvisioningConfig
+                            .setAttributeSyncMethod(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
+                }
+            }
+            populateAccountLookupAttributes(justInTimeProvisioningConfig, identityProviderProperties.toArray(
+                    new IdentityProviderProperty[0]));
         }
 
         identityProviderProperties.forEach(identityProviderProperty -> {
@@ -3323,13 +3781,116 @@ public class IdPManagementDAO {
                         .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED) ||
                         IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE
+                                        .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SYNC_IDP_GROUP_METHOD
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.LOOKUP_ATTRIBUTES
                                 .equals(identityProviderProperty.getName())));
         return identityProviderProperties;
+    }
+
+    private void populateAccountLookupAttributes(JustInTimeProvisioningConfig justInTimeProvisioningConfig,
+                                                 IdentityProviderProperty[] identityProviderProperties)
+            throws IdentityProviderManagementException {
+
+        IdentityProviderProperty primaryAccountLookupAttributeMappingProperty =
+                IdentityApplicationManagementUtil.getProperty(identityProviderProperties,
+                        IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        IdentityProviderProperty secondaryAccountLookupAttributeMappingProperty =
+                IdentityApplicationManagementUtil.getProperty(identityProviderProperties,
+                        IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        if (primaryAccountLookupAttributeMappingProperty == null ||
+                StringUtils.isBlank(primaryAccountLookupAttributeMappingProperty.getValue())) {
+            return;
+        }
+        AccountLookupAttributeMappingConfig primaryAccountLookupAttributeMappingConfig =
+                buildAccountLookupAttributeMappingConfig(primaryAccountLookupAttributeMappingProperty.getValue());
+        List<AccountLookupAttributeMappingConfig> accountLookupAttributeMappingConfigs = new ArrayList<>();
+        accountLookupAttributeMappingConfigs.add(primaryAccountLookupAttributeMappingConfig);
+
+        if (secondaryAccountLookupAttributeMappingProperty != null &&
+                StringUtils.isNotBlank(secondaryAccountLookupAttributeMappingProperty.getValue())) {
+            AccountLookupAttributeMappingConfig secondaryAccountLookupAttributeMappingConfig =
+                    buildAccountLookupAttributeMappingConfig(secondaryAccountLookupAttributeMappingProperty.getValue());
+            accountLookupAttributeMappingConfigs.add(secondaryAccountLookupAttributeMappingConfig);
+        }
+        justInTimeProvisioningConfig.setAccountLookupAttributeMappings(accountLookupAttributeMappingConfigs.toArray(
+                new AccountLookupAttributeMappingConfig[0]));
+    }
+
+    private AccountLookupAttributeMappingConfig buildAccountLookupAttributeMappingConfig(
+            String accountLookupAttributeMappingString)
+            throws IdentityProviderManagementException {
+
+        String[] parts = accountLookupAttributeMappingString.split(ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR);
+        if (parts.length != 2 || StringUtils.isBlank(parts[0]) || StringUtils.isBlank(parts[1])) {
+            throw new IdentityProviderManagementException("Invalid account lookup attribute mapping property: " +
+                    accountLookupAttributeMappingString);
+        }
+
+        AccountLookupAttributeMappingConfig accountLookupAttributeMappingConfig =
+                new AccountLookupAttributeMappingConfig();
+        accountLookupAttributeMappingConfig.setFederatedAttribute(parts[0].trim());
+        accountLookupAttributeMappingConfig.setLocalAttribute(parts[1].trim());
+        return accountLookupAttributeMappingConfig;
+    }
+
+    private void fillAccountLookUpAttributesIdpProperties(JustInTimeProvisioningConfig justInTimeProvisioningConfig,
+                                                          IdentityProviderProperty primaryAccountLookupAttributesProperty,
+                                                          IdentityProviderProperty secondaryAccountLookupAttributesProperty)
+            throws IdentityProviderManagementException {
+
+        if (justInTimeProvisioningConfig == null) {
+            return;
+        }
+        AccountLookupAttributeMappingConfig[] accountLookupAttributeMappings =
+                justInTimeProvisioningConfig.getAccountLookupAttributeMappings();
+        if (accountLookupAttributeMappings == null || accountLookupAttributeMappings.length == 0) {
+            return;
+        }
+        if (accountLookupAttributeMappings.length > 2) {
+            throw new IdentityProviderManagementException("Error occurred while storing account lookup attributes." +
+                    " More than two account lookup attribute mappings are not supported.");
+        }
+
+        AccountLookupAttributeMappingConfig primaryMapping = accountLookupAttributeMappings[0];
+        if (primaryMapping == null || (StringUtils.isBlank(primaryMapping.getFederatedAttribute()) &
+                StringUtils.isBlank(primaryMapping.getLocalAttribute()))) {
+            return;
+        }
+        if (StringUtils.isBlank(primaryMapping.getFederatedAttribute()) ||
+                StringUtils.isBlank(primaryMapping.getLocalAttribute())) {
+            throw new IdentityProviderManagementException("Error occurred while storing account lookup attributes." +
+                    " Primary account lookup attribute mapping is empty.");
+        }
+        primaryAccountLookupAttributesProperty.setValue(
+                primaryMapping.getFederatedAttribute() + ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR +
+                        primaryMapping.getLocalAttribute());
+        if (accountLookupAttributeMappings.length > 1) {
+            AccountLookupAttributeMappingConfig secondaryMapping = accountLookupAttributeMappings[1];
+            if (secondaryMapping == null || (StringUtils.isBlank(secondaryMapping.getFederatedAttribute()) &&
+                    StringUtils.isBlank(secondaryMapping.getLocalAttribute()))) {
+                return;
+            }
+            if (StringUtils.isBlank(secondaryMapping.getFederatedAttribute()) ||
+                    StringUtils.isBlank(secondaryMapping.getLocalAttribute())) {
+                throw new IdentityProviderManagementException(
+                        "Error occurred while storing account lookup attributes." +
+                                " Secondary account lookup attribute mapping is empty.");
+            }
+            secondaryAccountLookupAttributesProperty.setValue(
+                    secondaryMapping.getFederatedAttribute() + ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR +
+                            secondaryMapping.getLocalAttribute());
+        }
     }
 
     /**
@@ -3406,14 +3967,17 @@ public class IdPManagementDAO {
             rs = prepStmt.executeQuery();
             int idpId = -1;
             String idPName = "";
+            String idpResourceId = "";
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
 
                 idpId = rs.getInt("ID");
                 idPName = rs.getString("NAME");
+                idpResourceId = rs.getString("UUID");
 
                 federatedIdp.setIdentityProviderName(idPName);
+                federatedIdp.setResourceId(idpResourceId);
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
@@ -3439,7 +4003,7 @@ public class IdPManagementDAO {
                 String roleClaimUri = rs.getString("ROLE_CLAIM_URI");
 
                 String defaultAuthenticatorName = rs.getString("DEFAULT_AUTHENTICATOR_NAME");
-                String defaultAuthenticatorDefinedByType = rs.getString("DEFINED_BY");
+                String defaultAuthenticatorDefinedByType = rs.getString(DEFINED_BY_COLUMN);
                 String defaultProvisioningConnectorConfigName = rs.getString("DEFAULT_PRO_CONNECTOR_NAME");
                 federatedIdp.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
 
@@ -3489,6 +4053,9 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                federatedIdp = decryptSystemDefinedFederatedAuthenticatorSecrets(tenantDomain, federatedIdp);
+
                 if (federatedIdp.getClaimConfig().isLocalClaimDialect()) {
                     federatedIdp.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
                             idPName, userClaimUri, roleClaimUri, idpId, tenantId));
@@ -3501,6 +4068,9 @@ public class IdPManagementDAO {
                 // get provisioning connectors.
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
+
+                // Decrypt provisioning connector secrets.
+                federatedIdp = decryptProvisioningConnectorConfigSecrets(tenantDomain, federatedIdp);
 
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
@@ -3526,6 +4096,9 @@ public class IdPManagementDAO {
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
                     "configurations.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider for " +
+                    "Authenticator Property : " + property + " and value : " + value, e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -3572,14 +4145,17 @@ public class IdPManagementDAO {
             rs = prepStmt.executeQuery();
             int idpId = -1;
             String idPName = "";
+            String idpResourceId = "";
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
 
                 idpId = rs.getInt("ID");
                 idPName = rs.getString("NAME");
+                idpResourceId = rs.getString("UUID");
 
                 federatedIdp.setIdentityProviderName(idPName);
+                federatedIdp.setResourceId(idpResourceId);
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
@@ -3652,6 +4228,9 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                federatedIdp = decryptSystemDefinedFederatedAuthenticatorSecrets(tenantDomain, federatedIdp);
+
                 if (federatedIdp.getClaimConfig().isLocalClaimDialect()) {
                     federatedIdp.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
                             idPName, userClaimUri, roleClaimUri, idpId, tenantId));
@@ -3664,6 +4243,9 @@ public class IdPManagementDAO {
                 // get provisioning connectors.
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
+
+                // Decrypt provisioning connector secrets.
+                federatedIdp = decryptProvisioningConnectorConfigSecrets(tenantDomain, federatedIdp);
 
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
@@ -3690,6 +4272,9 @@ public class IdPManagementDAO {
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
                     "configurations.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider for " +
+                    "Authenticator Property : " + property + " and value : " + value, e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -3912,16 +4497,21 @@ public class IdPManagementDAO {
                 throw new IdentityProviderManagementException(msg);
             }
 
+            identityProvider.setId(createdIDP.getId());
+
             // add provisioning connectors.
             if (identityProvider.getProvisioningConnectorConfigs() != null
                     && identityProvider.getProvisioningConnectorConfigs().length > 0) {
+                identityProvider = idpSecretsProcessorService.encryptProvisioningConnectorSecrets(identityProvider);
                 addProvisioningConnectorConfigs(identityProvider.getProvisioningConnectorConfigs(),
                         dbConnection, idPId, tenantId);
             }
 
-            // Add federated authenticator secret properties to IDN_SECRET table.
-            identityProvider.setId(createdIDP.getId());
-            identityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(identityProvider);
+            // Add system federated authenticator secret properties to IDN_SECRET table.
+            if (identityProvider.getFederatedAuthenticatorConfigs().length > 0 &&
+                    identityProvider.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                identityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(identityProvider);
+            }
 
             // add federated authenticators.
             addFederatedAuthenticatorConfigs(identityProvider.getFederatedAuthenticatorConfigs(),
@@ -4017,7 +4607,8 @@ public class IdPManagementDAO {
     private List<IdentityProviderProperty> getCombinedProperties(JustInTimeProvisioningConfig
                                                                          justInTimeProvisioningConfig,
                                                                  FederatedAssociationConfig federatedAssociationConfig,
-                                                                 IdentityProviderProperty[] idpProperties) {
+                                                                 IdentityProviderProperty[] idpProperties)
+            throws IdentityProviderManagementException {
 
         List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
         if (ArrayUtils.isNotEmpty(idpProperties)) {
@@ -4039,6 +4630,19 @@ public class IdPManagementDAO {
         associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
         associateLocalUser.setValue("false");
 
+        IdentityProviderProperty skipJITOnAttributeLookupFailure = new IdentityProviderProperty();
+        skipJITOnAttributeLookupFailure.setName(IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE);
+        skipJITOnAttributeLookupFailure.setValue("false");
+
+        IdentityProviderProperty primaryAccountLookupAttributeMapping = new IdentityProviderProperty();
+        primaryAccountLookupAttributeMapping.setName(IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        primaryAccountLookupAttributeMapping.setValue("");
+
+        IdentityProviderProperty secondaryAccountLookupAttributeMapping = new IdentityProviderProperty();
+        secondaryAccountLookupAttributeMapping.setName(
+                IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        secondaryAccountLookupAttributeMapping.setValue("");
+
         IdentityProviderProperty federatedAssociationProperty = new IdentityProviderProperty();
         federatedAssociationProperty.setName(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED);
         federatedAssociationProperty.setValue(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED_DEFAULT_VALUE);
@@ -4052,13 +4656,22 @@ public class IdPManagementDAO {
             attributeSyncMethod.setValue(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
         }
 
+        IdentityProviderProperty idpGroupSyncMethod = new IdentityProviderProperty();
+        idpGroupSyncMethod.setName(IdPManagementConstants.SYNC_IDP_GROUP_METHOD);
+        idpGroupSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_IDP_GROUP);
+
         if (justInTimeProvisioningConfig != null) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
             associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
+            skipJITOnAttributeLookupFailure.setValue(
+                    String.valueOf(justInTimeProvisioningConfig.isSkipJITOnAttrAccLookUpFailureEnabled()));
+            fillAccountLookUpAttributesIdpProperties(justInTimeProvisioningConfig, primaryAccountLookupAttributeMapping,
+                    secondaryAccountLookupAttributeMapping);
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
+            idpGroupSyncMethod.setValue(justInTimeProvisioningConfig.getIdpGroupSyncMethod());
         }
 
         if (federatedAssociationConfig != null && federatedAssociationConfig.isEnabled()) {
@@ -4072,7 +4685,11 @@ public class IdPManagementDAO {
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
         identityProviderProperties.add(associateLocalUser);
+        identityProviderProperties.add(skipJITOnAttributeLookupFailure);
+        identityProviderProperties.add(primaryAccountLookupAttributeMapping);
+        identityProviderProperties.add(secondaryAccountLookupAttributeMapping);
         identityProviderProperties.add(attributeSyncMethod);
+        identityProviderProperties.add(idpGroupSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
         if (lookupAttribute != null) {
             identityProviderProperties.add(lookupAttribute);
@@ -4255,9 +4872,19 @@ public class IdPManagementDAO {
                 boolean isResidentIdP = IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                         .equals(newIdentityProvider.getIdentityProviderName());
 
-                // Update secrets in IDN_SECRET table.
                 newIdentityProvider.setId(Integer.toString(idpId));
-                newIdentityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(newIdentityProvider);
+                // Update secrets of system federated authenticator config in IDN_SECRET table.
+                if (newIdentityProvider.getFederatedAuthenticatorConfigs().length > 0 && newIdentityProvider
+                        .getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                    newIdentityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(newIdentityProvider);
+                }
+
+                // Update secrets of provisioning connectors in IDN_SECRET table.
+                if (newIdentityProvider.getProvisioningConnectorConfigs() != null
+                        && newIdentityProvider.getProvisioningConnectorConfigs().length > 0) {
+                    newIdentityProvider =
+                            idpSecretsProcessorService.encryptProvisioningConnectorSecrets(newIdentityProvider);
+                }
 
                 // update federated authenticators.
                 updateFederatedAuthenticatorConfigs(
@@ -4282,12 +4909,27 @@ public class IdPManagementDAO {
                         newIdentityProvider.getProvisioningConnectorConfigs(), dbConnection, idpId,
                         tenantId);
 
+                // This will only contain updated/new property values if the IDP is resident IDP in a sub-org.
                 IdentityProviderProperty[] idpProperties = newIdentityProvider.getIdpProperties();
                 if (isResidentIdP) {
-                    idpProperties =
-                            filterConnectorProperties(idpProperties,
-                                    IdentityTenantUtil.getTenantDomain(tenantId))
-                                    .toArray(new IdentityProviderProperty[0]);
+                    if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                        // Get existing properties from database.
+                        List<IdentityProviderProperty> existingpropertyList = getIdentityPropertiesByIdpId(dbConnection,
+                                idpId, tenantId);
+                        existingpropertyList.removeIf(this::isExcludedJITProvisioningProperty);
+
+                        // Add the values from the DB to idpProperties if not already present.
+                        for (IdentityProviderProperty property : existingpropertyList) {
+                            if (Arrays.stream(idpProperties).noneMatch(prop ->
+                                    prop.getName().equals(property.getName()))) {
+                                idpProperties = (IdentityProviderProperty[]) ArrayUtils.add(idpProperties, property);
+                            }
+                        }
+                    } else {
+                        idpProperties = filterConnectorProperties(
+                                idpProperties,
+                                IdentityTenantUtil.getTenantDomain(tenantId)).toArray(new IdentityProviderProperty[0]);
+                    }
                 }
                 List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties
                         (newIdentityProvider.getJustInTimeProvisioningConfig(),
@@ -4324,6 +4966,9 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("An error occurred while updating the secrets of the " +
                     "identity provider : " + currentIdentityProvider.getIdentityProviderName() + " in tenant : " +
                     IdentityTenantUtil.getTenantDomain(tenantId), e);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementException(String.format("An error occurred while checking if %s is " +
+                    "an organization", IdentityTenantUtil.getTenantDomain(tenantId)), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt1);
             IdentityDatabaseUtil.closeStatement(prepStmt2);
@@ -4368,6 +5013,83 @@ public class IdPManagementDAO {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, rsFedIdp, prepStmtFedIdp);
         }
         return isReffered;
+    }
+
+    /**
+     * Check whether the specified IDP authenticator is associated with any service providers.
+     *
+     * @param idpName           Name of the IDP.
+     * @param authenticatorName Name of the authenticator.
+     * @param tenantId          ID of the tenant.
+     * @return Whether the specified IDP authenticator is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP authenticator associations.
+     */
+    public boolean isAuthenticatorReferredBySP(String idpName, String authenticatorName, int tenantId)
+            throws IdentityProviderManagementException {
+
+        boolean isReferred = false;
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmtFedAuth = null;
+        ResultSet rsFedAuth = null;
+
+        try {
+            prepStmtFedAuth = dbConnection.prepareStatement(
+                    IdPManagementConstants.SQLQueries.GET_SP_FEDERATED_IDP_AUTHENTICATOR_REF);
+            prepStmtFedAuth.setInt(1, tenantId);
+            prepStmtFedAuth.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
+            prepStmtFedAuth.setString(3, idpName);
+            prepStmtFedAuth.setString(4, authenticatorName);
+            rsFedAuth = prepStmtFedAuth.executeQuery();
+            if (rsFedAuth.next()) {
+                isReferred = rsFedAuth.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException(
+                    "Error occurred while searching for IDP Authenticator references in SP ",
+                    e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, rsFedAuth, prepStmtFedAuth);
+        }
+
+        return isReferred;
+    }
+
+    /**
+     * Check whether the specified IDP outbound connector is associated with any service providers.
+     *
+     * @param idpName       Name of the IDP.
+     * @param connectorName Name of the outbound connector.
+     * @param tenantId      ID of the tenant.
+     * @return Whether the specified IDP outbound connector is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP outbound connector associations.
+     */
+    public boolean isOutboundConnectorReferredBySP(String idpName, String connectorName, int tenantId)
+            throws IdentityProviderManagementException {
+
+        boolean isReferred = false;
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+
+        try {
+            prepStmt = dbConnection.prepareStatement(
+                    IdPManagementConstants.SQLQueries.GET_SP_PROVISIONING_CONNECTOR_IDP_REFS);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, idpName);
+            prepStmt.setString(3, connectorName);
+            resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                isReferred = resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException(
+                    "Error occurred while searching for IDP outbound connector references in SP ",
+                    e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
+        }
+
+        return isReferred;
     }
 
     /**
@@ -4565,6 +5287,21 @@ public class IdPManagementDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
         }
+    }
+
+    private boolean isExcludedJITProvisioningProperty(IdentityProviderProperty idpProperty) {
+
+        return IdPManagementConstants.MODIFY_USERNAME_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.PROMPT_CONSENT_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE.equals(idpProperty.getName()) ||
+                IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SYNC_ATTRIBUTE_METHOD.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SYNC_IDP_GROUP_METHOD.equals(idpProperty.getName()) ||
+                IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.LOOKUP_ATTRIBUTES.equals(idpProperty.getName());
     }
 
     /**
@@ -5520,6 +6257,107 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Get the list of applications that are connected to the identity provider from DB with a filter.
+     *
+     * @param resourceId      IDP resource ID.
+     * @param limit           Limit for pagination.
+     * @param offset          Offset for pagination.
+     * @param expressionNodes Filter expression nodes.
+     * @return Connected apps result.
+     * @throws IdentityProviderManagementException If an error occurred while retrieving connected applications.
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset,
+                                                        List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementException {
+
+        // If no filter is provided, use the non-filter version.
+        if (CollectionUtils.isEmpty(expressionNodes)) {
+            return getConnectedApplications(resourceId, limit, offset);
+        }
+
+        ConnectedAppsResult connectedAppsResult = new ConnectedAppsResult();
+        List<String> connectedApps = new ArrayList<>();
+        FilterQueryBuilder filterQueryBuilder = getConnectedAppsQueryBuilder(expressionNodes);
+        String filterSQL = filterQueryBuilder.getFilterQuery();
+        String filter = filterQueryBuilder.getFilterAttributeValue().get(1);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement prepStmt = createConnectedAppsSqlStatementWithFilter(connection, resourceId, limit,
+                    offset, filterSQL, filter)) {
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    while (resultSet.next()) {
+                        connectedApps.add(resultSet.getString(IdPManagementConstants.UUID));
+                    }
+                }
+            }
+            String sqlQuery =
+                    String.format(IdPManagementConstants.SQLQueries.CONNECTED_APPS_TOTAL_COUNT_SQL_WITH_FILTER,
+                            filterSQL, filterSQL);
+            try (PreparedStatement prepStmt = connection.prepareStatement(sqlQuery)) {
+                prepStmt.setString(1, filter);
+                prepStmt.setString(2, resourceId);
+                prepStmt.setString(3, filter);
+                prepStmt.setString(4, resourceId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        connectedAppsResult.setTotalAppCount(resultSet.getInt(1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred during retrieving connected applications of IDP: " + resourceId, e);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, resourceId);
+        }
+        connectedAppsResult.setApps(connectedApps);
+        connectedAppsResult.setLimit(limit);
+        connectedAppsResult.setOffSet(offset);
+        return connectedAppsResult;
+    }
+
+    private FilterQueryBuilder getConnectedAppsQueryBuilder(List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementClientException {
+
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        StringBuilder filter = new StringBuilder();
+        if (CollectionUtils.isEmpty(expressionNodes)) {
+            filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+        } else {
+            if (expressionNodes.size() == 1 &&
+                    StringUtils.equals(IdPManagementConstants.APP_NAME, expressionNodes.get(0).getAttributeValue())) {
+                ExpressionNode expressionNode = expressionNodes.get(0);
+                String operation = expressionNode.getOperation();
+                String value = expressionNode.getValue();
+                String attributeName = IdPManagementConstants.ApplicationTableColumns.APP_NAME;
+                if (IdPManagementConstants.EQ.equals(operation)) {
+                    filter.append(attributeName).append(" = ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue(value);
+                } else if (IdPManagementConstants.SW.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue(value + "%");
+                } else if (IdPManagementConstants.EW.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue("%" + value);
+                } else if (IdPManagementConstants.CO.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
+                } else {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_INVALID_CONNECTED_APPS_FILTER_OPERATION, null);
+                }
+                if (StringUtils.isBlank(filter.toString())) {
+                    filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+                } else {
+                    filterQueryBuilder.setFilterQuery(filter.toString());
+                }
+            } else {
+                throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                        .ERROR_CODE_INVALID_CONNECTED_APPS_FILTER, null);
+            }
+        }
+        return filterQueryBuilder;
+    }
+
+    /**
      * Get configured applications for a local authenticator.
      *
      * @param authenticatorId   ID of local authenticator.
@@ -5633,6 +6471,88 @@ public class IdPManagementDAO {
         return prepStmt;
     }
 
+    private PreparedStatement createConnectedAppsSqlStatementWithFilter(Connection connection, String id, int limit,
+                                                                        int offset, String filterSQL, String filter)
+            throws SQLException, IdentityProviderManagementServerException {
+
+        String sqlQuery;
+        PreparedStatement prepStmt;
+        String databaseProductName = connection.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MYSQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset);
+            prepStmt.setInt(7, limit);
+        } else if (databaseProductName.contains("Oracle")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_ORACLE_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset + limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MSSQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset);
+            prepStmt.setInt(7, limit);
+        } else if (databaseProductName.contains("PostgreSQL")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_POSTGRESSQL_WITH_FILTER,
+                    filterSQL, filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("DB2")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_DB2SQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("INFORMIX")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_INFORMIX_WITH_FILTER,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, offset);
+            prepStmt.setInt(2, limit);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+        } else {
+            String message = "Error while loading Identity Provider Connected Applications from DB: Database driver " +
+                    "could not be identified or not supported.";
+            log.error(message);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message);
+        }
+        return prepStmt;
+    }
+
     private PreparedStatement createConnectedAppsOfLocalAuthenticatorSqlStatement(Connection connection, String name,
                                                                                   int tenantId, int limit, int offset)
             throws SQLException, IdentityProviderManagementServerException {
@@ -5730,8 +6650,84 @@ public class IdPManagementDAO {
         // Replace the property default values with the values saved in the database.
         propertiesFromConnectors.putAll(propertyMapFromDb);
         resolveOtpConnectorProperties(propertiesFromConnectors);
+        setDefaultSessionConfigs(propertiesFromConnectors);
 
         return new ArrayList<>(propertiesFromConnectors.values());
+    }
+
+    private void setDefaultSessionConfigs(Map<String, IdentityProviderProperty> propertiesFromConnectors) {
+
+        if (propertiesFromConnectors.get(REMEMBER_ME_TIME_OUT) == null) {
+            String configuredRemberMeTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
+            if (StringUtils.isBlank(configuredRemberMeTimeout) || !StringUtils.isNumeric(configuredRemberMeTimeout)
+                    || Integer.parseInt(configuredRemberMeTimeout) <= 0) {
+                configuredRemberMeTimeout = REMEMBER_ME_TIME_OUT_DEFAULT;
+            }
+
+            IdentityProviderProperty rememberMeTimeOut = new IdentityProviderProperty();
+            rememberMeTimeOut.setName(REMEMBER_ME_TIME_OUT);
+            rememberMeTimeOut.setValue(configuredRemberMeTimeout);
+            propertiesFromConnectors.put(REMEMBER_ME_TIME_OUT, rememberMeTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(SESSION_IDLE_TIME_OUT) == null) {
+            String configuredSessionIdleTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT);
+            if (StringUtils.isBlank(configuredSessionIdleTimeout) ||
+                    !StringUtils.isNumeric(configuredSessionIdleTimeout) ||
+                    Integer.parseInt(configuredSessionIdleTimeout) <= 0) {
+                configuredSessionIdleTimeout = SESSION_IDLE_TIME_OUT_DEFAULT;
+            }
+
+            IdentityProviderProperty sessionIdleTimeOut = new IdentityProviderProperty();
+            sessionIdleTimeOut.setName(SESSION_IDLE_TIME_OUT);
+            sessionIdleTimeOut.setValue(configuredSessionIdleTimeout);
+            propertiesFromConnectors.put(SESSION_IDLE_TIME_OUT, sessionIdleTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(ENABLE_MAXIMUM_SESSION_TIME_OUT) == null) {
+            String enableMaximumSessionTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT);
+            if (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), enableMaximumSessionTimeout) &&
+                    !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(), enableMaximumSessionTimeout)) {
+                enableMaximumSessionTimeout = Boolean.FALSE.toString().toLowerCase();
+            }
+
+            IdentityProviderProperty enableMaximumSessionTimeOut = new IdentityProviderProperty();
+            enableMaximumSessionTimeOut.setName(ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            enableMaximumSessionTimeOut.setValue(enableMaximumSessionTimeout);
+            propertiesFromConnectors.put(ENABLE_MAXIMUM_SESSION_TIME_OUT, enableMaximumSessionTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(MAXIMUM_SESSION_TIME_OUT) == null) {
+            String configuredMaximumSessionTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT);
+            if (StringUtils.isBlank(configuredMaximumSessionTimeout) ||
+                    !StringUtils.isNumeric(configuredMaximumSessionTimeout) ||
+                    Integer.parseInt(configuredMaximumSessionTimeout) <= 0) {
+                configuredMaximumSessionTimeout = MAXIMUM_SESSION_TIME_OUT_DEFAULT;
+            }
+
+            IdentityProviderProperty maximumSessionTimeOut = new IdentityProviderProperty();
+            maximumSessionTimeOut.setName(MAXIMUM_SESSION_TIME_OUT);
+            maximumSessionTimeOut.setValue(configuredMaximumSessionTimeout);
+            propertiesFromConnectors.put(MAXIMUM_SESSION_TIME_OUT, maximumSessionTimeOut);
+        }
+      
+        if (propertiesFromConnectors.get(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE) == null) {
+            String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);
+            if (StringUtils.isBlank(preserveLoggedInSessionAtPasswordUpdate)) {
+                preserveLoggedInSessionAtPasswordUpdate = "false";
+            }
+
+            IdentityProviderProperty preserveCurrentSessionAtPasswordUpdateProperty = new IdentityProviderProperty();
+            preserveCurrentSessionAtPasswordUpdateProperty.setName(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
+            preserveCurrentSessionAtPasswordUpdateProperty.setValue(preserveLoggedInSessionAtPasswordUpdate);
+            propertiesFromConnectors.put(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE,
+                    preserveCurrentSessionAtPasswordUpdateProperty);
+        }
     }
 
     private List<IdentityProviderProperty> filterConnectorProperties(IdentityProviderProperty[] propertiesFromRequest,
@@ -5740,6 +6736,12 @@ public class IdPManagementDAO {
 
         Map<String, IdentityProviderProperty> propertiesFromConnectors = getConnectorProperties(tenantDomain);
 
+        /*
+         * Session configuration properties are not stored by default.
+         * If the values from the request match the default values, they should be removed.
+         * Default session configs are set in the connector properties to ensure correct handling in the logic below.
+         */
+        setDefaultSessionConfigs(propertiesFromConnectors);
         Map<String, IdentityProviderProperty> propertyMapFromRequest = Arrays.stream(propertiesFromRequest)
                 .collect(Collectors.toMap(IdentityProviderProperty::getName, property -> property));
 
@@ -5798,8 +6800,10 @@ public class IdPManagementDAO {
             dbConnectionInitialized = false;
         }
         try {
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
-                    IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt =
+                    isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
+                            IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, property);
             prepStmt.setString(2, value);
@@ -5811,7 +6815,7 @@ public class IdPManagementDAO {
                 idPName = rs.getString(1);
             }
             return idPName;
-        } catch (DataAccessException | SQLException e) {
+        } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for IDP metadata property name: " + property + " value: " + value, e);
         } finally {
@@ -5901,11 +6905,8 @@ public class IdPManagementDAO {
                     idpNameMap.put(Integer.toString(idpId), idpName);
                 }
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-
             return idpNameMap;
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while retrieving registered Identity " +
                     "Providers for IDP IDs for tenantId: " + tenantId, e);
         } finally {
@@ -5950,6 +6951,94 @@ public class IdPManagementDAO {
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving IDP groups for IDP group " +
                     "IDs: " + idpGroupIds, e);
+        }
+    }
+
+    /**
+     * Get all user defined federated authenticators.
+     *
+     * @param tenantId Tenant ID.
+     * @return User defined FederatedAuthenticatorConfig list
+     * @throws IdentityProviderManagementException If an error occurred while retrieving user defined
+     *                                             federated authenticator list.
+     */
+    public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(int tenantId)
+            throws IdentityProviderManagementException {
+
+        List<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = connection.prepareStatement(
+                    IdPManagementConstants.SQLQueries.GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS)) {
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, "LOCAL");
+            prepStmt.setInt(3, tenantId);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                while (resultSet.next()) {
+                    UserDefinedFederatedAuthenticatorConfig federatedAuthenticatorConfig =
+                            new UserDefinedFederatedAuthenticatorConfig();
+                    federatedAuthenticatorConfig.setName(resultSet.getString("NAME"));
+                    federatedAuthenticatorConfig.setDisplayName(resultSet.getString("DISPLAY_NAME"));
+                    federatedAuthenticatorConfig.setEnabled(resultSet.getBoolean("IS_ENABLED"));
+                    federatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
+                    federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
+                    int authnId = resultSet.getInt("ID");
+
+                    getFederatedProperties(connection, authnId, federatedAuthenticatorConfig);
+                }
+            }
+            return federatedAuthenticatorConfigs;
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving all user defined federated " +
+                    "authenticators for tenant: " + tenantId, e);
+        }
+    }
+
+    /**
+     * Deletes the specified properties of an identity provider.
+     *
+     * @param idpId         ID of the identity provider.
+     * @param propertyNames List of property names to be deleted.
+     * @param tenantDomain  Tenant domain of the identity provider.
+     * @throws IdentityProviderManagementException If an error occurred while deleting properties.
+     */
+    public void deleteIdpProperties(int idpId, List<String> propertyNames, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String query = IdPManagementConstants.SQLQueries.DELETE_IDP_METADATA_BY_PROPERTY_NAME;
+        query = query.replace(
+                IdPManagementConstants.IDP_METADATA_PROPERTY_LIST_PLACEHOLDER,
+                String.join(",", Collections.nCopies(propertyNames.size(), "?")));
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, idpId);
+            for (int i = 0; i < propertyNames.size(); i++) {
+                preparedStatement.setString(i + 2, propertyNames.get(i));
+            }
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while deleting properties of IDP:" + idpId +
+                    " in tenant:" + tenantDomain, e);
+        }
+    }
+
+    private void getFederatedProperties(Connection connection, int authnId,
+            FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws SQLException{
+
+        try (PreparedStatement prepStmtProp = connection.prepareStatement(
+                IdPManagementConstants.SQLQueries.GET_IDP_AUTH_PROPS_SQL)) {
+            prepStmtProp.setInt(1, authnId);
+            Set<Property> properties = new HashSet<Property>();
+            try (ResultSet resultSetProp = prepStmtProp.executeQuery()) {
+                while (resultSetProp.next()) {
+                    Property property = new Property();
+                    property.setName(resultSetProp.getString(IdPManagementConstants.SQLConstants.PROPERTY_KEY));
+                    property.setValue(resultSetProp.getString(IdPManagementConstants.SQLConstants.PROPERTY_VALUE));
+                    properties.add(property);
+                }
+                federatedAuthenticatorConfig.setProperties(properties.toArray(new Property[properties.size()]));
+            }
         }
     }
 
@@ -6058,12 +7147,47 @@ public class IdPManagementDAO {
         updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
     }
 
+    private void performConfigCorrectionForAdminForcedPasswordResetConfigs(
+            List<IdentityProviderProperty> idpProperties) {
+
+        /*
+         * Enable email link option as the default option when all other options are disabled.
+         * This config value will not update the database and only do the correction when getting the idp properties.
+         * */
+        idpProperties.stream().filter(
+                        idp -> IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(idp.getName()))
+                .findFirst()
+                .ifPresentOrElse(
+                        adminForcedPasswordResetProperty -> adminForcedPasswordResetProperty.setValue(
+                                String.valueOf(true)),
+                        () -> {
+                            IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                            identityProviderProperty.setName(
+                                    IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
+                            identityProviderProperty.setValue(String.valueOf(true));
+                            idpProperties.add(identityProviderProperty);
+                        });
+    }
+
+    private FederatedAuthenticatorConfig createFederatedAuthenticatorConfig(AuthenticatorPropertyConstants.DefinedByType
+                                                                                   definedByType) {
+
+        if (definedByType == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
+            return new FederatedAuthenticatorConfig();
+        }
+        return new UserDefinedFederatedAuthenticatorConfig();
+    }
+
     private void performConfigCorrectionForUsernameRecoveryConfigs(Connection dbConnection, int tenantId, int idpId,
                                                                    List<IdentityProviderProperty> idpProperties)
             throws SQLException {
 
-        // Enable all recovery options when Recovery.Notification.Username.Enable value is set as enabled.
-        // This keeps functionality consistent with previous API versions for migrating customers.
+        /*
+         Enable all recovery options when Recovery.Notification.Username.Enable value is true and
+         OnDemandConfig.OnInitialUse.EnableSMSUsernameRecoveryIfConnectorEnabled config is enabled in the toml.
+         This keeps functionality consistent with previous API versions for migrating customers.
+        */
+
         idpProperties.stream().filter(
                         idp -> IdPManagementConstants.
                                 EMAIL_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
@@ -6073,7 +7197,7 @@ public class IdPManagementDAO {
                             IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                             identityProviderProperty.setName(
                                     IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY);
-                            identityProviderProperty.setValue("true");
+                            identityProviderProperty.setValue(String.valueOf(true));
                             idpProperties.add(identityProviderProperty);
                         });
         if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED))) {
@@ -6086,7 +7210,7 @@ public class IdPManagementDAO {
                                 IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                                 identityProviderProperty.setName(
                                         IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY);
-                                identityProviderProperty.setValue("true");
+                                identityProviderProperty.setValue(String.valueOf(true));
                                 idpProperties.add(identityProviderProperty);
                             });
         }

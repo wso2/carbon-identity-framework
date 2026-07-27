@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,8 +24,10 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -49,6 +51,8 @@ import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -65,12 +69,16 @@ import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreClientException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,6 +86,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.xml.stream.XMLStreamException;
@@ -86,14 +95,28 @@ import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
 
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.idp.mgt.IdpManager",
+                "service.scope=singleton"
+        }
+)
 public class IdentityProviderManager implements IdpManager {
 
     private static final Log log = LogFactory.getLog(IdentityProviderManager.class);
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
+    private static final String JWKS_URI = "jwksUri";
+    private static final String OAUTH2_JWKS_EP_URL = "oauth2/jwks";
+    private static final String OAUTH2_TOKEN_EP_URL = "oauth2/token";
+    private static final Pattern ISSUER_PATTERN = Pattern.compile("^https?://[^/]+/o/([^/]+)/oauth2/token$");
+    private static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     private static final int OTP_CODE_MIN_LENGTH = 4;
     private static final int OTP_CODE_MAX_LENGTH = 10;
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
+    private final Pattern userDefinedAuthNameRegexPattern =
+            Pattern.compile(IdPManagementConstants.USER_DEFINED_AUTHENTICATOR_NAME_REGEX);
 
     private IdentityProviderManager() {
 
@@ -230,61 +253,110 @@ public class IdentityProviderManager implements IdpManager {
         samlAuthnRequestSigningProperty.setValue(samlAuthnRequestSigningEnabled);
         List<Property> propertyList =
                 new ArrayList<>(Arrays.asList(saml2SSOResidentAuthenticatorConfig.getProperties()));
-        propertyList.add(samlMetadataValidityPeriodProperty);
-        propertyList.add(samlMetadataSigningEnabledProperty);
-        propertyList.add(samlAuthnRequestSigningProperty);
-        Property[] properties = new Property[propertyList.size()];
-        properties = propertyList.toArray(properties);
-        saml2SSOResidentAuthenticatorConfig.setProperties(properties);
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                propertyList.add(samlMetadataValidityPeriodProperty);
+                propertyList.add(samlMetadataSigningEnabledProperty);
+                propertyList.add(samlAuthnRequestSigningProperty);
+            }
 
-        Property oidcProperty = new Property();
-        oidcProperty.setName(OPENID_IDP_ENTITY_ID);
-        oidcProperty.setValue(getOIDCResidentIdPEntityId());
+            Property[] properties = new Property[propertyList.size()];
+            properties = propertyList.toArray(properties);
+            saml2SSOResidentAuthenticatorConfig.setProperties(properties);
 
-        FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
-        oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
-        oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
-        oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
+            Property oidcProperty = new Property();
+            oidcProperty.setName(OPENID_IDP_ENTITY_ID);
+            oidcProperty.setValue(getOIDCResidentIdPEntityId());
 
-        Property passiveStsProperty = new Property();
-        passiveStsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-        passiveStsProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
+            FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
+            List<Property> oidcProperties = new ArrayList<>();
+            oidcProperties.add(oidcProperty);
 
-        FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
-        passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
-        passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        passiveStsAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                Property jwtScopeAsArrayProp = new Property();
+                jwtScopeAsArrayProp.setName(
+                        IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+                jwtScopeAsArrayProp.setValue(
+                        IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT);
+                oidcProperties.add(jwtScopeAsArrayProp);
+            }
 
-        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
-                passiveStsAuthenticationConfig, oidcAuthenticationConfig};
-        identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
-                .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
+            oidcAuthenticationConfig.setProperties(oidcProperties.toArray(new Property[0]));
+            oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+            oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
+            Property passiveStsProperty = new Property();
+            passiveStsProperty.setName(
+                    IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
+            passiveStsProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
 
-        IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
-        String rememberMeTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
-        if (StringUtils.isBlank(rememberMeTimeout) || !StringUtils.isNumeric(rememberMeTimeout) ||
-                Integer.parseInt(rememberMeTimeout) <= 0) {
-            log.warn("RememberMeTimeout in identity.xml should be a numeric value");
-            rememberMeTimeout = IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+            FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
+            passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
+            passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+            passiveStsAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
+
+            FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
+                    passiveStsAuthenticationConfig, oidcAuthenticationConfig};
+            identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
+                    .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
+
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[4];
+
+                IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
+                String rememberMeTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
+                if (StringUtils.isBlank(rememberMeTimeout) || !StringUtils.isNumeric(rememberMeTimeout) ||
+                        Integer.parseInt(rememberMeTimeout) <= 0) {
+                    log.warn("RememberMeTimeout in identity.xml should be a numeric value");
+                    rememberMeTimeout = IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+                }
+                rememberMeTimeoutProperty.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
+                rememberMeTimeoutProperty.setValue(rememberMeTimeout);
+
+                IdentityProviderProperty sessionIdletimeOutProperty = new IdentityProviderProperty();
+                String idleTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT);
+                if (StringUtils.isBlank(idleTimeout) || !StringUtils.isNumeric(idleTimeout) ||
+                        Integer.parseInt(idleTimeout) <= 0) {
+                    log.warn("SessionIdleTimeout in identity.xml should be a numeric value");
+                    idleTimeout = IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
+                }
+                sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+                sessionIdletimeOutProperty.setValue(idleTimeout);
+
+                IdentityProviderProperty enableMaximumSessionTimeOutProperty = new IdentityProviderProperty();
+                String enableMaximumSessionTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT);
+                if (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), enableMaximumSessionTimeout) &&
+                        !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(), enableMaximumSessionTimeout)) {
+                    log.warn("EnableMaximumSessionTimeout in identity.xml should be a boolean value");
+                    enableMaximumSessionTimeout = Boolean.FALSE.toString().toLowerCase();
+                }
+                enableMaximumSessionTimeOutProperty.setName(
+                        IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+                enableMaximumSessionTimeOutProperty.setValue(enableMaximumSessionTimeout);
+
+                IdentityProviderProperty maximumSessionTimeOutProperty = new IdentityProviderProperty();
+                String maximumSessionTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT);
+                if (StringUtils.isBlank(maximumSessionTimeout) || !StringUtils.isNumeric(maximumSessionTimeout) ||
+                        Integer.parseInt(maximumSessionTimeout) <= 0) {
+                    log.warn("MaximumSessionTimeout in identity.xml should be a numeric value");
+                    maximumSessionTimeout = IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
+                }
+                maximumSessionTimeOutProperty.setName(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+                maximumSessionTimeOutProperty.setValue(maximumSessionTimeout);
+
+                idpProperties[0] = rememberMeTimeoutProperty;
+                idpProperties[1] = sessionIdletimeOutProperty;
+                idpProperties[2] = enableMaximumSessionTimeOutProperty;
+                idpProperties[3] = maximumSessionTimeOutProperty;
+                identityProvider.setIdpProperties(idpProperties);
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementServerException("Error while checking if tenant " + tenantDomain +
+                    " is an organization.", e);
         }
-        rememberMeTimeoutProperty.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
-        rememberMeTimeoutProperty.setValue(rememberMeTimeout);
-
-        IdentityProviderProperty sessionIdletimeOutProperty = new IdentityProviderProperty();
-        String idleTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT);
-        if (StringUtils.isBlank(idleTimeout) || !StringUtils.isNumeric(idleTimeout) ||
-                Integer.parseInt(idleTimeout) <= 0) {
-            log.warn("SessionIdleTimeout in identity.xml should be a numeric value");
-            idleTimeout = IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
-        }
-        sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
-        sessionIdletimeOutProperty.setValue(idleTimeout);
-
-        idpProperties[0] = rememberMeTimeoutProperty;
-        idpProperties[1] = sessionIdletimeOutProperty;
-        identityProvider.setIdpProperties(idpProperties);
 
         dao.addIdP(identityProvider, IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
 
@@ -321,19 +393,26 @@ public class IdentityProviderManager implements IdpManager {
         IdPManagementUtil.validatePasswordRecoveryPropertyValues(configurationDetails);
         IdPManagementUtil.validateUsernameRecoveryPropertyValues(configurationDetails);
 
-        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
-            IdentityProviderProperty prop = new IdentityProviderProperty();
-            String key = identityMgtProperty.getName();
-            prop.setName(key);
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+                    IdentityProviderProperty prop = new IdentityProviderProperty();
+                    String key = identityMgtProperty.getName();
+                    prop.setName(key);
 
-            if (configurationDetails.containsKey(key)) {
-                prop.setValue(configurationDetails.get(key));
-            } else {
-                prop.setValue(identityMgtProperty.getValue());
+                    if (configurationDetails.containsKey(key)) {
+                        prop.setValue(configurationDetails.get(key));
+                    } else {
+                        prop.setValue(identityMgtProperty.getValue());
+                    }
+
+                    newProperties.add(prop);
+                    configurationDetails.remove(key);
+                }
             }
-
-            newProperties.add(prop);
-            configurationDetails.remove(key);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementException(String.format(
+                    "Error while checking if tenant %s is an organization.", tenantDomain), e);
         }
 
         for (Map.Entry<String, String> entry : configurationDetails.entrySet()) {
@@ -356,6 +435,21 @@ public class IdentityProviderManager implements IdpManager {
                 if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
                         Integer.parseInt(idpProp.getValue().trim()) <= 0) {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT
+                            + " of ResidentIdP should be a numeric value greater than 0 ");
+                }
+            } else if (StringUtils.equals(idpProp.getName(),
+                    IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT)) {
+                if (StringUtils.isBlank(idpProp.getValue()) || (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(),
+                        idpProp.getValue()) && !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(),
+                        idpProp.getValue()))) {
+                    throw new IdentityProviderManagementException(
+                            IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT
+                                    + " of ResidentIdP should be a boolean value ");
+                }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT)) {
+                if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
+                        Integer.parseInt(idpProp.getValue().trim()) <= 0) {
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
                 }
             } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
@@ -412,6 +506,35 @@ public class IdentityProviderManager implements IdpManager {
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostUpdateResidentIdP(identityProvider, tenantDomain)) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * Delete properties of the resident IDP in the given tenant.
+     *
+     * @param propertyNames List of property names to be deleted.
+     * @param tenantDomain Tenant domain whose resident IdP properties should be deleted.
+     * @throws IdentityProviderManagementException Error when deleting properties of the resident Identity Provider
+     */
+    @Override
+    public void deleteResidentIdpProperties(List<String> propertyNames, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        IdentityProvider residentIdp = dao.getIdPByName(null, IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
+                IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
+
+        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteResidentIdpProperties(propertyNames, tenantDomain)) {
+                return;
+            }
+        }
+
+        dao.deleteIdpProperties(residentIdp, propertyNames, tenantDomain);
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteResidentIdpProperties(propertyNames, tenantDomain)) {
                 return;
             }
         }
@@ -828,6 +951,12 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
+        // Get the SSO IDP for back-channel logout requests coming from sub-organizations.
+        if ((identityProvider == null || StringUtils.isBlank(identityProvider.getId()))
+                && idPName.contains(IdentityUtil.getHostName()) && ISSUER_PATTERN.matcher(idPName).matches()) {
+            identityProvider = getSSOIDP(idPName, tenantId, tenantDomain);
+        }
+
         return identityProvider;
     }
 
@@ -864,6 +993,19 @@ public class IdentityProviderManager implements IdpManager {
         return identityProvider;
     }
 
+    /**
+     * Returns extended IDP with resource ID.
+     * Note: The UserDefinedFederatedAuthenticatorConfig object in the IdentityProvider is not serializable using
+     *       org.apache.commons.lang3.SerializationUtils, which is used in the authentication framework to clone the
+     *       authentication context. Hence, use getSerializableIdPByResourceId(String, String) in
+     *       ApplicationAuthenticatorManager which provides an in IdentityProvider instance with the
+     *       UserDefinedFederatedAuthenticatorConfig converted to a FederatedAuthenticatorConfig.
+     * @param resourceId            Resource ID of the IDP.
+     * @param tenantDomain          Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps   Whether to ignore file based idps or not.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
     @Override
     public IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain, boolean
             ignoreFileBasedIdps) throws IdentityProviderManagementException {
@@ -1499,6 +1641,8 @@ public class IdentityProviderManager implements IdpManager {
 
         markConfidentialPropertiesUsingMetadata(identityProvider);
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        resolveAuthenticatorDefinedByProperty(identityProvider, true, tenantDomain);
+        validateFederatedAuthenticatorConfigName(identityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         validateOutboundProvisioningRoles(identityProvider, tenantDomain);
 
         // Invoking the pre listeners.
@@ -1524,7 +1668,6 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         handleMetadata(tenantId, identityProvider);
-        resolveAuthenticatorDefinedByProperty(identityProvider, true);
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
 
@@ -1864,6 +2007,9 @@ public class IdentityProviderManager implements IdpManager {
     private void updateIDP(IdentityProvider currentIdentityProvider, IdentityProvider newIdentityProvider, int tenantId,
                            String tenantDomain) throws IdentityProviderManagementException {
 
+        resolveAuthenticatorDefinedByProperty(newIdentityProvider, false, tenantDomain);
+        validateNamesForNewAuthenticatorWithUpdateOperation(currentIdentityProvider.getFederatedAuthenticatorConfigs(),
+                newIdentityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         if (isPermissionAndRoleConfigExist(newIdentityProvider)) {
             verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, newIdentityProvider.getPermissionAndRoleConfig());
         }
@@ -1874,17 +2020,42 @@ public class IdentityProviderManager implements IdpManager {
 
         validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
-        resolveAuthenticatorDefinedByProperty(newIdentityProvider, false);
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
     }
 
+    private void validateNamesForNewAuthenticatorWithUpdateOperation(
+            FederatedAuthenticatorConfig[] currentFederatedAuthenticators,
+            FederatedAuthenticatorConfig[] newFederatedAuthenticators,
+            String tenantDomain) throws IdentityProviderManagementException {
+
+        List<FederatedAuthenticatorConfig> newAuthenticators = new ArrayList<>();
+        for (FederatedAuthenticatorConfig authenticatorInNewIdp : newFederatedAuthenticators) {
+            boolean isNewAuthenticator = true;
+            for (FederatedAuthenticatorConfig authenticatorInOldIdp : currentFederatedAuthenticators) {
+                if (authenticatorInNewIdp.getName().equals(authenticatorInOldIdp.getName())) {
+                    isNewAuthenticator = false;
+                    break;
+                }
+            }
+            if (isNewAuthenticator) {
+                newAuthenticators.add(authenticatorInNewIdp);
+            }
+        }
+
+        validateFederatedAuthenticatorConfigName(
+                newAuthenticators.toArray(new FederatedAuthenticatorConfig[0]), tenantDomain);
+    }
+
     /**
-     * Get the authenticators registered in the system.
+     * Get the authenticators registered in the system (system defined federated authenticators).
      *
-     * @return <code>FederatedAuthenticatorConfig</code> array.
+     * @return FederatedAuthenticatorConfig     Array of system defined federated authenticators.
      * @throws IdentityProviderManagementException Error when getting authenticators registered
      *                                             in the system
+     * @deprecated  It is recommended to use {@link #getAllFederatedAuthenticators(String)}, which return both system
+     *              defined and user defined federated authenticators of the provided tenant.
      */
+    @Deprecated
     @Override
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators()
             throws IdentityProviderManagementException {
@@ -2066,6 +2237,44 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
+    public ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset, String filter,
+                                                        String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        limit = validateLimit(limit);
+        offset = validateOffset(offset);
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        return dao.getConnectedApplications(resourceId, limit, offset, expressionNodes);
+    }
+
+    @Override
+    public boolean isIdpReferredBySP(String resourceId, String idpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isIdpReferredBySP(idpName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public boolean isAuthenticatorReferredBySP(String resourceId, String idpName, String authenticatorName,
+                                               String tenantDomain) throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isAuthenticatorReferredBySP(idpName, authenticatorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public boolean isOutboundConnectorReferredBySP(String resourceId, String idpName, String connectorName,
+                                                   String tenantDomain) throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isOutboundConnectorReferredBySP(idpName, connectorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
     public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId,
                                                                      Integer limit, Integer offset)
             throws IdentityProviderManagementException {
@@ -2178,6 +2387,38 @@ public class IdentityProviderManager implements IdpManager {
             // before calling this method
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_IDP_ALREADY_EXISTS, idpName);
+        }
+    }
+
+    private void validateFederatedAuthenticatorConfigName(FederatedAuthenticatorConfig[] federatedAuthConfigs,
+                      String tenantDomain) throws IdentityProviderManagementException {
+
+        if (federatedAuthConfigs == null) {
+            return;
+        }
+
+        for (FederatedAuthenticatorConfig config : federatedAuthConfigs) {
+            if (config.getDefinedByType() == DefinedByType.USER) {
+                // Check if the given authenticator name is already taken.
+                if (isExistingAuthentication(config.getName(), tenantDomain)) {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, config.getName());
+                }
+                // Check if the given authenticator name matches the regex pattern.
+                if (!userDefinedAuthNameRegexPattern.matcher(config.getName()).matches()) {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_INVALID_AUTHENTICATOR_NAME,
+                            IdPManagementConstants.USER_DEFINED_AUTHENTICATOR_NAME_REGEX);
+                }
+                continue;
+            }
+            // Check if there is a system registered authenticator given authenticator name.
+            if (ApplicationAuthenticatorService.getInstance().getFederatedAuthenticators().stream()
+                    .noneMatch(authConfig -> authConfig.getName().equals(config.getName()))) {
+                throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                        .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, new String(
+                        Base64.getEncoder().encode(config.getName().getBytes(StandardCharsets.UTF_8))));
+            }
         }
     }
 
@@ -2312,6 +2553,47 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
+    @Override
+    public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return dao.getAllUserDefinedFederatedAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        List<FederatedAuthenticatorConfig> allFederatedAuthenticators = new ArrayList<>();
+        allFederatedAuthenticators.addAll(getAllUserDefinedFederatedAuthenticators(tenantDomain));
+        allFederatedAuthenticators.addAll(Arrays.asList(getAllFederatedAuthenticators()));
+        return allFederatedAuthenticators.toArray(new FederatedAuthenticatorConfig[0]);
+    }
+
+    @Override
+    public FederatedAuthenticatorConfig getFederatedAuthenticatorByName(
+            String authenticatorName,  String tenantDomain) throws IdentityProviderManagementException {
+
+        for (FederatedAuthenticatorConfig fedAuth : getAllFederatedAuthenticators(tenantDomain)) {
+            if (fedAuth.getName().equals(authenticatorName)) {
+                return fedAuth;
+            }
+        }
+        return null;
+    }
+
+    private boolean isExistingAuthentication(String authenticatorName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        try {
+        return ApplicationAuthenticatorService.getInstance()
+                .isExistingAuthenticatorName(authenticatorName, tenantDomain);
+        } catch (AuthenticatorMgtException e) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, authenticatorName);
+        }
+    }
+
     /**
      * Method to validate the uniqueness of the IDP Issuer Name.
      * Ideally used when adding a IDP.
@@ -2432,10 +2714,34 @@ public class IdentityProviderManager implements IdpManager {
         }
         String[] outboundProvisioningRoles = StringUtils.split(provisioningRole, ",");
 
+        List<String> roles = new ArrayList<>();
+        List<String> groups = new ArrayList<>();
+        for (String entry : outboundProvisioningRoles) {
+            String trimmedEntry = entry.trim();
+            if (StringUtils.isBlank(trimmedEntry)) {
+                continue;
+            }
+            if (isGroup(trimmedEntry)) {
+                groups.add(trimmedEntry);
+            } else {
+                roles.add(trimmedEntry);
+            }
+        }
+
+        validateOutboundProvisioningRoleNames(roles, tenantDomain);
+        validateOutboundProvisioningGroupNames(groups, tenantDomain);
+    }
+
+    private void validateOutboundProvisioningRoleNames(List<String> roles, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        if (roles.isEmpty()) {
+            return;
+        }
         try {
             RoleManagementService roleManagementService =
                     IdpMgtServiceComponentHolder.getInstance().getRoleManagementService();
-            for (String roleName : outboundProvisioningRoles) {
+            for (String roleName : roles) {
                 try {
                     if (!roleManagementService.isExistingRoleName(roleName, tenantDomain)) {
                         throw IdPManagementUtil.handleClientException(
@@ -2453,6 +2759,70 @@ public class IdentityProviderManager implements IdpManager {
             throw IdPManagementUtil.handleServerException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES, null, e);
         }
+    }
+
+    private void validateOutboundProvisioningGroupNames(List<String> groups, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        if (groups.isEmpty()) {
+            return;
+        }
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            UserStoreManager userStoreManager = IdPManagementServiceComponent.getRealmService()
+                    .getTenantUserRealm(tenantId).getUserStoreManager();
+            if (!(userStoreManager instanceof AbstractUserStoreManager)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserStoreManager is not an instance of AbstractUserStoreManager. " +
+                            "Therefore, proceeding without validating outbound provisioning group existence.");
+                }
+                return;
+            }
+            for (String groupName : groups) {
+                if (!isGroupExistInAnyUserStore((AbstractUserStoreManager) userStoreManager, groupName)) {
+                    throw IdPManagementUtil.handleClientException(
+                            IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_GROUP,
+                            null);
+                }
+            }
+        } catch (UserStoreClientException e) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_GROUPS,
+                    e.getMessage(), e);
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_GROUPS, null, e);
+        }
+    }
+
+    /**
+     * Check if a group exists in any user store (primary and all secondary user stores).
+     *
+     * @param userStoreManager          The user store manager.
+     * @param domainQualifiedGroupName  The group name to check.
+     * @return true if the group exists in any user store.
+     * @throws org.wso2.carbon.user.core.UserStoreException If an error occurred while checking group existence.
+     */
+    private boolean isGroupExistInAnyUserStore(AbstractUserStoreManager userStoreManager, String domainQualifiedGroupName)
+            throws org.wso2.carbon.user.core.UserStoreException {
+
+        try {
+            if (userStoreManager.isGroupExistWithName(domainQualifiedGroupName)) {
+                return true;
+            }
+        } catch (org.wso2.carbon.user.api.UserStoreException error) {
+            if (error instanceof UserStoreClientException) {
+                String errorCode = ((UserStoreClientException) error).getErrorCode();
+                if (StringUtils.equals(errorCode, IdPManagementConstants.ERROR_CODE_GROUP_DOES_NOT_EXIST)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group not found: " + domainQualifiedGroupName + ".");
+                    }
+                    return false;
+                }
+            }
+            throw error;
+        }
+        return false;
     }
 
     private boolean isGroup(String localRoleName) {
@@ -2602,6 +2972,10 @@ public class IdentityProviderManager implements IdpManager {
         Map<String, List<String>> metaFedAuthConfigMap = new HashMap<>();
         FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
         for (FederatedAuthenticatorConfig metaFedAuthConfig : metaFedAuthConfigs) {
+            // Continuing as user defined authenticators does not have any authenticator properties having secrets.
+            if (metaFedAuthConfig.getDefinedByType() == DefinedByType.USER) {
+                continue;
+            }
             List<String> secretProperties = new ArrayList<>();
             for (Property property : metaFedAuthConfig.getProperties()) {
                 if (property.isConfidential()) {
@@ -2661,7 +3035,8 @@ public class IdentityProviderManager implements IdpManager {
         return false;
     }
 
-    private void resolveAuthenticatorDefinedByProperty(IdentityProvider idp, boolean isNewFederatedAuthenticator) {
+    private void resolveAuthenticatorDefinedByProperty(IdentityProvider idp, boolean isNewFederatedAuthenticator,
+                                                       String tenantDomain) throws IdentityProviderManagementException {
 
         /* For new federated authenticators: If 'definedByType' is null, set it to default to SYSTEM. */
         if (isNewFederatedAuthenticator) {
@@ -2678,10 +3053,43 @@ public class IdentityProviderManager implements IdpManager {
          if not return USER. */
         for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
             if (federatedAuthConfig.getDefinedByType() == null) {
-                FederatedAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
-                        .getFederatedAuthenticatorByName(federatedAuthConfig.getName());
+                FederatedAuthenticatorConfig authenticatorConfig = getFederatedAuthenticatorByName
+                        (federatedAuthConfig.getName(), tenantDomain);
                 federatedAuthConfig.setDefinedByType(authenticatorConfig.getDefinedByType());
             }
         }
+    }
+
+    private IdentityProvider getSSOIDP(String jwtIssuer, int tenantId, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        IdentityProvider identityProvider = dao.getIdPByName(null, ORGANIZATION_LOGIN_IDP_NAME, tenantId, tenantDomain);
+        if (identityProvider != null && StringUtils.isNotBlank(identityProvider.getId())) {
+            identityProvider.setIdpProperties(
+                    addJWKSUriProperty(identityProvider.getIdpProperties(), jwtIssuer));
+        }
+        return identityProvider;
+    }
+
+    /**
+     * Add JWKS URI property to the identity provider properties for SSO identity provider.
+     * The URI is constructed by replacing the token endpoint with JWKS endpoint.
+     *
+     * @param idpProperties Identity provider properties.
+     * @param jwtIssuer     JWT issuer.
+     * @return IdentityProviderProperty[] Updated identity provider properties.
+     */
+    private IdentityProviderProperty[] addJWKSUriProperty(IdentityProviderProperty[] idpProperties, String jwtIssuer) {
+
+        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(idpProperties)) {
+            identityProviderProperties = new ArrayList<>(Arrays.asList(idpProperties));
+        }
+        String jwksUri = jwtIssuer.replace(OAUTH2_TOKEN_EP_URL, OAUTH2_JWKS_EP_URL);
+        IdentityProviderProperty jwksEndpoint = new IdentityProviderProperty();
+        jwksEndpoint.setName(JWKS_URI);
+        jwksEndpoint.setValue(jwksUri);
+        identityProviderProperties.add(jwksEndpoint);
+        return identityProviderProperties.toArray(new IdentityProviderProperty[0]);
     }
 }

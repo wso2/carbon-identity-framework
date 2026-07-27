@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>provisioning</artifactId>
-        <version>7.7.2-SNAPSHOT</version>
+        <version>7.11.164-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -93,6 +93,14 @@
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -116,7 +124,11 @@
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -145,6 +157,7 @@
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.*;version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.registry.core.service;version="${carbon.kernel.registry.imp.pkg.version}",
@@ -169,6 +182,12 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.util;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.provisioning.internal,

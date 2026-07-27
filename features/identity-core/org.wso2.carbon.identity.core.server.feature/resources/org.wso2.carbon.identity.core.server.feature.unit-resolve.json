@@ -13,6 +13,7 @@
 
     "session.timeout.idle_session_timeout": "m",
     "session.timeout.remember_me_session_timeout": "m",
+    "session.timeout.maximum_session_timeout": "m",
 
     "par.cleanup.clean_expired_requests_every": "m",
 
@@ -88,6 +89,12 @@
     "authentication.adaptive.http_connections.request_timeout": "ms",
     "authentication.adaptive.long_wait.page_refresh_interval": "ms",
     "authentication.adaptive.long_wait.timout": "ms",
-    "authentication.adaptive.execution_supervisor.timeout": "ms"
+    "authentication.adaptive.execution_supervisor.timeout": "ms",
+
+    "authentication.authenticator.saml.parameters.RemoteCertificateClientConnectionTimeout": "ms",
+    "authentication.authenticator.saml.parameters.RemoteCertificateClientReadTimeout": "ms",
+    "authentication.authenticator.saml.parameters.RemoteCertificateClientConnectionRequestTimeout": "ms",
+    "authentication.authenticator.saml.parameters.RemoteCertificateRefreshRetryBlockDuration": "ms",
+    "authentication.authenticator.saml.parameters.RemoteCertificateCacheMaxLifetime": "ms"
   }
 }

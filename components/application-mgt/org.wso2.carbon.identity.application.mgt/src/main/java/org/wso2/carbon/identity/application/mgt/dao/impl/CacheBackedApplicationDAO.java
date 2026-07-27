@@ -167,7 +167,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                 ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(clientId, type);
                 ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(appName,
                         tenantDomain);
-                appCacheByInboundAuth.addToCache(clientKey, clientEntry, tenantDomain);
+                appCacheByInboundAuth.addToCacheOnRead(clientKey, clientEntry, tenantDomain);
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -212,7 +212,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
         ApplicationResourceIDCacheInboundAuthEntry clientEntry =
                 new ApplicationResourceIDCacheInboundAuthEntry(resourceId);
-        resourceIDCacheByInboundAuth.addToCache(cacheKey, clientEntry, tenantDomain);
+        resourceIDCacheByInboundAuth.addToCacheOnRead(cacheKey, clientEntry, tenantDomain);
 
         return resourceId;
     }
@@ -563,6 +563,14 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         return trustedApps;
     }
 
+    @Override
+    public void updateApplicationLocalAndOutboundAuthConfig(ServiceProvider serviceProvider, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        clearAllAppCache(serviceProvider, tenantDomain);
+        appDAO.updateApplicationLocalAndOutboundAuthConfig(serviceProvider, tenantDomain);
+    }
+
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) {
 
         if (log.isDebugEnabled()) {
@@ -572,16 +580,16 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         IdentityServiceProviderCacheKey nameKey = new IdentityServiceProviderCacheKey(serviceProvider
                 .getApplicationName());
         IdentityServiceProviderCacheEntry nameEntry = new IdentityServiceProviderCacheEntry(serviceProvider);
-        appCacheByName.addToCache(nameKey, nameEntry, tenantDomain);
+        appCacheByName.addToCacheOnRead(nameKey, nameEntry, tenantDomain);
 
         ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
         ServiceProviderIDCacheEntry idEntry = new ServiceProviderIDCacheEntry(serviceProvider);
-        appCacheByID.addToCache(idKey, idEntry, tenantDomain);
+        appCacheByID.addToCacheOnRead(idKey, idEntry, tenantDomain);
 
         ServiceProviderResourceIdCacheKey resourceIdCacheKey =
                 new ServiceProviderResourceIdCacheKey(serviceProvider.getApplicationResourceId());
         ServiceProviderResourceIdCacheEntry entry = new ServiceProviderResourceIdCacheEntry(serviceProvider);
-        appCacheByResourceId.addToCache(resourceIdCacheKey, entry, tenantDomain);
+        appCacheByResourceId.addToCacheOnRead(resourceIdCacheKey, entry, tenantDomain);
 
         if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
@@ -593,7 +601,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                             config.getInboundAuthKey(), config.getInboundAuthType());
                     ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(
                             serviceProvider.getApplicationName(), tenantDomain);
-                    appCacheByInboundAuth.addToCache(clientKey, clientEntry, tenantDomain);
+                    appCacheByInboundAuth.addToCacheOnRead(clientKey, clientEntry, tenantDomain);
                 }
             }
         }
@@ -608,10 +616,10 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         ApplicationBasicInfoResourceIdCacheKey key =
                 new ApplicationBasicInfoResourceIdCacheKey(appBasicInfo.getApplicationResourceId());
         ApplicationBasicInfoCacheEntry entry = new ApplicationBasicInfoCacheEntry(appBasicInfo);
-        appBasicInfoCacheByResourceId.addToCache(key, entry, tenantDomain);
+        appBasicInfoCacheByResourceId.addToCacheOnRead(key, entry, tenantDomain);
         ApplicationBasicInfoNameCacheKey nameKey
                 = new ApplicationBasicInfoNameCacheKey(appBasicInfo.getApplicationName());
-        appBasicInfoCacheByName.addToCache(nameKey, entry, tenantDomain);
+        appBasicInfoCacheByName.addToCacheOnRead(nameKey, entry, tenantDomain);
     }
 
     private void addTrustedAppsToCache(PlatformType platformType, List<TrustedApp> trustedApps) {
@@ -622,7 +630,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         TrustedAppPlatformTypeCacheKey cacheKey = new TrustedAppPlatformTypeCacheKey(platformType);
         TrustedAppPlatformTypeCacheEntry cacheEntry = new TrustedAppPlatformTypeCacheEntry(trustedApps);
         // Trusted apps are retrieved regardless of the tenant domain. Therefore, it is added to the super tenant cache.
-        trustedAppByPlatformTypeCache.addToCache(cacheKey, cacheEntry, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        trustedAppByPlatformTypeCache.addToCacheOnRead(cacheKey, cacheEntry,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     private ServiceProvider getApplicationFromCache(int appId, String tenantDomain) {

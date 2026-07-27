@@ -1,0 +1,913 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.external.api.client.internal.service;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import org.apache.http.entity.StringEntity;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.wso2.carbon.identity.external.api.client.api.constant.ErrorMessageConstant;
+import org.wso2.carbon.identity.external.api.client.api.exception.APIClientInvocationException;
+import org.wso2.carbon.identity.external.api.client.api.model.APIAuthentication;
+import org.wso2.carbon.identity.external.api.client.api.model.APIClientConfig;
+import org.wso2.carbon.identity.external.api.client.api.model.APIInvocationConfig;
+import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
+import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
+import org.wso2.carbon.utils.ServerConstants;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
+/**
+ * Integration tests for APIClient class using embedded HTTP server.
+ * Tests complex scenarios without mocking internal components.
+ */
+public class APIClientTest {
+
+    private HttpServer httpServer;
+    private APIClient apiClient;
+    private int serverPort;
+    private String baseUrl;
+    private static final String TEST_ENDPOINT = "/api/test";
+    private static final String RESPONSE_BODY = "{\"result\":\"success\"}";
+
+    @BeforeClass
+    public void setUpClass() throws Exception {
+
+        // Set carbon home to test resources directory.
+        String testResourcesPath = new File(
+                "src/test/resources/repository/conf/identity/identity.xml").getAbsolutePath();
+        System.setProperty("carbon.home", testResourcesPath);
+    }
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+
+        // Find an available port.
+        serverPort = 8000 + (int) (Math.random() * 1000);
+
+        // Create real APIClient with actual configuration.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(20)
+                .defaultMaxPerRoute(10)
+                .build();
+
+        apiClient = new APIClient(config);
+    }
+
+    @AfterMethod
+    public void tearDown() throws IOException {
+
+        if (httpServer != null) {
+            httpServer.stop(0);
+        }
+        if (apiClient != null) {
+            apiClient.close();
+        }
+        System.clearProperty(ServerConstants.CARBON_HOME);
+    }
+
+    /**
+     * Test successful API call with POST method and JSON payload.
+     */
+    @Test
+    public void testCallAPISuccessfulPostRequest() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+        assertEquals(response.getResponseBody(), RESPONSE_BODY);
+    }
+
+    /**
+     * Test API call with BASIC authentication header verification.
+     */
+    @Test
+    public void testCallAPIWithBasicAuthentication() throws Exception {
+
+        final String expectedUsername = "testuser";
+        final String expectedPassword = "testpass@123";
+        final String expectedAuth = "Basic " + Base64.getEncoder()
+                .encodeToString((expectedUsername + ":" + expectedPassword).getBytes(StandardCharsets.UTF_8));
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                if (authHeader != null && authHeader.equals(expectedAuth)) {
+                    exchange.sendResponseHeaders(200, response.length);
+                } else {
+                    exchange.sendResponseHeaders(401, -1);
+                    return;
+                }
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.USERNAME.getName(), expectedUsername);
+        authProperties.put(APIAuthentication.Property.PASSWORD.getName(), expectedPassword);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.BASIC)
+                .properties(authProperties)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+        assertEquals(response.getResponseBody(), RESPONSE_BODY);
+    }
+
+    /**
+     * Test API call with BEARER token authentication.
+     */
+    @Test
+    public void testCallAPIWithBearerAuthentication() throws Exception {
+
+        final String expectedToken = "test-bearer-token-12345";
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                if (authHeader != null && authHeader.equals("Bearer " + expectedToken)) {
+                    exchange.sendResponseHeaders(200, response.length);
+                } else {
+                    exchange.sendResponseHeaders(401, -1);
+                    return;
+                }
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.ACCESS_TOKEN.getName(), expectedToken);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.BEARER)
+                .properties(authProperties)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+        assertEquals(response.getResponseBody(), RESPONSE_BODY);
+    }
+
+    /**
+     * Test API call with retry logic on temporary failures.
+     */
+    @Test
+    public void testCallAPIWithRetryOnFailure() throws Exception {
+
+        final AtomicInteger attemptCount = new AtomicInteger(0);
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                int attempt = attemptCount.incrementAndGet();
+                if (attempt < 3) {
+                    exchange.close();
+                    return;
+                }
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(3);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+        assertTrue(attemptCount.get() >= 3);
+    }
+
+    /**
+     * Test API call with retry exhaustion.
+     */
+    @Test
+    public void testCallAPIWithRetryExhaustion() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                exchange.close();
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(2);
+
+        try {
+            apiClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException was not thrown");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_WHILE_INVOKING_API.getCode());
+        }
+    }
+
+    /**
+     * Test API call with null context throws exception.
+     */
+    @Test(expectedExceptions = APIClientInvocationException.class)
+    public void testCallAPIWithNullContext() throws Exception {
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        apiClient.callAPI(null, invocationConfig);
+    }
+
+    /**
+     * Test API call with null invocation config throws exception.
+     */
+    @Test(expectedExceptions = APIClientInvocationException.class)
+    public void testCallAPIWithNullInvocationConfig() throws Exception {
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(authentication)
+                .endpointUrl("http://localhost:8080/test")
+                .headers(new HashMap<>())
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
+                .build();
+
+        apiClient.callAPI(requestContext, null);
+    }
+
+    /**
+     * Test that a response whose body is within the client-level limit is returned successfully.
+     */
+    @Test
+    public void testResponseWithinClientLevelLimitSucceeds() throws Exception {
+
+        final String smallBody = "OK";
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = smallBody.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Client with a small limit that still covers the 2-byte response.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(10L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = limitedClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getResponseBody(), smallBody);
+    }
+
+    /**
+     * Test that a response whose Content-Length header exceeds the client-level limit fails fast.
+     */
+    @Test
+    public void testResponseExceedsClientLevelLimitViaContentLengthFails() throws Exception {
+
+        final String body = "1234567890ABCDEFGHIJ"; // 20 bytes.
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = body.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length); // Sets Content-Length.
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Limit smaller than the 20-byte body.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(10L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        try {
+            limitedClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException for response size limit exceeded.");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED.getCode());
+        }
+    }
+
+    /**
+     * Test that a response without a Content-Length header whose stream exceeds the limit is rejected.
+     */
+    @Test
+    public void testResponseExceedsClientLevelLimitViaStreamWithNoContentLengthFails() throws Exception {
+
+        final String body = "1234567890ABCDEFGHIJ"; // 20 bytes.
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                // Use chunked transfer so no Content-Length header is sent.
+                exchange.getResponseHeaders().set("Transfer-Encoding", "chunked");
+                exchange.sendResponseHeaders(200, 0);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(body.getBytes(StandardCharsets.UTF_8));
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Limit smaller than the 20-byte body.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(10L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        try {
+            limitedClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException for response size limit exceeded.");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED.getCode());
+        }
+    }
+
+    /**
+     * Test that a per-invocation response limit override takes precedence over the client-level default
+     * and correctly rejects a response body larger than the invocation-level limit.
+     */
+    @Test
+    public void testInvocationLevelLimitOverrideRejectsOversizedResponse() throws Exception {
+
+        final String body = "1234567890ABCDEFGHIJ"; // 20 bytes.
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = body.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Client default is generous (1 KB), but invocation overrides to 10 bytes.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(1024L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        // Invocation-level override is smaller than the 20-byte body.
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+        invocationConfig.setResponseLimitInBytes(10L);
+
+        try {
+            limitedClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException for response size limit exceeded.");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED.getCode());
+        }
+    }
+
+    /**
+     * Test successful API call with PUT method and JSON payload.
+     */
+    @Test
+    public void testCallAPISuccessfulPutRequest() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                if (!"PUT".equals(exchange.getRequestMethod())) {
+                    exchange.sendResponseHeaders(405, -1);
+                    return;
+                }
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.PUT)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+        assertEquals(response.getResponseBody(), RESPONSE_BODY);
+    }
+
+    /**
+     * Test PUT request forwards the payload body to the server.
+     */
+    @Test
+    public void testCallAPIWithPutRequestForwardsPayload() throws Exception {
+
+        final String requestPayload = "{\"name\":\"updated\"}";
+        final String[] receivedPayload = {null};
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] body = exchange.getRequestBody().readAllBytes();
+                receivedPayload[0] = new String(body, StandardCharsets.UTF_8);
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.PUT)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity(requestPayload, StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        apiClient.callAPI(requestContext, invocationConfig);
+
+        assertEquals(receivedPayload[0], requestPayload);
+    }
+
+    @Test
+    public void testAPICallFailsWhenProxyIsUnreachable() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Configure a proxy at a port where nothing is listening.
+        int unusedProxyPort = serverPort + 10000;
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(1000)
+                .httpConnectionRequestTimeoutInMillis(1000)
+                .httpConnectionTimeoutInMillis(1000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .proxyHost("localhost")
+                .proxyPort(unusedProxyPort)
+                .build();
+        APIClient proxiedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        try {
+            proxiedClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException when configured proxy is unreachable.");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_WHILE_INVOKING_API.getCode());
+        }
+    }
+
+    @Test
+    public void testAPICallSucceedsWhenProxyHostIsBlank() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Blank proxy host must be ignored; the client should connect directly.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .proxyHost("   ")
+                .proxyPort(8080)
+                .build();
+        APIClient directClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = directClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+        assertEquals(response.getResponseBody(), RESPONSE_BODY);
+    }
+
+    /**
+     * Test that a per-invocation response limit override higher than the client default allows a
+     * response that would otherwise be blocked by the client-level limit.
+     */
+    @Test
+    public void testInvocationLevelLimitOverrideAllowsLargerResponseThanClientDefault() throws Exception {
+
+        final String body = "1234567890ABCDEFGHIJ"; // 20 bytes.
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = body.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Client default is 10 bytes (smaller than the body).
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(10L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        // Invocation-level override is larger than the 20-byte body, so it should pass.
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+        invocationConfig.setResponseLimitInBytes(1024L);
+
+        APIResponse response = limitedClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getResponseBody(), body);
+    }
+
+    /**
+     * Test that close() completes without throwing an exception on a newly created client.
+     */
+    @Test
+    public void testCloseSucceeds() throws IOException {
+
+        apiClient.close();
+    }
+
+    /**
+     * Test that close() completes without throwing an exception after the client has served requests.
+     */
+    @Test
+    public void testCloseAfterSuccessfulRequestSucceeds() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+
+        apiClient.close();
+    }
+}

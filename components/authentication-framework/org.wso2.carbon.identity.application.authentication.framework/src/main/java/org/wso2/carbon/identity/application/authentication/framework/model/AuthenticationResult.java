@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Authentication result.
@@ -34,8 +35,13 @@ public class AuthenticationResult implements Serializable {
     private String authenticatedIdPs;
     private String authenticatedAuthenticators;
     private boolean isSaaSApp;
+    private boolean isSharedAppLogin;
     private boolean loggedOut;
     private Map<String, String> claimMapping;
+    /**
+     * Unfiltered remote claims that mapped to local claims.
+     */
+    private Map<String, String> mappedRemoteClaims;
     private Map<String, Object> properties = new HashMap<>();
 
     public AuthenticationResult() {
@@ -104,11 +110,31 @@ public class AuthenticationResult implements Serializable {
         this.isSaaSApp = isSaaSApp;
     }
 
+    public boolean isSharedAppLogin() {
+
+        return isSharedAppLogin;
+    }
+
+    public void setSharedAppLogin(boolean sharedAppLogin) {
+
+        isSharedAppLogin = sharedAppLogin;
+    }
+
     public void addProperty(String key, Object value) {
         properties.put(key, value);
     }
 
     public Object getProperty(String key) {
         return properties.get(key);
+    }
+
+    public Optional<Map<String, String>> getMappedRemoteClaims() {
+
+        return Optional.ofNullable(mappedRemoteClaims);
+    }
+
+    public void setMappedRemoteClaims(Map<String, String> mappedRemoteClaims) {
+
+        this.mappedRemoteClaims = mappedRemoteClaims;
     }
 }

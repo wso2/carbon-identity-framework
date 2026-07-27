@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -38,12 +39,14 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ClientAttestationMetaData;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -56,6 +59,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
@@ -77,13 +81,18 @@ import org.wso2.carbon.identity.certificate.management.service.ApplicationCertif
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -103,9 +112,15 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
+import org.wso2.carbon.user.core.model.Condition;
+import org.wso2.carbon.user.core.model.ExpressionCondition;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -121,20 +136,31 @@ import static java.lang.Boolean.TRUE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_GROUP_LIST;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.INVALID_GROUP_FILTER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.INVALID_USER_STORE_DOMAIN;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.FILTER_CO;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT;
+import static org.wso2.carbon.user.core.UserStoreConfigConstants.GROUP_NAME_ATTRIBUTE;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -155,9 +181,12 @@ public class ApplicationManagementServiceImplTest {
     private static final String APPLICATION_TEMPLATE_VERSION_2 = "v1.0.1";
     private static final String APPLICATION_INBOUND_AUTH_KEY_1 = "Test_auth_key1";
     private static final String APPLICATION_INBOUND_AUTH_KEY_2 = "Test_auth_key2";
+    private static final String APPLICATION_INBOUND_AUTH_KEY_OAUTH2 = "auth key";
     private static final String APPLICATION_NAME_FILTER_1 = "name ew application1";
     private static final String APPLICATION_NAME_FILTER_2 = "name co 2";
     private static final String APPLICATION_NAME_FILTER_3 = "name ew application3";
+    private static final String APPLICATION_FILTER_VALUE_1 = "*application1";
+    private static final String APPLICATION_FILTER_VALUE_3 = "*application3";
     private static final String APPLICATION_CLIENT_ID_FILTER = "clientId co %s";
     private static final String APPLICATION_ISSUER_FILTER = "issuer co %s";
     private static final String APPLICATION_NAME_OR_CLIENT_ID_FILTER = "name co sampleAppName or clientId eq %s";
@@ -188,6 +217,7 @@ public class ApplicationManagementServiceImplTest {
     private static final int L1_TENANT_ID = 1;
     private static final String L2_ORG_ID = "30b701c6-e309-4241-b047-0c299c45d1a0";
     private static final int L2_TENANT_ID = 2;
+    private static final String DEFAULT_DOMAIN_NAME = "PRIMARY";
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
@@ -207,6 +237,7 @@ public class ApplicationManagementServiceImplTest {
     public void setup() throws RegistryException, UserStoreException, SecretManagementException {
 
         setupConfiguration();
+        IdentityUtil.populateProperties();
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
 
         SecretManager secretManager = mock(SecretManagerImpl.class);
@@ -529,8 +560,8 @@ public class ApplicationManagementServiceImplTest {
     public Object[][] getAppsExcludingSystemPortals() {
 
         return new Object[][]{
-                {APPLICATION_NAME_FILTER_1, 1},
-                {APPLICATION_NAME_FILTER_3, 0}
+                { APPLICATION_NAME_FILTER_1, APPLICATION_FILTER_VALUE_1, 1 },
+                { APPLICATION_NAME_FILTER_3, APPLICATION_FILTER_VALUE_3, 0 }
         };
     }
 
@@ -568,7 +599,8 @@ public class ApplicationManagementServiceImplTest {
     }
 
     @Test(dataProvider = "getAppsExcludingSystemPortalsDataProvider")
-    public void testGetApplicationBasicInfoWithFilterExcludingSystemPortals(String filter, int expectedResult)
+    public void testGetApplicationBasicInfoWithFilterExcludingSystemPortals(String filter, String filterValue,
+                                                                            int expectedResult)
             throws IdentityApplicationManagementException {
 
         setupExcludeSystemPortalsEnv();
@@ -576,6 +608,7 @@ public class ApplicationManagementServiceImplTest {
             List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
             identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
                     .thenReturn(systemApp);
+            identityUtil.when(() -> IdentityUtil.processSingleCharWildcard(anyString())).thenReturn(filterValue);
             ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
                     (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, filter, 0, 10, true);
             Assert.assertEquals(applicationBasicInfo.length, expectedResult);
@@ -602,7 +635,8 @@ public class ApplicationManagementServiceImplTest {
     }
 
     @Test(dataProvider = "getAppsExcludingSystemPortalsDataProvider")
-    public void testGetCountOfApplicationsWithFilterExcludingSystemPortals(String filter, int expectedResult)
+    public void testGetCountOfApplicationsWithFilterExcludingSystemPortals(String filter, String filterValue,
+                                                                           int expectedResult)
             throws IdentityApplicationManagementException {
 
         setupExcludeSystemPortalsEnv();
@@ -610,6 +644,7 @@ public class ApplicationManagementServiceImplTest {
             List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
             identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
                     .thenReturn(systemApp);
+            identityUtil.when(() -> IdentityUtil.processSingleCharWildcard(anyString())).thenReturn(filterValue);
             Assert.assertEquals(
                     applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
                             filter, true), expectedResult);
@@ -617,9 +652,19 @@ public class ApplicationManagementServiceImplTest {
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
-    
-    @Test
-    public void testCreateAndGetApplicationWithProtocolService() throws IdentityApplicationManagementException {
+
+    @DataProvider(name = "organizationDataProvider")
+    public Object[][] getOrganizationDataProvider() {
+
+        return new Object[][]{
+                {false},
+                {true}
+        };
+    }
+
+    @Test(dataProvider = "organizationDataProvider")
+    public void testCreateAndGetApplicationWithProtocolService(boolean isOrganization) throws
+            IdentityApplicationManagementException {
         
         ApplicationDTO.Builder applicationDTOBuilder = new ApplicationDTO.Builder();
         ServiceProvider inputSP1 = new ServiceProvider();
@@ -632,48 +677,83 @@ public class ApplicationManagementServiceImplTest {
         InboundProtocolsDTO inbounds = setInboundProtocol();
         inbounds.addProtocolConfiguration(() -> ApplicationConstants.StandardInboundProtocols.SAML2);
         applicationDTOBuilder.inboundProtocolConfigurationDto(inbounds);
-        
-        // Mocking protocol service.
-        ApplicationManagementServiceComponentHolder.getInstance().addApplicationInboundAuthConfigHandler(
-                customSAML2InboundAuthConfigHandler());
-        
-        // Creating application.
-        applicationManagementService.createApplication(applicationDTOBuilder.build(), SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1);
+
+        try (MockedStatic<OrganizationManagementUtil> organizationMgtUtilMockedStatic =
+                     mockStatic(OrganizationManagementUtil.class)) {
+            organizationMgtUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString())).
+                    thenReturn(isOrganization);
+            // Mocking protocol service.
+            ApplicationInboundAuthConfigHandler customSAML2InboundAuthConfigHandler =
+                    customSAML2InboundAuthConfigHandler(isOrganization);
+            ApplicationInboundAuthConfigHandler customOAuth2InboundAuthConfigHandler =
+                    customOAuth2InboundAuthConfigHandler();
+            ApplicationManagementServiceComponentHolder.getInstance().addApplicationInboundAuthConfigHandler(
+                    customSAML2InboundAuthConfigHandler);
+            if (isOrganization) {
+                ApplicationManagementServiceComponentHolder.getInstance().addApplicationInboundAuthConfigHandler(
+                        customOAuth2InboundAuthConfigHandler);
+            }
+            // Creating application.
+            applicationManagementService.createApplication(applicationDTOBuilder.build(), SUPER_TENANT_DOMAIN_NAME,
+                    USERNAME_1);
+            ApplicationManagementServiceComponentHolder.getInstance().removeApplicationInboundConfigHandler(
+                    customSAML2InboundAuthConfigHandler);
+            ApplicationManagementServiceComponentHolder.getInstance().removeApplicationInboundConfigHandler(
+                    customOAuth2InboundAuthConfigHandler);
+        }
         ServiceProvider applicationByResourceId = applicationManagementService.getApplicationByResourceId(inputSP1
                 .getApplicationResourceId(), SUPER_TENANT_DOMAIN_NAME);
         Assert.assertEquals(applicationByResourceId.getApplicationName(), APPLICATION_NAME_1);
-        // There should be 2 inbound protocol configurations. The one that already exists and the one that is created.
-        Assert.assertEquals(applicationByResourceId.getInboundAuthenticationConfig()
-                .getInboundAuthenticationRequestConfigs().length, 2);
-        for (InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig : applicationByResourceId
-                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
-            // This is the existing inbound protocol configuration. Validate the existing inbound protocol
-            // configuration is unchanged.
-            if (ApplicationConstants.StandardInboundProtocols.OAUTH2.equals(inboundAuthenticationRequestConfig
-                    .getInboundAuthType())) {
-                Assert.assertEquals(inboundAuthenticationRequestConfig.getInboundAuthKey(),
-                        "auth key");
+        if (!isOrganization) {
+            /*
+             There should be 2 inbound protocol configurations. The one that already exists and the one that
+             is created.
+            */
+            Assert.assertEquals(applicationByResourceId.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs().length, 2);
+            for (InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig : applicationByResourceId
+                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
+                /*
+                 This is the existing inbound protocol configuration. Validate the existing inbound protocol
+                 configuration is unchanged.
+                */
+                if (ApplicationConstants.StandardInboundProtocols.OAUTH2.equals(inboundAuthenticationRequestConfig
+                        .getInboundAuthType())) {
+                    Assert.assertEquals(inboundAuthenticationRequestConfig.getInboundAuthKey(),
+                            APPLICATION_INBOUND_AUTH_KEY_OAUTH2);
+                }
+                /*
+                 This is the newly created inbound protocol configuration. Validate the newly created inbound
+                 protocol is added.
+                */
+                if (ApplicationConstants.StandardInboundProtocols.SAML2.equals(inboundAuthenticationRequestConfig
+                        .getInboundAuthType())) {
+                    Assert.assertEquals(inboundAuthenticationRequestConfig.getInboundAuthKey(),
+                            APPLICATION_INBOUND_AUTH_KEY_1);
+                }
             }
-            // This is the newly created inbound protocol configuration. Validate the newly created inbound protocol
-            // is added.
-            if (ApplicationConstants.StandardInboundProtocols.SAML2.equals(inboundAuthenticationRequestConfig
-                    .getInboundAuthType())) {
-                Assert.assertEquals(inboundAuthenticationRequestConfig.getInboundAuthKey(),
-                        APPLICATION_INBOUND_AUTH_KEY_1);
-            }
+        } else {
+            /*
+             There should be 1 inbound protocol configurations since in the sub organization level, saml inbound
+             protocol configurations are not allowed.
+            */
+            Assert.assertEquals(applicationByResourceId.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs().length, 1);
+            InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = applicationByResourceId
+                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()[0];
+            Assert.assertEquals(inboundAuthenticationRequestConfig.getInboundAuthKey(),
+                    APPLICATION_INBOUND_AUTH_KEY_OAUTH2);
         }
-        
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
     
-    private ApplicationInboundAuthConfigHandler customSAML2InboundAuthConfigHandler() {
+    private ApplicationInboundAuthConfigHandler customSAML2InboundAuthConfigHandler(boolean isOrganization) {
         
         return new ApplicationInboundAuthConfigHandler() {
             @Override
             public boolean canHandle(InboundProtocolsDTO inboundProtocolsDTO) {
                 
-                return true;
+                return !isOrganization;
             }
             
             @Override
@@ -712,6 +792,56 @@ public class ApplicationManagementServiceImplTest {
             public InboundProtocolConfigurationDTO handleConfigRetrieval(String appId)
                     throws IdentityApplicationManagementException {
                 
+                return null;
+            }
+        };
+    }
+
+    private ApplicationInboundAuthConfigHandler customOAuth2InboundAuthConfigHandler() {
+
+        return new ApplicationInboundAuthConfigHandler() {
+            @Override
+            public boolean canHandle(InboundProtocolsDTO inboundProtocolsDTO) {
+
+                return true;
+            }
+
+            @Override
+            public boolean canHandle(String protocolName) {
+
+                return ApplicationConstants.StandardInboundProtocols.OAUTH2.equals(protocolName);
+            }
+
+            @Override
+            public InboundAuthenticationRequestConfig handleConfigCreation(ServiceProvider serviceProvider,
+                                                                           InboundProtocolsDTO inboundProtocolsDTO)
+                    throws IdentityApplicationManagementException {
+
+                InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = new
+                        InboundAuthenticationRequestConfig();
+                inboundAuthenticationRequestConfig.setInboundAuthKey(APPLICATION_INBOUND_AUTH_KEY_OAUTH2);
+                inboundAuthenticationRequestConfig.setInboundAuthType(
+                        ApplicationConstants.StandardInboundProtocols.OAUTH2);
+                return inboundAuthenticationRequestConfig;
+            }
+
+            @Override
+            public InboundAuthenticationRequestConfig handleConfigUpdate(
+                    ServiceProvider application, InboundProtocolConfigurationDTO inboundProtocolsDTO)
+                    throws IdentityApplicationManagementException {
+
+                return null;
+            }
+
+            @Override
+            public void handleConfigDeletion(String appId) throws IdentityApplicationManagementException {
+
+            }
+
+            @Override
+            public InboundProtocolConfigurationDTO handleConfigRetrieval(String appId)
+                    throws IdentityApplicationManagementException {
+
                 return null;
             }
         };
@@ -1741,6 +1871,116 @@ public class ApplicationManagementServiceImplTest {
         });
     }
 
+    @Test(groups = "b2b-shared-apps", priority = 18, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetSharedAppId() throws Exception {
+
+        String l1SharedAppId = applicationManagementService.getSharedAppId(rootAppId, ROOT_ORG_ID, L1_ORG_ID);
+        Assert.assertEquals(l1SharedAppId, l1AppId, "Incorrect shared app ID for level 1 organization.");
+
+        String l2SharedAppId = applicationManagementService.getSharedAppId(rootAppId, ROOT_ORG_ID, L2_ORG_ID);
+        Assert.assertEquals(l2SharedAppId, l2AppId, "Incorrect shared app ID for level 2 organization.");
+    }
+
+    @DataProvider(name = "testGetGroupsDataProvider")
+    public Object[][] testGetGroupsDataProvider() {
+
+        ExpressionNode validExpressionNode = new ExpressionNode();
+        validExpressionNode.setOperation(FILTER_CO);
+        validExpressionNode.setAttributeValue(NAME);
+        validExpressionNode.setValue("test-value");
+        ExpressionNode invalidExpressionNode1 = new ExpressionNode();
+        invalidExpressionNode1.setAttributeValue("wrong-filter-attr");
+        invalidExpressionNode1.setOperation(FILTER_CO);
+        ExpressionNode invalidExpressionNode2 = new ExpressionNode();
+        invalidExpressionNode2.setAttributeValue(NAME);
+        invalidExpressionNode2.setOperation("wrong-filter-op");
+        OperationNode operationNode = new OperationNode(FILTER_CO);
+        Group group1 = new Group("test-group-id-1", "test-group-name-1");
+        Group group2 = new Group("test-group-id-2", "test-group-name-2");
+
+        return new Object[][] {
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, null, new ArrayList<>(Arrays.asList(group1, group2)), null,
+                        null},
+                {ROOT_TENANT_DOMAIN, null, null, new ArrayList<>(Arrays.asList(group1, group2)), null, null},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, operationNode, null, null, INVALID_GROUP_FILTER.getCode()},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, invalidExpressionNode1, null, null,
+                        INVALID_GROUP_FILTER.getCode()},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, invalidExpressionNode2, null, null,
+                        INVALID_GROUP_FILTER.getCode()},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, validExpressionNode,
+                        new ArrayList<>(Arrays.asList(group1, group2)), null, null},
+                {ROOT_TENANT_DOMAIN, "wrong-domain-name", validExpressionNode, null, null,
+                        INVALID_USER_STORE_DOMAIN.getCode()},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, null, null,
+                        new org.wso2.carbon.user.core.UserStoreException(), ERROR_RETRIEVING_GROUP_LIST.getCode()}
+        };
+    }
+
+    @Test(description = "Test the group listing functionality of the application management service.",
+            dataProvider = "testGetGroupsDataProvider")
+    public void testGetGroups(String tenantDomain, String domainName, Node filter, List<Group> userStoreGroupsResponse,
+                              org.wso2.carbon.user.core.UserStoreException userStoreGroupsRequestException,
+                              String expectedErrorCode) throws UserStoreException {
+
+        AbstractUserStoreManager mockAbstractUserStoreManager = mock(AbstractUserStoreManager.class);
+        RealmService mockRealmService = mock(RealmService.class);
+        UserRealm mockUserRealmService = mock(UserRealm.class);
+        ApplicationManagementServiceComponentHolder mockApplicationManagementServiceComponentHolder =
+                mock(ApplicationManagementServiceComponentHolder.class);
+        try (MockedStatic<ApplicationManagementServiceComponentHolder> applicationManagementServiceComponentHolder =
+                     mockStatic(ApplicationManagementServiceComponentHolder.class)) {
+            applicationManagementServiceComponentHolder.when(ApplicationManagementServiceComponentHolder::getInstance)
+                    .thenReturn(mockApplicationManagementServiceComponentHolder);
+            when(mockApplicationManagementServiceComponentHolder.getRealmService()).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantUserRealm(eq(SUPER_TENANT_ID))).thenReturn(mockUserRealmService);
+            when(mockUserRealmService.getUserStoreManager()).thenReturn(mockAbstractUserStoreManager);
+            when(mockAbstractUserStoreManager.getSecondaryUserStoreManager(eq(DEFAULT_DOMAIN_NAME))).thenReturn(
+                    mockAbstractUserStoreManager);
+            if (userStoreGroupsResponse != null) {
+                when(mockAbstractUserStoreManager.listGroups(nullable(Condition.class), nullable(String.class),
+                        anyInt(), anyInt(), nullable(String.class), nullable(String.class))).thenReturn(
+                        userStoreGroupsResponse);
+            } else if (userStoreGroupsRequestException != null) {
+                when(mockAbstractUserStoreManager.listGroups(nullable(Condition.class), nullable(String.class),
+                        anyInt(), anyInt(), nullable(String.class), nullable(String.class))).thenThrow(
+                        userStoreGroupsRequestException);
+            }
+            try {
+                List<GroupBasicInfo> groups = applicationManagementService.getGroups(tenantDomain, domainName, filter);
+                for (int i = 0; i < groups.size(); i++) {
+                    assertEquals(groups.get(i).getId(), userStoreGroupsResponse.get(i).getGroupID());
+                    assertEquals(groups.get(i).getName(), userStoreGroupsResponse.get(i).getGroupName());
+                }
+            } catch (IdentityApplicationManagementException e) {
+                assertEquals(e.getErrorCode(), expectedErrorCode);
+            }
+            if (userStoreGroupsResponse != null || userStoreGroupsRequestException != null) {
+                ArgumentCaptor<Condition> conditionArgumentCaptor = ArgumentCaptor.forClass(Condition.class);
+                ArgumentCaptor<String> userDomainArgumentCaptor = ArgumentCaptor.forClass(String.class);
+                verify(mockAbstractUserStoreManager).listGroups(conditionArgumentCaptor.capture(),
+                        userDomainArgumentCaptor.capture(),
+                        eq(100), eq(0), nullable(String.class), nullable(String.class));
+                if (filter == null) {
+                    assertEquals(conditionArgumentCaptor.getValue().getOperation(), "SW");
+                    assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeName(),
+                            GROUP_NAME_ATTRIBUTE);
+                    assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeValue(),
+                            StringUtils.EMPTY);
+                } else if (filter instanceof OperationNode) {
+                    assertEquals(conditionArgumentCaptor.getValue().getOperation(),
+                            conditionArgumentCaptor.getValue().getOperation());
+                } else {
+                    assertEquals(conditionArgumentCaptor.getValue().getOperation(), StringUtils.upperCase(FILTER_CO));
+                    assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeName(),
+                            GROUP_NAME_ATTRIBUTE);
+                    assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeValue(),
+                            ((ExpressionNode) filter).getValue());
+                }
+                assertEquals(userDomainArgumentCaptor.getValue(), DEFAULT_DOMAIN_NAME);
+            }
+        }
+    }
+
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
 
         serviceProvider.setDescription("Created for testing");
@@ -1987,5 +2227,284 @@ public class ApplicationManagementServiceImplTest {
         }
 
         return sharedAppId;
+    }
+
+    @DataProvider(name = "isAssociatedRolesConfigValidDataProvider")
+    public Object[][] isAssociatedRolesConfigValidDataProvider() {
+
+        return new Object[][]{
+                // Test cases: {testName, associatedRolesConfig, tenantDomain, expectedResult}.
+                {"NullAssociatedRolesConfig", null, SUPER_TENANT_DOMAIN_NAME, true},
+                {"EmptyRoles", createAssociatedRolesConfig(RoleConstants.APPLICATION, new RoleV2[0]),
+                        SUPER_TENANT_DOMAIN_NAME, true},
+                {"OrganizationAudienceType", createAssociatedRolesConfig(RoleConstants.ORGANIZATION,
+                        createRoles("role1", "role2")), SUPER_TENANT_DOMAIN_NAME, true},
+                {"OrganizationAudienceTypeNullAudience", createAssociatedRolesConfig(null,
+                        createRoles("role1", "role2")), SUPER_TENANT_DOMAIN_NAME, true},
+                {"OrganizationAudienceTypeBlankAudience", createAssociatedRolesConfig("",
+                        createRoles("role1", "role2")), SUPER_TENANT_DOMAIN_NAME, true},
+                {"OrganizationAudienceTypeEmptyAudience", createAssociatedRolesConfig("   ",
+                        createRoles("role1", "role2")), SUPER_TENANT_DOMAIN_NAME, true}
+        };
+    }
+
+    @Test(dataProvider = "isAssociatedRolesConfigValidDataProvider")
+    public void testIsAssociatedRolesConfigValid(String testName, AssociatedRolesConfig associatedRolesConfig,
+                                                  String tenantDomain, boolean expectedResult) throws Exception {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("TestApp");
+        serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
+
+        Method isAssociatedRolesConfigValidMethod = ApplicationManagementServiceImpl.class
+                .getDeclaredMethod("isAssociatedRolesConfigValid", ServiceProvider.class, String.class);
+        isAssociatedRolesConfigValidMethod.setAccessible(true);
+
+        boolean result = (boolean) isAssociatedRolesConfigValidMethod.invoke(applicationManagementService,
+                serviceProvider, tenantDomain);
+
+        Assert.assertEquals(result, expectedResult, "Test case '" + testName + "' failed.");
+    }
+
+    /**
+     * Test specifically the organization audience type scenario to ensure it returns true early.
+     */
+    @Test
+    public void testIsAssociatedRolesConfigValidOrganizationAudienceTypeReturnsEarly() throws Exception {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("TestApp");
+
+        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+        associatedRolesConfig.setAllowedAudience(RoleConstants.ORGANIZATION);
+        associatedRolesConfig.setRoles(createRoles("role1", "role2", "role3"));
+        serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
+
+        Method isAssociatedRolesConfigValidMethod = ApplicationManagementServiceImpl.class
+                .getDeclaredMethod("isAssociatedRolesConfigValid", ServiceProvider.class, String.class);
+        isAssociatedRolesConfigValidMethod.setAccessible(true);
+
+        boolean result = (boolean) isAssociatedRolesConfigValidMethod.invoke(applicationManagementService,
+                serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertTrue(result,
+                "Method should return true for organization audience type and skip validation");
+    }
+
+    /**
+     * Test with different case variations of organization audience type.
+     */
+    @Test
+    public void testIsAssociatedRolesConfigValidOrganizationAudienceTypeCaseInsensitive() throws Exception {
+
+        String[] organizationVariations = {"organization", "ORGANIZATION", "Organization", "OrGaNiZaTiOn"};
+        for (String audienceType : organizationVariations) {
+            ServiceProvider serviceProvider = new ServiceProvider();
+            serviceProvider.setApplicationName("TestApp");
+
+            AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+            associatedRolesConfig.setAllowedAudience(audienceType);
+            associatedRolesConfig.setRoles(createRoles("role1"));
+            serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
+
+            Method isAssociatedRolesConfigValidMethod = ApplicationManagementServiceImpl.class
+                    .getDeclaredMethod("isAssociatedRolesConfigValid", ServiceProvider.class, String.class);
+            isAssociatedRolesConfigValidMethod.setAccessible(true);
+
+            boolean result = (boolean) isAssociatedRolesConfigValidMethod.invoke(applicationManagementService,
+                    serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+
+            Assert.assertTrue(result,
+                    "Method should return true for organization audience type variation: " + audienceType);
+        }
+    }
+
+    @DataProvider(name = "saasAppCreationDataProvider")
+    public Object[][] saasAppCreationDataProvider() {
+
+        return new Object[][]{
+                // configValue, isSaasApp, expectSuccess
+                {"true", true, true},
+                {"false", true, false},
+                {null, true, false},
+                {"false", false, true}
+        };
+    }
+
+    @Test(dataProvider = "saasAppCreationDataProvider")
+    public void testAddApplicationWithSaaSConfig(String configValue, boolean isSaasApp, boolean expectSuccess)
+            throws Exception {
+
+        String appName = isSaasApp ? "TestSaaSApp" : "TestNonSaaSApp";
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(appName);
+        serviceProvider.setSaasApp(isSaasApp);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation")).thenReturn(configValue);
+
+            if (expectSuccess) {
+                ServiceProvider addedSP = applicationManagementService.addApplication(serviceProvider,
+                        SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+                Assert.assertEquals(addedSP.getApplicationName(), appName);
+                Assert.assertEquals(addedSP.isSaasApp(), isSaasApp);
+
+                applicationManagementService.deleteApplication(appName, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+            } else {
+                IdentityApplicationManagementClientException exception = Assert.expectThrows(
+                        IdentityApplicationManagementClientException.class,
+                        () -> applicationManagementService.addApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME,
+                                USERNAME_1));
+
+                Assert.assertEquals(exception.getErrorCode(), INVALID_REQUEST.getCode());
+            }
+        }
+    }
+
+    @DataProvider(name = "saasAppConversionDataProvider")
+    public Object[][] saasAppConversionDataProvider() {
+
+        return new Object[][]{
+                // configValue, wasAlreadySaaS, updateToSaaS, expectSuccess
+                {"true", false, true, true},    // Enabled: non-SaaS -> SaaS allowed
+                {"false", false, true, false},  // Disabled: non-SaaS -> SaaS blocked
+                {null, false, true, false},     // Not set: non-SaaS -> SaaS blocked
+                {"false", true, true, true},    // Disabled but already SaaS: update allowed
+                {"false", false, false, true}   // Disabled: non-SaaS stays non-SaaS allowed
+        };
+    }
+
+    /**
+     * Test updateApplication behaviour when converting a non-SaaS app to SaaS based on config.
+     */
+    @Test(dataProvider = "saasAppConversionDataProvider")
+    public void testUpdateApplicationWithSaaSConversion(String configValue, boolean wasAlreadySaaS,
+            boolean updateToSaaS, boolean expectSuccess) throws Exception {
+
+        String appName = "TestSaaSConversionApp";
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(appName);
+        addApplicationConfigurations(inputSP);
+        inputSP.setSaasApp(wasAlreadySaaS);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            // Enable SaaS creation if the app needs to be created as SaaS.
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation"))
+                    .thenReturn(wasAlreadySaaS ? "true" : configValue);
+
+            applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+
+            // Now set the config to the test's intended value for the update operation.
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation")).thenReturn(configValue);
+
+            ServiceProvider storedSP = applicationManagementService.getApplicationExcludingFileBasedSPs(
+                    appName, SUPER_TENANT_DOMAIN_NAME);
+            ServiceProvider spForUpdate = new ServiceProvider();
+            spForUpdate.setApplicationName(appName);
+            spForUpdate.setApplicationID(inputSP.getApplicationID());
+            spForUpdate.setApplicationResourceId(storedSP.getApplicationResourceId());
+            spForUpdate.setApplicationVersion(storedSP.getApplicationVersion());
+            addApplicationConfigurations(spForUpdate);
+            spForUpdate.setSaasApp(updateToSaaS);
+
+            if (expectSuccess) {
+                applicationManagementService.updateApplication(spForUpdate, SUPER_TENANT_DOMAIN_NAME,
+                        REGISTRY_SYSTEM_USERNAME);
+
+                ServiceProvider retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs(
+                        appName, SUPER_TENANT_DOMAIN_NAME);
+                Assert.assertEquals(retrievedSP.isSaasApp(), updateToSaaS);
+            } else {
+                IdentityApplicationManagementException exception = Assert.expectThrows(
+                        IdentityApplicationManagementException.class,
+                        () -> applicationManagementService.updateApplication(spForUpdate, SUPER_TENANT_DOMAIN_NAME,
+                                REGISTRY_SYSTEM_USERNAME));
+                Assert.assertTrue(exception.getCause() instanceof IdentityApplicationManagementClientException);
+                Assert.assertEquals(
+                        ((IdentityApplicationManagementClientException) exception.getCause()).getErrorCode(),
+                        INVALID_REQUEST.getCode());
+            }
+        } finally {
+            applicationManagementService.deleteApplication(appName, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        }
+    }
+
+    /**
+     * Test updateApplicationByResourceId behaviour when converting a non-SaaS app to SaaS based on config.
+     */
+    @Test(dataProvider = "saasAppConversionDataProvider")
+    public void testUpdateApplicationByResourceIdWithSaaSConversion(String configValue, boolean wasAlreadySaaS,
+            boolean updateToSaaS, boolean expectSuccess) throws Exception {
+
+        String appName = "TestSaaSConversionByResourceIdApp";
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(appName);
+        addApplicationConfigurations(inputSP);
+        inputSP.setSaasApp(wasAlreadySaaS);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            // Enable SaaS creation if the app needs to be created as SaaS.
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation"))
+                    .thenReturn(wasAlreadySaaS ? "true" : configValue);
+
+            String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+
+            // Now set the config to the test's intended value for the update operation.
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation")).thenReturn(configValue);
+
+            ServiceProvider storedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            ServiceProvider spForUpdate = new ServiceProvider();
+            spForUpdate.setApplicationName(appName);
+            spForUpdate.setApplicationResourceId(storedSP.getApplicationResourceId());
+            spForUpdate.setApplicationID(storedSP.getApplicationID());
+            spForUpdate.setApplicationVersion(storedSP.getApplicationVersion());
+            addApplicationConfigurations(spForUpdate);
+            spForUpdate.setSaasApp(updateToSaaS);
+
+            if (expectSuccess) {
+                applicationManagementService.updateApplicationByResourceId(resourceId, spForUpdate,
+                        SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+
+                ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                        SUPER_TENANT_DOMAIN_NAME);
+                Assert.assertEquals(retrievedSP.isSaasApp(), updateToSaaS);
+            } else {
+                IdentityApplicationManagementClientException exception = Assert.expectThrows(
+                        IdentityApplicationManagementClientException.class,
+                        () -> applicationManagementService.updateApplicationByResourceId(resourceId, spForUpdate,
+                                SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME));
+                Assert.assertEquals(exception.getErrorCode(), INVALID_REQUEST.getCode());
+            }
+        } finally {
+            applicationManagementService.deleteApplication(appName, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        }
+    }
+
+    /**
+     * Helper method to create AssociatedRolesConfig with specified audience and roles.
+     */
+    private AssociatedRolesConfig createAssociatedRolesConfig(String allowedAudience, RoleV2[] roles) {
+
+        AssociatedRolesConfig config = new AssociatedRolesConfig();
+        config.setAllowedAudience(allowedAudience);
+        config.setRoles(roles);
+        return config;
+    }
+
+    /**
+     * Helper method to create an array of RoleV2 objects.
+     */
+    private RoleV2[] createRoles(String... roleNames) {
+
+        RoleV2[] roles = new RoleV2[roleNames.length];
+        for (int i = 0; i < roleNames.length; i++) {
+            roles[i] = new RoleV2();
+            roles[i].setName(roleNames[i]);
+            roles[i].setId("role-id-" + i);
+        }
+        return roles;
     }
 }

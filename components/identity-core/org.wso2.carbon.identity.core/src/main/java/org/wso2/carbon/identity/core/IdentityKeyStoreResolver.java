@@ -95,6 +95,7 @@ public class IdentityKeyStoreResolver {
                 return keyStoreManager.getPrimaryKeyStore();
             }
 
+            initializeTenantRegistry(tenantDomain);
             // Get tenant keystore from keyStoreManager
             String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
             return keyStoreManager.getKeyStore(tenantKeyStoreName);
@@ -177,6 +178,7 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 privateKey = keyStoreManager.getDefaultPrivateKey();
             } else {
+                initializeTenantRegistry(tenantDomain);
                 String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
                 privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
             }
@@ -247,6 +249,79 @@ public class IdentityKeyStoreResolver {
     }
 
     /**
+     * Retrieves the public certificate for a given tenant domain and context.
+     * <p>
+     * This method fetches the public certificate associated with a specific tenant domain and context.
+     * If the context is blank, it delegates the call to the overloaded
+     * {@code getCertificate(String tenantDomain)} method.
+     * The method first checks if the certificate is cached; if not, it retrieves the certificate from
+     * the KeyStoreManager, caches it, and then returns it.
+     * </p>
+     *
+     * @param tenantDomain the tenant domain for which the certificate is requested.
+     * @param context      the specific context for the tenant's certificate. If blank, the default certificate for the tenant is fetched.
+     * @return the public certificate for the specified tenant domain and context.
+     * @throws IdentityKeyStoreResolverException if there is an error while retrieving the certificate.
+     */
+
+    private Certificate getCertificate(String tenantDomain, String context) throws IdentityKeyStoreResolverException {
+
+        if (StringUtils.isBlank(context)) {
+            getCertificate(tenantDomain);
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        if (publicCerts.containsKey(buildTenantIdWithContext(tenantId, context))) {
+            return publicCerts.get(buildTenantIdWithContext(tenantId, context));
+        }
+
+        initializeTenantRegistry(tenantDomain);
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+        Certificate publicCert;
+        String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
+        try {
+            publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain +
+                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
+
+        } catch (SecurityException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Key Store with a name: " + tenantKeyStoreName
+                    + " does not exist.")) {
+
+                throw new IdentityKeyStoreResolverException(
+                        ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST.getCode(),
+                        String.format(
+                                ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST
+                                        .getDescription(), tenantDomain), e);
+            } else {
+                throw new IdentityKeyStoreResolverException(
+                        ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getCode(),
+                        String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getDescription(),
+                                tenantDomain), e);
+            }
+        } catch (Exception e) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getDescription(),
+                            tenantDomain), e);
+        }
+
+        publicCerts.put(buildTenantIdWithContext(tenantId, context), publicCert);
+        return publicCert;
+    }
+
+    /**
+     * Concatenates tenantId and context with the separator.
+     *
+     * @param tenantId the key store name
+     * @param context the context
+     * @return a concatenated string in the format tenantDomain:context
+     */
+    private String buildTenantIdWithContext(int tenantId, String context) {
+
+        return tenantId + IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context;
+    }
+
+    /**
      * Return Public Certificate of the Primary or tenant keystore according to given tenant domain.
      *
      * @param tenantDomain  Tenant domain.
@@ -266,6 +341,7 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 publicCert = keyStoreManager.getDefaultPrimaryCertificate();
             } else {
+                initializeTenantRegistry(tenantDomain);
                 String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
                 publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain);
             }
@@ -285,21 +361,24 @@ public class IdentityKeyStoreResolver {
      *
      * @param tenantDomain      Tenant domain.
      * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @param context           Context of the keystore.
      * @return Public Certificate of the Primary, tenant or custom keystore.
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
-    public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol)
+    public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol, String context)
             throws IdentityKeyStoreResolverException {
+
 
         if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
+        if (context != null) {
+            return getCertificate(tenantDomain, context);
+        }
         if (inboundProtocol == null) {
-            throw new IdentityKeyStoreResolverException(
-                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
-                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Inbound protocol"));
+            return getCertificate(tenantDomain);
         }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {
@@ -328,11 +407,25 @@ public class IdentityKeyStoreResolver {
                     throw new IdentityKeyStoreResolverException(
                             ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE.getCode(),
                             String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE
-                                            .getDescription(), keyStoreName), e);
+                                    .getDescription(), keyStoreName), e);
                 }
             }
         }
         return getCertificate(tenantDomain);
+    }
+
+    /**
+     * Return Public Certificate of the Primary, tenant or custom keystore.
+     *
+     * @param tenantDomain      Tenant domain.
+     * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @return Public Certificate of the Primary, tenant or custom keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
+     */
+    public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol)
+            throws IdentityKeyStoreResolverException {
+
+        return getCertificate(tenantDomain, inboundProtocol, null);
     }
 
     /**
@@ -460,6 +553,67 @@ public class IdentityKeyStoreResolver {
 
     }
 
+    /**
+     * Return custom key store.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param keyStoreName Name of the custom key store.
+     * @return Custom key store.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
+     */
+    public KeyStore getCustomKeyStore(String tenantDomain, String keyStoreName)
+            throws IdentityKeyStoreResolverException {
+
+        if (StringUtils.isEmpty(tenantDomain)) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
+        }
+        if (StringUtils.isEmpty(keyStoreName)) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Key store name"));
+        }
+
+        String customKeyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(keyStoreName);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Custom key store configuration available. " +
+                    "Retrieving keystore " + customKeyStoreName);
+        }
+
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+            return keyStoreManager.getKeyStore(customKeyStoreName);
+        } catch (Exception e) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE.getDescription(),
+                            customKeyStoreName), e);
+        }
+    }
+
+    /**
+     * Returns the trust store.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Trust store.
+     * @throws IdentityKeyStoreResolverException if an error occurs while retrieving the trust store.
+     */
+    public KeyStore getTrustStore(String tenantDomain) throws IdentityKeyStoreResolverException {
+
+        try {
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(IdentityTenantUtil.getTenantId(tenantDomain));
+            return keyStoreManager.getTrustStore();
+        } catch (CarbonException e) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TRUSTSTORE.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TRUSTSTORE.getDescription(), tenantDomain),
+                    e);
+        }
+    }
+
     private String getPrimaryKeyStoreConfig(String configName) throws IdentityKeyStoreResolverException {
 
         try {
@@ -477,6 +631,7 @@ public class IdentityKeyStoreResolver {
     private String getTenantKeyStoreConfig(String tenantDomain, String configName)
             throws IdentityKeyStoreResolverException {
 
+        initializeTenantRegistry(tenantDomain);
         try {
             KeyStoreUtil.validateKeyStoreConfigName(configName);
 
@@ -511,7 +666,7 @@ public class IdentityKeyStoreResolver {
         }
     }
 
-    private String getCustomKeyStoreConfig(String keyStoreName, String configName)
+    public String getCustomKeyStoreConfig(String keyStoreName, String configName)
             throws IdentityKeyStoreResolverException {
 
         try {
@@ -601,5 +756,23 @@ public class IdentityKeyStoreResolver {
         IdentityKeyStoreMapping identityKeyStoreMapping = new IdentityKeyStoreMapping(
                 keyStoreName, protocol, useInAllTenants);
         keyStoreMappings.put(protocol, identityKeyStoreMapping);
+    }
+
+    /**
+     * Initialize tenant registry.
+     *
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityKeyStoreResolverException If an error occurs while loading the registry.
+     */
+    private void initializeTenantRegistry(String tenantDomain) throws IdentityKeyStoreResolverException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            IdentityTenantUtil.initializeRegistry(tenantId);
+        } catch (Exception e) {
+            throw new IdentityKeyStoreResolverException(ErrorMessages.ERROR_WHILE_LOADING_REGISTRY.getCode(),
+                    String.format(ErrorMessages.ERROR_WHILE_LOADING_REGISTRY.getDescription(),
+                            tenantDomain), e);
+        }
     }
 }

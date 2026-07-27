@@ -25,10 +25,12 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
@@ -470,7 +472,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            return applicationMgtService.getIdentityProvider(federatedIdPName, getTenantDomain());
+            IdentityProvider identityProvider
+                    = applicationMgtService.getIdentityProvider(federatedIdPName, getTenantDomain());
+            return getIdpWithMandatoryProps(identityProvider);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while retrieving identity provider: " + federatedIdPName + " for tenant: " +
                     getTenantDomain(), idpException);
@@ -490,12 +494,77 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            return applicationMgtService.getAllIdentityProviders(getTenantDomain());
+            IdentityProvider[] allIdPs = applicationMgtService.getAllIdentityProviders(getTenantDomain());
+
+            List<IdentityProvider> idpList = new ArrayList<>();
+            if (allIdPs != null) {
+                for (IdentityProvider idp : allIdPs) {
+                    idpList.add(getIdpWithMandatoryProps(idp));
+                }
+            }
+            return idpList.toArray(new IdentityProvider[0]);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while retrieving all identity providers for tenant: " + getTenantDomain(), idpException);
             throw idpException;
 
         }
+    }
+
+    /**
+     * Get identity provider with mandatory properties only.
+     *
+     * @param idp Identity provider
+     * @return Identity provider with mandatory properties
+     */
+    private IdentityProvider getIdpWithMandatoryProps(IdentityProvider idp) {
+
+        if (idp == null) {
+            return null;
+        }
+        IdentityProvider newIdp = new IdentityProvider();
+        newIdp.setIdentityProviderName(idp.getIdentityProviderName());
+        newIdp.setDisplayName(idp.getDisplayName());
+        newIdp.setEnable(idp.isEnable());
+
+        FederatedAuthenticatorConfig[] fedAuthConfigs = idp.getFederatedAuthenticatorConfigs();
+        if (fedAuthConfigs != null) {
+            List<FederatedAuthenticatorConfig> enabledFedAuthConfigs = new ArrayList<>();
+            for (FederatedAuthenticatorConfig fedAuthConfig : fedAuthConfigs) {
+                if (fedAuthConfig != null) {
+                    FederatedAuthenticatorConfig newFedAuthConfig = new FederatedAuthenticatorConfig();
+                    newFedAuthConfig.setName(fedAuthConfig.getName());
+                    newFedAuthConfig.setDisplayName(fedAuthConfig.getDisplayName());
+                    newFedAuthConfig.setEnabled(fedAuthConfig.isEnabled());
+                    enabledFedAuthConfigs.add(newFedAuthConfig);
+                }
+            }
+            newIdp.setFederatedAuthenticatorConfigs(enabledFedAuthConfigs.toArray(new FederatedAuthenticatorConfig[0]));
+        }
+
+        FederatedAuthenticatorConfig defaultAuthConfig = idp.getDefaultAuthenticatorConfig();
+        if (defaultAuthConfig != null) {
+            FederatedAuthenticatorConfig newDefaultAuthConfig = new FederatedAuthenticatorConfig();
+            newDefaultAuthConfig.setName(defaultAuthConfig.getName());
+            newDefaultAuthConfig.setDisplayName(defaultAuthConfig.getDisplayName());
+            newDefaultAuthConfig.setEnabled(defaultAuthConfig.isEnabled());
+            newIdp.setDefaultAuthenticatorConfig(newDefaultAuthConfig);
+        }
+
+        ProvisioningConnectorConfig[] provisioningConnectorConfigs = idp.getProvisioningConnectorConfigs();
+        if (provisioningConnectorConfigs != null) {
+            List<ProvisioningConnectorConfig> enabledProvConfigs = new ArrayList<>();
+            for (ProvisioningConnectorConfig provConfig : provisioningConnectorConfigs) {
+                if (provConfig != null) {
+                    ProvisioningConnectorConfig newProvConfig = new ProvisioningConnectorConfig();
+                    newProvConfig.setName(provConfig.getName());
+                    newProvConfig.setEnabled(provConfig.isEnabled());
+                    enabledProvConfigs.add(newProvConfig);
+                }
+            }
+            newIdp.setProvisioningConnectorConfigs(enabledProvConfigs.toArray(new ProvisioningConnectorConfig[0]));
+        }
+
+        return newIdp;
     }
 
     /**

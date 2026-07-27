@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2019-2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -30,7 +30,14 @@
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ConfiguredAuthenticatorsRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityProviderDataRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.RecoveryApiV2Test"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.UsernameRecoveryApiTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ValidationConfigurationRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.OrganizationDiscoveryConfigDataRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.AuthenticatorDataRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.SelfRegisterApiTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.ClaimRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.ApplicationDataRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.FlowDataRetrievalClientTest"/>
         </classes>
     </test>
 </suite>

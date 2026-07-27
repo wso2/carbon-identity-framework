@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.application.mgt;
@@ -33,10 +35,16 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.ApplicationActor;
+import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.UserActor;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -51,14 +59,26 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import java.io.ByteArrayInputStream;
+import java.io.StringReader;
 import java.nio.file.Paths;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -66,12 +86,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.base.MultitenantConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.PATH_CONSTANT;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SHARE_WITH_ALL_CHILDREN;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -95,6 +122,8 @@ public class ApplicationMgtUtilTest {
     private ApplicationPermission[] applicationPermissions;
     private Collection mockAppCollection;
     private Collection childCollection;
+    private JAXBContext mockJAXBContext;
+    private Unmarshaller mockUnmarshaller;
 
     private RegistryBasedApplicationPermissionProvider registryBasedApplicationPermissionProvider;
 
@@ -346,12 +375,15 @@ public class ApplicationMgtUtilTest {
         try (MockedStatic<ApplicationManagementServiceComponentHolder> applicationManagementServiceComponentHolder =
                      mockStatic(ApplicationManagementServiceComponentHolder.class);
              MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
-             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);) {
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
             applicationManagementServiceComponentHolder.when(
                     ApplicationManagementServiceComponentHolder::getInstance).thenReturn(
                     mockApplicationManagementServiceComponentHolder);
             when(mockApplicationManagementServiceComponentHolder.getApplicationPermissionProvider()).thenReturn(
                     registryBasedApplicationPermissionProvider);
+            identityTenantUtil.when(() -> IdentityTenantUtil.initializeRegistry(anyInt()))
+                    .thenAnswer((Answer<Void>) invocation -> null);
 
             loadPermissions(privilegedCarbonContext, carbonContext);
             Collection permissionNode = mock(Collection.class);
@@ -425,12 +457,15 @@ public class ApplicationMgtUtilTest {
         try (MockedStatic<ApplicationManagementServiceComponentHolder> applicationManagementServiceComponentHolder =
                      mockStatic(ApplicationManagementServiceComponentHolder.class);
              MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
-             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);) {
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
             applicationManagementServiceComponentHolder.when(
                     ApplicationManagementServiceComponentHolder::getInstance).thenReturn(
                     mockApplicationManagementServiceComponentHolder);
             when(mockApplicationManagementServiceComponentHolder.getApplicationPermissionProvider()).thenReturn(
                     registryBasedApplicationPermissionProvider);
+            identityTenantUtil.when(() -> IdentityTenantUtil.initializeRegistry(anyInt()))
+                    .thenAnswer((Answer<Void>) invocation -> null);
 
             loadPermissions(privilegedCarbonContext, carbonContext);
             when(mockTenantRegistry.resourceExists(anyString())).thenReturn(FALSE);
@@ -640,6 +675,269 @@ public class ApplicationMgtUtilTest {
 
         assertEquals(updatedVersion, expectedUpdatedVersion);
 
+    }
+
+    @DataProvider(name = "getUserStoreManagerDataProvider")
+    public Object[][] getUserStoreManagerDataProvider() {
+
+        mockUserStoreManager = mock(UserStoreManager.class);
+        mockAbstractUserStoreManager = mock(AbstractUserStoreManager.class);
+        return new Object[][] {
+                {SUPER_TENANT_DOMAIN_NAME, mockAbstractUserStoreManager, null, null},
+                {SUPER_TENANT_DOMAIN_NAME, null, new UserStoreException(),
+                        ERROR_RETRIEVING_USERSTORE_MANAGER.getCode()},
+                {SUPER_TENANT_DOMAIN_NAME, null, null, ERROR_RETRIEVING_USERSTORE_MANAGER.getCode()},
+                {SUPER_TENANT_DOMAIN_NAME, mockUserStoreManager, null, UNSUPPORTED_USER_STORE_MANAGER.getCode()}
+        };
+    }
+
+    @Test(description = "Test getUserStoreManager method", dataProvider = "getUserStoreManagerDataProvider")
+    public void testGetUserStoreManager(String tenantDomain, UserStoreManager userStoreManager,
+                                        UserStoreException userStoreException, String expectedErrorCode)
+            throws UserStoreException {
+
+        try (MockedStatic<ApplicationManagementServiceComponentHolder> holderMockedStatic = mockStatic(
+                ApplicationManagementServiceComponentHolder.class);
+             MockedStatic<IdentityTenantUtil> identityUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+            mockUserRealm = mock(UserRealm.class);
+            mockRealmService = mock(RealmService.class);
+            holderMockedStatic.when(ApplicationManagementServiceComponentHolder::getInstance)
+                    .thenReturn(mockApplicationManagementServiceComponentHolder);
+            identityUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId(eq(SUPER_TENANT_DOMAIN_NAME)))
+                    .thenReturn(SUPER_TENANT_ID);
+            when(mockApplicationManagementServiceComponentHolder.getRealmService()).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantUserRealm(eq(SUPER_TENANT_ID))).thenReturn(mockUserRealm);
+            if (userStoreException != null) {
+                when(mockUserRealm.getUserStoreManager()).thenThrow(userStoreException);
+            } else {
+                when(mockUserRealm.getUserStoreManager()).thenReturn(userStoreManager);
+            }
+            try {
+                AbstractUserStoreManager abstractUserStoreManager =
+                        ApplicationMgtUtil.getUserStoreManager(tenantDomain);
+                assertNotNull(abstractUserStoreManager);
+            } catch (IdentityApplicationManagementException e) {
+                assertEquals(e.getErrorCode(), expectedErrorCode);
+            }
+        }
+    }
+  
+    @Test
+    void testGetSecureSaxParserFactory_ShouldUnmarshalValidXML() throws Exception {
+
+        mockJAXBContext = mock(JAXBContext.class);
+        mockUnmarshaller = mock(Unmarshaller.class);
+
+        String validXml = "<ServiceProvider><name>TestSP</name></ServiceProvider>";
+        InputSource inputSource = new InputSource(new StringReader(validXml));
+        ServiceProvider expectedServiceProvider = new ServiceProvider();
+        expectedServiceProvider.setApplicationName("TestSP");
+
+        when(mockJAXBContext.createUnmarshaller()).thenReturn(mockUnmarshaller);
+        when(mockUnmarshaller.unmarshal(any(Source.class))).thenReturn(expectedServiceProvider);
+
+        // Mock JAXBContext.newInstance
+        try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+            mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                    .thenReturn(mockJAXBContext);
+
+            ServiceProvider result = ApplicationMgtUtil.getSecureSaxParserFactory(inputSource);
+            assertNotNull(result);
+            assertEquals(result.getApplicationName(), "TestSP");
+        }
+    }
+
+    @DataProvider(name = "exceptionProvider")
+    public Object[][] exceptionProvider() {
+        return new Object[][]{
+                {"JAXBException", new JAXBException("JAXB Exception is thrown"), JAXBException.class},
+                {"SAXException", new SAXException("SAX Exception is thrown"), SAXException.class},
+                {"ParserConfigurationException", new ParserConfigurationException(
+                        "ParserConfigurationException Exception is thrown"), ParserConfigurationException.class}
+        };
+    }
+
+    @Test(dataProvider = "exceptionProvider")
+    public void testGetSecureSaxParserFactoryWithException(
+            String exceptionType, Exception exception, Class<? extends Exception> expectedException) throws Exception {
+
+        InputSource inputSource = new InputSource(new StringReader("<ServiceProvider></ServiceProvider>"));
+
+        if (exceptionType.equals("JAXBException")) {
+            mockJAXBContext = mock(JAXBContext.class);
+            when(mockJAXBContext.createUnmarshaller()).thenThrow(exception);
+
+            try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+                mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                        .thenReturn(mockJAXBContext);
+
+                assertThrows(expectedException, () -> ApplicationMgtUtil.getSecureSaxParserFactory(inputSource));
+            }
+        } else if (exceptionType.equals("SAXException") || exceptionType.equals("ParserConfigurationException")) {
+            SAXParserFactory mockSAXParserFactory = mock(SAXParserFactory.class);
+            when(mockSAXParserFactory.newSAXParser()).thenThrow(exception);
+
+            try (MockedStatic<SAXParserFactory> mockedStatic = mockStatic(SAXParserFactory.class)) {
+                mockedStatic.when(SAXParserFactory::newInstance).thenReturn(mockSAXParserFactory);
+
+                assertThrows(expectedException, () -> ApplicationMgtUtil.getSecureSaxParserFactory(inputSource));
+            }
+        }
+    }
+
+    @Test
+    void testGetApplicationFromSpFileStream() throws Exception {
+
+        mockJAXBContext = mock(JAXBContext.class);
+        mockUnmarshaller = mock(Unmarshaller.class);
+
+        String validXml = "<ServiceProvider><name>TestSP</name></ServiceProvider>";
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(validXml.getBytes());
+        SpFileStream spFileStream = new SpFileStream(inputStream, "test.xml");
+        ServiceProvider expectedServiceProvider = new ServiceProvider();
+        expectedServiceProvider.setApplicationName("TestSP");
+
+        when(mockJAXBContext.createUnmarshaller()).thenReturn(mockUnmarshaller);
+        when(mockUnmarshaller.unmarshal(any(Source.class))).thenReturn(expectedServiceProvider);
+
+        // Mock JAXBContext.newInstance
+        try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+            mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                    .thenReturn(mockJAXBContext);
+
+            ServiceProvider result = ApplicationMgtUtil.getApplicationFromSpFileStream(spFileStream,
+                    "carbon.super");
+            assertNotNull(result);
+            assertEquals(result.getApplicationName(), "TestSP");
+        }
+    }
+
+
+    @Test(expectedExceptions = IdentityApplicationManagementException.class)
+    public void testGetApplicationFromSpFileStream_ShouldThrowJAXBException() throws Exception {
+
+        mockJAXBContext = mock(JAXBContext.class);
+        mockUnmarshaller = mock(Unmarshaller.class);
+
+        String invalidXml = "<ServiceProvider><name>TestSP</name></ServiceProvider>";
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(invalidXml.getBytes());
+        SpFileStream spFileStream = new SpFileStream(inputStream, "test.xml");
+
+        when(mockUnmarshaller.unmarshal(any(Source.class))).thenThrow(new JAXBException("JAXB Exception"));
+
+        // Mock JAXBContext.newInstance
+        try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+            mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                    .thenReturn(mockJAXBContext);
+
+            ApplicationMgtUtil.getApplicationFromSpFileStream(spFileStream, "carbon.super");
+        }
+    }
+
+    @DataProvider(name = "spPropertyTestData")
+    public Object[][] spPropertyTestData() {
+
+        return new Object[][]{
+                // currentValue is "false" → should update.
+                {"true", "false", true},
+
+                // currentValue is "true" → should NOT update.
+                {"true", "true", false},
+
+                // currentValue is null → property is missing → should update.
+                {"true", null, true}
+        };
+    }
+
+    @Test(dataProvider = "spPropertyTestData")
+    public void testShouldUpdateSpProperty(String updatedValue, String currentValue, boolean expectedResult) {
+
+        ServiceProvider application = new ServiceProvider();
+
+        if (currentValue != null) {
+            ServiceProviderProperty serviceProviderProperty = new ServiceProviderProperty();
+            serviceProviderProperty.setName(SHARE_WITH_ALL_CHILDREN);
+            serviceProviderProperty.setValue(currentValue);
+            application.setSpProperties(new ServiceProviderProperty[]{serviceProviderProperty});
+        } else {
+            application.setSpProperties(new ServiceProviderProperty[]{});
+        }
+
+        boolean result = ApplicationMgtUtil.shouldUpdateSpProperty(updatedValue, SHARE_WITH_ALL_CHILDREN, application);
+        assertEquals(result, expectedResult);
+    }
+
+    @Test
+    public void testEnterApplicationManagementFlowWithApplicationActor() {
+
+        try {
+            IdentityContext.getThreadLocalIdentityContext().setActor(new ApplicationActor.Builder()
+                    .applicationId("app-id").build());
+            boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
+
+            assertTrue(flowStarted);
+            Flow currentFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+            assertNotNull(currentFlow);
+            assertEquals(currentFlow.getName(), Flow.Name.APPLICATION_CREATE);
+            assertEquals(currentFlow.getInitiatingPersona(), Flow.InitiatingPersona.APPLICATION);
+        } finally {
+            IdentityContext.destroyCurrentContext();
+        }
+    }
+
+    @Test
+    public void testEnterApplicationManagementFlowWithUserActor() {
+
+        try {
+            IdentityContext.getThreadLocalIdentityContext().setActor(new UserActor.Builder()
+                    .username("admin").build());
+            boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
+
+            assertTrue(flowStarted);
+            Flow currentFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+            assertNotNull(currentFlow);
+            assertEquals(currentFlow.getName(), Flow.Name.APPLICATION_UPDATE);
+            // A user actor is treated as an admin initiated flow.
+            assertEquals(currentFlow.getInitiatingPersona(), Flow.InitiatingPersona.ADMIN);
+        } finally {
+            IdentityContext.destroyCurrentContext();
+        }
+    }
+
+    @Test
+    public void testEnterApplicationManagementFlowSkippedWhenFlowAlreadyActive() {
+
+        try {
+            // Simulate an outer flow that is already active.
+            IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                    .name(Flow.Name.APPLICATION_CREATE)
+                    .initiatingPersona(Flow.InitiatingPersona.APPLICATION)
+                    .build());
+            boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
+
+            // A new flow should not be started when a flow is already active.
+            assertFalse(flowStarted);
+            Flow currentFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+            assertNotNull(currentFlow);
+            // The already active flow should be preserved.
+            assertEquals(currentFlow.getName(), Flow.Name.APPLICATION_CREATE);
+            assertEquals(currentFlow.getInitiatingPersona(), Flow.InitiatingPersona.APPLICATION);
+        } finally {
+            IdentityContext.destroyCurrentContext();
+        }
+    }
+
+    @Test
+    public void testEnterApplicationManagementFlowWithoutActorDoesNotEnterFlow() {
+
+        try {
+            boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
+            // With no actor and no existing flow, the persona cannot be resolved, so no flow should be entered.
+            assertFalse(flowStarted);
+            assertNull(IdentityContext.getThreadLocalIdentityContext().getCurrentFlow());
+        } finally {
+            IdentityContext.destroyCurrentContext();
+        }
     }
 
     private void mockTenantRegistry(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext,

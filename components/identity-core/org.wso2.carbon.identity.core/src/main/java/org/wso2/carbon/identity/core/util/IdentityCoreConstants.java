@@ -1,7 +1,7 @@
 /*
-* Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+* Copyright (c) 2015-2026, WSO2 LLC. (http://www.wso2.com).
 *
-* WSO2 Inc. licenses this file to you under the Apache License,
+* WSO2 LLC. licenses this file to you under the Apache License,
 * Version 2.0 (the "License"); you may not use this file except
 * in compliance with the License.
 * You may obtain a copy of the License at
@@ -27,12 +27,17 @@ public class IdentityCoreConstants {
     public static final String HOST_NAME = "HostName";
     public static final String MGT_CONSOLE_HOST_NAME = "MgtHostName";
     public static final String SERVER_HOST_NAME = "ServerHostName";
+    public static final String SKIP_LOCAL_USER_CLAIM_UPDATE = "SkipLocalUserClaimUpdate";
     public static final String AUTHENTICATION_ENDPOINT_HOST_NAME = "AuthenticationEndpoint.HostName";
     public static final String AUTHENTICATION_ENDPOINT_PATH = "AuthenticationEndpoint.Path";
     public static final String RECOVERY_ENDPOINT_HOST_NAME = "RecoveryEndpoint.HostName";
     public static final String RECOVERY_ENDPOINT_PATH = "RecoveryEndpoint.Path";
+    public static final String ACCOUNTS_HOST_NAME = "Accounts.HostName";
+    public static final String ACCOUNTS_PATH = "Accounts.Path";
     public static final String FILE_NAME_REGEX = "FileNameRegEx";
     public static final String PORTS_OFFSET = "Ports.Offset";
+    public static final String UNDERSCORE = "_";
+    public static final String SINGLE_CHARACTER_WILDCARD = "APIFiltering.SingleCharacterWildcard";
 
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String ENABLE_TENANT_QUALIFIED_URLS = "TenantContext.TenantQualifiedUrls.Enable";
@@ -47,6 +52,8 @@ public class IdentityCoreConstants {
     public static final String UTC = "UTC";
     public static final int EVENT_LISTENER_ORDER_ID = -1;
     public static final String ENABLE_LEGACY_SAAS_AUTHENTICATION = "EnableLegacySaaSAuthentication";
+    public static final String SAAS_ENABLE_APP_CREATION = "SaaS.EnableAppCreation";
+    public static final String SAAS_ENABLE_CROSS_TENANT_OPERATIONS = "SaaS.EnableCrossTenantOperations";
     public static final String SUPER_TENANT_ALIAS_IN_PUBLIC_URL = "SuperTenantAliasInPublicUrl";
 
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";
@@ -84,6 +91,11 @@ public class IdentityCoreConstants {
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_MISMATCHED_ERROR_CODE = "17008";
     public static final String USER_ACCOUNT_PENDING_APPROVAL_ERROR_CODE = "17009";
     public static final String USER_INVALID_CREDENTIALS = "17010";
+    public static final String LOGIN_FAILED_GENERIC_ERROR_CODE = "17011";
+    public static final String USER_EMAIL_NOT_VERIFIED_ERROR_CODE = "17012";
+    public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE = "17013";
+    public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_MISMATCHED_ERROR_CODE = "17014";
+    public static final String USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE = "17015";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 
@@ -111,14 +123,38 @@ public class IdentityCoreConstants {
 
     // Actions constants.
     public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "Actions.MaximumActionsPerType";
-    
+
+    // Webhook constants.
+    public static final String MAXIMUM_WEBHOOKS_PER_TENANT_PROPERTY = "Webhooks.MaximumWebhooksPerTenant";
+
+    // System application constants
+    public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
+    public static final String MY_ACCOUNT_APPLICATION_CLIENT_ID = "MY_ACCOUNT";
+
+    // Thread local property keys for system applications
+    public static final String IS_SYSTEM_APPLICATION = "IsSystemApplication";
+
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
+
+    public static final int DEFAULT_MAXIMUM_WEBHOOKS_PER_TENANT = 10;
+
+    // Agentic AI constants
+    public static final String AGENT_IDENTITY_ENABLE = "AgentIdentity.Enabled";
+    public static final String AGENT_IDENTITY_USERSTORE_NAME = "AgentIdentity.Userstore";
+    public static final String DEFAULT_AGENT_IDENTITY_USERSTORE_NAME = "AGENT";
+
+    public static final int MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH = 255;
+
+    public static final String WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS = "WorkflowEngine.MaxApproverNotifications";
+    public static final int DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS = 15;
 
     public static class Filter {
 
         public static final String AND = "and";
         public static final String OR = "or";
         public static final String NOT = "not";
+
+        public static final String PR = "pr";
     }
 
     public static enum UserStoreState {
@@ -141,4 +177,5 @@ public class IdentityCoreConstants {
 
     private IdentityCoreConstants(){
     }
+
 }

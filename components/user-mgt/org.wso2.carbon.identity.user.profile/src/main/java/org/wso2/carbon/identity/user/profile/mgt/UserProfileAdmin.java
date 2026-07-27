@@ -30,6 +30,7 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -47,6 +48,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
 import org.wso2.carbon.user.core.profile.ProfileConfiguration;
 import org.wso2.carbon.user.core.profile.ProfileConfigurationManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -54,9 +56,13 @@ import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -82,6 +88,11 @@ public class UserProfileAdmin extends AbstractAdmin {
     private static final String USER_PROFILE_MANAGE_PERMISSION = "/manage/identity/userprofile";
     private static final String TRANSPORT_HTTP_SERVLET_REQUEST = "transport.http.servletRequest";
     private static final String LOGGED_IN_DOMAIN = "logged_in_domain";
+    private static final Set<String> IMMUTABLE_CLAIM_URIS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            UserCoreClaimConstants.USERNAME_CLAIM_URI,
+            UserCoreClaimConstants.USER_ID_CLAIM_URI,
+            "http://wso2.org/claims/created"
+    )));
 
     public static UserProfileAdmin getInstance() {
         return userProfileAdmin;
@@ -144,6 +155,14 @@ public class UserProfileAdmin extends AbstractAdmin {
                     // Quick fix for not to remove OTP checkbox when false
                     if (value == "" && "http://wso2.org/claims/identity/otp".equals(claimURI)) {
                         value = "false";
+                    }
+                    if (isRestrictImmutableLocalClaimsUpdateEnabled() &&
+                            UserCoreConstants.DEFAULT_PROFILE_CONFIGURATION.equals(profile.getProfileName()) &&
+                            IMMUTABLE_CLAIM_URIS.contains(claimURI)) {
+                        log.warn(claimURI + " is an immutable claim and cannot be updated. " +
+                                "Hence skipping updating this claim for user " +
+                                (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username));
+                        continue;
                     }
                     map.put(claimURI, value);
                 }
@@ -580,6 +599,22 @@ public class UserProfileAdmin extends AbstractAdmin {
         return isAuthrized;
     }
 
+    private boolean isRestrictImmutableLocalClaimsUpdateEnabled() {
+
+        String value = IdentityUtil.getProperty("UserClaimUpdate.RestrictImmutableLocalClaimUpdate");
+        if (value == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("UserClaimUpdate.RestrictImmutableLocalClaimUpdate property is not set. " +
+                        "Defaulting to true.");
+            }
+            return true;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("UserClaimUpdate.RestrictImmutableLocalClaimUpdate property is set to " + value);
+        }
+        return Boolean.parseBoolean(value);
+    }
+
     private static boolean isUserAuthorizedToConfigureProfile(UserRealm realm, String currentUserName,
                                                               String targetUser, String permission)
             throws UserStoreException {
@@ -918,8 +953,10 @@ public class UserProfileAdmin extends AbstractAdmin {
 
     private void audit(String action, String target, String data, String result) {
 
-        audit_log.info(String.format(AUDIT_MESSAGE, getUsername() + UserCoreConstants.TENANT_DOMAIN_COMBINER +
-                getTenantDomain(), action, target, data, result));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            audit_log.info(String.format(AUDIT_MESSAGE, getUsername() + UserCoreConstants.TENANT_DOMAIN_COMBINER +
+                    getTenantDomain(), action, target, data, result));
+        }
     }
 
     private String getAuditData(String username, String idpID, String federatedUserID) {

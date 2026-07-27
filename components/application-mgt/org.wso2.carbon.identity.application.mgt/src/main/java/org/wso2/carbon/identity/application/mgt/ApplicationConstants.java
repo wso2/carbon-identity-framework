@@ -21,6 +21,13 @@ package org.wso2.carbon.identity.application.mgt;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_FILTER;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 
 /**
  * Definitions of few constants shared across with other components from this component.
@@ -73,8 +80,12 @@ public class ApplicationConstants {
             .separator;
     public static final String PURPOSE_GROUP_TYPE_SP = "SP";
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
+    public static final String PURPOSE_GROUP_TYPE_POLICY = "Policy";
     public static final String PURPOSE_GROUP_SHARED = "SHARED";
     public static final String IS_FRAGMENT_APP = "isFragmentApp";
+    public static final String IS_AGENT_APP = "isAgentApplication";
+    public static final String NAME = "name";
+    public static final String DEFAULT_BACKCHANNEL_LOGOUT_URL = "/identity/oidc/slo";
 
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String MY_SQL = "MySQL";
@@ -100,6 +111,13 @@ public class ApplicationConstants {
     public static final String ONE_BASED_START_INDEX = "ONE_BASED_START_INDEX";
     public static final String END_INDEX = "END_INDEX";
 
+    // Filtering operations.
+    public static final String FILTER_CO = "co";
+    public static final int MAX_NUMBER_OF_GROUPS_FROM_META_ENDPOINT = 100;
+
+    // Fallback super tenant domain.
+    public static final String SUPER_TENANT = "carbon.super";
+
     // System application config elements
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
     public static final String DEFAULT_APPLICATIONS_CONFIG_ELEMENT = "DefaultApplications";
@@ -111,6 +129,8 @@ public class ApplicationConstants {
     public static final String TRUSTED_APP_CONSENT_REQUIRED_PROPERTY = "ApplicationMgt.TrustedAppConsentRequired";
     public static final String TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY =
             "ApplicationMgt.TrustedAppMaxThumbprintCount";
+    public static final String ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY =
+            "ApplicationMgt.EnableCrossTenantAuthorizedApiValidation";
 
     public static final String NON_EXISTING_USER_CODE = "30007 - ";
 
@@ -128,8 +148,18 @@ public class ApplicationConstants {
     public static final String CONSOLE_PORTAL_PATH = "Console.AppBaseName";
     public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
     public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
+    public static final String AUTHORIZE_INTERNAL_SCOPES = "OAuth.AuthorizeInternalScopes";
+    public static final String MERGE_AUTHORIZED_SCOPES_BY_POLICY = "OAuth.MergeAuthorizedScopesByPolicy";
     public static final String RBAC = "RBAC";
     public static final String SYSTEM_PORTALS = "SystemPortals";
+    public static final String IMPERSONATE_SCOPE_NAME = "internal_user_impersonate";
+    public static final String IMPERSONATE_ORG_SCOPE_NAME = "internal_org_user_impersonate";
+    public static final List<String> DEFAULT_BLOCKED_SCOPES = Collections.unmodifiableList(Arrays.asList(
+            IMPERSONATE_SCOPE_NAME, IMPERSONATE_ORG_SCOPE_NAME));
+    public static final String IMPERSONATE_ROLE_NAME = "Impersonator";
+    public static final String IMPERSONATION_API_RESOURCE = "system:impersonation";
+    public static final String IMPERSONATION_ORG_API_RESOURCE = "org:impersonation";
+    public static final String APPLICATION_ROLE_AUDIENCE = "application";
 
     /**
      * Group the constants related to logs.
@@ -155,9 +185,10 @@ public class ApplicationConstants {
         public static final String APP_VERSION_V0 = "v0.0.0";
         public static final String APP_VERSION_V1 = "v1.0.0";
         public static final String APP_VERSION_V2 = "v2.0.0";
+        public static final String APP_VERSION_V3 = "v3.0.0";
 
         // Change the latest version when a new version is introduced.
-        public static final String LATEST_APP_VERSION = APP_VERSION_V2;
+        public static final String LATEST_APP_VERSION = APP_VERSION_V3;
         public static final String BASE_APP_VERSION = APP_VERSION_V0;
 
         /**
@@ -167,7 +198,8 @@ public class ApplicationConstants {
 
             V0(APP_VERSION_V0),
             V1(APP_VERSION_V1),
-            V2(APP_VERSION_V2);
+            V2(APP_VERSION_V2),
+            V3(APP_VERSION_V3);
 
             private final String value;
 
@@ -220,6 +252,13 @@ public class ApplicationConstants {
         public static final String SCOPE_NAME = "SCOPE_NAME";
         public static final String MAIN_APP_ID = "MAIN_APP_ID";
 
+        public static final String AUTHORIZATION_DETAILS_ID = "AUTHORIZATION_DETAILS_ID";
+        public static final String AUTHORIZATION_DETAILS_TYPE = "AUTHORIZATION_DETAILS_TYPE";
+        public static final String AUTHORIZATION_DETAILS_NAME = "AUTHORIZATION_DETAILS_NAME";
+        public static final String AUTHORIZATION_DETAILS_SCHEMA = "AUTHORIZATION_DETAILS_SCHEMA";
+
+        public static final String GROUP_ID = "GROUP_ID";
+
         private ApplicationTableColumns() {
 
         }
@@ -262,10 +301,22 @@ public class ApplicationConstants {
                 "Error occurred while retrieving user by userid: %s."),
         NON_EXISTING_USER_ID("60504", "User not found",
                 "No user found for the given user-id: %s."),
+        UNSUPPORTED_USER_STORE_MANAGER(UNEXPECTED_SERVER_ERROR.getCode(), "Unsupported user store manager.",
+                "The underlying user store manager is not a unique ID user store manager for the tenant: %s."),
         ERROR_RETRIEVING_USERSTORE_MANAGER("65504", "Error retrieving userstore manager.",
                 "Error occurred while retrieving userstore manager."),
         UNEXPECTED_ERROR("65006", "Unexpected processing error.",
-                "Server encountered an unexpected error when creating the application.");
+                "Server encountered an unexpected error when creating the application."),
+        ERROR_CHECKING_GROUP_EXISTENCE(UNEXPECTED_SERVER_ERROR.getCode(), "Unexpected processing error.",
+                "Error occurred while checking the existence of the group: %s."),
+        INVALID_GROUP_FILTER(INVALID_FILTER.getCode(), "Invalid filter query.",
+                "Filtering is only supported with 'name' attribute and 'co' operation. Eg: name+co+group1"),
+        ERROR_RETRIEVING_GROUP_LIST(UNEXPECTED_SERVER_ERROR.getCode(), "Error retrieving group list.",
+                "Error while retrieving group list for the user store: %s."),
+        INVALID_USER_STORE_DOMAIN(INVALID_REQUEST.getCode(), "Invalid user store domain.",
+                "User store domain: %s is not valid for the tenant: %s."),
+        ERROR_RETRIEVING_USER_GROUPS(UNEXPECTED_SERVER_ERROR.getCode(), "Error retrieving user groups.",
+                "Error occurred while retrieving groups of the user: %s.");
 
         private final String code;
 

@@ -58,7 +58,8 @@ public class Constants {
     public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL";
     public static final String ENABLE_AUTHENTICATION_WITH_REST_API = "EnableAuthenticationWithAuthenticationRESTAPI";
     public static final String AUTHENTICATION_REST_ENDPOINT_URL = "AuthenticationRESTEndpointURL";
-
+    public static final String AUTHENTICATOR_VALIDATION_ENABLED = "AuthenticatorValidationEnabled";
+    public static final String DEFAULT_AUTHENTICATORS = "DefaultAuthenticators";
 
     public static final String HTTPS_URL = "https://";
     public static final String HOST = "identity.server.host";
@@ -72,6 +73,7 @@ public class Constants {
     public static final String CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS = "google.social.onetap.restricted_browsers";
     public static final String CONFIG_HOSTNAME_VERIFICATION_ENABLED = "hostname.verification.enabled";
     public static final String SERVICE_CONTEXT_PATH = "/services";
+    public static final String IDF_AUTHENTICATOR_NAME = "IdentifierExecutor:LOCAL";
 
     private Constants() {
 
@@ -289,6 +291,14 @@ public class Constants {
                 "invalid_request_invalid.response.type.for.query.jwt";
         public static final String INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY =
                 "invalid.response.type.for.query.jwt";
+        public static final String INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION =
+                "invalid_client_invalid.response.type.for.hybrid.flow";
+        public static final String INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION_I18N_KEY =
+                "invalid.response.type.for.hybrid.flow";
+        public static final String AUTHENTICATION_ATTEMPT_FAILED_CIBA_USER_MISMATCH =
+                "authentication.attempt.failed_ciba.user.mismatch";
+        public static final String AUTHENTICATION_ATTEMPT_FAILED_CIBA_USER_MISMATCH_I18N_KEY =
+                "ciba.user.mismatch";
 
         public static final Map<String, String> ERROR_TO_I18N_MAP = new HashMap<>();
 
@@ -393,6 +403,10 @@ public class Constants {
                     Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION,
                     Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION,
+                    Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CIBA_USER_MISMATCH,
+                    ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CIBA_USER_MISMATCH_I18N_KEY);
         }
 
         private ErrorToi18nMappingConstants() {

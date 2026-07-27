@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -39,6 +40,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.IdentityClaimManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
@@ -59,6 +61,7 @@ import java.util.Optional;
 public abstract class JsClaims extends AbstractJSContextMemberObject implements JsBaseClaims {
 
     private static final Log LOG = LogFactory.getLog(JsClaims.class);
+    private static final String SAAS_ENABLE_CROSS_TENANT_OPERATIONS = "SaaS.EnableCrossTenantOperations";
     private static final String ERROR_GETTING_CLAIMS_MESSAGE = "Error when getting claim : %s of user: %s";
     private String idp;
     private boolean isRemoteClaimRequest;
@@ -160,7 +163,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
     public Object getMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 return getFederatedClaim(claimUri);
             } else {
@@ -172,7 +175,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
     public boolean hasMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 return hasFederatedClaim(claimUri);
             } else {
@@ -184,7 +187,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
     public boolean setMemberObject(String claimUri, Object claimValue) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 setFederatedClaim(claimUri, String.valueOf(claimValue));
             } else {
@@ -477,5 +480,49 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
             claimValue = StringUtils.EMPTY;
         }
         getContext().addRuntimeClaim(claimUri, String.valueOf(claimValue));
+    }
+
+    private boolean isAuthenticatedUserInCurrentTenant() {
+
+        if (authenticatedUser == null) {
+            return false;
+        }
+
+        if (isSaasApp(getContext()) && isSaaSCrossTenantOperationsEnabled()) {
+            return true;
+        }
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return StringUtils.equalsIgnoreCase(authenticatedUser.getTenantDomain(),
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        }
+
+        AuthenticationContext context = getContext();
+        if (context == null || StringUtils.isBlank(context.getTenantDomain())) {
+            LOG.warn("Unable to determine the tenant domain from the authentication context. " +
+                    "Hence user tenant domain validation is considered as failed.");
+            return false;
+        }
+        return StringUtils.equalsIgnoreCase(authenticatedUser.getTenantDomain(), context.getTenantDomain());
+    }
+
+    private static boolean isSaaSCrossTenantOperationsEnabled() {
+
+        String value = IdentityUtil.getProperty(SAAS_ENABLE_CROSS_TENANT_OPERATIONS);
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    private static boolean isSaasApp(AuthenticationContext context) {
+
+        if (context == null || context.getSequenceConfig() == null
+                || context.getSequenceConfig().getApplicationConfig() == null
+                || context.getSequenceConfig().getApplicationConfig().getServiceProvider() == null) {
+            LOG.debug("Unable to determine if the application is a SaaS app. Treating as non-SaaS app.");
+            return false;
+        }
+        return context.getSequenceConfig().getApplicationConfig().getServiceProvider().isSaasApp();
     }
 }

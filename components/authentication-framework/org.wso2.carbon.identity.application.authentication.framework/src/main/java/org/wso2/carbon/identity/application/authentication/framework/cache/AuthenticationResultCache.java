@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -87,18 +90,66 @@ public class AuthenticationResultCache extends
     }
 
     /**
+     * Add a cache entry during a READ operation.
+     * <p>
+     * This populates the cache only if the key does not already have a value.
+     * If a value already exists, the cache is left unchanged, which avoids
+     * unnecessary cache invalidation broadcasts in clustered environments.
+     *
+     * @param key   Key which the cache entry is indexed by.
+     * @param entry Value to be stored in the cache.
+     */
+    public void addToCacheOnRead(AuthenticationResultCacheKey key, AuthenticationResultCacheEntry entry) {
+        super.addToCacheOnRead(key, entry);
+        if (isTemporarySessionDataPersistEnabled) {
+            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+            if (entry.getResult() != null && entry.getResult().getSubject() != null) {
+                String tenantDomain = entry.getResult().getSubject().getTenantDomain();
+                if (tenantDomain != null) {
+                    tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+                }
+            }
+            SessionDataStore.getInstance().storeSessionData(key.getResultId(), CACHE_NAME, entry, tenantId);
+        }
+    }
+
+    /**
      * Retrieves a cache entry.
      *
      * @param key CacheKey
      * @return Cached entry.
      */
     public AuthenticationResultCacheEntry getValueFromCache(AuthenticationResultCacheKey key) {
+
         AuthenticationResultCacheEntry entry = super.getValueFromCache(key);
         if (entry == null && isTemporarySessionDataPersistEnabled) {
             entry = (AuthenticationResultCacheEntry) SessionDataStore.getInstance().
                     getSessionData(key.getResultId(), CACHE_NAME);
+            if (entry != null && isCacheEntryExpired(entry)) {
+                return null;
+            }
         }
         return entry;
+    }
+
+    private boolean isCacheEntryExpired(AuthenticationResultCacheEntry entry) {
+
+        String cacheCreatedTimestamp;
+        if (entry.getResult().getProperty(FrameworkConstants.UPDATED_TIMESTAMP) != null) {
+            cacheCreatedTimestamp = entry.getResult().getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString();
+        } else if (entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP) != null) {
+            cacheCreatedTimestamp = entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString();
+        } else {
+            log.warn("Cache entry does not have a created or updated timestamp.");
+            return false;
+        }
+        if (StringUtils.isNotBlank(cacheCreatedTimestamp) &&
+                (FrameworkUtils.getCurrentStandardNano() >
+                    entry.getValidityPeriod() + Long.parseLong(cacheCreatedTimestamp) * 1000000)) {
+            log.warn("Authentication result cache is expired");
+            return true;
+        }
+        return false;
     }
 
     /**

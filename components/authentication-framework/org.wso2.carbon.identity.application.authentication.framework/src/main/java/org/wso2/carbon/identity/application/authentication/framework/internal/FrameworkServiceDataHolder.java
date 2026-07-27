@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2015-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,11 +23,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.orgdiscovery.OrganizationDiscoveryHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
@@ -43,6 +44,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
+import org.wso2.carbon.identity.application.authentication.framework.services.ConsentAppMappingService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
@@ -53,6 +55,7 @@ import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -77,7 +80,6 @@ public class FrameworkServiceDataHolder {
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private List<ApplicationRolesResolver> applicationRolesResolvers = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
@@ -91,6 +93,7 @@ public class FrameworkServiceDataHolder {
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
     private ConsentManager consentManager = null;
+    private ConsentAppMappingService consentAppMappingService = null;
     private ClaimMetadataManagementService claimMetadataManagementService = null;
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
@@ -125,6 +128,9 @@ public class FrameworkServiceDataHolder {
     private OrganizationManager organizationManager;
     private RoleManagementService roleManagementServiceV2;
     private SecretResolveManager secretConfigManager;
+    private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
+    private OrganizationDiscoveryHandler organizationDiscoveryHandler;
+    private OrganizationUserSharingService organizationUserSharingService;
 
     private FrameworkServiceDataHolder() {
 
@@ -162,11 +168,6 @@ public class FrameworkServiceDataHolder {
     public void setBundleContext(BundleContext bundleContext) {
 
         this.bundleContext = bundleContext;
-    }
-
-    public List<ApplicationAuthenticator> getAuthenticators() {
-
-        return authenticators;
     }
 
     /**
@@ -381,6 +382,26 @@ public class FrameworkServiceDataHolder {
     public void setConsentManager(ConsentManager consentManager) {
 
         this.consentManager = consentManager;
+    }
+
+    /**
+     * Get {@link ConsentAppMappingService}.
+     *
+     * @return ConsentAppMappingService.
+     */
+    public ConsentAppMappingService getConsentAppMappingService() {
+
+        return consentAppMappingService;
+    }
+
+    /**
+     * Set {@link ConsentAppMappingService}.
+     *
+     * @param consentAppMappingService Instance of {@link ConsentAppMappingService}.
+     */
+    public void setConsentAppMappingService(ConsentAppMappingService consentAppMappingService) {
+
+        this.consentAppMappingService = consentAppMappingService;
     }
 
     /**
@@ -826,5 +847,55 @@ public class FrameworkServiceDataHolder {
     public void setRoleManagementServiceV2(RoleManagementService roleManagementServiceV2) {
 
         this.roleManagementServiceV2 = roleManagementServiceV2;
+    }
+
+    /**
+     * Set {@link UserDefinedAuthenticatorService}.
+     *
+     * @param userDefinedAuthenticatorService   Instance of {@link UserDefinedAuthenticatorService}.
+     */
+    public void setUserDefinedAuthenticatorService(UserDefinedAuthenticatorService userDefinedAuthenticatorService) {
+
+        this.userDefinedAuthenticatorService = userDefinedAuthenticatorService;
+    }
+
+    /**
+     * Get {@link UserDefinedAuthenticatorService}.
+     *
+     * @return Instance of {@link UserDefinedAuthenticatorService}.
+     */
+    public UserDefinedAuthenticatorService getUserDefinedAuthenticatorService() {
+
+        return userDefinedAuthenticatorService;
+    }
+
+    public OrganizationDiscoveryHandler getOrganizationDiscoveryHandler() {
+
+        return organizationDiscoveryHandler;
+    }
+
+    public void setOrganizationDiscoveryHandler(OrganizationDiscoveryHandler organizationDiscoveryHandler) {
+
+        this.organizationDiscoveryHandler = organizationDiscoveryHandler;
+    }
+
+    /**
+     * Get {@link OrganizationUserSharingService}.
+     *
+     * @return Instance of {@link OrganizationUserSharingService}.
+     */
+    public OrganizationUserSharingService getOrganizationUserSharingService() {
+
+        return organizationUserSharingService;
+    }
+
+    /**
+     * Set {@link OrganizationUserSharingService}.
+     *
+     * @param organizationUserSharingService Instance of {@link OrganizationUserSharingService}.
+     */
+    public void setOrganizationUserSharingService(OrganizationUserSharingService organizationUserSharingService) {
+
+        this.organizationUserSharingService = organizationUserSharingService;
     }
 }

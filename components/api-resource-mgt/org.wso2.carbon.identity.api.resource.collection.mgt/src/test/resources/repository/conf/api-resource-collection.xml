@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<APIResourceCollections>
+    <APIResourceCollection name="apiResources" displayName="API Resources" type="tenant" version="v0">
+        <Scopes>
+            <Feature>
+                <Scope name="console:apiResources"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_api_resource_update"/>
+            </Update>
+            <Create>
+                <Scope name="internal_api_resource_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_api_resource_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_api_resource_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+
+    <!--    New API Resource Collections-->
+    <APIResourceCollection name="apiResources" displayName="API Resources" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:apiResources"/>
+                <Scope name="console:apiResources_view"/>
+                <Scope name="console:apiResources_edit"/>
+                <Scope name="console:apiResources_create"/>
+                <Scope name="console:apiResources_update"/>
+                <Scope name="console:apiResources_delete"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_api_resource_update"/>
+            </Update>
+            <Create>
+                <Scope name="internal_api_resource_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_api_resource_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_api_resource_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+
+    <!-- Collections used to exercise holder-scope resolution.
+         holderOwner declares the full set of granular console feature action scopes (view/edit/create/update/delete)
+         in its <Feature> block, with one internal_* leaf per matching action block.
+         holderTransitive's own <Update> block carries a holder pointing back at holderOwner_update — that lets a
+         consumer's holder of holderTransitive_update exercise recursive (transitive) resolution.
+         holderConsumer references holderOwner_edit + holderTransitive_update from its <Update> block, and
+         holderOwner_view from its <Read> block; none of these holder names should appear in any bucket. -->
+    <APIResourceCollection name="holderOwner" displayName="Holder Owner" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:holderOwner"/>
+                <Scope name="console:holderOwner_view"/>
+                <Scope name="console:holderOwner_edit"/>
+                <Scope name="console:holderOwner_create"/>
+                <Scope name="console:holderOwner_update"/>
+                <Scope name="console:holderOwner_delete"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_holder_owner_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_holder_owner_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_holder_owner_delete"/>
+            </Delete>
+            <Read>
+                <Scope name="internal_holder_owner_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="holderTransitive" displayName="Holder Transitive" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:holderTransitive"/>
+                <Scope name="console:holderTransitive_view"/>
+                <Scope name="console:holderTransitive_edit"/>
+                <Scope name="console:holderTransitive_create"/>
+                <Scope name="console:holderTransitive_update"/>
+                <Scope name="console:holderTransitive_delete"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_holder_transitive_update"/>
+                <Scope name="console:holderOwner_update"/>
+            </Update>
+            <Create>
+                <Scope name="internal_holder_transitive_create"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_holder_transitive_delete"/>
+            </Delete>
+            <Read>
+                <Scope name="internal_holder_transitive_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="holderConsumer" displayName="Holder Consumer" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:holderConsumer"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_holder_consumer_update"/>
+                <Scope name="console:holderOwner_edit"/>
+                <Scope name="console:holderTransitive_update"/>
+            </Update>
+            <Read>
+                <Scope name="console:holderOwner_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+</APIResourceCollections>

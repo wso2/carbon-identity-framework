@@ -23,6 +23,8 @@ package org.wso2.carbon.idp.mgt;
  */
 public class IdentityProviderManagementClientException extends IdentityProviderManagementException {
 
+    private String description;
+
     public IdentityProviderManagementClientException(String message) {
 
         super(message);
@@ -41,5 +43,16 @@ public class IdentityProviderManagementClientException extends IdentityProviderM
     public IdentityProviderManagementClientException(String errorCode, String message, Throwable throwable) {
 
         super(errorCode, message, throwable);
+    }
+
+    public IdentityProviderManagementClientException(String errorCode, String message, String description) {
+
+        super(errorCode, message);
+        this.description = description;
+    }
+
+    public String getDescription() {
+
+        return description;
     }
 }

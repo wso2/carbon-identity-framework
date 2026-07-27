@@ -73,6 +73,22 @@ public class RoleConstants {
     public static final String CONSOLE_SCOPE_PREFIX = "console:";
     public static final String CONSOLE_ORG_SCOPE_PREFIX = "console:org:";
 
+    // Conflict Audit Data fields
+    public static final String PARENT_ORG_ID = "parentOrganizationId";
+    public static final String SHARED_ORG_ID = "sharedOrganizationId";
+    public static final String EXISTING_ROLE_NAME = "existingRoleName";
+    public static final String NEW_ROLE_NAME = "newRoleName";
+    public static final String FAILURE_REASON = "failureReason";
+    public static final String PARENT_APP_ID = "parentApplicationId";
+    public static final String CONFLICT_ROLE_ID = "roleId";
+    public static final String CONFLICT_ROLE_NAME = "roleName";
+
+    // Role management service configurations.
+    public static final String ALLOW_SYSTEM_PREFIX_FOR_ROLES = "RoleMgt.AllowSystemPrefixForRoles";
+
+    // Role properties
+    public static final String IS_SHARED_ROLE_PROP_NAME = "isSharedRole";
+
     /**
      * Grouping of constants related to database table names.
      */
@@ -136,6 +152,7 @@ public class RoleConstants {
         INVALID_AUDIENCE("60011"),
         INVALID_PERMISSION("60012"),
         PERMISSION_ALREADY_ADDED("60013"),
+        ROLE_WORKFLOW_CREATED("60014"),
 
         // Error thrown by custom event handler.
         ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),

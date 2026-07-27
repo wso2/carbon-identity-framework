@@ -1,17 +1,19 @@
 /*
- *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.configuration.mgt.core.util;
@@ -19,8 +21,10 @@ package org.wso2.carbon.identity.configuration.mgt.core.util;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
@@ -43,6 +47,7 @@ import static org.mockito.Mockito.spy;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_KEY;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME3;
@@ -51,6 +56,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConst
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE3;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME3;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_DESCRIPTION;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME2;
@@ -123,6 +129,14 @@ public class TestUtils {
         return resourceTypeAdd;
     }
 
+    public static ResourceTypeAdd getInheritableSampleResourceTypeAdd() {
+
+        ResourceTypeAdd resourceTypeAdd = new ResourceTypeAdd();
+        resourceTypeAdd.setName(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME);
+        resourceTypeAdd.setDescription(SAMPLE_RESOURCE_TYPE_DESCRIPTION);
+        return resourceTypeAdd;
+    }
+
     public static ResourceAdd getSampleResource1Add() {
 
         List<Attribute> attributes = new ArrayList<>();
@@ -144,6 +158,13 @@ public class TestUtils {
         ResourceAdd resourceAdd = new ResourceAdd();
         resourceAdd.setName(SAMPLE_RESOURCE_NAME2);
         resourceAdd.setAttributes(attributes);
+        return resourceAdd;
+    }
+
+    public static ResourceAdd getSampleResource3Add() {
+
+        ResourceAdd resourceAdd = new ResourceAdd();
+        resourceAdd.setName(SAMPLE_RESOURCE_NAME3);
         return resourceAdd;
     }
 

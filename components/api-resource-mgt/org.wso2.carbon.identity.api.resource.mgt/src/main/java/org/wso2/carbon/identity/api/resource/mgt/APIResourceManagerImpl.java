@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,32 +19,33 @@
 package org.wso2.carbon.identity.api.resource.mgt;
 
 import org.apache.commons.lang.StringUtils;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResourceMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.api.resource.mgt.publisher.APIResourceManagerEventPublisherProxy;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
+import org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
-import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
-import org.wso2.carbon.identity.core.model.Node;
-import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 /**
  * API resource management service.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.api.resource.mgt.APIResourceManager",
+                "service.scope=singleton"
+        }
+)
 public class APIResourceManagerImpl implements APIResourceManager {
 
     private static final APIResourceManager INSTANCE = new APIResourceManagerImpl();
@@ -67,7 +68,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
             throws APIResourceMgtException {
 
         APIResourceSearchResult result = new APIResourceSearchResult();
-        List<ExpressionNode> expressionNodes = getExpressionNodes(filter, after, before);
+        List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filter, after, before);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalCount(CACHE_BACKED_DAO.getAPIResourcesCount(tenantId, expressionNodes));
         result.setAPIResources(CACHE_BACKED_DAO.getAPIResources(limit, tenantId, sortOrder, expressionNodes));
@@ -82,7 +83,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
             throws APIResourceMgtException {
 
         APIResourceSearchResult result = new APIResourceSearchResult();
-        List<ExpressionNode> expressionNodes = getExpressionNodes(filter, after, before);
+        List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filter, after, before);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalCount(CACHE_BACKED_DAO.getAPIResourcesCount(tenantId, expressionNodes));
         result.setAPIResources(CACHE_BACKED_DAO.getAPIResourcesWithRequiredAttributes(limit, tenantId, sortOrder,
@@ -91,9 +92,25 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
-    public APIResource getAPIResourceById(String apiResourceId, String tenantDomain)
-            throws APIResourceMgtException {
+    public APIResource getAPIResourceById(String apiResourceId, String tenantDomain) throws APIResourceMgtException {
 
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                String rootOrgTenantDomain = OrganizationManagementUtil
+                        .getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
+                APIResource apiResource = CACHE_BACKED_DAO.getAPIResourceById(apiResourceId,
+                        IdentityTenantUtil.getTenantId(rootOrgTenantDomain));
+
+                // Return the API resource only if its type is inheritable.
+                return (apiResource != null
+                        && APIResourceManagementUtil.isAllowedAPIResourceTypeForOrganizations(apiResource.getType()))
+                        ? apiResource
+                        : null;
+            }
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages.
+                    ERROR_CODE_ERROR_WHILE_RETRIEVING_ROOT_ORGANIZATION_TENANT_DOMAIN, e, tenantDomain);
+        }
         return CACHE_BACKED_DAO.getAPIResourceById(apiResourceId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -172,6 +189,16 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
+    public void updateScopeMetadataById(Scope scope, APIResource apiResource, String tenantDomain)
+            throws APIResourceMgtException {
+
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreUpdateScopeMetadataWithException(scope, apiResource, tenantDomain);
+        CACHE_BACKED_DAO.updateScopeMetadataById(scope, apiResource, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostUpdateScopeMetadataWithException(scope, apiResource, tenantDomain);
+    }
+
+    @Override
     public APIResource getAPIResourceByIdentifier(String apiResourceIdentifier, String tenantDomain)
             throws APIResourceMgtException {
 
@@ -206,6 +233,16 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
+    public void deleteAPIScopeByScopeId(String apiResourceId, String scopeId, String tenantDomain)
+            throws APIResourceMgtException {
+
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreDeleteAPIScopeByScopeIdWithException(apiResourceId, scopeId, tenantDomain);
+        CACHE_BACKED_DAO.deleteScopeById(apiResourceId, scopeId, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostDeleteAPIScopeByScopeId(apiResourceId, scopeId, tenantDomain);
+    }
+
+    @Override
     public void putScopes(String apiResourceId, List<Scope> currentScopes, List<Scope> scopes, String tenantDomain)
             throws APIResourceMgtException {
 
@@ -218,7 +255,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
     @Override
     public List<Scope> getScopesByTenantDomain(String tenantDomain, String filter) throws APIResourceMgtException {
 
-        List<ExpressionNode> expressionNodes = getExpressionNodes(filter, null, null);
+        List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filter, null, null);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return CACHE_BACKED_DAO.getScopesByTenantId(tenantId, expressionNodes);
     }
@@ -227,6 +264,14 @@ public class APIResourceManagerImpl implements APIResourceManager {
     public Scope getScopeByName(String scopeName, String tenantDomain) throws APIResourceMgtException {
 
         return CACHE_BACKED_DAO.getScopeByNameAndTenantId(scopeName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public Scope getScopeByNameAndApiResourceId(String scopeName, String apiResourceId, String tenantDomain)
+            throws APIResourceMgtException {
+
+        return CACHE_BACKED_DAO.getScopeByNameTenantIdAPIId(scopeName, IdentityTenantUtil.getTenantId(tenantDomain),
+                apiResourceId);
     }
 
     @Override
@@ -245,79 +290,4 @@ public class APIResourceManagerImpl implements APIResourceManager {
         return systemScopes;
     }
 
-    /**
-     * Get the filter node as a list.
-     *
-     * @param filter Filter string.
-     * @param after  After cursor.
-     * @param before Before cursor.
-     * @throws APIResourceMgtClientException Error when validate filters.
-     */
-    private List<ExpressionNode> getExpressionNodes(String filter, String after, String before)
-            throws APIResourceMgtClientException {
-
-        List<ExpressionNode> expressionNodes = new ArrayList<>();
-        filter = StringUtils.isBlank(filter) ? StringUtils.EMPTY : filter;
-        String paginatedFilter = this.getPaginatedFilter(filter, after, before);
-        try {
-            if (StringUtils.isNotBlank(paginatedFilter)) {
-                FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(paginatedFilter);
-                Node rootNode = filterTreeBuilder.buildTree();
-                this.setExpressionNodeList(rootNode, expressionNodes);
-            }
-            return expressionNodes;
-        } catch (IOException | IdentityException e) {
-            throw APIResourceManagementUtil.handleClientException(
-                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_FORMAT);
-        }
-    }
-
-    /**
-     * Get pagination filter.
-     *
-     * @param paginatedFilter Filter string.
-     * @param after           After cursor.
-     * @param before          Before cursor.
-     * @return Filter string.
-     * @throws APIResourceMgtClientException Error when validate filters.
-     */
-    private String getPaginatedFilter(String paginatedFilter, String after, String before) throws
-            APIResourceMgtClientException {
-
-        try {
-            if (StringUtils.isNotBlank(before)) {
-                String decodedString = new String(Base64.getDecoder().decode(before), StandardCharsets.UTF_8);
-                paginatedFilter += StringUtils.isNotBlank(paginatedFilter) ? " and " +
-                        APIResourceManagementConstants.BEFORE_GT + decodedString :
-                        APIResourceManagementConstants.BEFORE_GT + decodedString;
-            } else if (StringUtils.isNotBlank(after)) {
-                String decodedString = new String(Base64.getDecoder().decode(after), StandardCharsets.UTF_8);
-                paginatedFilter += StringUtils.isNotBlank(paginatedFilter) ? " and " +
-                        APIResourceManagementConstants.AFTER_LT + decodedString :
-                        APIResourceManagementConstants.AFTER_LT + decodedString;
-            }
-        } catch (IllegalArgumentException e) {
-            throw APIResourceManagementUtil.handleClientException(
-                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_CURSOR_FOR_PAGINATION);
-        }
-        return paginatedFilter;
-    }
-
-    /**
-     * Set the node values as list of expression.
-     *
-     * @param node       filter node.
-     * @param expression list of expression.
-     */
-    private void setExpressionNodeList(Node node, List<ExpressionNode> expression) {
-
-        if (node instanceof ExpressionNode) {
-            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
-                expression.add((ExpressionNode) node);
-            }
-        } else if (node instanceof OperationNode) {
-            setExpressionNodeList(node.getLeftNode(), expression);
-            setExpressionNodeList(node.getRightNode(), expression);
-        }
-    }
 }

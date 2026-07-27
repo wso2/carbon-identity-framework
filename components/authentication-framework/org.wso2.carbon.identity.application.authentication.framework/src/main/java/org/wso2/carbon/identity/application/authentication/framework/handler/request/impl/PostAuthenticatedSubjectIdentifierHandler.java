@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,10 +37,20 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ALLOW_AUTHENTICATED_SUB_UPDATE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
 
 /**
  * This PostAuthenticationHandler is responsible for setting subject identifier related with authenticated user.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request." +
+                        "PostAuthenticationHandler",
+                "service.scope=singleton"
+        }
+)
 public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthenticatedSubjectIdentifierHandler.class);
@@ -96,10 +108,10 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
                     handleUserStoreAndTenantDomain(sequenceConfig, subjectValue);
                 } else {
                     log.warn("Subject claim could not be found. Defaulting to Name Identifier.");
-                    setAuthenticatedSubjectIdentifierBasedOnUserId(sequenceConfig);
+                    setAuthenticatedSubjectIdentifierBasedOnUserId(sequenceConfig, context);
                 }
             } else {
-                setAuthenticatedSubjectIdentifierBasedOnUserId(sequenceConfig);
+                setAuthenticatedSubjectIdentifierBasedOnUserId(sequenceConfig, context);
             }
         } catch (UserIdNotFoundException e) {
             return UNSUCCESS_COMPLETED;
@@ -142,7 +154,8 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
      *
      * @param sequenceConfig Relevant sequence config.
      */
-    private void setAuthenticatedSubjectIdentifierBasedOnUserId(SequenceConfig sequenceConfig)
+    private void setAuthenticatedSubjectIdentifierBasedOnUserId(SequenceConfig sequenceConfig,
+                                                                AuthenticationContext context)
             throws UserIdNotFoundException {
 
         boolean isUserstoreDomainInLocalSubjectIdentifier = sequenceConfig.getApplicationConfig()
@@ -151,7 +164,17 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
                 .isUseTenantDomainInLocalSubjectIdentifier();
 
         boolean useUserIdForDefaultSubject = sequenceConfig.getApplicationConfig().isUseUserIdForDefaultSubject();
-        if (useUserIdForDefaultSubject) {
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ALLOW_AUTHENTICATED_SUB_UPDATE)) &&
+                Boolean.parseBoolean((String) context.getProperty(PROP_USERNAME_UPDATED_EXTERNALLY))) {
+            String authenticatedUserName = sequenceConfig.getAuthenticatedUser().getUserName();
+
+            if (StringUtils.isNotEmpty(authenticatedUserName)) {
+                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(
+                        sequenceConfig.getAuthenticatedUser()
+                                .getUsernameAsSubjectIdentifier(isUserstoreDomainInLocalSubjectIdentifier,
+                                        isUseTenantDomainInLocalSubjectIdentifier));
+            }
+        } else if (useUserIdForDefaultSubject) {
             String authenticatedUserId = sequenceConfig.getAuthenticatedUser().getUserId();
 
             if (StringUtils.isNotEmpty(authenticatedUserId)) {

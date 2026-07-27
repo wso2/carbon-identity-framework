@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,14 +28,22 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheById;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheByIdentifier;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheEntry;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdCacheKey;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdentifierCacheKey;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResourceMgtDAO;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -49,12 +57,15 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CacheBackedAPIResourceManagementDAOTest {
 
     private static final int TENANT_ID = 2;
-    private static final String TENANT_DOMAIN = "carbon.super";
+    private static final String TENANT_DOMAIN = "tenant-2.com";
     private static final int INVALID_TENANT_ID = 3;
     private static final String INVALID_TENANT_DOMAIN = "invalid.tenant";
     private static final String DB_NAME = "cache_backed_api_resource_mgt_dao_db";
@@ -67,10 +78,21 @@ public class CacheBackedAPIResourceManagementDAOTest {
     public void setUp() throws Exception {
 
         setUpCarbonHome();
+
+        // The cache-backed DAO resolves the tenant domain (via IdentityTenantUtil -> RealmService) when it starts
+        // a tenant flow to clear/populate the scope metadata cache on writes. Wire a RealmService so this resolves
+        // for every test; tests that mock IdentityTenantUtil statically still override this.
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getDomain(anyInt())).thenAnswer(invocation -> getTenantDomain(invocation.getArgument(0)));
+        IdentityTenantUtil.setRealmService(realmService);
+
         APIResourceManagementDAOImpl apiResourceManagementDAO = new APIResourceManagementDAOImpl();
         daoImpl = new CacheBackedAPIResourceMgtDAO(apiResourceManagementDAO);
         initiateH2Database(getFilePath());
 
+        APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
 
         // Add initial API resources.
         addAPIResourceToDB("Setup-1", getConnection(), TENANT_ID);
@@ -180,6 +202,8 @@ public class CacheBackedAPIResourceManagementDAOTest {
              MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                      mockStatic(OrganizationManagementUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenAnswer(invocation -> getTenantDomain(invocation.getArgument(0)));
             String apiId = addAPIResourceToDB(name, getConnection(), tenantId, identityDatabaseUtil,
                     organizationManagementUtil).getId();
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(true)).thenReturn(getConnection());
@@ -205,6 +229,8 @@ public class CacheBackedAPIResourceManagementDAOTest {
              MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                      mockStatic(OrganizationManagementUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenAnswer(invocation -> getTenantDomain(invocation.getArgument(0)));
             addAPIResourceToDB(identifierPostFix, getConnection(), tenantId, identityDatabaseUtil,
                     organizationManagementUtil);
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(true)).thenReturn(getConnection());
@@ -231,6 +257,8 @@ public class CacheBackedAPIResourceManagementDAOTest {
              MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                      mockStatic(OrganizationManagementUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenAnswer(invocation -> getTenantDomain(invocation.getArgument(0)));
             APIResource apiresource =
                     addAPIResourceToDB("testIsAPIResourceExistById", getConnection(), tenantId, identityDatabaseUtil,
                             organizationManagementUtil);
@@ -496,6 +524,80 @@ public class CacheBackedAPIResourceManagementDAOTest {
         }
     }
 
+    @Test(priority = 14)
+    public void testDeleteScopeByIdWithCacheClearingVerification() throws Exception {
+
+        try (MockedStatic<APIResourceCacheById> apiResourceCacheByIdStatic = mockStatic(APIResourceCacheById.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenReturn("test-domain");
+
+            APIResourceCacheById apiResourceCacheById = mock(APIResourceCacheById.class);
+            apiResourceCacheByIdStatic.when(APIResourceCacheById::getInstance).thenReturn(apiResourceCacheById);
+
+            APIResource apiResource = mock(APIResource.class);
+            when(apiResource.getId()).thenReturn("apiId");
+            when(apiResource.getIdentifier()).thenReturn("apiIdentifier");
+
+            APIResourceCacheEntry apiResourceCacheEntry = mock(APIResourceCacheEntry.class);
+            when(apiResourceCacheEntry.getAPIResource()).thenReturn(apiResource);
+
+            when(apiResourceCacheById.getValueFromCache(any(APIResourceIdCacheKey.class), anyInt())).thenReturn(
+                    apiResourceCacheEntry);
+
+            APIResourceManagementDAOImpl apiResourceManagementDAO = mock(APIResourceManagementDAOImpl.class);
+            CacheBackedAPIResourceMgtDAO cacheBackedAPIResourceMgtDAO =
+                    new CacheBackedAPIResourceMgtDAO(apiResourceManagementDAO);
+            cacheBackedAPIResourceMgtDAO.deleteScopeById("apiId", "scopeId", 0);
+
+            verify(apiResourceCacheById).clearCacheEntry(any(APIResourceIdCacheKey.class), anyInt());
+            verify(apiResourceManagementDAO).deleteScopeById("apiId", "scopeId", 0);
+        }
+    }
+
+    @Test(priority = 15)
+    public void testUpdateScopeMetadataByIdWithCacheClearingVerification() throws Exception {
+
+        try (MockedStatic<APIResourceCacheByIdentifier> apiResourceCacheByIdentifierStatic = mockStatic(
+                APIResourceCacheByIdentifier.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenReturn("test-domain");
+
+            APIResourceCacheByIdentifier apiResourceCacheByIdentifier = mock(APIResourceCacheByIdentifier.class);
+            apiResourceCacheByIdentifierStatic.when(APIResourceCacheByIdentifier::getInstance)
+                    .thenReturn(apiResourceCacheByIdentifier);
+
+            APIResource apiResource = mock(APIResource.class);
+            when(apiResource.getId()).thenReturn("apiId");
+            when(apiResource.getIdentifier()).thenReturn("apiIdentifier");
+
+            APIResourceCacheEntry apiResourceCacheEntry = mock(APIResourceCacheEntry.class);
+            when(apiResourceCacheEntry.getAPIResource()).thenReturn(apiResource);
+
+            when(apiResourceCacheByIdentifier.getValueFromCache(any(APIResourceIdentifierCacheKey.class),
+                    anyInt())).thenReturn(apiResourceCacheEntry);
+
+            // Create a scope with metadata to update.
+            Scope scope = new Scope.ScopeBuilder()
+                    .id("scopeId")
+                    .name("testScope")
+                    .displayName("Updated Display Name")
+                    .description("Updated Description")
+                    .build();
+
+            APIResourceManagementDAOImpl apiResourceManagementDAO = mock(APIResourceManagementDAOImpl.class);
+            CacheBackedAPIResourceMgtDAO cacheBackedAPIResourceMgtDAO =
+                    new CacheBackedAPIResourceMgtDAO(apiResourceManagementDAO);
+            cacheBackedAPIResourceMgtDAO.updateScopeMetadataById(scope, apiResource, 0);
+
+            // Verify that cache clearing was called.
+            verify(apiResourceCacheByIdentifier).clearCacheEntry(any(APIResourceIdentifierCacheKey.class), anyInt());
+            // Verify the DAO method was called.
+            verify(apiResourceManagementDAO).updateScopeMetadataById(scope, apiResource, 0);
+        }
+    }
+
     /**
      * Create scope with the given name.
      *
@@ -546,8 +648,11 @@ public class CacheBackedAPIResourceManagementDAOTest {
     private APIResource addAPIResourceToDB(String namePostFix, Connection connection, int tenantId) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                      mockStatic(OrganizationManagementUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(getTenantDomain(tenantId));
             return addAPIResourceToDB(namePostFix, connection, tenantId, identityDatabaseUtil,
                     organizationManagementUtil);
         }
@@ -604,6 +709,10 @@ public class CacheBackedAPIResourceManagementDAOTest {
         dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME);
         dataSource.setTestOnBorrow(true);
         dataSource.setValidationQuery("select 1");
+        // Stubbed IdentityDatabaseUtil.getDBConnection borrows a pooled connection eagerly; cache-served reads
+        // never consume it, so it is not returned to the pool. Remove the borrow cap so the pool never blocks
+        // (leaked in-memory H2 connections are released when the test JVM exits).
+        dataSource.setMaxActive(-1);
         try (Connection connection = dataSource.getConnection()) {
             connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
         }

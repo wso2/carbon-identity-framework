@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.input.validation.mgt.listener.DataTypeValidationListener;
 import org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener;
 import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
@@ -47,6 +48,7 @@ import org.wso2.carbon.identity.input.validation.mgt.model.validators.UpperCaseV
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
 import org.wso2.carbon.identity.input.validation.mgt.userinfo.UserInfoHandlerImpl;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.utils.multitenancy.userinfo.UserInfoHandler;
 
@@ -96,6 +98,8 @@ public class InputValidationServiceComponent {
                     new JsRegExValidator(), null);
             context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
                     new InputValidationListener(), null);
+            context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
+                    new DataTypeValidationListener(), null);
 
             // Register field validation configuration handlers.
             context.getBundleContext().registerService(FieldValidationConfigurationHandler.class.getName(),
@@ -196,5 +200,21 @@ public class InputValidationServiceComponent {
     protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
 
         InputValidationDataHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "IdentityProviderManager",
+            service = org.wso2.carbon.idp.mgt.IdpManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdpManager")
+    protected void setIdpManager(IdpManager idpManager) {
+
+        InputValidationDataHolder.getInstance().setIdpManager(idpManager);
+    }
+
+    protected void unsetIdpManager(IdpManager idpManager) {
+
+        InputValidationDataHolder.getInstance().setIdpManager(null);
     }
 }

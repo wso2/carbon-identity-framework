@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.claim.ClaimManager;
@@ -33,6 +34,13 @@ import javax.xml.stream.XMLStreamException;
  * An implementation of {@link org.wso2.carbon.user.core.claim.ClaimManagerFactory} interface to used with all
  * advanced claim management use cases.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.user.core.claim.ClaimManagerFactory",
+                "service.scope=singleton"
+        }
+)
 public class ClaimMetadataStoreFactory implements ClaimManagerFactory {
 
     private static final Log log = LogFactory.getLog(DefaultClaimManager.class);

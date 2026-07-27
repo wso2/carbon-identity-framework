@@ -97,7 +97,7 @@
                     ],
                     "link": {
                         "text": "See Apple's guide on configuring your environment for Sign in with Apple.",
-                        "url": "https://developer.apple.com/documentation/sign_in_with_apple/configuring_your_environment_for_sign_in_with_apple"
+                        "url": "https://developer.apple.com/documentation/signinwithapple/configuring-your-environment-for-sign-in-with-apple"
                     }
                 },
                 "fields": [

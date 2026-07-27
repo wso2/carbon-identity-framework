@@ -26,6 +26,7 @@ public class Constants {
     public static final String EXTERNAL_CONSENT_PAGE_CONFIGURATIONS = "external_consent_page_configurations";
     public static final String EXTERNAL_CONSENT_PAGE = "external_consent_page";
     public static final String EXTERNAL_CONSENT_PAGE_URL = "external_consent_page_url";
+    public static final String ENFORCE_EXTERNAL_CONSENT_PAGE = "enforce_external_consent_page";
     public static final String RESOURCE_TYPE_NAME = "resourceTypeName";
     public static final String RESOURCE_NAME = "resourceName";
 

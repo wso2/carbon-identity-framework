@@ -25,6 +25,7 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client.api;
 
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -126,8 +127,11 @@ public class SelfRegisterApi {
         GenericType<String> localVarReturnType = new GenericType<String>() {
         };
 
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
-
+        String response = apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+        if (apiClient.getStatusCode() == ClientResponse.Status.ACCEPTED.getStatusCode()) {
+            response =  IdentityManagementEndpointConstants.PENDING_APPROVAL;
+        }
+        return response;
     }
 
     /**
@@ -245,6 +249,19 @@ public class SelfRegisterApi {
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
     public User validateCodeUserPostCall(CodeValidationRequest code) throws ApiException {
+
+        // Call the overloaded method with null headers.
+        return validateCodeUserPostCall(code, null);
+    }
+
+    /**
+     * This API is used to validate code of self registered users.
+     *
+     * @param code    Code retried after user self registration and optional property parameters (required).
+     * @param headers Map of request headers.
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body.
+     */
+    public User validateCodeUserPostCall(CodeValidationRequest code, Map<String, String> headers) throws ApiException {
         Object localVarPostBody = code;
 
         // verify the required parameter 'code' is set
@@ -274,6 +291,9 @@ public class SelfRegisterApi {
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        if (headers != null) {
+            localVarHeaderParams.putAll(headers);
+        }
 
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 

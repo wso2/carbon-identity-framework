@@ -1,0 +1,10 @@
+{
+  "preIssueAccessToken": [
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType"
+    }
+  ]
+}

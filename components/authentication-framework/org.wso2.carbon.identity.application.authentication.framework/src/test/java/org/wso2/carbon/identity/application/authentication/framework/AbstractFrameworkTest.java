@@ -21,10 +21,13 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import javax.xml.stream.XMLStreamException;
@@ -60,4 +63,16 @@ public class AbstractFrameworkTest {
         return IdentityProvider.build(documentElement);
     }
 
+
+    /**
+     * Remove all system defined authenticators.
+     */
+    protected void removeAllSystemDefinedAuthenticators() {
+
+        List<ApplicationAuthenticator> authenticatorList = new ArrayList<>(
+                ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators());
+        for (ApplicationAuthenticator authenticator : authenticatorList) {
+            ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
+        }
+    }
 }

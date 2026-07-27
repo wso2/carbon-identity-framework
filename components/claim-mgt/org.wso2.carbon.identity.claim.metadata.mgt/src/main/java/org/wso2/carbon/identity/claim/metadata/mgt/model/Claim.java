@@ -16,10 +16,13 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.model;
 
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Represents the simplest form of the metadata of a claim.
@@ -66,6 +69,11 @@ public class Claim implements Serializable {
         return null;
     }
 
+    public boolean getFlowInitiator() {
+
+        return Boolean.parseBoolean(this.getClaimProperties().get(ClaimConstants.FLOW_INITIATOR));
+    }
+
     public void setClaimProperties(Map<String, String> claimProperties) {
         if (claimProperties == null) {
             claimProperties = new HashMap<>();
@@ -75,5 +83,17 @@ public class Claim implements Serializable {
 
     public void setClaimProperty(String propertyName, String propertyValue) {
         this.getClaimProperties().put(propertyName, propertyValue);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (!(o instanceof Claim)) {
+            return false;
+        }
+        Claim claim = (Claim) o;
+        return Objects.equals(claimDialectURI, claim.claimDialectURI)
+                && Objects.equals(claimURI, claim.claimURI)
+                && Objects.equals(claimProperties, claim.claimProperties);
     }
 }

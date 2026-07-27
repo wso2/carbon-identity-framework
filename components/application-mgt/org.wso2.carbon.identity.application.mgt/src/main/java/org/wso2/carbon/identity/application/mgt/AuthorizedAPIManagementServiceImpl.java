@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,15 +20,18 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.AuthorizedAPIDAOImpl;
@@ -44,7 +47,9 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,12 +58,25 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_INTERNAL_SCOPES;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MERGE_AUTHORIZED_SCOPES_BY_POLICY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_SCOPE_PREFIX;
 
 /**
  * Authorized API management service implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService",
+                "service.scope=singleton"
+        }
+)
 public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManagementService {
 
     private final AuthorizedAPIDAO authorizedAPIDAO = new CacheBackedAuthorizedAPIDAOImpl(new AuthorizedAPIDAOImpl());
@@ -66,6 +84,9 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     @Override
     public void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, String tenantDomain)
             throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        validateTenantDomain(applicationId, tenantDomain, applicationManagementService);
 
         ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
                 ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
@@ -76,13 +97,12 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             listener.preAddAuthorizedAPI(applicationId, authorizedAPI, tenantDomain);
         }
         // Check if the application is a main application. If not, throw a client error.
-        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
         String mainAppId = applicationManagementService.getMainAppId(applicationId);
         if (StringUtils.isNotBlank(mainAppId)) {
             throw buildClientException(INVALID_REQUEST, "Cannot add authorized APIs to a shared application.");
         }
-        authorizedAPIDAO.addAuthorizedAPI(applicationId, authorizedAPI.getAPIId(),
-                authorizedAPI.getPolicyId(), authorizedAPI.getScopes(), IdentityTenantUtil.getTenantId(tenantDomain));
+        authorizedAPIDAO.addAuthorizedAPI(applicationId, authorizedAPI, IdentityTenantUtil.getTenantId(tenantDomain));
+
         for (AuthorizedAPIManagementListener listener : listeners) {
             listener.postAddAuthorizedAPI(applicationId, authorizedAPI, tenantDomain);
         }
@@ -92,6 +112,9 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     @Override
     public void deleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
             throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        validateTenantDomain(appId, tenantDomain, applicationManagementService);
 
         ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
                 ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
@@ -121,13 +144,14 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             throws IdentityApplicationManagementException {
 
         try {
+            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            validateTenantDomain(applicationId, tenantDomain, applicationManagementService);
             Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
                     .getAuthorizedAPIManagementListeners();
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.preGetAuthorizedAPIs(applicationId, tenantDomain);
             }
             // Check if the application is a main application else get the main application id and main tenant id.
-            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
             String mainAppId = applicationManagementService.getMainAppId(applicationId);
             if (StringUtils.isNotBlank(mainAppId)) {
                 applicationId = mainAppId;
@@ -149,7 +173,8 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 if (authorizedAPI.getScopes() != null) {
                     for (Scope scope : authorizedAPI.getScopes()) {
                         Scope scopeWithMetadata = ApplicationManagementServiceComponentHolder.getInstance()
-                                .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
+                                .getAPIResourceManager().getScopeByNameAndApiResourceId(scope.getName(),
+                                        authorizedAPI.getAPIId(), tenantDomain);
                         scopeList.add(scopeWithMetadata);
                     }
                 }
@@ -169,23 +194,8 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                                    List<String> removedScopes, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
-                ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
-        publisherProxy.publishPreUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
-                tenantDomain);
-        Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
-                .getAuthorizedAPIManagementListeners();
-        for (AuthorizedAPIManagementListener listener : listeners) {
-            listener.prePatchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, tenantDomain);
-        }
-        authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes,
-                IdentityTenantUtil.getTenantId(tenantDomain));
-        updateRolesWithRemovedScopes(appId, removedScopes, tenantDomain);
-        for (AuthorizedAPIManagementListener listener : listeners) {
-            listener.postPatchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, tenantDomain);
-        }
-        publisherProxy.publishPostUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
-                tenantDomain);
+        this.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, Collections.emptyList(),
+                Collections.emptyList(), tenantDomain);
     }
 
     @Override
@@ -193,18 +203,24 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             throws IdentityApplicationManagementException {
 
         try {
+            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            validateTenantDomain(appId, tenantDomain, applicationManagementService);
             Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
                     .getAuthorizedAPIManagementListeners();
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.preGetAuthorizedScopes(appId, tenantDomain);
             }
-            // Check if the application is a main application else get the main application id and main tenant id.
-            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
-            String mainAppId = applicationManagementService.getMainAppId(appId);
-            if (mainAppId != null) {
-                appId = mainAppId;
-                int tenantId = applicationManagementService.getTenantIdByApp(mainAppId);
-                tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+            // Resolve the main application id only for fragment (shared) applications; for others getMainAppId
+            // returns null, so skip its SP_SHARED_APP query using the cached service provider.
+            ServiceProvider serviceProvider = applicationManagementService.getApplicationByResourceId(appId,
+                    tenantDomain);
+            if (serviceProvider == null || isFragmentApp(serviceProvider)) {
+                String mainAppId = applicationManagementService.getMainAppId(appId);
+                if (mainAppId != null) {
+                    appId = mainAppId;
+                    int tenantId = applicationManagementService.getTenantIdByApp(mainAppId);
+                    tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+                }
             }
 
             List<AuthorizedScopes> authorizedScopes;
@@ -220,7 +236,48 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                                         .map(Scope::getName)
                                         .collect(Collectors.toCollection(ArrayList::new)));
                 authorizedScopesMap.put(RBAC, authorizedScopesBuilder.build());
-                authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
+
+                // Exclude internal scopes that start with "internal_", If this configuration is not enabled,
+                // IS will not authorise internal scopes.
+                boolean authoriseInternalScopes = Boolean.parseBoolean(IdentityUtil.getProperty(
+                        AUTHORIZE_INTERNAL_SCOPES));
+                if (authoriseInternalScopes) {
+                    authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
+                } else {
+                    List<AuthorizedScopes> appAuthorisedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
+                            IdentityTenantUtil.getTenantId(tenantDomain));
+                    boolean mergeByPolicy = !Boolean.FALSE.toString().equalsIgnoreCase(
+                            IdentityUtil.getProperty(MERGE_AUTHORIZED_SCOPES_BY_POLICY));
+                    if (mergeByPolicy) {
+                        List<AuthorizedScopes> nonInternalTenantScopes =
+                                new ArrayList<>(getScopesExcludingInternalScopes(authorizedScopesMap));
+                        // Tenant scopes are always RBAC-only; merge in internal/console scopes from
+                        // the app's RBAC subscription into that single entry.
+                        List<String> appRbacInternalScopes = appAuthorisedScopes.stream()
+                                .filter(as -> RBAC.equals(as.getPolicyId()))
+                                .flatMap(as -> as.getScopes().stream())
+                                .filter(s -> s.startsWith(INTERNAL_SCOPE_PREFIX)
+                                        || s.startsWith(CONSOLE_SCOPE_PREFIX))
+                                .distinct()
+                                .collect(Collectors.toList());
+                        if (!appRbacInternalScopes.isEmpty() && !nonInternalTenantScopes.isEmpty()) {
+                            AuthorizedScopes rbacEntry = nonInternalTenantScopes.get(0);
+                            List<String> merged = new ArrayList<>(rbacEntry.getScopes());
+                            appRbacInternalScopes.stream()
+                                    .filter(s -> !merged.contains(s))
+                                    .forEach(merged::add);
+                            nonInternalTenantScopes.set(0, new AuthorizedScopes(RBAC, merged));
+                        }
+                        authorizedScopes = nonInternalTenantScopes;
+                        // Non-RBAC app policies have no tenant-level conflict; add them directly.
+                        appAuthorisedScopes.stream()
+                                .filter(as -> !RBAC.equals(as.getPolicyId()))
+                                .forEach(authorizedScopes::add);
+                    } else {
+                        authorizedScopes = new ArrayList<>(getScopesExcludingInternalScopes(authorizedScopesMap));
+                        authorizedScopes.addAll(appAuthorisedScopes);
+                    }
+                }
             } else {
                 authorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
                         IdentityTenantUtil.getTenantId(tenantDomain));
@@ -235,18 +292,34 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         }
     }
 
+    private List<AuthorizedScopes> getScopesExcludingInternalScopes(Map<String, AuthorizedScopes> authorizedScopesMap) {
+
+        // Iterate and filter scopes that do not start with "internal_" and "console" scopes.
+        return authorizedScopesMap.values().stream()
+                .map(authorizedScopes -> {
+                    // Filter scopes that do not start with "internal_" and "console".
+                    List<String> filteredScopes = authorizedScopes.getScopes().stream()
+                            .filter(scope -> !scope.startsWith(INTERNAL_SCOPE_PREFIX))
+                            .filter(scope -> !scope.startsWith(CONSOLE_SCOPE_PREFIX))
+                            .collect(Collectors.toCollection(ArrayList::new));
+                    return new AuthorizedScopes(authorizedScopes.getPolicyId(), filteredScopes);
+                })
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
     @Override
     public AuthorizedAPI getAuthorizedAPI(String appId, String apiId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         try {
+            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            validateTenantDomain(appId, tenantDomain, applicationManagementService);
             Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
                     .getAuthorizedAPIManagementListeners();
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.preGetAuthorizedAPI(appId, apiId, tenantDomain);
             }
             // Check if the application is a main application else get the main application id and main tenant id.
-            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
             String mainAppId = applicationManagementService.getMainAppId(appId);
             if (mainAppId != null) {
                 apiId = mainAppId;
@@ -324,5 +397,75 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     private static RoleManagementService getRoleManagementServiceV2() {
 
         return ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
+    }
+
+    @Override
+    public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
+                                   List<String> removedScopes, List<String> addedAuthorizationDetailsTypes,
+                                   List<String> removedAuthorizationDetailsTypes, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        validateTenantDomain(appId, tenantDomain, applicationManagementService);
+        ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
+                ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
+        publisherProxy.publishPreUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
+                addedAuthorizationDetailsTypes, removedAuthorizationDetailsTypes, tenantDomain);
+        Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
+                .getAuthorizedAPIManagementListeners();
+        for (AuthorizedAPIManagementListener listener : listeners) {
+            listener.prePatchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, tenantDomain);
+        }
+        authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, addedAuthorizationDetailsTypes,
+                removedAuthorizationDetailsTypes, IdentityTenantUtil.getTenantId(tenantDomain));
+        updateRolesWithRemovedScopes(appId, removedScopes, tenantDomain);
+        for (AuthorizedAPIManagementListener listener : listeners) {
+            listener.postPatchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, tenantDomain);
+        }
+        publisherProxy.publishPostUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
+                addedAuthorizationDetailsTypes, removedAuthorizationDetailsTypes, tenantDomain);
+    }
+
+    @Override
+    public List<AuthorizationDetailsType> getAuthorizedAuthorizationDetailsTypes(String appId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        // Check if the application is a main application else get the main application id and main tenant id.
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        validateTenantDomain(appId, tenantDomain, applicationManagementService);
+        String mainAppId = applicationManagementService.getMainAppId(appId);
+        if (mainAppId != null) {
+            appId = mainAppId;
+            tenantDomain = IdentityTenantUtil.getTenantDomain(applicationManagementService.getTenantIdByApp(mainAppId));
+        }
+
+        return this.authorizedAPIDAO
+                .getAuthorizedAuthorizationDetailsTypes(appId, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    private void validateTenantDomain(String applicationId, String tenantDomain,
+                                      ApplicationManagementService applicationManagementService)
+            throws IdentityApplicationManagementServerException, IdentityApplicationManagementClientException {
+
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY))) {
+            int tenantId = applicationManagementService.getTenantIdByApp(applicationId);
+            if (tenantId != IdentityTenantUtil.getTenantId(tenantDomain)) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Application does not belong to the tenant domain: " + tenantDomain);
+            }
+        }
+    }
+
+    /**
+     * Check whether the service provider is a fragment (shared) application.
+     */
+    private static boolean isFragmentApp(ServiceProvider serviceProvider) {
+
+        if (serviceProvider.getSpProperties() == null) {
+            return false;
+        }
+        return Arrays.stream(serviceProvider.getSpProperties())
+                .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 }

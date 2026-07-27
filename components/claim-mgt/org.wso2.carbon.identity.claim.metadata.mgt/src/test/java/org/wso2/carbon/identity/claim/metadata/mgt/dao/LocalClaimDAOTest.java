@@ -1,18 +1,21 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
 import org.testng.annotations.BeforeClass;
@@ -40,7 +43,7 @@ import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
-                files = { "dbScripts/claim_properties.sql" })
+        files = {"dbScripts/claim_properties.sql"})
 @WithCarbonHome
 public class LocalClaimDAOTest {
 
@@ -76,10 +79,14 @@ public class LocalClaimDAOTest {
         claimProperties2 = new HashMap<>();
         claimProperties2.put("Description", "TestDescription2");
         claimProperties2.put("FriendlyName", "Nick Name");
+        // There can be canonical values without label value pairs. Those values should be safely ignored.
+        claimProperties2.put("canonicalValues", "NORTHERN, WEST");
 
         claimProperties3 = new HashMap<>();
         claimProperties3.put("Description", "TestDescription3");
         claimProperties3.put("FriendlyName", "UserName");
+        claimProperties3.put("subAttributes", "http://wso2.org/claims/test http://wso2.org/claims/test2");
+        claimProperties3.put("canonicalValues", "[{\"label\":\"north\",\"value\":\"NORTHERN\"},{\"label\":\"west\",\"value\":\"WEST\"}]");
 
         mappedAttributes1 = new ArrayList<>();
         mappedAttributes1.add(attributeMapping1);
@@ -133,16 +140,12 @@ public class LocalClaimDAOTest {
 
     @DataProvider(name = "getLocalClaim")
     public Object[][] testGetLocalClaimData() {
-        return new Object[][] {
-                {
-                        localClaim1, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim2, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim3, TEST_LOCAL_TENANT_ID
-                },
 
-                };
+        return new Object[][]{
+                {localClaim1, TEST_LOCAL_TENANT_ID},
+                {localClaim2, TEST_LOCAL_TENANT_ID},
+                {localClaim3, TEST_LOCAL_TENANT_ID},
+        };
     }
 
     @Test(dataProvider = "updateLocalClaim")
@@ -186,16 +189,17 @@ public class LocalClaimDAOTest {
 
     @DataProvider(name = "updateLocalClaim")
     public Object[][] testUpdateLocalClaimData() {
-        return new Object[][] {
+
+        return new Object[][]{
                 {
                         localClaim1, TEST_LOCAL_TENANT_ID
                 }, {
-                        localClaim2, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim3, TEST_LOCAL_TENANT_ID
-                },
+                localClaim2, TEST_LOCAL_TENANT_ID
+        }, {
+                localClaim3, TEST_LOCAL_TENANT_ID
+        },
 
-                };
+        };
     }
 
     @Test(dataProvider = "updateLocalClaimMappings")
@@ -276,6 +280,7 @@ public class LocalClaimDAOTest {
     }
 
     private LocalClaim createLocalClaim(String uri, String description, List<AttributeMapping> attributeMappings) {
+
         LocalClaim localClaim = new LocalClaim(uri);
         if (description != null) {
             Map<String, String> claimProperties = new HashMap<>();
@@ -289,6 +294,7 @@ public class LocalClaimDAOTest {
     }
 
     private List<AttributeMapping> createAttributeMappings(String... mappings) {
+
         List<AttributeMapping> attributeMappings = new ArrayList<>();
         for (int i = 0; i < mappings.length; i += 2) {
             attributeMappings.add(new AttributeMapping(mappings[i], mappings[i + 1]));

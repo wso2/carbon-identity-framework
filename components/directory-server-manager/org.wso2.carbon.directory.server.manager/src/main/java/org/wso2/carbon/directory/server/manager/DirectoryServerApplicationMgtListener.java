@@ -20,6 +20,7 @@ package org.wso2.carbon.directory.server.manager;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -31,6 +32,13 @@ import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtL
 /**
  * The application listener responsible for handling "kerberos" related events in application management process.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener",
+                "service.scope=singleton"
+        }
+)
 public class DirectoryServerApplicationMgtListener extends AbstractApplicationMgtListener {
 
     private static Log log = LogFactory.getLog(DirectoryServerApplicationMgtListener.class);

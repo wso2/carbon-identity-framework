@@ -22,11 +22,15 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.identity.user.profile.mgt.UserProfileUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerClientException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -42,11 +46,13 @@ import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_GETTING_THE_USER;
@@ -62,7 +68,16 @@ import static org.wso2.carbon.identity.user.profile.mgt.association.federation.c
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_TENANT_ID_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_IDENTIFIER_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_STORE_DOMAIN_PROVIDED;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorId;
 
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.user.profile.mgt.association.federation" +
+                        ".FederatedAssociationManager",
+                "service.scope=singleton"
+        }
+)
 public class FederatedAssociationManagerImpl implements FederatedAssociationManager {
 
     private static final Log log = LogFactory.getLog(FederatedAssociationManagerImpl.class);
@@ -75,9 +90,17 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         int tenantId = getValidatedTenantId(user);
         validateUserExistence(user, tenantId);
         validateIfFederatedUserAccountAlreadyAssociated(user.getTenantDomain(), idpName, federatedUserId);
+        validateIdPExistence(user.getTenantDomain(), idpName);
+
         try {
             UserProfileMgtDAO.getInstance().createAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
+
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()),
+                    user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                    LogConstants.UserManagement.CREATE_FEDERATED_USER_ASSOCIATION);
+            triggerAuditLogEvent(auditLogBuilder);
         } catch (UserProfileException e) {
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER
                     , e, false);
@@ -210,6 +233,14 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             UserProfileMgtDAO.getInstance().deleteAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
+
+            if (UserProfileUtil.isEnableV2AuditLogs()) {
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                        LoggerUtils.getInitiatorType(getInitiatorId()),
+                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                        LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION);
+                triggerAuditLogEvent(auditLogBuilder);
+            }
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association with idpId: " + idpName + ", and " +
@@ -230,6 +261,12 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             UserProfileMgtDAO.getInstance().deleteFederatedAssociation(user.getUserStoreDomain(), user.getUserName(),
                     federatedAssociationId);
+
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()),
+                    user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                    LogConstants.UserManagement.DELETE_FEDERATED_USER_ASSOCIATION);
+            triggerAuditLogEvent(auditLogBuilder);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association: " + federatedAssociationId
@@ -250,6 +287,12 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             UserProfileMgtDAO.getInstance().deleteFederatedAssociation(tenantId, user.getUserStoreDomain(),
                     user.getUserName());
+
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()),
+                    user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                    LogConstants.UserManagement.DELETE_FEDERATED_USER_ASSOCIATION);
+            triggerAuditLogEvent(auditLogBuilder);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated associations of user: "
@@ -439,6 +482,35 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                 log.debug(msg);
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_GETTING_THE_USER, e, true);
+        }
+    }
+
+    private void validateIdPExistence(String tenantDomain, String idpName) throws FederatedAssociationManagerException {
+
+        try {
+            IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
+            if (idpManager != null) {
+                IdentityProvider idp = idpManager.getIdPByName(idpName, tenantDomain);
+                if (idp == null || idp.getId() == null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Identity provider not found for the name: " + idpName + ", in the tenant domain: "
+                                + tenantDomain);
+                    }
+                    throw handleFederatedAssociationManagerClientException(INVALID_IDP_PROVIDED, null, true);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("The IdpManager service is not available in the runtime");
+                }
+                throw handleFederatedAssociationManagerServerException(ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS,
+                        null, true);
+            }
+        } catch (IdentityProviderManagementException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while resolving the identity provider for the name: " + idpName + ", in the tenant " +
+                        "domain: " + tenantDomain);
+            }
+            throw handleFederatedAssociationManagerServerException(ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS, e, true);
         }
     }
 

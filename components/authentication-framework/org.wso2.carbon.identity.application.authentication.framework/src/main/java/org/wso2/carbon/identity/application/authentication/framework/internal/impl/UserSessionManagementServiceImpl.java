@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.i
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
@@ -32,19 +33,30 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.util.SessionEventPublishingUtil;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -53,6 +65,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,16 +74,24 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_AUTHORIZE_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSIONS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 
 /**
  * This a service class used to manage user sessions.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework." +
+                        "UserSessionManagementService",
+                "service.scope=singleton"
+        }
+)
 public class UserSessionManagementServiceImpl implements UserSessionManagementService {
 
     private static final Log log = LogFactory.getLog(UserSessionManagementServiceImpl.class);
@@ -84,6 +105,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         String userId = resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         try {
+            FrameworkUtils.startTenantFlow(tenantDomain);
             if (log.isDebugEnabled()) {
                 log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
                         userStoreDomain + " in tenant: " + tenantDomain);
@@ -92,6 +114,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } catch (SessionManagementException e) {
             throw new UserSessionException("Error while terminating sessions of user:" + username +
                     " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
+        } finally {
+            FrameworkUtils.endTenantFlow();
         }
     }
 
@@ -168,6 +192,28 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve " +
                     "username for the userId: " + userId, e);
         }
+    }
+
+    private String resolveUserIdFromUser(User user) {
+
+        String username = user.getUserName();
+        String userStoreDomain = user.getUserStoreDomain();
+        String tenantDomain = user.getTenantDomain();
+
+        if (StringUtils.isBlank(username) || StringUtils.isBlank(userStoreDomain) ||
+                StringUtils.isBlank(tenantDomain)) {
+            return null;
+        }
+
+        try {
+            return resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
+        } catch (UserSessionException e) {
+            log.warn(String.format("Failed to resolve userId for user: %s in userstore domain: %s and tenant: %s.",
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username),
+                    userStoreDomain, tenantDomain), e);
+        }
+
+        return null;
     }
 
     private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
@@ -247,7 +293,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     userSessions = getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
                             authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
                             authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME));
-                    userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(userId), null, null));
+                    addAssociatedAssociatedLocalUserIdSessions(userSessions, userId);
                 } else {
                     userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
                 }
@@ -270,10 +316,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
         String userIdToSearch = userId;
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
         // First check whether a federated association exists for the userId.
         try {
-            int tenantId = getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            int tenantId = getTenantId(tenantDomain);
             Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap =
                     getAuthSessionUserMapFromFedAssociationMapping(tenantId, userId);
             if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
@@ -287,10 +334,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
             }
         }
-        sessionIdList = getSessionIdListByUserId(userIdToSearch);
+
+        List<UserSession> sessionList = getSessionsByUserId(userIdToSearch);
+        sessionIdList = sessionList.stream().map(UserSession::getSessionId).collect(Collectors.toList());
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
-                Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
+                IdPManagementUtil.getPreserveCurrentSessionAtPasswordUpdate(tenantDomain);
         String currentSessionId = "";
         boolean isSessionTerminationSkipped = false;
         if (isSessionPreservingAtPasswordUpdateEnabled) {
@@ -311,6 +360,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         }
         terminateSessionsOfUser(sessionIdList);
+        // Publish session termination event after session cleanup from session store,
+        // but before the session metadata is removed.
+        // Session publishing event may use session related metadata.
+        SessionEventPublishingUtil.publishSessionTerminationEvent(userId, sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
         }
@@ -403,9 +456,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
+
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
+            // Publish session termination event after session cleanup from session store,
+            // but before the session metadata is removed.
+            // Session publishing event may use session related metadata.
+            SessionEventPublishingUtil.publishSessionTerminationEvent(userId, sessionId);
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
             return true;
         } else {
@@ -494,6 +552,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             sessionManagementService.removeSession(sessionId);
+
+            // Publish session termination event after session cleanup from session store,
+            // but before the session metadata is removed.
+            // Session publishing event may use session related metadata.
+            SessionEventPublishingUtil.publishSessionTerminationEvent(resolveUserIdFromUser(user), sessionId);
+
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -583,17 +647,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
                         FrameworkUtils.getLoginTenantDomainFromContext());
                 if (sessionContext != null) {
-                    if (sessionContext.getProperties() != null &&
-                            sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN) instanceof String) {
-                        String tenantDomain = (String) sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN);
-                        // User's sessions belongs to the requested tenant is returned.
-                        if (!StringUtils.equals(FrameworkUtils.getLoginTenantDomainFromContext(), tenantDomain)) {
-                            continue;
-                        }
-                    }
                     UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
                     UserSession userSession = userSessionDAO.getSession(sessionId);
                     if (userSession != null) {
+                        if (!isEffectiveSession(sessionContext, userSession)) {
+                            continue;
+                        }
                         if (StringUtils.isNotBlank(idpId)) {
                             userSession.setIdpId(idpId);
                         }
@@ -605,8 +664,118 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 }
             }
         }
-
         return sessionsList;
+    }
+
+    private boolean isEffectiveSession(SessionContext sessionContext, UserSession userSession) {
+
+        try {
+            String sessionTenantDomain = null;
+            if (sessionContext.getProperties() != null &&
+                    sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN) instanceof String) {
+                sessionTenantDomain = (String) sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN);
+            }
+            if (StringUtils.isEmpty(sessionTenantDomain)) {
+                return true;
+            }
+            String loginTenantDomain = FrameworkUtils.getLoginTenantDomainFromContext();
+            boolean isOrganization = OrganizationManagementUtil.isOrganization(loginTenantDomain);
+            if (StringUtils.equals(sessionTenantDomain, loginTenantDomain)) {
+                // This block handles the scenario where session tenant domain and login tenant domain are equal.
+                if (isOrganization & areAllFragmentAppsInUserSession(userSession)) {
+                   /*
+                   When a sub org user authenticates using a shared application, sessions are created for shared app in
+                   sub organization and parent app in primary organization. In this case, the session created in primary
+                   organization is the effective session. Hence, this session is ignored for the session list.
+                    */
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                // This block handles the scenario where session tenant domain and login tenant domain are different.
+                if (isOrganization &&
+                        isSessionTenantPrimaryOrgForLoginTenant(sessionTenantDomain, loginTenantDomain)) {
+                    /*
+                    When a sub org user authenticates using a shared application, sessions are created for shared app in
+                    sub organization and parent app in primary organization. In this case, the session created in
+                    primary organization is the effective session. Hence, this scenario is considered as an
+                    effective session.
+                     */
+                    return true;
+                }
+                if (isSaaSAppAvailableInUserSession(userSession)) {
+                    /*
+                    When a user authenticates using a SaaS application in a different tenant domain. Session is also
+                    created for that tenant domain. In this case, user should be able to see this session from the
+                    user resident tenant domain. Hence, this scenario is considered as an effective session.
+                     */
+                    return true;
+                }
+                if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loginTenantDomain)) {
+                    /*
+                    When a super tenant user is trying to update the password of another root organization admin user,
+                    the loginTenantDomain will be the super tenant domain and sessionTenantDomain will be the root
+                    organization domain. Hence, sessions with such combination has to be considered as effective
+                    sessions.
+                    */
+                    return true;
+                }
+                return false;
+            }
+        } catch (OrganizationManagementException | IdentityApplicationManagementException e) {
+            log.error("Error occurred while validating the effective sessions.", e);
+            return true;
+        }
+    }
+
+    private boolean areAllFragmentAppsInUserSession(UserSession userSession)
+            throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManager =
+                FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
+        for (Application app: userSession.getApplications()) {
+            ServiceProvider serviceProvider = applicationManager
+                    .getServiceProvider(Integer.parseInt(app.getAppId()));
+            if (serviceProvider == null) {
+                return false;
+            }
+            boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
+                    .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                    Boolean.parseBoolean(property.getValue()));
+            if (!isFragmentApp) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isSessionTenantPrimaryOrgForLoginTenant(String sessionTenantDomain, String loginTenantDomain)
+            throws OrganizationManagementException {
+
+        OrganizationManager organizationManager = FrameworkServiceDataHolder.getInstance().getOrganizationManager();
+        String loginTenantDomainOrgId = organizationManager.resolveOrganizationId(loginTenantDomain);
+        String sessionTenantDomainOrgId = organizationManager.resolveOrganizationId(sessionTenantDomain);
+        String primaryOrgId = organizationManager.getPrimaryOrganizationId(loginTenantDomainOrgId);
+        return StringUtils.equals(primaryOrgId, sessionTenantDomainOrgId);
+    }
+
+    private boolean isSaaSAppAvailableInUserSession(UserSession userSession)
+            throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManager =
+                FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
+        for (Application app: userSession.getApplications()) {
+            ServiceProvider serviceProvider = applicationManager
+                    .getServiceProvider(Integer.parseInt(app.getAppId()));
+            if (serviceProvider == null) {
+                continue;
+            }
+            if (serviceProvider.isSaasApp()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -801,5 +970,26 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
 
         return idpManagementService;
+    }
+
+    private void addAssociatedAssociatedLocalUserIdSessions(List<UserSession> userSessions,
+            String associatedLocalUserId) throws SessionManagementServerException {
+
+        /* If the `FilterByUniqueSessionIdForUser` property is set to true, the `getSessionsByUserId` method will return
+         entries with unique session IDs. If set to false, it will return duplicate entries with corresponding idpId and
+         idpName for associated federated user. */
+        if (!Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))) {
+            userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(associatedLocalUserId), null, null));
+            return;
+        }
+
+        List<UserSession> associatedLocalUserIdSessions =
+                getActiveSessionList(getSessionIdListByUserId(associatedLocalUserId), null, null);
+        for (UserSession associatedLocalUserIdSession : associatedLocalUserIdSessions) {
+            if (userSessions.stream().noneMatch(userSession ->
+                    StringUtils.equals(userSession.getSessionId(), associatedLocalUserIdSession.getSessionId()))) {
+                userSessions.add(associatedLocalUserIdSession);
+            }
+        }
     }
 }

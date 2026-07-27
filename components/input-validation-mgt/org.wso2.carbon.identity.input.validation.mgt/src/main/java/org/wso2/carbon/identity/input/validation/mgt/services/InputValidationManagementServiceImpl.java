@@ -21,11 +21,16 @@ package org.wso2.carbon.identity.input.validation.mgt.services;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
@@ -36,6 +41,10 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfigurati
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
+import org.wso2.carbon.identity.input.validation.mgt.utils.Constants;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdpManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,21 +54,36 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder.getFieldValidationConfigurationHandlers;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_ADDING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_DELETING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.FIELD_VALIDATION_CONFIG_HANDLER_MAP;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.PW_POLICY_ENABLE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.PW_POLICY_MAX_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.PW_POLICY_MIN_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.PW_POLICY_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
  * Class for Input Validation Manager Implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService",
+                "service.scope=singleton"
+        }
+)
 public class InputValidationManagementServiceImpl implements InputValidationManagementService {
 
     private static final Log LOG = LogFactory.getLog(InputValidationManagementServiceImpl.class);
@@ -165,9 +189,34 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
 
         return InputValidationDataHolder.getFieldValidationConfigurationHandlers();
     }
-    
+
     public ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
             throws InputValidationMgtException {
+
+        if (StringUtils.equals(field, PASSWORD) && isPasswordPolicyHandlerEnabled()) {
+            Map<String, String> passwordPolicyConfig = getPasswordPolicyConfiguration(tenantDomain);
+            if (passwordPolicyConfig.containsKey(PW_POLICY_ENABLE) && Boolean.parseBoolean(
+                    passwordPolicyConfig.get(PW_POLICY_ENABLE))) {
+                ValidationConfiguration configuration = new ValidationConfiguration();
+                configuration.setField(PASSWORD);
+                List<RulesConfiguration> rules = new ArrayList<>();
+                RulesConfiguration rule = new RulesConfiguration();
+                rule.setValidatorName(LengthValidator.class.getSimpleName());
+                Map<String, String> properties = new HashMap<>();
+                for (Map.Entry<String, String> entry : passwordPolicyConfig.entrySet()) {
+                    String key = entry.getKey();
+                    if (StringUtils.equalsIgnoreCase(PW_POLICY_MIN_LENGTH, key)) {
+                        properties.put(MIN_LENGTH, entry.getValue());
+                    } else if (StringUtils.equalsIgnoreCase(PW_POLICY_MAX_LENGTH, key)) {
+                        properties.put(MAX_LENGTH, entry.getValue());
+                    }
+                }
+                rule.setProperties(properties);
+                rules.add(rule);
+                configuration.setRules(rules);
+                return configuration;
+            }
+        }
 
         for (FieldValidationConfigurationHandler handler : getFieldValidationConfigurationHandlers().values()) {
             if (handler.canHandle(field.toLowerCase())) {
@@ -232,6 +281,31 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         }
 
         return buildValidationConfigFromResource(updatedResource);
+    }
+
+    /**
+     * Method to delete input validation configurations for provided fields.
+     *
+     * @param fields        List of fields that configurations need to be deleted.
+     * @param tenantDomain  Tenant domain name.
+     * @throws InputValidationMgtServerException If an error occurred when deleting configurations.
+     */
+    @Override
+    public void revertInputValidationConfiguration(List<String> fields, String tenantDomain)
+            throws InputValidationMgtServerException {
+
+        for (String field : fields) {
+            String resourceName = INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + field;
+            Resource resource = getResource(resourceName, tenantDomain);
+            if (resource != null) {
+                try {
+                    getConfigurationManager().deleteResource(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME, resourceName);
+                } catch (ConfigurationManagementException e) {
+                    throw new InputValidationMgtServerException(ERROR_WHILE_DELETING_CONFIGURATIONS.getCode(),
+                            String.format(ERROR_WHILE_DELETING_CONFIGURATIONS.getMessage(), tenantDomain), e);
+                }
+            }
+        }
     }
 
     /**
@@ -375,13 +449,34 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
      * @param resource  Resource.
      * @return Validation Configuration.
      */
-    private ValidationConfiguration buildValidationConfigFromResource(Resource resource) {
+    private ValidationConfiguration buildValidationConfigFromResource(Resource resource)
+            throws InputValidationMgtServerException {
 
         ValidationConfiguration configuration = new ValidationConfiguration();
-        configuration.setField(resource.getResourceName().substring(
-                resource.getResourceName().lastIndexOf("-") + 1));
-        Map<String, String> attributesMap = resource.getAttributes().stream()
+        String field = resource.getResourceName().substring(
+                resource.getResourceName().lastIndexOf("-") + 1);
+        configuration.setField(field);
+        Map<String, String> attributesMap = new HashMap<>();
+        if (StringUtils.equals(field, PASSWORD) && isPasswordPolicyHandlerEnabled()) {
+            Map<String, String> passwordPolicyConfig = getPasswordPolicyConfiguration(resource.getTenantDomain());
+            if (passwordPolicyConfig.containsKey(PW_POLICY_ENABLE) && Boolean.parseBoolean(
+                    passwordPolicyConfig.get(PW_POLICY_ENABLE))) {
+                attributesMap.put(VALIDATION_TYPE, RULES);
+                for (Map.Entry<String, String> entry : passwordPolicyConfig.entrySet()) {
+                    String key = entry.getKey();
+                    if (StringUtils.equalsIgnoreCase(PW_POLICY_MIN_LENGTH, key)) {
+                        attributesMap.put("LengthValidator." + MIN_LENGTH, entry.getValue());
+                    } else if (StringUtils.equalsIgnoreCase(PW_POLICY_MAX_LENGTH, key)) {
+                        attributesMap.put("LengthValidator." + MAX_LENGTH, entry.getValue());
+                    } else if (StringUtils.equalsIgnoreCase(PW_POLICY_PATTERN, key)) {
+                        attributesMap.put("PatternValidator.Pattern", entry.getValue());
+                    }
+                }
+            }
+        } else {
+            attributesMap = resource.getAttributes().stream()
                     .collect(Collectors.toMap(Attribute::getKey, Attribute::getValue));
+        }
 
         // Build rules configurations from mapping.
         Map<String, Map<String, String>> validatorConfig = buildValidatorConfigGroup(attributesMap);
@@ -436,5 +531,53 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     private ConfigurationManager getConfigurationManager() {
 
         return InputValidationDataHolder.getConfigurationManager();
+    }
+
+    /**
+     * Method to check whether the password policy handler is enabled.
+     *
+     * @return  True if password policy handler is enabled.
+     */
+    public boolean isPasswordPolicyHandlerEnabled() {
+
+        String passwordPolicyHandlerEnabled =
+                IdentityUtil.getProperty(Constants.PW_POLICY_HANDLER_ENABLED);
+        if (StringUtils.isBlank(passwordPolicyHandlerEnabled)) {
+            /*
+            This indicates config not in the identity.xml. In that case, we need to maintain default behaviour.
+             */
+            return false;
+        }
+        return Boolean.parseBoolean(passwordPolicyHandlerEnabled);
+    }
+
+    /**
+     * Method to get password policy handler configuration.
+     *
+     * @param tenantDomain  Tenant domain name.
+     * @return  Password policy configuration.
+     * @throws InputValidationMgtServerException If an error occurred when getting password policy configuration.
+     */
+    public Map<String, String> getPasswordPolicyConfiguration(String tenantDomain)
+            throws InputValidationMgtServerException {
+
+        IdpManager identityProviderManager = InputValidationDataHolder.getInstance().getIdpManager();
+        IdentityProvider residentIdp = null;
+        try {
+            residentIdp = identityProviderManager.getResidentIdP(tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            String errorMsg = String.format("Error while retrieving resident Idp for %s tenant.", tenantDomain);
+            throw new InputValidationMgtServerException(e.getErrorCode(), errorMsg, e);
+        }
+        IdentityProviderProperty[] identityMgtProperties = residentIdp.getIdpProperties();
+        Map<String, String> configMap = new HashMap<>();
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            if (IdentityEventConstants.PropertyConfig.ALREADY_WRITTEN_PROPERTY_KEY
+                    .equals(identityMgtProperty.getName())) {
+                continue;
+            }
+            configMap.put(identityMgtProperty.getName(), identityMgtProperty.getValue());
+        }
+        return configMap;
     }
 }

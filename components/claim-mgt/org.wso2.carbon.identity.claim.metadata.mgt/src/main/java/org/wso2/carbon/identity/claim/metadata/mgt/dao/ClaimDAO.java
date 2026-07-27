@@ -1,27 +1,34 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.SQLConstants;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.utils.DBUtils;
 
@@ -29,10 +36,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUES_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUE_PREFIX;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTE_PREFIX;
 
 /**
  *
@@ -181,6 +194,8 @@ public class ClaimDAO {
         String query = SQLConstants.GET_CLAIM_PROPERTIES;
 
         try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
+            ArrayList<String> subAttributes = new ArrayList<>();
+            List<String> canonicalValues = new ArrayList<>();
             prepStmt.setInt(1, claimId);
             prepStmt.setInt(2, tenantId);
 
@@ -188,8 +203,28 @@ public class ClaimDAO {
                 while (rs.next()) {
                     String claimPropertyName = rs.getString(SQLConstants.PROPERTY_NAME_COLUMN);
                     String claimPropertyValue = rs.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
+                    // Check if the property is a sub attribute, if so, add it to the sub attributes list and skip
+                    // adding the single property to the map.
+                    if (claimPropertyName.startsWith(SUB_ATTRIBUTE_PREFIX)) {
+                        subAttributes.add(claimPropertyValue);
+                        continue;
+                    } else if (claimPropertyName.startsWith(CANONICAL_VALUE_PREFIX)) {
+                        /* Check if the property is a canonical value. If so, add it to the canonical value list and
+                           skip adding the single property to the map. */
+                        canonicalValues.add(claimPropertyValue);
+                        continue;
+                    }
 
                     claimProperties.put(claimPropertyName, claimPropertyValue);
+                }
+                // If there are sub attributes, add them as a single property. All the sub attributes are separated by
+                // a space.
+                if (!subAttributes.isEmpty()) {
+                    claimProperties.put(SUB_ATTRIBUTES_PROPERTY, StringUtils.join(subAttributes, " "));
+                }
+                // If there are canonical values, add them as a single property.
+                if (!canonicalValues.isEmpty()) {
+                    claimProperties.put(CANONICAL_VALUES_PROPERTY, canonicalValues.toString());
                 }
             }
         } catch (SQLException e) {
@@ -204,15 +239,51 @@ public class ClaimDAO {
 
         if (claimId > 0 && claimProperties != null) {
             String query = SQLConstants.ADD_CLAIM_PROPERTY;
-            try (PreparedStatement prepStmt = connection.prepareStatement(query);) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
+                boolean isOracle = StringUtils.containsIgnoreCase(
+                        connection.getMetaData().getDatabaseProductName(), IdentityCoreConstants.ORACLE);
+                prepStmt.setInt(1, claimId);
+                prepStmt.setInt(4, tenantId);
                 for (Map.Entry<String, String> property : claimProperties.entrySet()) {
-                    prepStmt.setInt(1, claimId);
+                    // Skip properties with empty values on Oracle, as it treats empty strings as NULL
+                    if (isOracle && StringUtils.isEmpty(property.getValue())) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Skipping empty property value for key: " + property.getKey() +
+                                      " due to Oracle NULL constraint");
+                        }
+                        continue;
+                    }
+                    if (StringUtils.equals(property.getKey(), SUB_ATTRIBUTES_PROPERTY)) {
+                        String[] subAttributes = property.getValue().split(" ");
+                        int subAttributeIndex = 0;
+                        for (String subAttribute : subAttributes) {
+                            subAttributeIndex++;
+                            prepStmt.setString(2, SUB_ATTRIBUTE_PREFIX + subAttributeIndex);
+                            prepStmt.setString(3, subAttribute);
+                            prepStmt.addBatch();
+                        }
+                        continue;
+                    } else if (StringUtils.equals(property.getKey(), CANONICAL_VALUES_PROPERTY)) {
+                        try {
+                            JSONArray canonicalValues = new JSONArray(property.getValue());
+                            int canonicalValueIndex = 0;
+                            for (int i = 0; i < canonicalValues.length(); i++) {
+                                canonicalValueIndex++;
+                                JSONObject canonicalValue = canonicalValues.getJSONObject(i);
+                                prepStmt.setString(2, CANONICAL_VALUE_PREFIX + canonicalValueIndex);
+                                prepStmt.setString(3, canonicalValue.toString());
+                                prepStmt.addBatch();
+                            }
+                        } catch (JSONException e) {
+                            log.warn("Error while parsing the canonical values JSON array. Hence, skipping "
+                                    + "adding canonical values to the claim.", e);
+                        }
+                        continue;
+                    }
                     prepStmt.setString(2, property.getKey());
                     prepStmt.setString(3, property.getValue());
-                    prepStmt.setInt(4, tenantId);
                     prepStmt.addBatch();
                 }
-
                 prepStmt.executeBatch();
             } catch (SQLException e) {
                 throw new ClaimMetadataException("Error while adding claim properties", e);

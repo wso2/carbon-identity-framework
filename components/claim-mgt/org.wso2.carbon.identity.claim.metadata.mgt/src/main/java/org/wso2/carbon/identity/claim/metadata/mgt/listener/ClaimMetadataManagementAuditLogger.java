@@ -58,6 +58,10 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
+        if (LoggerUtils.isEnableV2AuditLogs()) {
+            return;
+        }
+
         int tenantId = (int) event.getEventProperties().get(IdentityEventConstants.EventProperty.TENANT_ID);
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         if (log.isDebugEnabled()) {

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,18 @@ public interface IdpManager {
      */
     void updateResidentIdP(IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException;
+
+    /**
+     * Delete properties of the resident Identity Provider for a given tenant.
+     *
+     * @param propertyNames List of property names to be deleted.
+     * @param tenantDomain  Tenant domain whose resident IdP properties are requested.
+     * @throws IdentityProviderManagementException Error when deleting properties of the resident Identity Provider.
+     */
+    default void deleteResidentIdpProperties(List<String> propertyNames, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+    }
 
     /**
      * Retrieves registered Identity providers for a given tenant
@@ -508,6 +521,72 @@ public interface IdpManager {
         return null;
     }
 
+    /**
+     * Retrieve applications that are connected to the identity provider identified by resource ID with a filter.
+     *
+     * @param resourceId   Identity Provider's resource ID.
+     * @param limit        Limit parameter for pagination.
+     * @param offset       Offset parameter for pagination.
+     * @param filter       Filter parameter for filtering connected applications.
+     * @param tenantDomain Tenant domain of Identity Provider.
+     * @return Connected apps UUID list with the total count.
+     * @throws IdentityProviderManagementException if an error occurs while retrieving connected applications.
+     */
+    default ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset,
+                                                         String filter, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return null;
+    }
+
+    /**
+     * Check whether the IDP with the given resource ID is associated with any service providers.
+     *
+     * @param resourceId   Identity Provider's resource ID.
+     * @param idpName      Identity Provider's name.
+     * @param tenantDomain Tenant domain of Identity Provider.
+     * @return Whether the given IDP is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP associations.
+     */
+    default boolean isIdpReferredBySP(String resourceId, String idpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return false;
+    }
+
+    /**
+     * Check whether the specified IDP authenticator is associated with any service providers.
+     *
+     * @param resourceId        Identity Provider's resource ID.
+     * @param idpName           Identity Provider's name.
+     * @param authenticatorName Name of the authenticator.
+     * @param tenantDomain      Tenant domain of Identity Provider.
+     * @return Whether the specified IDP authenticator is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP authenticator associations.
+     */
+    default boolean isAuthenticatorReferredBySP(String resourceId, String idpName, String authenticatorName,
+                                                String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return false;
+    }
+
+    /**
+     * Check whether the specified IDP outbound connector is associated with any service providers.
+     *
+     * @param resourceId    Identity Provider's resource ID.
+     * @param idpName       Identity Provider's name.
+     * @param connectorName Name of the outbound connector.
+     * @param tenantDomain  Tenant domain of Identity Provider.
+     * @return Whether the specified IDP outbound connector is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP outbound connector associations.
+     */
+    default boolean isOutboundConnectorReferredBySP(String resourceId, String idpName, String connectorName,
+                                                    String tenantDomain) throws IdentityProviderManagementException {
+
+        return false;
+    }
+
     default ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId,
                                                                       Integer limit, Integer offset)
             throws IdentityProviderManagementException {
@@ -543,6 +622,48 @@ public interface IdpManager {
      */
     default List<IdPGroup> getValidIdPGroupsByIdPGroupIds(List<String> idpGroupIds, String tenantDomain)
             throws IdentityProviderManagementException {
+
+        return null;
+    }
+
+    /**
+     Get all user defined federated authenticators of the tenant domain.
+     *
+     * @param tenantDomain  Tenant Domain.
+     * @return All user defined federated authenticators.
+     * @throws IdentityProviderManagementException  If an error occurred while getting all user defined federated
+     * authenticator.
+     */
+    default List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Get the all federated authenticator of the tenant domain (both system defined and user defined).
+     *
+     * @param tenantDomain  Tenant Domain.
+     * @return User all federated authenticators.
+     * @throws IdentityProviderManagementException  If an error occurred while getting all federated authenticator.
+     */
+    default FederatedAuthenticatorConfig[] getAllFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return new FederatedAuthenticatorConfig[0];
+    }
+
+    /**
+     * Get the federated authenticator by authenticator name of the tenant domain
+     * (both system defined and user defined).
+     *
+     * @param authenticatorName  Authenticator Name.
+     * @param tenantDomain  Tenant Domain.
+     * @return User all federated authenticators.
+     * @throws IdentityProviderManagementException  If an error occurred while getting the federated authenticator.
+     */
+    default FederatedAuthenticatorConfig getFederatedAuthenticatorByName(
+            String authenticatorName,  String tenantDomain) throws IdentityProviderManagementException {
 
         return null;
     }

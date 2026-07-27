@@ -1,17 +1,19 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com).
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.configuration.mgt.core;
@@ -20,12 +22,15 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -38,10 +43,23 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.FirstFoundAggregationStrategy;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_ATTRIBUTE_ALREADY_EXISTS;
@@ -51,6 +69,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
         .ERROR_CODE_ATTRIBUTE_IDENTIFIERS_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_ATTRIBUTE_REQUIRED;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DEFAULT_RESOLVER_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_FILES_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
@@ -61,6 +80,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
         .ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_INVALID_RESOURCE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOLVING_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOLVING_TENANT_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_RESOURCE_ADD_REQUEST_INVALID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
@@ -90,6 +111,13 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.Configuration
 /**
  * Resource Manager service implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager",
+                "service.scope=singleton"
+        }
+)
 public class ConfigurationManagerImpl implements ConfigurationManager {
 
     private static final Log log = LogFactory.getLog(ConfigurationManagerImpl.class);
@@ -178,7 +206,17 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         validateResourcesRetrieveRequest(resourceTypeName);
         ResourceType resourceType = getResourceType(resourceTypeName);
-        List<Resource> resourceList = this.getConfigurationDAO().getResourcesByType(tenantId, resourceType.getId());
+        List<Resource> resourceList;
+        try {
+            if (isInheritanceEnabled(resourceTypeName, IdentityTenantUtil.getTenantDomain(tenantId))) {
+                    resourceList = getInheritedResourcesByType(tenantId, resourceType.getId());
+            } else {
+                resourceList = this.getConfigurationDAO().getResourcesByType(tenantId, resourceType.getId());
+            }
+        } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
+            throw handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RESOURCE_TYPE, resourceTypeName, e);
+        }
+
         if (resourceList == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No resource found for the resourceTypeName: " + resourceTypeName);
@@ -190,27 +228,97 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     }
 
     /**
-     * {@inheritDoc}
+     * Method to get inherited resources by type.
+     *
+     * @param tenantId  Tenant ID.
+     * @param resourceTypeId Resource type ID.
+     * @return List of resources of the given type inherited from the organization hierarchy.
+     * @throws OrganizationManagementException If an error occurred when getting organization manager.
+     * @throws OrgResourceHierarchyTraverseException If an error occurred when traversing the resource hierarchy.
      */
+    private List<Resource> getInheritedResourcesByType(int tenantId, String resourceTypeId)
+            throws OrganizationManagementException, OrgResourceHierarchyTraverseException {
+
+        OrganizationManager organizationManager =
+                ConfigurationManagerComponentDataHolder.getInstance().getOrganizationManager();
+        OrgResourceResolverService orgResourceResolverService =
+                ConfigurationManagerComponentDataHolder.getInstance().getOrgResourceResolverService();
+        String orgId = organizationManager.resolveOrganizationId(IdentityTenantUtil.getTenantDomain(tenantId));
+
+        return orgResourceResolverService.getResourcesFromOrgHierarchy(
+                orgId,
+                LambdaExceptionUtils.rethrowFunction(orgID ->
+                        Optional.of(this.getConfigurationDAO().getResourcesByType(
+                                IdentityTenantUtil.getTenantId(organizationManager.resolveTenantDomain(orgID)),
+                                resourceTypeId))),
+                new MergeAllAggregationStrategy<>(this::mergeResourceLists));
+    }
+
+    /**
+     * Merge two Resources objects by combining the resources from both giving priority to the current resources.
+     *
+     * @param currentResourceList Current resources.
+     * @param parentResourceList  Parent resources.
+     * @return  Merged resources object.
+     */
+    private List<Resource> mergeResourceLists (List<Resource> currentResourceList, List<Resource> parentResourceList) {
+
+        Map<String, Resource> resourceMap = new HashMap<>();
+        for (Resource resource : currentResourceList) {
+            resourceMap.put(resource.getResourceName(), resource);
+        }
+
+        for (Resource resource : parentResourceList) {
+            if (!resourceMap.containsKey(resource.getResourceName())) {
+                currentResourceList.add(resource);
+            }
+        }
+
+        return currentResourceList;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @deprecated Use {@link #getResource(String, String, boolean)} instead.
+     */
+    @Deprecated
     public Resource getResource(String resourceTypeName, String resourceName)
             throws ConfigurationManagementException {
 
-        return getResource(getTenantId(), resourceTypeName, resourceName);
+        return getResource(getTenantId(), resourceTypeName, resourceName, false);
+    }
+
+    @Override
+    public Resource getResource(String resourceTypeName, String resourceName, boolean getInheritedResource)
+            throws ConfigurationManagementException {
+
+        return getResource(getTenantId(), resourceTypeName, resourceName, getInheritedResource);
     }
 
     @Override
     public Resource getResourceByTenantId(int tenantId, String resourceTypeName, String resourceName)
             throws ConfigurationManagementException {
 
-        return getResource(tenantId, resourceTypeName, resourceName);
+        return getResource(tenantId, resourceTypeName, resourceName, false);
     }
 
-    private Resource getResource(int tenantId, String resourceTypeName, String resourceName)
+    private Resource getResource(int tenantId, String resourceTypeName, String resourceName,
+                                 boolean getInheritedResource)
             throws ConfigurationManagementException {
 
         validateResourceRetrieveRequest(resourceTypeName, resourceName);
         ResourceType resourceType = getResourceType(resourceTypeName);
-        Resource resource = this.getConfigurationDAO().getResourceByName(tenantId, resourceType.getId(), resourceName);
+        Resource resource;
+        try {
+            if (getInheritedResource &&
+                    isInheritanceEnabled(resourceTypeName, IdentityTenantUtil.getTenantDomain(tenantId))) {
+                resource = getInheritedResourceByName(tenantId, resourceType.getId(), resourceName);
+            } else {
+                resource = this.getConfigurationDAO().getResourceByName(tenantId, resourceType.getId(), resourceName);
+            }
+        } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
+            throw handleServerException(ErrorMessages.ERROR_CODE_GET_RESOURCE, resourceName, e);
+        }
         if (resource == null) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("No resource found for the resource with name: %s in tenant with ID: %s",
@@ -219,6 +327,34 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS, resourceName, null);
         }
         return resource;
+    }
+
+    /**
+     * Method to get inherited resource by resource and resource type name.
+     *
+     * @param tenantId Tenant ID.
+     * @param resourceTypeId Resource type ID.
+     * @param resourceName Resource name.
+     * @return Resource object of the given name inherited from the organization hierarchy.
+     * @throws OrganizationManagementException If an error occurred when getting organization manager.
+     * @throws OrgResourceHierarchyTraverseException If an error occurred when traversing the resource hierarchy.
+     */
+    private Resource getInheritedResourceByName(int tenantId, String resourceTypeId, String resourceName)
+            throws OrganizationManagementException, OrgResourceHierarchyTraverseException {
+
+        OrganizationManager organizationManager =
+                ConfigurationManagerComponentDataHolder.getInstance().getOrganizationManager();
+        OrgResourceResolverService orgResourceResolverService =
+                ConfigurationManagerComponentDataHolder.getInstance().getOrgResourceResolverService();
+        String orgId = organizationManager.resolveOrganizationId(IdentityTenantUtil.getTenantDomain(tenantId));
+
+        return orgResourceResolverService.getResourcesFromOrgHierarchy(
+                orgId,
+                LambdaExceptionUtils.rethrowFunction(orgID ->
+                        Optional.ofNullable(this.getConfigurationDAO().getResourceByName(
+                                IdentityTenantUtil.getTenantId(organizationManager.resolveTenantDomain(orgID)),
+                                resourceTypeId, resourceName))),
+                new FirstFoundAggregationStrategy<>());
     }
 
     /**
@@ -463,6 +599,28 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         return attribute;
     }
 
+    /**
+     * Resolve the default configurations for the given resource from the registered default config resolvers.
+     *
+     * @param resourceType Resource type name.
+     * @param resourceName Resource name.
+     * @return Default configurations for the given resource.
+     * @throws ConfigurationManagementException if no default resolver is found.
+     */
+    @Override
+    public Resource getDefaultResource(String resourceType, String resourceName)
+            throws ConfigurationManagementException {
+
+        DefaultConfigResolver resolver = ConfigurationManagerComponentDataHolder.getInstance()
+                .getDefaultConfigResolver(resourceType, resourceName);
+
+        if (resolver == null) {
+            throw handleServerException(ERROR_CODE_DEFAULT_RESOLVER_DOES_NOT_EXISTS, resourceType);
+        }
+
+        return resolver.getDefaultConfigs(resourceType, resourceName);
+    }
+
     private void validateSearchRequest(Condition condition) throws ConfigurationManagementClientException {
 
         if (condition == null) {
@@ -506,13 +664,34 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private int getTenantId() {
+    private int getTenantId() throws ConfigurationManagementException {
 
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                String tenantDomain = ConfigurationManagerComponentDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(appResidentOrgId);
+                return IdentityTenantUtil.getTenantId(tenantDomain);
+            } catch (OrganizationManagementException | IdentityRuntimeException e) {
+                throw handleServerException(ERROR_CODE_RESOLVING_TENANT_ID, appResidentOrgId, e);
+            }
+        }
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     }
 
-    private String getTenantDomain() {
+    private String getTenantDomain() throws ConfigurationManagementException {
 
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                return ConfigurationManagerComponentDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(appResidentOrgId);
+            } catch (OrganizationManagementException e) {
+                throw handleServerException(ERROR_CODE_RESOLVING_TENANT_DOMAIN, appResidentOrgId, e);
+            }
+        }
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 
@@ -535,13 +714,20 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private Resource generateResourceFromRequest(String resourceTypeName, ResourceAdd resourceAdd) {
+    private Resource generateResourceFromRequest(String resourceTypeName, ResourceAdd resourceAdd)
+            throws ConfigurationManagementException {
 
         Resource resource = new Resource();
         resource.setTenantDomain(getTenantDomain());
         resource.setResourceName(resourceAdd.getName());
         resource.setResourceType(resourceTypeName);
-        resource.setAttributes(resourceAdd.getAttributes());
+
+        List<Attribute> attributes = resourceAdd.getAttributes();
+        resource.setAttributes(attributes);
+
+        if (attributes != null && !attributes.isEmpty()) {
+            resource.setHasAttribute(true);
+        }
         return resource;
     }
 
@@ -1117,5 +1303,32 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         } else {
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
         }
+    }
+
+    /**
+     * Check whether inheritance is enabled for the given resource type in the given tenant domain.
+     *
+     * @param resourceTypeName Resource type name.
+     * @param tenantDomain     Tenant domain.
+     * @return True if inheritance is enabled, false otherwise.
+     * @throws OrganizationManagementException If an error occurs while checking inheritance status.
+     */
+    private boolean isInheritanceEnabled(String resourceTypeName, String tenantDomain) throws OrganizationManagementException {
+
+        if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+            return false;
+        }
+
+        Optional<ConfigurationConstants.InheritedResourceType> matchingResourceType =
+                ConfigurationConstants.InheritedResourceType.getByResourceTypeName(resourceTypeName);
+        if (!matchingResourceType.isPresent()) {
+            return false;
+        }
+
+        if (!matchingResourceType.get().shouldCheckOrgVersionWhenInheriting()) {
+            return true;
+        }
+
+        return Utils.isLoginAndRegistrationConfigInheritanceEnabled(tenantDomain);
     }
 }

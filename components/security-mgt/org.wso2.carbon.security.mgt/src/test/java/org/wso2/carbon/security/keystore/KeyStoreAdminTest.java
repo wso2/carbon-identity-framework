@@ -103,7 +103,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(false);
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             keyStoreAdmin.addKeyStore(keyStoreContent, "new_keystore.jks", KEYSTORE_PASSWORD, " ", "JKS",
                     KEYSTORE_PASSWORD);
         }
@@ -122,7 +122,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(true);
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             keyStoreAdmin.addTrustStore(Base64.encode(keyStoreContent), "new_truststore.jks", KEYSTORE_PASSWORD, " ",
                     "JKS");
         }
@@ -137,7 +137,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(this.keyStoreManager.getTrustStore())
                     .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             KeyStore result = keyStoreAdmin.getTrustStore();
 
             assertNotNull(result);
@@ -154,7 +154,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(this.keyStoreManager.getTrustStore())
                     .thenThrow(new CarbonException("Error occurred while retrieving TrustStore"));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             // Execute method under test
             assertThrows(SecurityConfigException.class, () -> {
                 keyStoreAdmin.getTrustStore();
@@ -173,7 +173,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             keyStoreAdmin.deleteStore("new_keystore.jks");
             verify(this.keyStoreManager).deleteStore("new_keystore.jks");
         }
@@ -190,7 +190,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             keyStoreAdmin.deleteStore("new_truststore.jks");
             verify(this.keyStoreManager).deleteStore("new_truststore.jks");
         }
@@ -211,7 +211,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(this.keyStoreManager.getKeyStore(anyString()))
                     .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             PaginatedKeyStoreData result = keyStoreAdmin.getPaginatedKeystoreInfo(KEYSTORE_NAME, 10);
             int actualKeysNo = findCertDataSetSize(result.getPaginatedKeyData().getCertDataSet());
             assertEquals(actualKeysNo, 3, "Incorrect key numbers");
@@ -232,7 +232,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(keyStoreManager.getKeyStore(anyString()))
                     .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             PaginatedKeyStoreData result =
                     keyStoreAdmin.getFilteredPaginatedKeyStoreInfo(KEYSTORE_NAME, 10, KEYSTORE_ALIAS);
             int actualKeysNo = findCertDataSetSize(result.getPaginatedKeyData().getCertDataSet());
@@ -257,7 +257,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(this.keyStoreManager.getPrivateKey(anyString(), anyString()))
                     .thenReturn(getPrivateKeyFromKeyStore(KEYSTORE_NAME, KEYSTORE_ALIAS, KEYSTORE_PASSWORD));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             KeyStoreData keystoreInfo = keyStoreAdmin.getKeystoreInfo(KEYSTORE_NAME);
             assertEquals(keystoreInfo.getKeyStoreName(), KEYSTORE_NAME, "Incorrect keystore name");
             assertEquals(keystoreInfo.getKeyStoreType(), KEYSTORE_TYPE, "Incorrect keystore type");
@@ -287,7 +287,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(keyStoreManager.getKeyStoresMetadata(anyBoolean())).thenReturn(
                     metadataList.toArray(new KeyStoreMetadata[0]));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             KeyStoreData[] keyStores = keyStoreAdmin.getKeyStores(isSuperTenant);
 
             assertEquals(keyStores.length, 1, "Incorrect number of keystores");
@@ -306,7 +306,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
             when(this.keyStoreManager.getKeyStore(KEYSTORE_NAME))
                     .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID);
             String[] names = keyStoreAdmin.getStoreEntries(KEYSTORE_NAME);
             assertEquals(names.length, 38, "Incorrect key numbers");
         }

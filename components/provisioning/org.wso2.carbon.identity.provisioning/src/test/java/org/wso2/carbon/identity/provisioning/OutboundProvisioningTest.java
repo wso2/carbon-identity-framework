@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -50,6 +51,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
 import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
@@ -57,6 +59,8 @@ import org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListene
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -84,6 +88,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -131,10 +136,21 @@ public class OutboundProvisioningTest {
     @BeforeClass
     public void setUpClass() throws Exception {
 
+        SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
+        SecretType secretType = mock(SecretType.class);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        when(secretType.getId()).thenReturn("secretId");
+        doReturn(secretType).when(secretManager).getSecretType(any());
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
+
         IdPSecretsProcessor idpSecretsProcessor = mock(IdPSecretsProcessor.class);
         when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.decryptProvisioningConnectorSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.encryptProvisioningConnectorSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         idPManagementDAO = new IdPManagementDAO();
 
@@ -212,7 +228,10 @@ public class OutboundProvisioningTest {
              MockedStatic<IdentityTenantUtil> identityTenantUtil = Mockito.mockStatic(IdentityTenantUtil.class);
              MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = Mockito.mockStatic(IdentityDatabaseUtil.class);
              MockedStatic<ApplicationManagementService> appMgtService = Mockito.mockStatic(ApplicationManagementService.class);
-             MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<OrganizationManagementUtil> organizationManagementUtil = Mockito.mockStatic(
+                     OrganizationManagementUtil.class);
+             MockedStatic<LoggerUtils> loggerUtils = Mockito.mockStatic(LoggerUtils.class)) {
 
             mockCarbonContext(carbonContext);
             connection = getConnection(DB_NAME);
@@ -222,6 +241,8 @@ public class OutboundProvisioningTest {
             identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN)).thenReturn(SUPER_TENANT_ID);
             identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(SUPER_TENANT_ID)).thenReturn(SUPER_TENANT_DOMAIN);
             identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenReturn("PRIMARY");
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                    .thenReturn(false);
             appMgtService.when(ApplicationManagementService::getInstance).thenReturn(applicationManagementService);
             when(applicationManagementService.getServiceProvider(anyString(), anyString())).thenReturn(serviceProvider);
             when(userStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);

@@ -72,45 +72,73 @@ public class UserStoreBasedIdentityDataStore extends InMemoryIdentityDataStore {
         }
         newIdentityClaimDO.setTenantId(tenantId);
         super.store(newIdentityClaimDO, userStoreManager);
+        persistUserClaimsToUserStore(userIdentityDTO, userStoreManager);
+    }
+
+    /**
+     * This method stores data in the read write user stores during a READ operation.
+     */
+    @Override
+    public void storeOnRead(UserIdentityClaimsDO userIdentityDTO, UserStoreManager userStoreManager) throws IdentityException {
+
+        UserIdentityClaimsDO newIdentityClaimDO = new UserIdentityClaimsDO(userIdentityDTO.getUserName(),
+                userIdentityDTO.getUserDataMap());
+
+        int tenantId;
+        try {
+            tenantId = userStoreManager.getTenantId();
+        } catch (UserStoreException e) {
+            throw IdentityException.error("Error while getting tenant Id.", e);
+        }
+        newIdentityClaimDO.setTenantId(tenantId);
+        super.storeOnRead(newIdentityClaimDO, userStoreManager);
+        persistUserClaimsToUserStore(userIdentityDTO, userStoreManager);
+    }
+
+    /**
+     * Persists user identity claims to the user store, if it is not read only.
+     *
+     * @deprecated use {@link org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore} instead.
+     */
+    @Deprecated
+    private void persistUserClaimsToUserStore(UserIdentityClaimsDO userIdentityDTO,
+                                              UserStoreManager userStoreManager) throws IdentityException {
 
         if (userIdentityDTO.getUserName() == null) {
             log.error("Error while persisting user data.  Null user name is provided.");
             return;
         }
         String username = UserCoreUtil.removeDomainFromName(userIdentityDTO.getUserName());
-
-            try {
-                // Check if the user store is read only. If it is read only and still uses user store based data
-                // store then log a warn.
-                if(!userStoreManager.isReadOnly()) {
-                    // Need to clone the map. If not iterative calls will refer the same map
-                    setUserClaimsValuesInUserStore(userStoreManager, username,
-                            new HashMap<>(userIdentityDTO.getUserDataMap()), null);
-                } else {
-                    // If the user store is read only and still uses UserStoreBasedIdentityDataStore, then log a warn
-                    log.warn("User store is read only. Changes to identities are only stored in memory, " +
-                            "and not updated in user store.");
-                    return;
-                }
-            } catch (UserStoreException e) {
-                if(!e.getMessage().startsWith(IdentityCoreConstants.USER_NOT_FOUND)){
-                    throw IdentityException.error("Error while persisting identity user data in to user store", e);
-                } else if (log.isDebugEnabled()){
-                    String message = null;
-                    if(userStoreManager instanceof AbstractUserStoreManager){
-                        String domain = ((AbstractUserStoreManager)userStoreManager).getRealmConfiguration()
-                                .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-                        if(domain != null){
-                            message = "User: " + username + " does not exist in " + domain;
-                        }
-                    }
-                    if(message == null) {
-                        message = "User: " + username + " does not exist";
-                    }
-                    log.debug(message);
-                    return;
-                }
+        try {
+            // Check if the user store is read only. If it is read only and still uses user store based data
+            // store then log a warn.
+            if (!userStoreManager.isReadOnly()) {
+                // Need to clone the map. If not iterative calls will refer the same map
+                setUserClaimsValuesInUserStore(userStoreManager, username,
+                        new HashMap<>(userIdentityDTO.getUserDataMap()), null);
+            } else {
+                // If the user store is read only and still uses UserStoreBasedIdentityDataStore, then log a warn
+                log.warn("User store is read only. Changes to identities are only stored in memory, " +
+                        "and not updated in user store.");
             }
+        } catch (UserStoreException e) {
+            if (!e.getMessage().startsWith(IdentityCoreConstants.USER_NOT_FOUND)) {
+                throw IdentityException.error("Error while persisting identity user data in to user store", e);
+            } else if (log.isDebugEnabled()) {
+                String message = null;
+                if (userStoreManager instanceof AbstractUserStoreManager) {
+                    String domain = ((AbstractUserStoreManager) userStoreManager).getRealmConfiguration()
+                            .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                    if (domain != null) {
+                        message = "User: " + username + " does not exist in " + domain;
+                    }
+                }
+                if (message == null) {
+                    message = "User: " + username + " does not exist";
+                }
+                log.debug(message);
+            }
+        }
     }
 
     /**

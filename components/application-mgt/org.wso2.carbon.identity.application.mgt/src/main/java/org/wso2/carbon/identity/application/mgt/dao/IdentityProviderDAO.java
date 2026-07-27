@@ -51,7 +51,9 @@ public interface IdentityProviderDAO {
      * Returns all the local authenticators available on the system.
      * @return
      * @throws IdentityApplicationManagementException
+     * @deprecated use {@link ApplicationAuthenticatorService#getInstance().getAllLocalAuthenticators(String)} instead.
      */
+    @Deprecated
     List<LocalAuthenticatorConfig> getAllLocalAuthenticators() throws IdentityApplicationManagementException;
 
     /**

@@ -21,16 +21,17 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util.client
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.exception.ServiceClientException;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationErrorResponse;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationResponse;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationSuccessResponse;
+import org.wso2.carbon.identity.core.HTTPClientManager;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -54,7 +55,6 @@ public class AuthAPIServiceClient {
     private static final String RESPONSE_PARAM_PROPERTIES = "properties";
 
     private String basePath;
-    private CloseableHttpClient httpClient;
 
     /**
      * Constructor to initialize service client.
@@ -63,7 +63,6 @@ public class AuthAPIServiceClient {
      */
     public AuthAPIServiceClient(String apiBasePath) {
 
-        httpClient = HttpClients.createDefault();
         basePath = apiBasePath;
     }
 
@@ -80,37 +79,49 @@ public class AuthAPIServiceClient {
 
         String endpointURL = basePath + "authenticate";
 
-        AuthenticationResponse authenticationResponse;
         HttpPost httpPostRequest = new HttpPost(endpointURL);
         httpPostRequest.setHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader(username, password));
         httpPostRequest.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-        try (CloseableHttpResponse response = httpClient.execute(httpPostRequest)) {
+        return HTTPClientManager.executeWithHttpClient(httpClient ->
+                authenticate(httpClient, httpPostRequest, endpointURL));
+    }
 
-            int statusCode = response.getStatusLine().getStatusCode();
-            String responseString = extractResponse(response);
-            if (log.isDebugEnabled()) {
-                log.debug("Response: { status: " + response.getStatusLine().getStatusCode() + "\n data: " +
+    private AuthenticationResponse authenticate(CloseableHttpClient httpClient, HttpPost httpPostRequest,
+                                                String endpointURL) throws ServiceClientException {
+
+        try {
+            return httpClient.execute(httpPostRequest, response -> {
+
+                String responseString;
+                try {
+                    responseString = extractResponse(response);
+                } catch (ServiceClientException e) {
+                    throw new RuntimeException(e);
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Response: { status: " + response.getCode() + "\n data: " +
                         responseString + " }");
             }
 
+            AuthenticationResponse authenticationResponse;
             JSONObject responseObj = new JSONObject(responseString);
             if (responseObj.has(RESPONSE_PARAM_TOKEN)) {
                 authenticationResponse = populateAuthenticationSuccessResponse(responseObj);
             } else {
                 authenticationResponse = populateAuthenticationErrorResponse(responseObj);
             }
-            authenticationResponse.setStatusCode(statusCode);
+            authenticationResponse.setStatusCode(response.getCode());
 
-        } catch (IOException e) {
+            return authenticationResponse;
+            });
+        } catch (RuntimeException | IOException e) {
             String msg = "Error while invoking " + endpointURL;
             log.error(msg, e);
             throw new ServiceClientException(msg, e);
         }
-
-        return authenticationResponse;
     }
 
-    private String extractResponse(CloseableHttpResponse httpResponse) throws ServiceClientException {
+    private String extractResponse(ClassicHttpResponse httpResponse) throws ServiceClientException {
 
         StringBuilder response = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(

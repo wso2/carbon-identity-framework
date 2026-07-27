@@ -131,9 +131,7 @@ public class ExtensionManagerComponent {
 
             // Check whether the given extension type directory exists.
             if (!Files.exists(path) || !Files.isDirectory(path)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Default templates directory does not exist: " + path);
-                }
+                log.warn("Default templates directory does not exist: " + path);
                 continue;
             }
 
@@ -213,7 +211,9 @@ public class ExtensionManagerComponent {
 
         Path templatePath = extensionResourcePath.resolve(TEMPLATE_FILE_NAME);
         if (Files.exists(templatePath) && Files.isRegularFile(templatePath)) {
-            return readJSONFile(templatePath);
+            JSONObject template = readJSONFile(templatePath);
+            ExtensionMgtUtils.resolveConnectionJITPrimaryDomainName(template);
+            return template;
         }
         return null;
     }

@@ -40,10 +40,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.util.SessionEventPublishingUtil;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -129,27 +131,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         ExternalIdPConfig externalIdPConfig = null;
 
         // Remove the session related information from the session tables.
-        clearUserSessionData(request);
-
-        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
-                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context) &&
-                    sessionContext != null) {
-            Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-            if (authenticatedUserObj instanceof AuthenticatedUser) {
-                authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
-                if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
-                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.USER, LoggerUtils.isLogMaskingEnable ?
-                            LoggerUtils.getMaskedContent(authenticatedUser.getUserName()) :
-                            authenticatedUser.getUserName())
-                            .inputParam(LogConstants.InputKeys.USER_ID, authenticatedUser.getLoggableUserId());
-                }
-            }
-            // Setting the authenticated user's object to the request to get the relevant details to log out the user.
-            context.setProperty(FrameworkConstants.AUTHENTICATED_USER, authenticatedUser);
-            FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
-                    sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
-                            .SESSION_TERMINATE);
+        if (SessionDataStore.getInstance().isSessionDataCleanupEnabled()) {
+            clearUserSessionData(request);
         }
 
         // Remove federated authentication session details from the database.
@@ -239,12 +222,50 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // without waiting till a logout response is received from federated IDP.
         // remove the SessionContext from the cache
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(), context.getLoginTenantDomain());
+        if (context.getOrganizationLoginData() != null &&
+                context.getOrganizationLoginData().getRootOrganizationTenantDomain() != null) {
+            /*
+            During session retrievals, sub org user sessions can be cached against the root org tenant domain, hence
+            removing the session context from the cache using the root org tenant domain as well.
+             */
+            FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(),
+                    context.getOrganizationLoginData().getRootOrganizationTenantDomain());
+        }
         // remove the cookie
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             FrameworkUtils.removeAuthCookie(request, response, context.getLoginTenantDomain());
         } else {
             FrameworkUtils.removeAuthCookie(request, response);
         }
+
+        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
+                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context) &&
+                sessionContext != null) {
+            Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            if (authenticatedUserObj instanceof AuthenticatedUser) {
+                authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+                if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.USER, LoggerUtils.isLogMaskingEnable ?
+                                    LoggerUtils.getMaskedContent(authenticatedUser.getUserName()) :
+                                    authenticatedUser.getUserName())
+                            .inputParam(LogConstants.InputKeys.USER_ID, authenticatedUser.getLoggableUserId());
+                }
+            }
+            // Setting the authenticated user's object to the request to get the relevant details to log out the user.
+            context.setProperty(FrameworkConstants.AUTHENTICATED_USER, authenticatedUser);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Publishing session termination event for the session: " + context.getSessionIdentifier());
+            }
+            FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
+                    sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
+                            .SESSION_TERMINATE);
+            // Publishing the session termination V2 event for improved event handling.
+            SessionEventPublishingUtil.publishSessionTerminationEvent(
+                    context.getSessionIdentifier(), authenticatedUser, request, context, sessionContext);
+        }
+
         if (context.isPreviousSessionFound()) {
             // if this is the start of the logout sequence
             if (context.getCurrentStep() == 0) {

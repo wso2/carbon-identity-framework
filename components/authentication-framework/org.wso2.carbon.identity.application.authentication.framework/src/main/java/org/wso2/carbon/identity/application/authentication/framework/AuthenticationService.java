@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,8 +23,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.auth.service.AuthServiceErrorInfo;
@@ -39,22 +41,15 @@ import org.wso2.carbon.identity.application.authentication.framework.util.auth.s
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
 
 import javax.servlet.ServletException;
@@ -141,7 +136,7 @@ public class AuthenticationService {
         if (isMultiOptionsResponse) {
             responseData.setAuthenticatorSelectionRequired(true);
             authenticatorDataList = getAuthenticatorBasicData(response.getAuthenticators(),
-                    request.getAuthInitiationData());
+                    request.getAuthInitiationData(),  getTenantDomain((HttpServletRequest) request.getRequest()));
         } else {
             authenticatorDataList = request.getAuthInitiationData();
         }
@@ -239,8 +234,18 @@ public class AuthenticationService {
 
         authServiceResponse.setSessionDataKey(request.getSessionDataKey());
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
-        List<AuthenticatorData> authenticatorDataList = request.getAuthInitiationData();
-        AuthServiceResponseData responseData = new AuthServiceResponseData(authenticatorDataList);
+        AuthServiceResponseData responseData = new AuthServiceResponseData();
+        List<AuthenticatorData> authenticatorDataList;
+        boolean isMultiOptionsResponse = request.isMultiOptionsResponse();
+        if ((includeMultiOptionsInResponse() || includeAuthInitDataOnRetryInApiBasedAuthResponse())
+                && isMultiOptionsResponse) {
+            responseData.setAuthenticatorSelectionRequired(true);
+            authenticatorDataList = getAuthenticatorBasicData(response.getAuthenticators(),
+                    request.getAuthInitiationData(), getTenantDomain((HttpServletRequest) request.getRequest()));
+        } else {
+            authenticatorDataList = request.getAuthInitiationData();
+        }
+        responseData.setAuthenticatorOptions(authenticatorDataList);
         authServiceResponse.setData(responseData);
         errorCode = getErrorCode(response);
         errorMessage = getErrorMessage(response);
@@ -275,8 +280,7 @@ public class AuthenticationService {
     }
 
     private List<AuthenticatorData> getAuthenticatorBasicData(String authenticatorList,
-                                                              List<AuthenticatorData> authInitiationData)
-            throws AuthServiceException {
+               List<AuthenticatorData> authInitiationData, String tenantDomain) throws AuthServiceException {
 
         List<AuthenticatorData> authenticatorDataList = new ArrayList<>();
         String[] authenticatorAndIdpsArr = StringUtils.split(authenticatorList,
@@ -293,18 +297,24 @@ public class AuthenticationService {
                 continue;
             }
 
-            ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(name);
+            ApplicationAuthenticator authenticator = null;
+            try {
+                authenticator = ApplicationAuthenticatorManager.getInstance()
+                        .getApplicationAuthenticatorByName(name, tenantDomain);
+            } catch (FrameworkException e) {
+                throw new AuthServiceException(String.format("An error occurred while resolving authenticator:%s",
+                        name), e);
+            }
+
             if (authenticator == null) {
                 throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.code(),
                         String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.description(),
                                 name));
             }
 
-            if (!authenticator.isAPIBasedAuthenticationSupported()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Authenticator: " + name + " does not support API based authentication.");
-                }
-                continue;
+            boolean isApiBasedAuthSupported = authenticator.isAPIBasedAuthenticationSupported();
+            if (!isApiBasedAuthSupported && LOG.isDebugEnabled()) {
+                LOG.debug("Authenticator: " + name + " does not support API based authentication.");
             }
 
             // The first element is the authenticator name hence its skipped to get the idp.
@@ -411,67 +421,6 @@ public class AuthenticationService {
                     String.format(AuthServiceConstants.ErrorMessage.ERROR_API_BASED_AUTH_NOT_ENABLED.description(),
                             serviceProvider.getApplicationResourceId()));
         }
-
-        // Validate all configured authenticators support API based authentication.
-        Set<ApplicationAuthenticator> authenticators = getConfiguredAuthenticators(serviceProvider);
-        for (ApplicationAuthenticator authenticator : authenticators) {
-            if (!authenticator.isAPIBasedAuthenticationSupported()) {
-                throw new AuthServiceClientException(
-                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.code(),
-                        String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.description(),
-                                authenticator.getName()));
-            }
-        }
-
-    }
-
-    private Set<ApplicationAuthenticator> getConfiguredAuthenticators(ServiceProvider serviceProvider) {
-
-        LocalAndOutboundAuthenticationConfig authenticationConfig = serviceProvider
-                .getLocalAndOutBoundAuthenticationConfig();
-        if (authenticationConfig == null || authenticationConfig.getAuthenticationSteps() == null) {
-            return Collections.emptySet();
-        }
-
-        Set<ApplicationAuthenticator> authenticators = new HashSet<>();
-        for (AuthenticationStep authenticationStep : authenticationConfig.getAuthenticationSteps()) {
-            processLocalAuthenticators(authenticationStep, authenticators);
-            processFederatedAuthenticators(authenticationStep, authenticators);
-        }
-
-        return authenticators;
-    }
-
-    private void processLocalAuthenticators(AuthenticationStep authenticationStep,
-                                            Set<ApplicationAuthenticator> authenticators) {
-
-        if (authenticationStep.getLocalAuthenticatorConfigs() != null) {
-            for (LocalAuthenticatorConfig localAuthenticatorConfig :
-                    authenticationStep.getLocalAuthenticatorConfigs()) {
-                addAuthenticator(authenticators, localAuthenticatorConfig.getName());
-            }
-        }
-    }
-
-    private void processFederatedAuthenticators(AuthenticationStep authenticationStep,
-                                                Set<ApplicationAuthenticator> authenticators) {
-
-        if (authenticationStep.getFederatedIdentityProviders() != null) {
-            for (IdentityProvider federatedIdP : authenticationStep.getFederatedIdentityProviders()) {
-                FederatedAuthenticatorConfig fedAuthenticatorConfig = federatedIdP.getDefaultAuthenticatorConfig();
-                if (fedAuthenticatorConfig != null) {
-                    addAuthenticator(authenticators, fedAuthenticatorConfig.getName());
-                }
-            }
-        }
-    }
-
-    private void addAuthenticator(Set<ApplicationAuthenticator> authenticators, String authenticatorName) {
-
-        ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(authenticatorName);
-        if (authenticator != null) {
-            authenticators.add(authenticator);
-        }
     }
 
     private ServiceProvider getServiceProvider(String clientId, String tenantDomain)
@@ -498,10 +447,19 @@ public class AuthenticationService {
 
         String tenantDomain;
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
+            if (request.getAttribute(AuthServiceConstants.APP_TENANT_DOMAIN) != null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Retrieving the tenant domain from request attribute in the flows initiated with " +
+                            "tenant qualified organization access paths.");
+                }
+                tenantDomain = request.getAttribute(AuthServiceConstants.APP_TENANT_DOMAIN).toString();
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread " +
+                            "local context.");
+                }
+                tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
             }
-            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
         } else {
             tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
         }
@@ -540,8 +498,28 @@ public class AuthenticationService {
                 return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL;
             case FrameworkConstants.ERROR_STATUS_APP_DISABLED:
                 return AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION;
+            case FrameworkConstants.ERROR_STATUS_INVALID_AUTHENTICATOR:
+                return AuthServiceConstants.ErrorMessage.ERROR_INVALID_AUTHENTICATOR;
+            case FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED:
+                return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED;
+            case FrameworkConstants.ERROR_STATUS_ALLOWED_RESEND_LIMIT_EXCEEDED:
+                return AuthServiceConstants.ErrorMessage.ERROR_RESEND_COUNT_EXCEEDED;
+            case FrameworkConstants.ERROR_STATUS_ALLOWED_RETRY_LIMIT_EXCEEDED:
+                return AuthServiceConstants.ErrorMessage.ERROR_RETRY_COUNT_EXCEEDED;
             default:
                 return null;
         }
+    }
+
+    private boolean includeMultiOptionsInResponse() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                FrameworkConstants.INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE));
+    }
+
+    private boolean includeAuthInitDataOnRetryInApiBasedAuthResponse() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                FrameworkConstants.INCLUDE_AUTH_INIT_DATA_ON_RETRY_IN_API_BASED_AUTH_RESPONSE));
     }
 }

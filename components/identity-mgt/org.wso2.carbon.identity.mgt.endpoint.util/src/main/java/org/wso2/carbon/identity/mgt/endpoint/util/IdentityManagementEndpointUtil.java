@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -31,14 +31,21 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -53,14 +60,17 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Error;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 import org.wso2.securevault.commons.MiscellaneousUtil;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -81,6 +91,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.My_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.SUPER_TENANT;
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.USER_TENANT_HINT_PLACE_HOLDER;
 
 /**
@@ -567,6 +578,10 @@ public class IdentityManagementEndpointUtil {
      */
     public static String encodeURL(String callbackUrl) throws MalformedURLException {
 
+        if (StringUtils.isBlank(callbackUrl)) {
+            return callbackUrl;
+        }
+
         URL url = new URL(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
@@ -821,40 +836,93 @@ public class IdentityManagementEndpointUtil {
     public static String getBasePath(String tenantDomain, String context, boolean isEndpointTenantAware)
             throws ApiException {
 
+        return getBasePath(tenantDomain, context, isEndpointTenantAware, true);
+    }
+
+    /**
+     * Get base path URL for API clients with optional organization handle support.
+     *
+     * <p>This method has identical logic to
+     * {@link #getBasePath(String, String, boolean)} except that the {@code basePath.replace}
+     * operations for organization/sub-organization context rewriting are only performed
+     * when {@code useOrgHandle} is {@code true}.</p>
+     *
+     * @param tenantDomain          Tenant Domain.
+     * @param context               URL context.
+     * @param isEndpointTenantAware Whether the endpoint is tenant aware.
+     * @param useOrgHandle          Whether to perform organization handle based path replacements.
+     * @return Base path.
+     * @throws ApiException ApiException.
+     */
+    public static String getBasePath(String tenantDomain, String context, boolean isEndpointTenantAware,
+                                     boolean useOrgHandle) throws ApiException {
+
         String basePath;
         String serverUrl = IdentityManagementServiceUtil.getInstance().getContextURLFromFile();
         try {
             if (StringUtils.isBlank(serverUrl)) {
-                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                if (IdentityTenantUtil.shouldUseTenantQualifiedURLs()) {
                     basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
                             .getAbsoluteInternalURL();
-                    if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
-                    /* Resolving tenant domain from organization ID is not provided by an API. Hence, the retrieval
-                       client will have to assume organization ID is same as tenant domain. */
-                    basePath = basePath.replace(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX,
-                                FrameworkConstants.TENANT_CONTEXT_PREFIX);
+                    if (useOrgHandle) {
+                        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                .getApplicationResidentOrganizationId();
+                        if (StringUtils.isNotBlank(basePath) && StringUtils.isNotBlank(appResidentOrgId)) {
+                            String subOrgAccessContext = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
+                                    FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + appResidentOrgId;
+                            String appResidentTenantDomain = FrameworkUtils.
+                                    resolveTenantDomainFromOrganizationId(appResidentOrgId);
+                            if (basePath.contains(subOrgAccessContext)) {
+                                basePath = basePath.replace(subOrgAccessContext,
+                                        FrameworkConstants.TENANT_CONTEXT_PREFIX + appResidentTenantDomain);
+                            }
+                        } else if (basePath != null && basePath.contains(
+                                FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                            String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .getOrganizationId();
+                            if (StringUtils.isNotBlank(organizationId)) {
+                                basePath = basePath.replace(
+                                        FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId,
+                                        FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain);
+                            }
+                        }
                     }
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
                     if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
-                            .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
-                        basePath = serverUrl + "/t/" + tenantDomain + context;
+                            .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware
+                            && !isServerURLAlreadyTenanted(tenantDomain)) {
+                        basePath = serverUrl + FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + context;
                     } else {
                         basePath = serverUrl + context;
                     }
                 }
             } else {
                 if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
-                        .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
-                    basePath = serverUrl + "/t/" + tenantDomain + context;
+                        .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware
+                        && !isServerURLAlreadyTenanted(tenantDomain)) {
+                    basePath = serverUrl + FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + context;
                 } else {
                     basePath = serverUrl + context;
                 }
             }
-        } catch (URLBuilderException e) {
+        } catch (URLBuilderException | FrameworkException e) {
             throw new ApiException("Error while building url for context: " + context);
         }
         return basePath;
+    }
+
+    /**
+     * Checks if the server URL is already tenant qualified.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @return true if the service URL is tenant qualified.
+     * @throws URLBuilderException URLBuilderException.
+     */
+    private static boolean isServerURLAlreadyTenanted(String tenantDomain) throws URLBuilderException {
+
+        String path = ServiceURLBuilder.create().build().getPath();
+        return StringUtils.isNotBlank(path) && path.startsWith("/t/" + tenantDomain);
     }
 
     /**
@@ -1012,5 +1080,45 @@ public class IdentityManagementEndpointUtil {
         cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
 
         cookieBuilder.setSecure(cookieConfig.isSecure());
+    }
+
+    /**
+     * Executes the HTTP client request and returns the response as a string.
+     *
+     * @param request The HTTP request to execute.
+     * @return The response body as a string.
+     * @throws IOException If an I/O error occurs or the response status is not SC_OK.
+     */
+    public static String getHttpClientResponseString(HttpUriRequestBase request) throws IOException {
+
+        CloseableHttpClient httpClient = HTTPClientManager.isConnectionPoolEnabled() ?
+                HTTPClientManager.getHttpClient() :
+                HTTPClientUtils.createClientWithCustomHostnameVerifier().build();
+        if (log.isDebugEnabled()) {
+            log.debug("Using " + (HTTPClientManager.isConnectionPoolEnabled() ? "pooled" : "new")
+                    + " HTTP client for request: " + request.getMethod() + " " + request.getPath());
+        }
+        try {
+            return httpClient.execute(request, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
+                }
+                return null;
+            });
+        } finally {
+            if (!HTTPClientManager.isConnectionPoolEnabled()) {
+                httpClient.close();
+            }
+        }
     }
 }

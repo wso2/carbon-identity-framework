@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,6 +24,8 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+
+import java.util.List;
 
 public abstract class AbstractIdentityProviderMgtListener implements IdentityProviderMgtListener {
 
@@ -118,6 +120,50 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
     public boolean doPostUpdateIdPByResourceId(String resourceId, IdentityProvider oldIdentityProvider,
                                                IdentityProvider newIdentityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
+        return true;
+    }
+
+    /**
+     * Define any additional actions before deleting resident idp properties.
+     *
+     * @param propertyNames List of property names to be deleted.
+     * @param tenantDomain Tenant domain of the resident idp.
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException When an error occurs while handling the event.
+     */
+    @Override
+    public boolean doPreDeleteResidentIdpProperties(List<String> propertyNames, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after deleting resident idp properties.
+     *
+     * @param propertyNames List of property names deleted.
+     * @param tenantDomain Tenant domain of the resident idp.
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException When an error occurs while handling the event.
+     */
+    @Override
+    public boolean doPostDeleteResidentIdpProperties(List<String> propertyNames, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting the resident idp.
+     *
+     * @param identityProvider Resident Identity Provider
+     * @return Whether the post get operations were successful.
+     * @throws IdentityProviderManagementException When an error occurs while handling the event.
+     */
+    @Override
+    public boolean doPostGetResidentIdP(IdentityProvider identityProvider, String tenantDomain) throws
+            IdentityProviderManagementException {
+
         return true;
     }
 

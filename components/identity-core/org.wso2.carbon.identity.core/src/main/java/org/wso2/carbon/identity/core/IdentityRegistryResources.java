@@ -1,5 +1,5 @@
 /*
-*  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+*  Copyright (c) 2005-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 *
 *  WSO2 Inc. licenses this file to you under the Apache License,
 *  Version 2.0 (the "License"); you may not use this file except
@@ -144,6 +144,7 @@ public class IdentityRegistryResources {
     public static final String PROP_SAML_SSO_REQUESTED_AUDIENCES = "RequestedAudiences";
     public static final String PROP_SAML_SSO_REQUESTED_RECIPIENTS = "RequestedRecipients";
     public static final String PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT = "EnableAttributesByDefault";
+    public static final String PROP_SAML_SSO_ATTRIBUTE_NAME_FORMAT = "AttributeNameFormat";
     public static final String PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI = "EnableNameIDClaimUri";
     public static final String PROP_SAML_SSO_NAMEID_CLAIMURI = "NameIDClaimUri";
     public static final String PROP_SAML_SSO_NAMEID_FORMAT = "NameIDFormat";

@@ -1,0 +1,56 @@
+#
+# Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+#
+# WSO2 LLC. licenses this file to you under the Apache License,
+# Version 2.0 (the "License"); you may not use this file except
+# in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+{% if outbound_adapters.websubhub.enabled is sameas true %}
+adapter.websubhub.enabled={{outbound_adapters.websubhub.enabled}}
+adapter.websubhub.baseUrl={{outbound_adapters.websubhub.base_url}}
+adapter.websubhub.httpConnectionTimeout={{outbound_adapters.websubhub.httpConnectionTimeout}}
+adapter.websubhub.httpReadTimeout={{outbound_adapters.websubhub.httpReadTimeout}}
+adapter.websubhub.httpConnectionRequestTimeout={{outbound_adapters.websubhub.httpConnectionRequestTimeout}}
+adapter.websubhub.connectionHandshakeTimeout={{outbound_adapters.websubhub.connectionHandshakeTimeout}}
+adapter.websubhub.defaultMaxConnections={{outbound_adapters.websubhub.defaultMaxConnections}}
+adapter.websubhub.defaultMaxConnectionsPerRoute={{outbound_adapters.websubhub.defaultMaxConnectionsPerRoute}}
+adapter.websubhub.encryptionEnabled={{outbound_adapters.websubhub.encryptionEnabled}}
+adapter.websubhub.encryptionKeyEndpointUrl={{outbound_adapters.websubhub.encryptionKeyEndpointUrl}}
+adapter.websubhub.encryptionKeyCacheLifespan={{outbound_adapters.websubhub.encryptionKeyCacheLifespan}}
+adapter.websubhub.topicDeletionDisabled={{outbound_adapters.websubhub.topicDeletionDisabled}}
+adapter.websubhub.sslCertificateAlias={{outbound_adapters.websubhub.ssl_certificate_alias}}
+adapter.websubhub.mtlsEnabled={{outbound_adapters.websubhub.mtlsEnabled}}
+adapter.websubhub.maxRetries={{outbound_adapters.websubhub.maxRetries}}
+adapter.websubhub.ioThreadCount={{outbound_adapters.websubhub.ioThreadCount}}
+adapter.websubhub.executorCorePoolSize={{outbound_adapters.websubhub.executorCorePoolSize}}
+adapter.websubhub.executorMaxPoolSize={{outbound_adapters.websubhub.executorMaxPoolSize}}
+adapter.websubhub.executorQueueCapacity={{outbound_adapters.websubhub.executorQueueCapacity}}
+adapter.websubhub.type={{outbound_adapters.websubhub.type}}
+{% endif %}
+
+{% if outbound_adapters.httppublisher.enabled is sameas true %}
+adapter.httppublisher.enabled={{outbound_adapters.httppublisher.enabled}}
+adapter.httppublisher.httpConnectionTimeout={{outbound_adapters.httppublisher.httpConnectionTimeout}}
+adapter.httppublisher.httpReadTimeout={{outbound_adapters.httppublisher.httpReadTimeout}}
+adapter.httppublisher.httpConnectionRequestTimeout={{outbound_adapters.httppublisher.httpConnectionRequestTimeout}}
+adapter.httppublisher.connectionHandshakeTimeout={{outbound_adapters.httppublisher.connectionHandshakeTimeout}}
+adapter.httppublisher.defaultMaxConnections={{outbound_adapters.httppublisher.defaultMaxConnections}}
+adapter.httppublisher.defaultMaxConnectionsPerRoute={{outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute}}
+adapter.httppublisher.maxRetries={{outbound_adapters.httppublisher.maxRetries}}
+adapter.httppublisher.ioThreadCount={{outbound_adapters.httppublisher.ioThreadCount}}
+adapter.httppublisher.executorCorePoolSize={{outbound_adapters.httppublisher.executorCorePoolSize}}
+adapter.httppublisher.executorMaxPoolSize={{outbound_adapters.httppublisher.executorMaxPoolSize}}
+adapter.httppublisher.executorQueueCapacity={{outbound_adapters.httppublisher.executorQueueCapacity}}
+adapter.httppublisher.type={{outbound_adapters.httppublisher.type}}
+{% endif %}

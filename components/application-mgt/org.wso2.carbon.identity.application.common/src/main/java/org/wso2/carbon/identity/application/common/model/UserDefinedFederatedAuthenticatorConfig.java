@@ -20,14 +20,14 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
+import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_CUSTOM;
+
 /**
  * The user defined federated authenticator configuration model.
  */
 public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
 
-    private static final String TAG_CUSTOM = "CUSTOM";
-
-    protected UserDefinedAuthenticatorEndpointConfig endpointConfig;
+    private UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
     public UserDefinedFederatedAuthenticatorConfig() {
 
@@ -36,7 +36,7 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
     }
 
     /**
-     * Get the endpoint configurations of the User defined federated authenticator config.
+     * Get the endpoint configurations of the user defined federated authenticator config.
      *
      * @return UserDefinedAuthenticatorEndpointConfig
      */
@@ -46,12 +46,27 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
     }
 
     /**
-     * Set the endpoint configurations of the User defined federated authenticator config.
+     * Set the endpoint configurations of the user defined federated authenticator config.
      *
-     * @param endpointConfig    The endpoint config of the User defined federated authenticator config.
+     * @param endpointConfig    The endpoint config of the user defined federated authenticator config.
      */
     public void setEndpointConfig(UserDefinedAuthenticatorEndpointConfig endpointConfig) {
 
         this.endpointConfig = endpointConfig;
+    }
+
+    @Override
+    public void setDisplayName(String displayName) {
+
+        /* Since the displayName must be same as the authenticator name for user defined federated authenticators,
+         we are ignoring the displayName setting here and instead setting the displayName when configuring the
+         authenticator name. */
+    }
+
+    @Override
+    public void setName(String name) {
+
+        super.setName(name);
+        displayName = name;
     }
 }

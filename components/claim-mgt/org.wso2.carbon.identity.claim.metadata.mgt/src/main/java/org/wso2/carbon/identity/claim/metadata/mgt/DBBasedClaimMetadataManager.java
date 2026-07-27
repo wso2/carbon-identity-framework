@@ -19,15 +19,11 @@
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedClaimDialectDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDialectDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServerException;
-import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -44,9 +40,9 @@ import java.util.Optional;
  */
 public class DBBasedClaimMetadataManager implements ReadWriteClaimMetadataManager {
 
-    private final ClaimDialectDAO claimDialectDAO = new CacheBackedClaimDialectDAO();
-    private final CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
-    private final CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
+    private final ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+    private final LocalClaimDAO localClaimDAO = new LocalClaimDAO();
+    private final ExternalClaimDAO externalClaimDAO = new ExternalClaimDAO();
 
     @Override
     public List<ClaimDialect> getClaimDialects(int tenantId) throws ClaimMetadataException {
@@ -76,9 +72,6 @@ public class DBBasedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void removeClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         this.claimDialectDAO.removeClaimDialect(claimDialect, tenantId);
-        // When deleting a claim dialect the relevant external claim deletion is handled by the DB through
-        // ON DELETE CASCADE. Here we are removing the relevant cache entry.
-        externalClaimDAO.removeExternalClaimCache(claimDialect.getClaimDialectURI(), tenantId);
     }
 
     @Override
@@ -149,7 +142,7 @@ public class DBBasedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
         try {
-            this.localClaimDAO.removeClaimMappingAttributes(tenantId, userstoreDomain);
+            this.localClaimDAO.deleteClaimMappingAttributes(tenantId, userstoreDomain);
         } catch (UserStoreException e) {
             String errorMessage = String.format(
                     ClaimConstants.ErrorMessage.ERROR_CODE_SERVER_ERROR_DELETING_CLAIM_MAPPINGS.getMessage(),
@@ -190,7 +183,6 @@ public class DBBasedClaimMetadataManager implements ReadWriteClaimMetadataManage
             throws ClaimMetadataException {
 
         this.claimDialectDAO.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
-        externalClaimDAO.removeExternalClaimCache(oldClaimDialect.getClaimDialectURI(), tenantId);
     }
 
     @Override

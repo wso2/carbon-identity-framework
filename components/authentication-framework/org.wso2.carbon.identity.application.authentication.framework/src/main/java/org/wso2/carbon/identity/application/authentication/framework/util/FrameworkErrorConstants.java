@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -76,6 +76,15 @@ public class FrameworkErrorConstants {
         ERROR_WHILE_TRYING_TO_HANDLE_ROLE_CLAIM_FOR_PROVISIONED_USER("80030", "Error while trying to handle role "
                 + "claim for provisioned user."),
         ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY("80031", "Error while encrypting TOTP secret key for user. %s"),
+        ERROR_WHILE_CHECKING_PENDING_VERIFICATION_STATUS("80035",
+                "Error while checking the pending verification status for the user %s"),
+        ERROR_MISMATCHING_TENANT_DOMAIN("80036",
+                "Service Provider tenant domain must be equal to user tenant domain."),
+        ERROR_MULTIPLE_MATCHING_LOCAL_ACCOUNTS("80037",
+                "Multiple matching local accounts found during account lookup."),
+        ERROR_INVALID_USER_ASSERTION("80038", "Invalid user assertion."),
+        ERROR_INVALID_AUTHENTICATOR("80039", "Invalid authenticator: %s"),
+        ERROR_WHILE_PROCESSING_POLICY_CONSENT("80040", "Error while processing policy consent."),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");

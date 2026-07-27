@@ -33,7 +33,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.realm.UserStoreModel;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -81,6 +81,7 @@ public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequen
         ServiceProvider sp1 = getTestServiceProvider("js-sp-4-claim.xml");
 
         AuthenticationContext context = getAuthenticationContext(sp1);
+        context.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
         FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader

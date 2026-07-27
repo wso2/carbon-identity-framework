@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.certificate.management.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.dao.impl.ApplicationCertificateManagementDAOImpl;
 import org.wso2.carbon.identity.certificate.management.dao.impl.CacheBackedApplicationCertificateMgtDAO;
@@ -40,6 +41,14 @@ import java.util.UUID;
  * @deprecated It is recommended to use {@link CertificateManagementServiceImpl}, which supports operations with UUID.
  */
 @Deprecated
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.certificate.management.service" +
+                        ".ApplicationCertificateManagementService",
+                "service.scope=singleton"
+        }
+)
 public class ApplicationCertificateManagementServiceImpl implements ApplicationCertificateManagementService {
 
     private static final Log LOG = LogFactory.getLog(ApplicationCertificateManagementServiceImpl.class);
