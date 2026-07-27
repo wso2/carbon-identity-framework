@@ -5,6 +5,7 @@
   "authentication.enable_scope_based_claim_filtering": true,
   "authentication.include_auth_failure_reason_in_api_based_response": true,
   "authentication.include_multi_options_in_api_based_auth_response": true,
+  "authentication.include_auth_init_data_on_retry_in_api_based_auth_response": false,
   "authentication.allow_sp_requested_fed_claims_only": true,
   "authentication.endpoint.enable_custom_claim_mappings": true,
   "authentication.endpoint.enable_merging_custom_claim_mappings_with_default": true,
@@ -387,6 +388,7 @@
   "saml.metadata.assertion_encrypt_with_app_cert": true,
   "saml.enable_saml_sp_certificate_expiry_validation": true,
   "saml.enable_saml_idp_init_logout_response_signing": true,
+  "saml.send_saml_auth_failure_response_to_sp": false,
   "saml.return_valid_name_id_format": false,
   "saml.response.allow_nested_assertions": false,
 
