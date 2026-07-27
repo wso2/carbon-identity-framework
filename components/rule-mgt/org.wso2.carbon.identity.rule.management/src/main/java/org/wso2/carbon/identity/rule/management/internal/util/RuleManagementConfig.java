@@ -60,22 +60,34 @@ public class RuleManagementConfig {
     public int getMaxExpressionsCombinedWithAnd(FlowType flowType, int defaultValue) {
 
         int maxExpressionsCombinedWithAnd = defaultValue;
-        String propertyKey = FlowTypeConfig.valueOf(flowType.name()).getMaxExpressionsCombinedWithAndProperty();
-        String propertyValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(propertyKey);
-        if (StringUtils.isNotBlank(propertyValue)) {
-            try {
-                int parsedValue = Integer.parseInt(propertyValue);
-                if (parsedValue > 0) {
-                    maxExpressionsCombinedWithAnd = parsedValue;
-                } else if (LOG.isDebugEnabled()) {
-                    LOG.debug("Non-positive value " + parsedValue + " configured for " + propertyKey +
-                            " in identity.xml. Expects a positive number. Using the default value: " + defaultValue);
+        try {
+            IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+            if (configParser != null && configParser.getConfiguration() != null) {
+                String propertyKey = FlowTypeConfig.valueOf(flowType.name())
+                        .getMaxExpressionsCombinedWithAndProperty();
+                String propertyValue = (String) configParser.getConfiguration().get(propertyKey);
+                if (StringUtils.isNotBlank(propertyValue)) {
+                    try {
+                        int parsedValue = Integer.parseInt(propertyValue);
+                        if (parsedValue > 0) {
+                            maxExpressionsCombinedWithAnd = parsedValue;
+                        } else if (LOG.isDebugEnabled()) {
+                            LOG.debug("Non-positive value " + parsedValue + " configured for " +
+                                    propertyKey + " in identity.xml. Expects a positive number." +
+                                    " Using the default value: " + defaultValue);
+                        }
+                    } catch (NumberFormatException e) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Failed to read " + propertyKey + " property in identity.xml." +
+                                    " Expects a number. Using the default value: " + defaultValue, e);
+                        }
+                    }
                 }
-            } catch (NumberFormatException e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Failed to read " + propertyKey + " property in identity.xml." +
-                            " Expects a number. Using the default value: " + defaultValue, e);
-                }
+            }
+        } catch (Exception e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("IdentityConfigParser is uninitialized or unavailable. Using the default value: " +
+                        defaultValue, e);
             }
         }
         return maxExpressionsCombinedWithAnd;
