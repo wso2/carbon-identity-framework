@@ -71,7 +71,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Authentication framework data holder.
@@ -93,7 +92,7 @@ public class FrameworkServiceDataHolder {
     private JsGenericGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
-    private List<DeviceDataResolver> deviceDataResolvers = new CopyOnWriteArrayList<>();
+    private List<DeviceDataResolver> deviceDataResolvers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
     private ConsentManager consentManager = null;
     private ConsentAppMappingService consentAppMappingService = null;
