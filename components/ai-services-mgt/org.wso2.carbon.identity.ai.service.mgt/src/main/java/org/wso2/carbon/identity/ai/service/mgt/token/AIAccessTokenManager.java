@@ -33,6 +33,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIServerException;
+import org.wso2.carbon.identity.ai.service.mgt.util.AIHttpClientUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
@@ -161,8 +162,12 @@ public class AIAccessTokenManager {
                     .setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT)
                     .setSocketTimeout(SOCKET_TIMEOUT)
                     .build();
-            this.client = HttpClientBuilder.create()
-                    .setDefaultRequestConfig(requestConfig).build();
+            HttpClientBuilder clientBuilder = HttpClientBuilder.create()
+                    .setDefaultRequestConfig(requestConfig);
+            if (AIHttpClientUtil.useSystemPropertiesInHttpClient()) {
+                clientBuilder.useSystemProperties();
+            }
+            this.client = clientBuilder.build();
             this.gson = new GsonBuilder().create();
             this.key = key;
             this.tokenRequest = new HttpPost(tokenEndpoint);
