@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.11.153-SNAPSHOT</version>
+    <version>7.11.169-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -73,6 +73,7 @@
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
         <module>components/device-mgt</module>
+        <module>components/policy-mgt</module>
         <module>components/webhook-mgt</module>
         <module>components/action-mgt</module>
         <module>components/ai-services-mgt</module>
@@ -374,6 +375,16 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.policy.evaluation</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

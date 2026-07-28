@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -83,7 +83,9 @@ public class ConfigurationConstants {
         COMPATIBILITY_SETTINGS("compatibility-settings", false),
         FRAUD_DETECTION_CONFIG("fraud-detection", false),
         // Resource Type for compatibility settings managed through /compatibility-settings endpoint.
-        COMPATIBILITY_SETTINGS_V2("compatibility-settings-v2", true);
+        COMPATIBILITY_SETTINGS_V2("compatibility-settings-v2", true),
+        // Resource Type for push device management settings management through /push-device-mgt endpoint
+        DEVICE_MANAGEMENT("DEVICE_MANAGEMENT", true);
 
         private final String resourceTypeName;
         private final boolean checkOrgVersionWhenInheriting;
@@ -190,7 +192,9 @@ public class ConfigurationConstants {
         ERROR_CODE_RESOLVING_TENANT_DOMAIN("CONFIGM_00050", "Error occurred while resolving the tenant domain " +
                 "for the organization id: %s."),
         ERROR_CODE_RESOLVING_TENANT_ID("CONFIGM_00051", "Error occurred while resolving the tenant id " +
-                "for the organization id: %s.");
+                "for the organization id: %s."),
+        ERROR_CODE_DEFAULT_RESOLVER_DOES_NOT_EXISTS("CONFIGM_00052", "Default Config Resolver " +
+                "does not exists for the resource type : %s.");
 
 
         private final String code;

@@ -69,6 +69,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
         .ERROR_CODE_ATTRIBUTE_IDENTIFIERS_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_ATTRIBUTE_REQUIRED;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DEFAULT_RESOLVER_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_FILES_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
@@ -596,6 +597,28 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             log.debug("Attribute: " + attribute.getKey() + " successfully replaced.");
         }
         return attribute;
+    }
+
+    /**
+     * Resolve the default configurations for the given resource from the registered default config resolvers.
+     *
+     * @param resourceType Resource type name.
+     * @param resourceName Resource name.
+     * @return Default configurations for the given resource.
+     * @throws ConfigurationManagementException if no default resolver is found.
+     */
+    @Override
+    public Resource getDefaultResource(String resourceType, String resourceName)
+            throws ConfigurationManagementException {
+
+        DefaultConfigResolver resolver = ConfigurationManagerComponentDataHolder.getInstance()
+                .getDefaultConfigResolver(resourceType, resourceName);
+
+        if (resolver == null) {
+            throw handleServerException(ERROR_CODE_DEFAULT_RESOLVER_DOES_NOT_EXISTS, resourceType);
+        }
+
+        return resolver.getDefaultConfigs(resourceType, resourceName);
     }
 
     private void validateSearchRequest(Condition condition) throws ConfigurationManagementClientException {

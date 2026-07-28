@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManagerImpl;
+import org.wso2.carbon.identity.configuration.mgt.core.DefaultConfigResolver;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.CachedBackedConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
@@ -188,5 +189,28 @@ public class ConfigurationManagerComponent {
     protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
 
         ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(null);
+    }
+
+    @Reference(
+            name = "default.config.resolver",
+            service = DefaultConfigResolver.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDefaultConfigResolver"
+    )
+    protected void setDefaultConfigResolver(DefaultConfigResolver defaultConfigResolver) {
+
+        ConfigurationManagerComponentDataHolder.getInstance().addDefaultConfigResolver(defaultConfigResolver);
+        if (log.isDebugEnabled()) {
+            log.debug("DefaultConfigResolver registered: " + defaultConfigResolver.getClass().getName());
+        }
+    }
+
+    protected void unsetDefaultConfigResolver(DefaultConfigResolver defaultConfigResolver) {
+
+        ConfigurationManagerComponentDataHolder.getInstance().removeDefaultConfigResolver(defaultConfigResolver);
+        if (log.isDebugEnabled()) {
+            log.debug("DefaultConfigResolver unregistered: " + defaultConfigResolver.getClass().getName());
+        }
     }
 }
