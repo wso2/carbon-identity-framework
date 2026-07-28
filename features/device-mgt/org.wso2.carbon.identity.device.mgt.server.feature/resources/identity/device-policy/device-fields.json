@@ -1,0 +1,90 @@
+{
+  "fields": [
+    {
+      "name": "platform"
+    },
+    {
+      "name": "androidOsVersion",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "iosOsVersion",
+      "applicablePlatforms": ["ios"]
+    },
+    {
+      "name": "macosOsVersion",
+      "applicablePlatforms": ["macos"]
+    },
+    {
+      "name": "windowsOsVersion",
+      "applicablePlatforms": ["windows"]
+    },
+    {
+      "name": "isRooted",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "usbDebugging",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "hardwareKeystore",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "lockScreen"
+    },
+    {
+      "name": "biometric",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "screenLockComplexity",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "diskEncryption",
+      "applicablePlatforms": ["android","macos","windows"]
+    },
+    {
+      "name": "networkProxies",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "wifiNetworkSecurity",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "androidIntegrity",
+      "applicablePlatforms": ["android"]
+    },
+    {
+      "name": "iosIntegrity",
+      "applicablePlatforms": ["ios"]
+    },
+    {
+      "name": "passcode",
+      "applicablePlatforms": ["ios"]
+    },
+    {
+      "name": "touchIdOrFaceId",
+      "applicablePlatforms": ["ios"]
+    },
+    {
+      "name": "jailbreak",
+      "applicablePlatforms": ["ios"]
+    },
+    {
+      "name": "secureEnclave",
+      "applicablePlatforms": ["macos"]
+    },
+    {
+      "name": "windowsHello",
+      "applicablePlatforms": ["windows"]
+    },
+    {
+      "name": "trustedPlatformModule",
+      "applicablePlatforms": ["windows"]
+    }
+  ]
+}
