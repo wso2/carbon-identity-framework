@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.device.mgt.internal.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.dao.impl.CacheBackedDeviceManagementDAO;
@@ -65,18 +68,24 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     }
 
     @Override
-    public Device registerDevice(Device device, String tenantDomain) throws DeviceMgtException {
+    public Device registerDevice(Device device, DeviceOwner owner, String tenantDomain) throws DeviceMgtException {
 
         DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         DEVICE_VALIDATOR.validateDeviceForRegistration(device);
+        DEVICE_VALIDATOR.validateOwner(owner);
+        if (!StringUtils.equals(owner.getDeviceId(), device.getId())) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_INVALID_DEVICE_OWNER);
+        }
         Device registeredDevice = deviceManagementDAO.registerDevice(
-                device, IdentityTenantUtil.getTenantId(tenantDomain));
+                device, owner, IdentityTenantUtil.getTenantId(tenantDomain));
 
+        String userId = ((DeviceUser) owner).getUserId();
         AUDIT_LOGGER.printAuditLog(DeviceManagementAuditLogger.Operation.REGISTER,
-                registeredDevice != null ? registeredDevice : device);
+                registeredDevice != null ? registeredDevice : device, userId);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Device registered for user: " + device.getUserId() +
+            LOG.debug("Device registered for user: " + userId +
                     LOG_IN_TENANT + tenantDomain + " with device ID: " + device.getId());
         }
         return registeredDevice != null ? registeredDevice : device;

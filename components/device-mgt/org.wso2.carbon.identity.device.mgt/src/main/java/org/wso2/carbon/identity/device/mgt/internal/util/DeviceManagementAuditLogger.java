@@ -50,7 +50,24 @@ public class DeviceManagementAuditLogger {
             printAuditLog(operation, (String) null);
             return;
         }
-        JSONObject data = createAuditLogEntry(device);
+        JSONObject data = createAuditLogEntry(device, null);
+        buildAuditLog(device.getId(), operation, data);
+    }
+
+    /**
+     * Print an audit log for an operation that carries device state and user ID.
+     *
+     * @param operation Operation associated with the state change.
+     * @param device    Device to be logged, or {@code null} if unavailable.
+     * @param userId    User ID of the device owner, or {@code null} if unavailable.
+     */
+    public void printAuditLog(Operation operation, Device device, String userId) {
+
+        if (device == null) {
+            printAuditLog(operation, (String) null);
+            return;
+        }
+        JSONObject data = createAuditLogEntry(device, userId);
         buildAuditLog(device.getId(), operation, data);
     }
 
@@ -89,13 +106,14 @@ public class DeviceManagementAuditLogger {
 
     /**
      * Create audit log data for the given device.
-     * The device owner is recorded as the opaque user ID (a UUID, not PII, so not masked);
+     * The device owner is recorded as the opaque user ID if provided;
      * the raw public key and free-form metadata are never logged.
      *
      * @param device Device to be logged.
+     * @param userId User ID of the device owner, or null if not applicable.
      * @return Audit log data as a JSONObject.
      */
-    private JSONObject createAuditLogEntry(Device device) {
+    private JSONObject createAuditLogEntry(Device device, String userId) {
 
         JSONObject data = new JSONObject();
         data.put(LogConstants.ID_FIELD, device.getId() != null ? device.getId() : JSONObject.NULL);
@@ -107,8 +125,9 @@ public class DeviceManagementAuditLogger {
                 device.getStatus() != null ? device.getStatus().name() : JSONObject.NULL);
         data.put(LogConstants.REGISTERED_AT_FIELD,
                 device.getRegisteredAt() != null ? String.valueOf(device.getRegisteredAt()) : JSONObject.NULL);
-        data.put(LogConstants.USER_ID_FIELD, device.getUserId() != null
-                ? device.getUserId() : JSONObject.NULL);
+        if (userId != null) {
+            data.put(LogConstants.USER_ID_FIELD, userId);
+        }
         return data;
     }
 

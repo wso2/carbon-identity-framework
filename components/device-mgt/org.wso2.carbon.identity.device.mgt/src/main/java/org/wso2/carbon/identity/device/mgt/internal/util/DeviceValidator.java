@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
 
 /**
  * Device validator class.
@@ -67,10 +69,6 @@ public class DeviceValidator {
             throw DeviceManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED, "device");
         }
-        if (StringUtils.isBlank(device.getUserId())) {
-            throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_USER_ID_REQUIRED);
-        }
 
         validateRequiredDeviceField(device.getId(), "id");
         validateRequiredDeviceField(device.getDeviceName(), "deviceName");
@@ -83,6 +81,25 @@ public class DeviceValidator {
         if (device.getRegisteredAt() == null) {
             throw DeviceManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED, "registeredAt");
+        }
+    }
+
+    /**
+     * Validates the device owner for registration.
+     *
+     * @param owner Device owner to be validated.
+     * @throws DeviceMgtException If the owner is invalid or not a DeviceUser.
+     */
+    public void validateOwner(DeviceOwner owner) throws DeviceMgtException {
+
+        if (owner == null || !(owner instanceof DeviceUser)) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_INVALID_DEVICE_OWNER);
+        }
+        DeviceUser deviceUser = (DeviceUser) owner;
+        if (StringUtils.isBlank(deviceUser.getDeviceId()) || StringUtils.isBlank(deviceUser.getUserId())) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_INVALID_DEVICE_OWNER);
         }
     }
 

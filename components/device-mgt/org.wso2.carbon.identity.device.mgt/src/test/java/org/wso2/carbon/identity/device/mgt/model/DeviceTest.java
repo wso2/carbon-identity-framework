@@ -21,12 +21,14 @@ package org.wso2.carbon.identity.device.mgt.model;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 
 /**
- * Unit tests for {@link Device} model and builder validations.
+ * Unit tests for {@link Device} model, {@link DeviceOwner}, {@link DeviceUser}, and builder validations.
  */
 public class DeviceTest {
 
@@ -36,7 +38,6 @@ public class DeviceTest {
         Timestamp now = Timestamp.from(Instant.now());
         Device device = new Device.Builder()
                 .id("d1")
-                .userId("alice@example.com")
                 .deviceName("Alice's iPhone")
                 .deviceModel("iPhone 15")
                 .publicKey("dummy-public-key")
@@ -46,7 +47,6 @@ public class DeviceTest {
                 .build();
 
         Assert.assertEquals(device.getId(), "d1");
-        Assert.assertEquals(device.getUserId(), "alice@example.com");
         Assert.assertEquals(device.getDeviceName(), "Alice's iPhone");
         Assert.assertEquals(device.getDeviceModel(), "iPhone 15");
         Assert.assertEquals(device.getPublicKey(), "dummy-public-key");
@@ -60,7 +60,6 @@ public class DeviceTest {
 
         Device device = new Device.Builder()
                 .id("d1")
-                .userId("alice@example.com")
                 .deviceName("Alice's iPhone")
                 .publicKey("dummy-public-key")
                 .build();
@@ -69,21 +68,19 @@ public class DeviceTest {
         Assert.assertNotNull(device.getRegisteredAt());
     }
 
+    @Test
+    public void testDeviceUserOwnerModel() {
+
+        DeviceUser deviceUser = new DeviceUser("d1", "alice@example.com");
+        Assert.assertTrue(deviceUser instanceof DeviceOwner);
+        Assert.assertEquals(deviceUser.getDeviceId(), "d1");
+        Assert.assertEquals(deviceUser.getUserId(), "alice@example.com");
+    }
+
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testBuildDeviceWithoutIdThrows() {
 
         new Device.Builder()
-                .userId("alice@example.com")
-                .deviceName("Alice's iPhone")
-                .publicKey("dummy-public-key")
-                .build();
-    }
-
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testBuildDeviceWithoutUserIdThrows() {
-
-        new Device.Builder()
-                .id("d1")
                 .deviceName("Alice's iPhone")
                 .publicKey("dummy-public-key")
                 .build();
@@ -94,7 +91,6 @@ public class DeviceTest {
 
         new Device.Builder()
                 .id("d1")
-                .userId("alice@example.com")
                 .publicKey("dummy-public-key")
                 .build();
     }
@@ -104,7 +100,6 @@ public class DeviceTest {
 
         new Device.Builder()
                 .id("d1")
-                .userId("alice@example.com")
                 .deviceName("Alice's iPhone")
                 .build();
     }

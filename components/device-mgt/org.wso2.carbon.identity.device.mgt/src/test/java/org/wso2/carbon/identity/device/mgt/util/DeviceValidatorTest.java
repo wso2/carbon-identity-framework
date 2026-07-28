@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceValidator;
 
 import java.sql.Timestamp;
@@ -77,10 +79,44 @@ public class DeviceValidatorTest {
         }
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testValidateDeviceForRegistrationWithoutUserIdThrows() {
+    @Test
+    public void testValidateOwnerWithNullOwnerThrows() {
 
-        completeDeviceBuilder().userId(null).build();
+        try {
+            deviceValidator.validateOwner(null);
+            Assert.fail("Expected DeviceMgtServerException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_OWNER.getCode());
+        }
+    }
+
+    @Test
+    public void testValidateOwnerWithNonDeviceUserThrows() {
+
+        DeviceOwner customOwner = new DeviceOwner("d1") { };
+        try {
+            deviceValidator.validateOwner(customOwner);
+            Assert.fail("Expected DeviceMgtServerException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_OWNER.getCode());
+        }
+    }
+
+    @Test
+    public void testValidateOwnerWithBlankUserIdThrows() {
+
+        try {
+            deviceValidator.validateOwner(new DeviceUser("d1", ""));
+            Assert.fail("Expected DeviceMgtServerException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_OWNER.getCode());
+        }
+    }
+
+    @Test
+    public void testValidateOwnerWithValidOwnerSucceeds() throws Exception {
+
+        deviceValidator.validateOwner(new DeviceUser("d1", "alice@example.com"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -178,7 +214,6 @@ public class DeviceValidatorTest {
 
         return new Device.Builder()
                 .id("d1")
-                .userId("alice@example.com")
                 .deviceName("Alice's iPhone")
                 .deviceModel("iPhone 15")
                 .publicKey("dummy-public-key")

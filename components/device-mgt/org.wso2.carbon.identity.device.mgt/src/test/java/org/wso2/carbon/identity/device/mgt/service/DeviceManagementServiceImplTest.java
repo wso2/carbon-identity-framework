@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.service.impl.DeviceManagementServiceImpl;
 
@@ -92,18 +93,38 @@ public class DeviceManagementServiceImplTest {
     @Test
     public void testRegisterDeviceDelegatesToDao() throws Exception {
 
-        Device device = buildDevice("d1", "alice@example.com");
-        when(dao.registerDevice(any(), eq(TENANT_ID))).thenReturn(device);
+        Device device = buildDevice("d1");
+        DeviceUser owner = new DeviceUser("d1", "alice@example.com");
+        when(dao.registerDevice(any(), any(), eq(TENANT_ID))).thenReturn(device);
 
-        service.registerDevice(device, TENANT_DOMAIN);
+        service.registerDevice(device, owner, TENANT_DOMAIN);
 
-        verify(dao).registerDevice(any(), eq(TENANT_ID));
+        verify(dao).registerDevice(any(), any(), eq(TENANT_ID));
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testRegisterDeviceWithoutUserIdThrows() {
+    @Test
+    public void testRegisterDeviceWithMismatchedOwnerDeviceIdThrows() {
 
-        buildDevice("d1", null);
+        Device device = buildDevice("d1");
+        DeviceUser owner = new DeviceUser("d2", "alice@example.com");
+        try {
+            service.registerDevice(device, owner, TENANT_DOMAIN);
+            Assert.fail("Expected DeviceMgtServerException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_OWNER.getCode());
+        }
+    }
+
+    @Test
+    public void testRegisterDeviceWithNullOwnerThrows() {
+
+        Device device = buildDevice("d1");
+        try {
+            service.registerDevice(device, null, TENANT_DOMAIN);
+            Assert.fail("Expected DeviceMgtServerException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_OWNER.getCode());
+        }
     }
 
     @Test
@@ -117,16 +138,17 @@ public class DeviceManagementServiceImplTest {
 
         // Device model and metadata are nullable in the schema, so they must not be validated.
         Device device = completeDeviceBuilder().deviceModel(null).metadata(null).build();
+        DeviceUser owner = new DeviceUser("d1", "alice@example.com");
 
-        service.registerDevice(device, TENANT_DOMAIN);
+        service.registerDevice(device, owner, TENANT_DOMAIN);
 
-        verify(dao).registerDevice(any(), eq(TENANT_ID));
+        verify(dao).registerDevice(any(), any(), eq(TENANT_ID));
     }
 
     private void assertRegisterFailsWithFieldRequired(Device device) {
 
         try {
-            service.registerDevice(device, TENANT_DOMAIN);
+            service.registerDevice(device, new DeviceUser("d1", "alice@example.com"), TENANT_DOMAIN);
             Assert.fail("Expected DeviceMgtServerException");
         } catch (DeviceMgtException ex) {
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED.getCode());
@@ -137,7 +159,6 @@ public class DeviceManagementServiceImplTest {
 
         return new Device.Builder()
                 .id("d1")
-                .userId("alice@example.com")
                 .deviceName("Alice's iPhone")
                 .deviceModel("iPhone 15")
                 .publicKey("dummy-public-key")
@@ -173,7 +194,7 @@ public class DeviceManagementServiceImplTest {
     public void testUpdateDeviceNameDelegatesToDao() throws Exception {
 
         Device existing = mock(Device.class);
-        Device updated = buildDevice("d1", "alice@example.com");
+        Device updated = buildDevice("d1");
         when(dao.getDeviceById("d1", TENANT_ID)).thenReturn(existing);
         when(dao.updateDeviceName("d1", "New Name", TENANT_ID)).thenReturn(updated);
 
@@ -338,7 +359,7 @@ public class DeviceManagementServiceImplTest {
     public void testDeactivateDeviceDelegatesToDao() throws Exception {
 
         Device existing = mock(Device.class);
-        Device deactivated = buildDevice("d1", "alice@example.com", Device.Status.INACTIVE);
+        Device deactivated = buildDevice("d1", Device.Status.INACTIVE);
         when(dao.getDeviceById("d1", TENANT_ID)).thenReturn(existing);
         when(dao.changeDeviceStatus("d1", Device.Status.INACTIVE, TENANT_ID)).thenReturn(deactivated);
 
@@ -352,7 +373,7 @@ public class DeviceManagementServiceImplTest {
     public void testActivateDeviceDelegatesToDao() throws Exception {
 
         Device existing = mock(Device.class);
-        Device activated = buildDevice("d1", "alice@example.com", Device.Status.ACTIVE);
+        Device activated = buildDevice("d1", Device.Status.ACTIVE);
         when(dao.getDeviceById("d1", TENANT_ID)).thenReturn(existing);
         when(dao.changeDeviceStatus("d1", Device.Status.ACTIVE, TENANT_ID)).thenReturn(activated);
 
@@ -421,9 +442,10 @@ public class DeviceManagementServiceImplTest {
     @Test
     public void testRegisterDeviceWithNullTenantDomainThrows() {
 
-        Device device = buildDevice("d1", "alice@example.com");
+        Device device = buildDevice("d1");
+        DeviceUser owner = new DeviceUser("d1", "alice@example.com");
         try {
-            service.registerDevice(device, null);
+            service.registerDevice(device, owner, null);
             Assert.fail("Expected DeviceMgtClientException");
         } catch (DeviceMgtException ex) {
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
@@ -460,16 +482,15 @@ public class DeviceManagementServiceImplTest {
         }
     }
 
-    private static Device buildDevice(String id, String userId) {
+    private static Device buildDevice(String id) {
 
-        return buildDevice(id, userId, Device.Status.ACTIVE);
+        return buildDevice(id, Device.Status.ACTIVE);
     }
 
-    private static Device buildDevice(String id, String userId, Device.Status status) {
+    private static Device buildDevice(String id, Device.Status status) {
 
         return new Device.Builder()
                 .id(id)
-                .userId(userId)
                 .deviceName("Alice's iPhone")
                 .deviceModel("iPhone 15")
                 .publicKey("dummy-public-key")

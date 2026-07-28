@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
 import org.wso2.carbon.identity.device.mgt.internal.constant.DeviceMgtSQLConstants;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceManagementExceptionHandler;
@@ -46,8 +48,14 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     private static final Log LOG = LogFactory.getLog(DeviceManagementDAOImpl.class);
 
     @Override
-    public Device registerDevice(Device device, int tenantId)
+    public Device registerDevice(Device device, DeviceOwner owner, int tenantId)
             throws DeviceMgtException {
+
+        if (!(owner instanceof DeviceUser)) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_INVALID_DEVICE_OWNER);
+        }
+        DeviceUser deviceUser = (DeviceUser) owner;
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
 
@@ -74,8 +82,8 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                 template.executeInsert(
                         DeviceMgtSQLConstants.Query.ADD_USER_DEVICE,
                         preparedStatement -> {
-                            preparedStatement.setString(DeviceMgtSQLConstants.Column.DEVICE_ID, device.getId());
-                            preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, device.getUserId());
+                            preparedStatement.setString(DeviceMgtSQLConstants.Column.DEVICE_ID, owner.getDeviceId());
+                            preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, deviceUser.getUserId());
                             preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
                         },
                         device,
@@ -106,7 +114,6 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                             DeviceMgtSQLConstants.Query.GET_DEVICE_BY_ID,
                             (resultSet, rowNumber) -> new Device.Builder()
                                     .id(resultSet.getString(DeviceMgtSQLConstants.Column.ID))
-                                    .userId(resultSet.getString(DeviceMgtSQLConstants.Column.USER_ID))
                                     .deviceName(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_NAME))
                                     .deviceModel(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_MODEL))
                                     .publicKey(resultSet.getString(DeviceMgtSQLConstants.Column.PUBLIC_KEY))
@@ -160,7 +167,6 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                             query,
                             (resultSet, rowNumber) -> new Device.Builder()
                                     .id(resultSet.getString(DeviceMgtSQLConstants.Column.ID))
-                                    .userId(resultSet.getString(DeviceMgtSQLConstants.Column.USER_ID))
                                     .deviceName(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_NAME))
                                     .deviceModel(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_MODEL))
                                     .publicKey(resultSet.getString(DeviceMgtSQLConstants.Column.PUBLIC_KEY))

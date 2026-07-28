@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.device.mgt.api.service;
 
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
 
 import java.util.List;
 
@@ -32,10 +33,11 @@ public interface DeviceManagementService {
      * Registers a pre-verified {@link Device} in the database.
      *
      * @param device       The verified device to register.
+     * @param owner        The ownership association; only DeviceUser is supported today.
      * @param tenantDomain Tenant domain.
      * @return Registered device.
      */
-    Device registerDevice(Device device, String tenantDomain) throws DeviceMgtException;
+    Device registerDevice(Device device, DeviceOwner owner, String tenantDomain) throws DeviceMgtException;
 
     /**
      * Retrieves a device by its UUID. Returns the device regardless of its status (ACTIVE or

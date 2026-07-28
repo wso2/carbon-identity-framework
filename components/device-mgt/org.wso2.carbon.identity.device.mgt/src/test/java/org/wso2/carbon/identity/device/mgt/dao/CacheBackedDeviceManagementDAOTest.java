@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataH
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCache;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheEntry;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheKey;
@@ -100,11 +101,12 @@ public class CacheBackedDeviceManagementDAOTest {
     public void testRegisterDeviceDoesNotTouchCache() throws DeviceMgtException {
 
         Device device = mock(Device.class);
-        when(deviceManagementDAO.registerDevice(device, TENANT_ID)).thenReturn(device);
+        DeviceOwner owner = mock(DeviceOwner.class);
+        when(deviceManagementDAO.registerDevice(device, owner, TENANT_ID)).thenReturn(device);
 
-        cacheBackedDeviceManagementDAO.registerDevice(device, TENANT_ID);
+        cacheBackedDeviceManagementDAO.registerDevice(device, owner, TENANT_ID);
 
-        verify(deviceManagementDAO).registerDevice(device, TENANT_ID);
+        verify(deviceManagementDAO).registerDevice(device, owner, TENANT_ID);
         assertNull(deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), TENANT_ID));
     }
 
