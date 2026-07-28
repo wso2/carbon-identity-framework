@@ -1274,6 +1274,15 @@
     <Resource context="(.*)/o/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
     </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/generate-secret" secured="true" http-method="POST">
+        <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets/(.*)/revoke" secured="true" http-method="POST">
+        <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_application_mgt_client_secret_view</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_create</Scopes>
         <Operations mandatory="true">
@@ -1331,6 +1340,15 @@
     <!-- Application Management API -->
     <Resource context="(.*)/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_client_secret_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/generate-secret" secured="true" http-method="POST">
+        <Scopes>internal_application_mgt_client_secret_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/secrets/(.*)/revoke" secured="true" http-method="POST">
+        <Scopes>internal_application_mgt_client_secret_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/secrets(.*)" secured="true" http-method="GET">
+        <Scopes>internal_application_mgt_client_secret_view</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_create</Scopes>

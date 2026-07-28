@@ -289,6 +289,15 @@
             <ValidityPeriodMax>{{oauth.graceful_refresh_token_rotation.maximum_validity_period}}</ValidityPeriodMax>
             <ReuseLimitMax>{{oauth.graceful_refresh_token_rotation.maximum_reuse_limit}}</ReuseLimitMax>
         </GracefulRefreshTokenRotation>
+        <!-- Multi-secret (multiple client secrets per OAuth application) config.
+             `Enable` toggles the feature at the server level.
+             `SecretCountMax` acts as the server-level ceiling on the maximum number of
+             concurrent secrets an application may hold. Tenant-level overrides are
+             clamped to this value. -->
+        <MultipleClientSecrets>
+            <Enable>{{oauth.multiple_client_secrets.enable}}</Enable>
+            <SecretCountMax>{{oauth.multiple_client_secrets.secret_count}}</SecretCountMax>
+        </MultipleClientSecrets>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
