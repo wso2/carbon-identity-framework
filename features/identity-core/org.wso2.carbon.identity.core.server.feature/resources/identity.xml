@@ -3105,4 +3105,10 @@
         <OpenDuration>60000</OpenDuration> <!-- value in milliseconds -->
         <MaxInFlight>20</MaxInFlight>
     </CircuitBreaker>
+
+    <Rules>
+        <DevicePolicy>
+            <MaxExpressionsCombinedWithAnd>15</MaxExpressionsCombinedWithAnd>
+        </DevicePolicy>
+    </Rules>
 </Server>
