@@ -60,7 +60,30 @@ public class RuleManagementConfig {
      */
     public int getMaxAndExpressionCount(FlowType flowType) {
 
-        String propertyKey = getMaxAndExpressionCountPropertyKey(flowType);
+        String propertyKey;
+        switch (flowType) {
+            case PRE_ISSUE_ACCESS_TOKEN:
+                propertyKey = "Rules.PreIssueAccessToken.MaxExpressionsCombinedWithAnd";
+                break;
+            case PRE_UPDATE_PASSWORD:
+                propertyKey = "Rules.PreUpdatePassword.MaxExpressionsCombinedWithAnd";
+                break;
+            case PRE_UPDATE_PROFILE:
+                propertyKey = "Rules.PreUpdateProfile.MaxExpressionsCombinedWithAnd";
+                break;
+            case PRE_ISSUE_ID_TOKEN:
+                propertyKey = "Rules.PreIssueIdToken.MaxExpressionsCombinedWithAnd";
+                break;
+            case APPROVAL_WORKFLOW:
+                propertyKey = "Rules.ApprovalWorkflow.MaxExpressionsCombinedWithAnd";
+                break;
+            case DEVICE_POLICY:
+                propertyKey = "Rules.DevicePolicy.MaxExpressionsCombinedWithAnd";
+                break;
+            default:
+                return DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND;
+        }
+
         try {
             String propertyValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(propertyKey);
             if (StringUtils.isNotBlank(propertyValue)) {
@@ -81,32 +104,5 @@ public class RuleManagementConfig {
                     ". Using the default value: " + DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND);
         }
         return DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND;
-    }
-
-    /**
-     * Returns the identity.xml property key that holds the maximum number of expressions
-     * combined with AND for the given flow type.
-     *
-     * @param flowType Flow type.
-     * @return The configuration property key.
-     */
-    private String getMaxAndExpressionCountPropertyKey(FlowType flowType) {
-
-        switch (flowType) {
-            case PRE_ISSUE_ACCESS_TOKEN:
-                return "Rules.PreIssueAccessToken.MaxExpressionsCombinedWithAnd";
-            case PRE_UPDATE_PASSWORD:
-                return "Rules.PreUpdatePassword.MaxExpressionsCombinedWithAnd";
-            case PRE_UPDATE_PROFILE:
-                return "Rules.PreUpdateProfile.MaxExpressionsCombinedWithAnd";
-            case PRE_ISSUE_ID_TOKEN:
-                return "Rules.PreIssueIdToken.MaxExpressionsCombinedWithAnd";
-            case APPROVAL_WORKFLOW:
-                return "Rules.ApprovalWorkflow.MaxExpressionsCombinedWithAnd";
-            case DEVICE_POLICY:
-                return "Rules.DevicePolicy.MaxExpressionsCombinedWithAnd";
-            default:
-                throw new IllegalArgumentException("Unsupported flow type: " + flowType);
-        }
     }
 }
