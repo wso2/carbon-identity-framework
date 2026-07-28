@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.internal.FlowExtensionDataHolder;
@@ -61,7 +60,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS_PROPERTY;
 
 /**
  * Unit tests for {@link FlowExtensionResponseProcessor}: REPLACE operation handling for user
@@ -101,14 +99,8 @@ public class FlowExtensionResponseProcessorTest {
 
     private FlowContext actionFlowContext() {
 
-        return actionFlowContext(null);
-    }
-
-    private FlowContext actionFlowContext(String flowType) {
-
         FlowExecutionContext execCtx = new FlowExecutionContext();
         execCtx.setTenantDomain(TENANT);
-        execCtx.setFlowType(flowType);
         return FlowContext.create().add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
     }
 
@@ -315,105 +307,6 @@ public class FlowExtensionResponseProcessorTest {
 
         processor.processSuccessResponse(FlowContext.create(),
                 successContext(Collections.emptyList()));
-    }
-
-    // ------------------------------------------------------------------ non-modifiable path gate
-
-    @Test
-    public void testReplaceOnNonModifiablePathIsDropped() throws Exception {
-
-        // The claim service is deliberately left unstubbed: a non-modifiable path must be rejected
-        // before the operation reaches the claim handler.
-        String claimPath = "/user/claims[uri=" + GIVEN_NAME_CLAIM + "]";
-        FlowContext actionFlowContext = actionFlowContext();
-        List<PerformableOperation> ops = Collections.singletonList(replace(claimPath, "John"));
-
-        ActionExecutionStatus<?> status;
-        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
-            identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY))
-                    .thenReturn(Collections.singletonList(claimPath));
-
-            status = processor.processSuccessResponse(actionFlowContext, successContext(ops));
-        }
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertNull(actionFlowContext.getContextData().get(FlowExtensionConstants.PENDING_CLAIMS_KEY));
-    }
-
-    @Test
-    public void testReplaceOnPathOutsideNonModifiableListIsApplied() throws Exception {
-
-        when(claimService.getLocalClaim(eq(GIVEN_NAME_CLAIM), eq(TENANT)))
-                .thenReturn(Optional.of(new LocalClaim(GIVEN_NAME_CLAIM)));
-
-        String claimPath = "/user/claims[uri=" + GIVEN_NAME_CLAIM + "]";
-        FlowContext actionFlowContext = actionFlowContext();
-        List<PerformableOperation> ops = Collections.singletonList(replace(claimPath, "John"));
-
-        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
-            identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY))
-                    .thenReturn(Collections.singletonList("/user/claims[uri=http://wso2.org/claims/userid]"));
-
-            processor.processSuccessResponse(actionFlowContext, successContext(ops));
-        }
-
-        Map<?, ?> pending = (Map<?, ?>) actionFlowContext.getContextData()
-                .get(FlowExtensionConstants.PENDING_CLAIMS_KEY);
-        assertNotNull(pending);
-        assertEquals(pending.get(GIVEN_NAME_CLAIM), "John");
-    }
-
-    // ------------------------------------------------------------------ username modification gate
-
-    // A REPLACE on '/user/username' never reaches a handler: outside self registration it is ignored
-    // by the flow-type gate, and inside it, it falls through to the unknown-path branch. Neither
-    // records a pending update, so these cases assert the gate is inert on observable state and that
-    // a misbehaving extension cannot abort the flow through either branch.
-
-    @Test
-    public void testUsernameReplaceIgnoredForNonSelfRegistrationFlow() throws Exception {
-
-        FlowContext actionFlowContext = actionFlowContext("PASSWORD_RECOVERY");
-        List<PerformableOperation> ops = Collections.singletonList(replace("/user/username", "bob"));
-
-        ActionExecutionStatus<?> status = processor.processSuccessResponse(actionFlowContext, successContext(ops));
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertNull(actionFlowContext.getContextData().get(FlowExtensionConstants.PENDING_CLAIMS_KEY));
-        assertNull(actionFlowContext.getContextData().get(FlowExtensionConstants.PENDING_CREDENTIALS_KEY));
-    }
-
-    @Test
-    public void testUsernameReplaceNotGatedOnSelfRegistrationFlow() throws Exception {
-
-        FlowContext actionFlowContext =
-                actionFlowContext(FlowExtensionConstants.ContextTree.FLOW_REGISTRATION);
-        List<PerformableOperation> ops = Collections.singletonList(replace("/user/username", "bob"));
-
-        ActionExecutionStatus<?> status = processor.processSuccessResponse(actionFlowContext, successContext(ops));
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertNull(actionFlowContext.getContextData().get(FlowExtensionConstants.PENDING_CLAIMS_KEY));
-        assertNull(actionFlowContext.getContextData().get(FlowExtensionConstants.PENDING_CREDENTIALS_KEY));
-    }
-
-    @Test
-    public void testClaimReplaceStillAppliedOnNonSelfRegistrationFlow() throws Exception {
-
-        // The gate is scoped to '/user/username'; other modifiable paths are unaffected by flow type.
-        when(claimService.getLocalClaim(eq(GIVEN_NAME_CLAIM), eq(TENANT)))
-                .thenReturn(Optional.of(new LocalClaim(GIVEN_NAME_CLAIM)));
-
-        FlowContext actionFlowContext = actionFlowContext("PASSWORD_RECOVERY");
-        List<PerformableOperation> ops = Collections.singletonList(
-                replace("/user/claims[uri=" + GIVEN_NAME_CLAIM + "]", "John"));
-
-        processor.processSuccessResponse(actionFlowContext, successContext(ops));
-
-        Map<?, ?> pending = (Map<?, ?>) actionFlowContext.getContextData()
-                .get(FlowExtensionConstants.PENDING_CLAIMS_KEY);
-        assertNotNull(pending);
-        assertEquals(pending.get(GIVEN_NAME_CLAIM), "John");
     }
 
     // ------------------------------------------------------------------ inbound JWE decryption contract

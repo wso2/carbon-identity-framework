@@ -77,6 +77,17 @@ public class FlowExtensionUtilTest {
                 Collections.singletonList(new ContextPath(USER_ID_PATH, false)));
     }
 
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
+    public void testValidateRejectsConfiguredPathCarryingTypeAnnotation() throws Exception {
+
+        // Modify paths may carry a path type annotation (stripped later by the request builder),
+        // but restrictions are configured against clean paths — the annotation must not defeat them.
+        withNonModifiablePaths(USER_ID_PATH);
+
+        FlowExtensionUtil.validateModifyPaths(
+                Collections.singletonList(new ContextPath(USER_ID_PATH + "{[string]}", false)));
+    }
+
     @Test
     public void testValidateAcceptsUnlistedPath() throws Exception {
 
@@ -93,6 +104,24 @@ public class FlowExtensionUtilTest {
 
         FlowExtensionUtil.validateModifyPaths(
                 Collections.singletonList(new ContextPath(USER_ID_PATH, false)));
+    }
+
+    @Test
+    public void testValidateAcceptsAnnotatedUnlistedPath() throws Exception {
+
+        withNonModifiablePaths(USER_ID_PATH);
+
+        FlowExtensionUtil.validateModifyPaths(
+                Collections.singletonList(new ContextPath(GIVEN_NAME_PATH + "{[string]}", false)));
+    }
+
+    @Test
+    public void testValidateToleratesNullEntries() throws Exception {
+
+        withNonModifiablePaths(USER_ID_PATH);
+
+        FlowExtensionUtil.validateModifyPaths(
+                Arrays.asList(null, new ContextPath(null, false), new ContextPath(GIVEN_NAME_PATH, false)));
     }
 
     @Test

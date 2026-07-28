@@ -116,6 +116,17 @@ public class FlowExtensionActionDTOModelResolverTest {
                         new ContextPath(USER_ID_PATH, true))), TENANT);
     }
 
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
+    public void testAddRejectsNonModifiablePathCarryingTypeAnnotation() throws Exception {
+
+        // The path type annotation is stripped before the path is advertised as modifiable, so it
+        // must not be usable to slip a restricted path past validation.
+        withNonModifiablePaths(USER_ID_PATH);
+
+        resolver.resolveForAddOperation(
+                actionDTO(Collections.singletonList(new ContextPath(USER_ID_PATH + "{[string]}", false))), TENANT);
+    }
+
     @Test
     public void testAddAcceptsPathOutsideTheNonModifiableList() throws Exception {
 

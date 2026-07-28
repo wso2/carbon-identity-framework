@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
@@ -53,6 +54,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS_PROPERTY;
 
 /**
  * Unit tests for {@link FlowExtensionRequestBuilder}: expose-based filtering into the event model,
@@ -65,6 +67,7 @@ public class FlowExtensionRequestBuilderTest {
     private static final String CLAIM_PATH = "/user/claims[uri=http://wso2.org/claims/givenname]";
     private static final String CREDENTIAL_PATH = "/user/credentials/password";
     private static final String USERNAME_PATH = "/user/username";
+    private static final String USER_ID_CLAIM_PATH = "/user/claims[uri=http://wso2.org/claims/userid]";
 
     // A self-signed RSA X.509 certificate (base64-encoded DER, CN=flow-ext-test), valid until 2300.
     // Used only to exercise the outbound credential encryption path.
@@ -353,6 +356,159 @@ public class FlowExtensionRequestBuilderTest {
                 actionContext(new AccessConfig(null, null)));
 
         assertNull(((FlowExtensionEvent) request.getEvent()).getFlow().getUser());
+    }
+
+    // ------------------------------------------------------------------ modify path restrictions
+
+    // Restricted paths are stripped before the allowed operations are built, so the extension is
+    // never told it may modify a path whose modification would be discarded. An operation on a path
+    // that was never advertised is dropped by the action execution framework.
+
+    private AllowedOperation replaceOperation(ActionExecutionRequest request) {
+
+        return request.getAllowedOperations().stream()
+                .filter(op -> op.getOp() == Operation.REPLACE)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private ActionExecutionRequest buildWithNonModifiablePaths(AccessConfig accessConfig, String flowType,
+                                                               String... nonModifiablePaths) throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY))
+                    .thenReturn(Arrays.asList(nonModifiablePaths));
+
+            return builder.buildActionExecutionRequest(
+                    flowContextWith(execContext(flowType)), actionContext(accessConfig));
+        }
+    }
+
+    @Test
+    public void testNonModifiablePathNotAdvertisedAsModifiable() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(null, Arrays.asList(
+                new ContextPath(USER_ID_CLAIM_PATH, false), new ContextPath(CLAIM_PATH, false)));
+
+        ActionExecutionRequest request = buildWithNonModifiablePaths(
+                accessConfig, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION, USER_ID_CLAIM_PATH);
+
+        AllowedOperation replaceOp = replaceOperation(request);
+        assertNotNull(replaceOp);
+        assertFalse(replaceOp.getPaths().contains(USER_ID_CLAIM_PATH),
+                "A non-modifiable path must not be advertised as modifiable.");
+        assertTrue(replaceOp.getPaths().contains(CLAIM_PATH));
+    }
+
+    @Test
+    public void testNonModifiablePathRemovedFromStoredModifyPaths() throws Exception {
+
+        // The response processor reads MODIFY_PATHS_KEY for its decryption decisions, so the
+        // dropped path must not survive there either.
+        AccessConfig accessConfig = new AccessConfig(null, Arrays.asList(
+                new ContextPath(USER_ID_CLAIM_PATH, false), new ContextPath(CLAIM_PATH, false)));
+
+        org.wso2.carbon.identity.action.execution.api.model.FlowContext actionFlowContext =
+                flowContextWith(execContext());
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY))
+                    .thenReturn(Collections.singletonList(USER_ID_CLAIM_PATH));
+
+            builder.buildActionExecutionRequest(actionFlowContext, actionContext(accessConfig));
+        }
+
+        List<?> storedPaths = (List<?>) actionFlowContext.getContextData()
+                .get(FlowExtensionConstants.MODIFY_PATHS_KEY);
+        assertEquals(storedPaths.size(), 1);
+        assertEquals(((ContextPath) storedPaths.get(0)).getPath(), CLAIM_PATH);
+    }
+
+    @Test
+    public void testNonModifiablePathMatchedAfterStrippingTypeAnnotation() throws Exception {
+
+        // Restrictions are configured against clean paths, so an annotated modify path must still
+        // be matched once the annotation is stripped.
+        AccessConfig accessConfig = new AccessConfig(null, Collections.singletonList(
+                new ContextPath(USER_ID_CLAIM_PATH + "{[string]}", false)));
+
+        ActionExecutionRequest request = buildWithNonModifiablePaths(
+                accessConfig, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION, USER_ID_CLAIM_PATH);
+
+        assertNull(replaceOperation(request), "Only the REDIRECT operation should remain.");
+        assertEquals(request.getAllowedOperations().size(), 1);
+    }
+
+    @Test
+    public void testAllModifyPathsRestrictedLeavesRedirectOnly() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(null, Collections.singletonList(
+                new ContextPath(USER_ID_CLAIM_PATH, false)));
+
+        ActionExecutionRequest request = buildWithNonModifiablePaths(
+                accessConfig, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION, USER_ID_CLAIM_PATH);
+
+        assertEquals(request.getAllowedOperations().size(), 1);
+        assertEquals(request.getAllowedOperations().get(0).getOp(), Operation.REDIRECT);
+    }
+
+    @Test
+    public void testUnrestrictedModifyPathStillAdvertised() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(null, Collections.singletonList(
+                new ContextPath(CLAIM_PATH, false)));
+
+        ActionExecutionRequest request = buildWithNonModifiablePaths(
+                accessConfig, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION, USER_ID_CLAIM_PATH);
+
+        AllowedOperation replaceOp = replaceOperation(request);
+        assertNotNull(replaceOp);
+        assertTrue(replaceOp.getPaths().contains(CLAIM_PATH));
+    }
+
+    @Test
+    public void testNullModifyPathEntriesToleratedByRestrictionFilter() throws Exception {
+
+        // Null entries are skipped downstream by extractAllowedModifyPaths; the restriction filter
+        // runs first and must not trip over them.
+        AccessConfig accessConfig = new AccessConfig(null, Arrays.asList(
+                null, new ContextPath(null, false), new ContextPath(CLAIM_PATH, false)));
+
+        ActionExecutionRequest request = buildWithNonModifiablePaths(
+                accessConfig, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION, USER_ID_CLAIM_PATH);
+
+        AllowedOperation replaceOp = replaceOperation(request);
+        assertNotNull(replaceOp);
+        assertEquals(replaceOp.getPaths(), Collections.singletonList(CLAIM_PATH));
+    }
+
+    @Test
+    public void testUsernameModifyPathNotAdvertisedForNonSelfRegistrationFlow() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(null, Arrays.asList(
+                new ContextPath(USERNAME_PATH, false), new ContextPath(CLAIM_PATH, false)));
+
+        ActionExecutionRequest request = buildWithNonModifiablePaths(accessConfig, "PASSWORD_RECOVERY");
+
+        AllowedOperation replaceOp = replaceOperation(request);
+        assertNotNull(replaceOp);
+        assertFalse(replaceOp.getPaths().contains(USERNAME_PATH),
+                "Username must not be advertised as modifiable outside self registration.");
+        assertTrue(replaceOp.getPaths().contains(CLAIM_PATH));
+    }
+
+    @Test
+    public void testUsernameModifyPathAdvertisedForSelfRegistrationFlow() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(null, Collections.singletonList(
+                new ContextPath(USERNAME_PATH, false)));
+
+        ActionExecutionRequest request = buildWithNonModifiablePaths(
+                accessConfig, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION);
+
+        AllowedOperation replaceOp = replaceOperation(request);
+        assertNotNull(replaceOp);
+        assertTrue(replaceOp.getPaths().contains(USERNAME_PATH));
     }
 
     @Test(expectedExceptions = ActionExecutionRequestBuilderException.class)

@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
 import org.wso2.carbon.identity.flow.extension.util.CredentialWireFormatUtil;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -102,10 +103,11 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
 
         List<String> exposePaths = resolveExposePaths(accessConfig);
         exposePaths = applyFlowSpecificAccessPolicy(exposePaths, execCtx.getFlowType());
-        List<ContextPath> modifyPaths = resolveModifyPaths(accessConfig);
+        List<ContextPath> modifyPaths = applyModifyPathRestrictions(
+                resolveModifyPaths(accessConfig), execCtx.getFlowType());
         actionFlowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
 
-        List<AllowedOperation> allowedOperations = buildAllowedOperations(accessConfig, actionFlowContext);
+        List<AllowedOperation> allowedOperations = buildAllowedOperations(modifyPaths, actionFlowContext);
         String certificatePEM = resolveOutboundCertificate(accessConfig, certificate);
         ExposeResolution exposeResolution = pruneEncryptedExposePathsWithoutCertificate(
                 exposePaths, accessConfig, certificatePEM);
@@ -126,17 +128,17 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
      * the {@link FlowContext} under {@link FlowExtensionConstants#PATH_TYPE_ANNOTATIONS_KEY}
      * for the response processor.
      *
-     * @param accessConfig The access config containing modify paths (may be null).
-     * @param actionFlowContext  The FlowContext to store path annotations.
+     * @param modifyPaths       The effective modify paths, already stripped of restricted paths.
+     * @param actionFlowContext The FlowContext to store path annotations.
      * @return List of allowed operations (REPLACE if applicable, plus REDIRECT).
      */
-    private List<AllowedOperation> buildAllowedOperations(AccessConfig accessConfig,
+    private List<AllowedOperation> buildAllowedOperations(List<ContextPath> modifyPaths,
                                                           FlowContext actionFlowContext) {
 
         List<AllowedOperation> allowedOps = new ArrayList<>();
 
-        if (hasModifyPaths(accessConfig)) {
-            AllowedModifyExtraction extraction = extractAllowedModifyPaths(accessConfig.getModify());
+        if (!modifyPaths.isEmpty()) {
+            AllowedModifyExtraction extraction = extractAllowedModifyPaths(modifyPaths);
             addReplaceOperationIfAny(allowedOps, extraction.getCleanPaths());
             storeAnnotationsIfAny(actionFlowContext, extraction.getPathTypeAnnotations());
 
@@ -405,9 +407,50 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                 .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
     }
 
-    private boolean hasModifyPaths(AccessConfig accessConfig) {
+    /**
+     * Drop the modify paths the extension must not be permitted to write on this request, so that
+     * they are never advertised as modifiable in the outbound payload.
+     *
+     * @param modifyPaths The modify paths resolved from the access config.
+     * @param flowType    The current flow type (e.g. {@code REGISTRATION}).
+     * @return The modify paths with the restricted ones removed.
+     */
+    private List<ContextPath> applyModifyPathRestrictions(List<ContextPath> modifyPaths, String flowType) {
 
-        return accessConfig != null && accessConfig.getModify() != null && !accessConfig.getModify().isEmpty();
+        if (modifyPaths.isEmpty()) {
+            return modifyPaths;
+        }
+
+        List<ContextPath> effectivePaths = new ArrayList<>();
+        List<String> restrictedPaths = new ArrayList<>();
+
+        for (ContextPath modifyPath : modifyPaths) {
+            String rawPath = modifyPath == null ? null : modifyPath.getPath();
+            String cleanPath = rawPath == null ? null : PathTypeAnnotationUtil.stripAnnotation(rawPath)[0];
+
+            if (cleanPath != null && isRestrictedModifyPath(cleanPath, flowType)) {
+                restrictedPaths.add(cleanPath);
+            } else {
+                effectivePaths.add(modifyPath);
+            }
+        }
+
+        if (LOG.isDebugEnabled() && !restrictedPaths.isEmpty()) {
+            LOG.debug("Dropped " + restrictedPaths.size() + " restricted modify path(s) for flow type "
+                    + flowType + ": " + String.join(", ", restrictedPaths));
+        }
+
+        return effectivePaths;
+    }
+
+    private boolean isRestrictedModifyPath(String cleanPath, String flowType) {
+
+        if (FlowExtensionUtil.isNonModifiablePath(cleanPath)) {
+            return true;
+        }
+
+        return FlowContextPaths.USER_USERNAME_PATH.equals(cleanPath)
+                && !FlowExtensionConstants.ContextTree.FLOW_REGISTRATION.equals(flowType);
     }
 
     private AllowedModifyExtraction extractAllowedModifyPaths(List<ContextPath> modifyPaths) {

@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.extension.executor.PathTypeAnnotationUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.HandoverPolicy;
@@ -65,9 +66,15 @@ public final class FlowExtensionUtil {
         }
 
         for (ContextPath modifyPath : modify) {
-            if (nonModifiablePaths.contains(modifyPath.getPath())) {
+            String rawPath = modifyPath == null ? null : modifyPath.getPath();
+            if (rawPath == null) {
+                continue;
+            }
+
+            String cleanPath = PathTypeAnnotationUtil.stripAnnotation(rawPath)[0];
+            if (nonModifiablePaths.contains(cleanPath)) {
                 throw new ActionDTOModelResolverClientException("Invalid modify path.",
-                        String.format("Path '%s' cannot be marked as modifiable.", modifyPath.getPath()));
+                        String.format("Path '%s' cannot be marked as modifiable.", cleanPath));
             }
         }
     }
