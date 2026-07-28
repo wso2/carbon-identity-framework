@@ -1203,6 +1203,20 @@
                    description="View webhook metadata in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Policy Management API" identifier="/api/server/v1/policies"
+                 requiresAuthorization="true"
+                 description="API representation of the Policy Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Policies" name="internal_policy_mgt_view"
+                   description="View policies in the organization (root)"/>
+            <Scope displayName="Create Policies" name="internal_policy_mgt_create"
+                   description="Create policies in the organization (root)"/>
+            <Scope displayName="Update Policies" name="internal_policy_mgt_update"
+                   description="Update policies in the organization (root)"/>
+            <Scope displayName="Delete Policies" name="internal_policy_mgt_delete"
+                   description="Delete policies in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Email Template Management API v1/v2"
                  identifier="/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API" type="TENANT">
