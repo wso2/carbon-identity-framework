@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.organization.management.service.exception.Organi
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.util.List;
 import java.util.Map;
@@ -138,7 +139,7 @@ public class ConfigurationFacade {
 
         try {
             IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
-            idpDO = idpManager.getEnabledIdPByName(idpName, tenantDomain);
+            idpDO = idpManager.getEnabledIdPByName(idpName, tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED);
 
             if (idpDO != null) {
 

@@ -374,6 +374,25 @@ public interface IdpManager {
                                          boolean ignoreFileBasedIdps) throws IdentityProviderManagementException;
 
     /**
+     * Retrieves enabled Identity provider information by Identity Provider name, applying the given resolution depth
+     * to a shared (shadow) identity provider.
+     *
+     * @param idPName             Unique name of the Identity provider of whose information is requested.
+     * @param tenantDomain        Tenant domain whose information is requested.
+     * @param ignoreFileBasedIdps Whether to ignore file based idps or not.
+     * @param resolveType         The resolution depth for a shared (shadow) identity provider (raw / base parent /
+     *                            full parent).
+     * @return <code>IdentityProvider</code> Identity Provider information.
+     * @throws IdentityProviderManagementException Error when getting Identity Provider information by IdP name.
+     */
+    default IdentityProvider getEnabledIdPByName(String idPName, String tenantDomain, boolean ignoreFileBasedIdps,
+                                                 SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return getEnabledIdPByName(idPName, tenantDomain, ignoreFileBasedIdps);
+    }
+
+    /**
      * Retrieves Identity provider information about a given tenant by Identity Provider name
      *
      * @param idPName      Unique name of the Identity provider of whose information is requested

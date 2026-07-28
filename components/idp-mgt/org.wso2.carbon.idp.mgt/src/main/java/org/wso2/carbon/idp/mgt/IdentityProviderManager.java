@@ -1180,6 +1180,18 @@ public class IdentityProviderManager implements IdpManager {
         return null;
     }
 
+    @Override
+    public IdentityProvider getEnabledIdPByName(String idPName, String tenantDomain, boolean ignoreFileBasedIdps,
+                                                SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        IdentityProvider idp = getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps, resolveType);
+        if (idp != null && idp.isEnable()) {
+            return idp;
+        }
+        return null;
+    }
+
     /**
      * Retrieves Identity provider information about a given tenant by Identity Provider name
      *

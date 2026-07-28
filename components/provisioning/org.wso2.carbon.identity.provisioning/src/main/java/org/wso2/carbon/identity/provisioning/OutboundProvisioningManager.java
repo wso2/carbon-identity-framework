@@ -263,7 +263,8 @@ public class OutboundProvisioningManager {
         String connectorType = fIdP.getDefaultProvisioningConnectorConfig().getName();
 
         // get identity provider configuration.
-        fIdP = IdentityProviderManager.getInstance().getEnabledIdPByName(idpName, tenantDomainName);
+        fIdP = IdentityProviderManager.getInstance().getEnabledIdPByName(idpName, tenantDomainName, false,
+                SharedIdPResolveType.FULL_RESOLVED);
 
         if (fIdP == null) {
             // This is an exceptional situation. If service provider has connected to an
