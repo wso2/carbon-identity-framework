@@ -60,7 +60,7 @@ public class RuleManagementConfig {
      */
     public int getMaxAndExpressionCount(FlowType flowType) {
 
-        String propertyKey = FlowTypeConfig.valueOf(flowType.name()).getMaxExpressionsCombinedWithAndProperty();
+        String propertyKey = getMaxAndExpressionCountPropertyKey(flowType);
         try {
             String propertyValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(propertyKey);
             if (StringUtils.isNotBlank(propertyValue)) {
@@ -84,33 +84,29 @@ public class RuleManagementConfig {
     }
 
     /**
-     * Enum to hold the configuration properties for each flow type.
+     * Returns the identity.xml property key that holds the maximum number of expressions
+     * combined with AND for the given flow type.
+     *
+     * @param flowType Flow type.
+     * @return The configuration property key.
      */
-    private enum FlowTypeConfig {
+    private String getMaxAndExpressionCountPropertyKey(FlowType flowType) {
 
-        PRE_ISSUE_ACCESS_TOKEN("Rules.PreIssueAccessToken.MaxExpressionsCombinedWithAnd"),
-        PRE_UPDATE_PASSWORD("Rules.PreUpdatePassword.MaxExpressionsCombinedWithAnd"),
-        PRE_UPDATE_PROFILE("Rules.PreUpdateProfile.MaxExpressionsCombinedWithAnd"),
-        PRE_ISSUE_ID_TOKEN("Rules.PreIssueIdToken.MaxExpressionsCombinedWithAnd"),
-        APPROVAL_WORKFLOW("Rules.ApprovalWorkflow.MaxExpressionsCombinedWithAnd"),
-        DEVICE_POLICY("Rules.DevicePolicy.MaxExpressionsCombinedWithAnd");
-
-        private final String maxExpressionsCombinedWithAndProperty;
-
-        FlowTypeConfig(String maxExpressionsCombinedWithAndProperty) {
-
-            this.maxExpressionsCombinedWithAndProperty = maxExpressionsCombinedWithAndProperty;
-        }
-
-        /**
-         * Get the identity.xml property key that holds the maximum number of expressions
-         * combined with AND for this flow type.
-         *
-         * @return The configuration property key.
-         */
-        public String getMaxExpressionsCombinedWithAndProperty() {
-
-            return maxExpressionsCombinedWithAndProperty;
+        switch (flowType) {
+            case PRE_ISSUE_ACCESS_TOKEN:
+                return "Rules.PreIssueAccessToken.MaxExpressionsCombinedWithAnd";
+            case PRE_UPDATE_PASSWORD:
+                return "Rules.PreUpdatePassword.MaxExpressionsCombinedWithAnd";
+            case PRE_UPDATE_PROFILE:
+                return "Rules.PreUpdateProfile.MaxExpressionsCombinedWithAnd";
+            case PRE_ISSUE_ID_TOKEN:
+                return "Rules.PreIssueIdToken.MaxExpressionsCombinedWithAnd";
+            case APPROVAL_WORKFLOW:
+                return "Rules.ApprovalWorkflow.MaxExpressionsCombinedWithAnd";
+            case DEVICE_POLICY:
+                return "Rules.DevicePolicy.MaxExpressionsCombinedWithAnd";
+            default:
+                throw new IllegalArgumentException("Unsupported flow type: " + flowType);
         }
     }
 }
