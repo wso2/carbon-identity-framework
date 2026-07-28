@@ -59,10 +59,10 @@ public class DeviceManagementExceptionHandlerTest {
 
         ErrorMessage error = ErrorMessage.ERROR_WHILE_UPDATING_DEVICE;
         Throwable cause = new RuntimeException("update error");
-        DeviceMgtServerException ex = DeviceManagementExceptionHandler.handleServerException(error, cause);
+        DeviceMgtServerException ex = DeviceManagementExceptionHandler.handleServerException(error, cause, "d1");
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
-        Assert.assertNotNull(ex.getDescription());
+        Assert.assertTrue(ex.getDescription().contains("d1"));
         Assert.assertEquals(ex.getCause(), cause);
     }
 
@@ -70,10 +70,10 @@ public class DeviceManagementExceptionHandlerTest {
     public void testHandleServerExceptionNoCause() {
 
         ErrorMessage error = ErrorMessage.ERROR_WHILE_REGISTERING_DEVICE;
-        DeviceMgtServerException ex = DeviceManagementExceptionHandler.handleServerException(error);
+        DeviceMgtServerException ex = DeviceManagementExceptionHandler.handleServerException(error, "d1");
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
-        Assert.assertNotNull(ex.getDescription());
+        Assert.assertTrue(ex.getDescription().contains("d1"));
         Assert.assertNull(ex.getCause());
     }
 

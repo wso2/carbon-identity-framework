@@ -107,7 +107,7 @@ public class DeviceManagementAuditLogger {
     /**
      * Create audit log data for the given device.
      * The device owner is recorded as the opaque user ID if provided;
-     * the raw public key and free-form metadata are never logged.
+     * the raw public key is never logged.
      *
      * @param device Device to be logged.
      * @param userId User ID of the device owner, or null if not applicable.

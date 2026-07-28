@@ -140,7 +140,7 @@ public class DeviceValidatorTest {
     @Test
     public void testValidateDeviceForRegistrationWithoutOptionalFieldsSucceeds() throws Exception {
 
-        Device device = completeDeviceBuilder().deviceModel(null).metadata(null).build();
+        Device device = completeDeviceBuilder().deviceModel(null).build();
 
         deviceValidator.validateDeviceForRegistration(device);
     }

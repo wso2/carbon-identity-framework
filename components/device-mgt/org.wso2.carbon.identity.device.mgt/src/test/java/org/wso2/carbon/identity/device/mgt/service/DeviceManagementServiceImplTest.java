@@ -136,8 +136,8 @@ public class DeviceManagementServiceImplTest {
     @Test
     public void testRegisterDeviceWithoutOptionalFieldsSucceeds() throws Exception {
 
-        // Device model and metadata are nullable in the schema, so they must not be validated.
-        Device device = completeDeviceBuilder().deviceModel(null).metadata(null).build();
+        // Device model is nullable in the schema, so it must not be validated.
+        Device device = completeDeviceBuilder().deviceModel(null).build();
         DeviceUser owner = new DeviceUser("d1", "alice@example.com");
 
         service.registerDevice(device, owner, TENANT_DOMAIN);

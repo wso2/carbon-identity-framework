@@ -75,7 +75,6 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                             preparedStatement.setObject(
                                     DeviceMgtSQLConstants.Column.REGISTERED_AT, device.getRegisteredAt());
                             preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
-                            preparedStatement.setString(DeviceMgtSQLConstants.Column.METADATA, device.getMetadata());
                         },
                         device,
                         false);
@@ -93,7 +92,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
 
         } catch (TransactionException e) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_REGISTERING_DEVICE, e);
+                    ErrorMessage.ERROR_WHILE_REGISTERING_DEVICE, e, device.getId());
         }
 
         if (LOG.isDebugEnabled()) {
@@ -120,7 +119,6 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                                     .status(Device.Status.valueOf(
                                             resultSet.getString(DeviceMgtSQLConstants.Column.STATUS)))
                                     .registeredAt(resultSet.getTimestamp(DeviceMgtSQLConstants.Column.REGISTERED_AT))
-                                    .metadata(resultSet.getString(DeviceMgtSQLConstants.Column.METADATA))
                                     .build(),
                             preparedStatement -> {
                                 preparedStatement.setString(DeviceMgtSQLConstants.Column.ID, deviceId);
@@ -129,7 +127,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
 
         } catch (TransactionException e) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e);
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e, deviceId);
         }
     }
 
@@ -173,7 +171,6 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                                     .status(Device.Status.valueOf(
                                             resultSet.getString(DeviceMgtSQLConstants.Column.STATUS)))
                                     .registeredAt(resultSet.getTimestamp(DeviceMgtSQLConstants.Column.REGISTERED_AT))
-                                    .metadata(resultSet.getString(DeviceMgtSQLConstants.Column.METADATA))
                                     .build(),
                             preparedStatement -> {
                                 preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
@@ -325,7 +322,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
 
         } catch (TransactionException e) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_UPDATING_DEVICE, e);
+                    ErrorMessage.ERROR_WHILE_UPDATING_DEVICE, e, deviceId);
         }
 
         if (LOG.isDebugEnabled()) {
@@ -355,7 +352,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
 
         } catch (TransactionException e) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_UPDATING_DEVICE, e);
+                    ErrorMessage.ERROR_WHILE_UPDATING_DEVICE, e, deviceId);
         }
 
         if (LOG.isDebugEnabled()) {
@@ -390,7 +387,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
 
         } catch (TransactionException e) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_DELETING_DEVICE, e);
+                    ErrorMessage.ERROR_WHILE_DELETING_DEVICE, e, deviceId);
         }
 
         if (LOG.isDebugEnabled()) {

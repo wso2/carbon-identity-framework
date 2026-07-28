@@ -58,7 +58,7 @@ public class DeviceValidator {
      * that the device was not fully built before registration rather than invalid user input. Validating
      * here keeps such a failure a clear, coded error instead of a constraint violation or a
      * NullPointerException raised inside the data layer.
-     * The device model and the metadata are optional and are therefore not validated.
+     * The device model is optional and is therefore not validated.
      *
      * @param device Device to be registered.
      * @throws DeviceMgtException If the device or any of its required fields is not set.

@@ -34,8 +34,6 @@ public class Device {
     private final String publicKey;
     private final Status status;
     private final Timestamp registeredAt;
-    private final String metadata;
-
     private Device(Builder builder) {
 
         this.id = builder.id;
@@ -44,7 +42,6 @@ public class Device {
         this.publicKey = builder.publicKey;
         this.status = builder.status;
         this.registeredAt = builder.registeredAt;
-        this.metadata = builder.metadata;
     }
 
     /**
@@ -108,16 +105,6 @@ public class Device {
     }
 
     /**
-     * Returns the metadata payload.
-     *
-     * @return Metadata string.
-     */
-    public String getMetadata() {
-
-        return metadata;
-    }
-
-    /**
      * Builder for {@link Device}.
      */
     public static class Builder {
@@ -128,7 +115,6 @@ public class Device {
         private String publicKey;
         private Status status = Status.ACTIVE;
         private Timestamp registeredAt;
-        private String metadata;
 
         /**
          * Creates an empty builder.
@@ -149,7 +135,6 @@ public class Device {
             this.publicKey = device.publicKey;
             this.status = device.status;
             this.registeredAt = device.registeredAt;
-            this.metadata = device.metadata;
         }
 
         /**
@@ -221,18 +206,6 @@ public class Device {
         public Builder registeredAt(Timestamp registeredAt) {
 
             this.registeredAt = registeredAt;
-            return this;
-        }
-
-        /**
-         * Sets metadata.
-         *
-         * @param metadata Metadata value.
-         * @return Builder instance.
-         */
-        public Builder metadata(String metadata) {
-
-            this.metadata = metadata;
             return this;
         }
 

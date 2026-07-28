@@ -141,7 +141,6 @@ public class DeviceManagementDAOImplTest {
                 .publicKey("pk-full-" + id)
                 .status(Device.Status.ACTIVE)
                 .registeredAt(Timestamp.from(Instant.now()))
-                .metadata("{\"env\":\"test\"}")
                 .build();
         DeviceUser owner = new DeviceUser(id, SECOND_USER_ID);
 
@@ -156,7 +155,6 @@ public class DeviceManagementDAOImplTest {
         Assert.assertEquals(result.getPublicKey(), "pk-full-" + id);
         Assert.assertEquals(result.getStatus(), Device.Status.ACTIVE);
         Assert.assertNotNull(result.getRegisteredAt());
-        Assert.assertEquals(result.getMetadata(), "{\"env\":\"test\"}");
     }
 
     /**
@@ -383,7 +381,6 @@ public class DeviceManagementDAOImplTest {
                 .publicKey("base64-public-key-" + id)
                 .status(status)
                 .registeredAt(Timestamp.from(Instant.now()))
-                .metadata("{\"label\":\"primary\"}")
                 .build();
     }
 }

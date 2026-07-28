@@ -43,7 +43,6 @@ public class DeviceTest {
                 .publicKey("dummy-public-key")
                 .status(Device.Status.ACTIVE)
                 .registeredAt(now)
-                .metadata("{\"os\":\"iOS\"}")
                 .build();
 
         Assert.assertEquals(device.getId(), "d1");
@@ -52,7 +51,6 @@ public class DeviceTest {
         Assert.assertEquals(device.getPublicKey(), "dummy-public-key");
         Assert.assertEquals(device.getStatus(), Device.Status.ACTIVE);
         Assert.assertEquals(device.getRegisteredAt(), now);
-        Assert.assertEquals(device.getMetadata(), "{\"os\":\"iOS\"}");
     }
 
     @Test
