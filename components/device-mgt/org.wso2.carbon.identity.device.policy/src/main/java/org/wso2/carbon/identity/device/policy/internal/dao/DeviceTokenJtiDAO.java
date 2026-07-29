@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.device.policy.internal.dao;
 
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 
 import java.sql.Timestamp;
 
@@ -26,7 +26,7 @@ import java.sql.Timestamp;
  * DAO for the device token replay store. Tracks accepted token identifiers (jti) so that a previously
  * seen device token cannot be replayed within its freshness window.
  */
-public interface DeviceTokenReplayDAO {
+public interface DeviceTokenJtiDAO {
 
     /**
      * Checks whether a device token with the given jti has already been accepted for the tenant.
@@ -34,9 +34,9 @@ public interface DeviceTokenReplayDAO {
      * @param jti      The JWT ID claim of the device token.
      * @param tenantId The tenant the device belongs to.
      * @return {@code true} if the jti is already present in the replay store, {@code false} otherwise.
-     * @throws PolicyManagementServerException If the replay store cannot be queried.
+     * @throws DevicePolicyServerException If the replay store cannot be queried.
      */
-    boolean isTokenReplayed(String jti, int tenantId) throws PolicyManagementServerException;
+    boolean isTokenReplayed(String jti, int tenantId) throws DevicePolicyServerException;
 
     /**
      * Records an accepted device token jti so that subsequent presentations of the same token are rejected.
@@ -45,16 +45,16 @@ public interface DeviceTokenReplayDAO {
      * @param tenantId   The tenant the device belongs to.
      * @param issuedAt   The token issued-at (iat) time.
      * @param expiryTime The time after which the jti record may be cleaned up (iat + freshness window).
-     * @throws PolicyManagementServerException If the jti cannot be persisted.
+     * @throws DevicePolicyServerException If the jti cannot be persisted.
      */
     void storeToken(String jti, int tenantId, Timestamp issuedAt, Timestamp expiryTime)
-            throws PolicyManagementServerException;
+            throws DevicePolicyServerException;
 
     /**
      * Removes device token jti records whose expiry time has passed.
      *
      * @param cutoff The cut-off time; records with an EXPIRY_TIME older than this are removed.
-     * @throws PolicyManagementServerException If the expired records cannot be removed.
+     * @throws DevicePolicyServerException If the expired records cannot be removed.
      */
-    void removeExpiredTokens(Timestamp cutoff) throws PolicyManagementServerException;
+    void removeExpiredTokens(Timestamp cutoff) throws DevicePolicyServerException;
 }

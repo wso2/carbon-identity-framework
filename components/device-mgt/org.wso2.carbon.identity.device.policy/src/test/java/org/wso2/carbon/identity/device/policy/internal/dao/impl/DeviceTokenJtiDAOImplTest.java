@@ -23,7 +23,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 
 import java.sql.Timestamp;
 
@@ -32,13 +32,13 @@ import static org.testng.Assert.assertTrue;
 
 @WithH2Database(files = {"dbscripts/h2.sql"})
 @WithCarbonHome
-public class DeviceTokenReplayDAOImplTest {
+public class DeviceTokenJtiDAOImplTest {
 
-    private DeviceTokenReplayDAOImpl deviceTokenReplayDAO;
+    private DeviceTokenJtiDAOImpl deviceTokenJtiDAO;
 
     @BeforeMethod
     public void setUp() {
-        deviceTokenReplayDAO = new DeviceTokenReplayDAOImpl();
+        deviceTokenJtiDAO = new DeviceTokenJtiDAOImpl();
     }
 
     @AfterMethod
@@ -46,34 +46,34 @@ public class DeviceTokenReplayDAOImplTest {
     }
 
     @Test
-    public void testStoreTokenAndIsTokenReplayed() throws PolicyManagementServerException {
+    public void testStoreTokenAndIsTokenReplayed() throws DevicePolicyServerException {
 
         String jti = "test-jti-1";
         int tenantId = 1;
         Timestamp iat = new Timestamp(System.currentTimeMillis());
         Timestamp exp = new Timestamp(System.currentTimeMillis() + 100000);
 
-        assertFalse(deviceTokenReplayDAO.isTokenReplayed(jti, tenantId));
+        assertFalse(deviceTokenJtiDAO.isTokenReplayed(jti, tenantId));
 
-        deviceTokenReplayDAO.storeToken(jti, tenantId, iat, exp);
+        deviceTokenJtiDAO.storeToken(jti, tenantId, iat, exp);
 
-        assertTrue(deviceTokenReplayDAO.isTokenReplayed(jti, tenantId));
+        assertTrue(deviceTokenJtiDAO.isTokenReplayed(jti, tenantId));
     }
 
     @Test
-    public void testRemoveExpiredTokens() throws PolicyManagementServerException {
+    public void testRemoveExpiredTokens() throws DevicePolicyServerException {
 
         String jti = "test-jti-2";
         int tenantId = 1;
         Timestamp iat = new Timestamp(System.currentTimeMillis() - 100000);
         Timestamp exp = new Timestamp(System.currentTimeMillis() - 50000);
 
-        deviceTokenReplayDAO.storeToken(jti, tenantId, iat, exp);
-        assertTrue(deviceTokenReplayDAO.isTokenReplayed(jti, tenantId));
+        deviceTokenJtiDAO.storeToken(jti, tenantId, iat, exp);
+        assertTrue(deviceTokenJtiDAO.isTokenReplayed(jti, tenantId));
 
         Timestamp cutoff = new Timestamp(System.currentTimeMillis());
-        deviceTokenReplayDAO.removeExpiredTokens(cutoff);
+        deviceTokenJtiDAO.removeExpiredTokens(cutoff);
 
-        assertFalse(deviceTokenReplayDAO.isTokenReplayed(jti, tenantId));
+        assertFalse(deviceTokenJtiDAO.isTokenReplayed(jti, tenantId));
     }
 }

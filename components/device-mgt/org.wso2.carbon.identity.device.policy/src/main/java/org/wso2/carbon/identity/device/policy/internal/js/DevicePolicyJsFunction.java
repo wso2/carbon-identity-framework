@@ -23,11 +23,11 @@ import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
+import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
 import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyDiagnosticLogger;
-import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
-import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,18 +66,28 @@ public class DevicePolicyJsFunction implements BiFunction<JsBaseAuthenticationCo
             String appId = context.getWrapped().getServiceProviderResourceId();
             DevicePolicyComponentServiceHolder holder = DevicePolicyComponentServiceHolder.getInstance();
 
-            return holder.getDevicePolicyEvaluator().evaluate(policyName, deviceData, appId, tenantDomain);
+            DevicePolicyEvaluationResult result =
+                    holder.getDevicePolicyEvaluator().evaluate(policyName, deviceData, appId, tenantDomain);
 
-        } catch (PolicyManagementException e) {
+            switch (result.getStatus()) {
+                case COMPLIANT:
+                    return null;
+                case NON_COMPLIANT:
+                    return String.join(", ", result.getFailedFields());
+                case INCOMPLETE_DEVICE_DATA:
+                    return String.join(", ", result.getMissingFields());
+                case POLICY_NOT_FOUND:
+                    return result.getPolicyName() + ":policy_not_found";
+                default:
+                    return null;
+            }
+
+        } catch (DevicePolicyClientException e) {
             LOG.error("Error while evaluating device policy: " + policyName, e);
             return policyName + ":policy_error";
-        } catch (RuleEvaluationException e) {
-            LOG.error("Rule evaluation failed for device policy: " + policyName, e);
-            return policyName + ":evaluation_error";
-        } catch (PolicyEvaluationException e) {
-            LOG.error("Policy evaluation failed for device policy: " + policyName, e);
+        } catch (DevicePolicyException e) {
+            LOG.error("Error while evaluating device policy: " + policyName, e);
             return policyName + ":evaluation_error";
         }
     }
-
 }

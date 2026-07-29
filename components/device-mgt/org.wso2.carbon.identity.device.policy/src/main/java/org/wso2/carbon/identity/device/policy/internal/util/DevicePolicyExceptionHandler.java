@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.device.policy.internal.util;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 
 /**
- * Utility class for constructing policy management exceptions from device-policy error messages.
+ * Utility class for constructing device policy exceptions from device policy error messages.
  */
 public class DevicePolicyExceptionHandler {
 
@@ -34,53 +34,71 @@ public class DevicePolicyExceptionHandler {
 
     /**
      * Builds a client exception from a device policy error message.
+     *
+     * @param error Device policy error message.
+     * @param data  Format data for description.
+     * @return DevicePolicyClientException instance.
      */
-    public static PolicyManagementClientException handleClientException(DevicePolicyErrorMessage error,
-                                                                        String... data) {
+    public static DevicePolicyClientException handleClientException(DevicePolicyErrorMessage error,
+                                                                     String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, (Object[]) data);
         }
-        return new PolicyManagementClientException(error.getMessage(), description, error.getCode());
+        return new DevicePolicyClientException(error.getMessage(), description, error.getCode());
     }
 
     /**
      * Builds a client exception with a cause from a device policy error message.
+     *
+     * @param error Device policy error message.
+     * @param e     Cause exception.
+     * @param data  Format data for description.
+     * @return DevicePolicyClientException instance.
      */
-    public static PolicyManagementClientException handleClientException(DevicePolicyErrorMessage error, Throwable e,
-                                                                        String... data) {
+    public static DevicePolicyClientException handleClientException(DevicePolicyErrorMessage error, Throwable e,
+                                                                     String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, (Object[]) data);
         }
-        return new PolicyManagementClientException(error.getMessage(), description, error.getCode(), e);
+        return new DevicePolicyClientException(error.getMessage(), description, error.getCode(), e);
     }
 
     /**
      * Builds a server exception from a device policy error message.
+     *
+     * @param error Device policy error message.
+     * @param data  Format data for description.
+     * @return DevicePolicyServerException instance.
      */
-    public static PolicyManagementServerException handleServerException(DevicePolicyErrorMessage error,
-                                                                        String... data) {
+    public static DevicePolicyServerException handleServerException(DevicePolicyErrorMessage error,
+                                                                     String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, (Object[]) data);
         }
-        return new PolicyManagementServerException(error.getMessage(), description, error.getCode());
+        return new DevicePolicyServerException(error.getMessage(), description, error.getCode());
     }
 
     /**
      * Builds a server exception with a cause from a device policy error message.
+     *
+     * @param error Device policy error message.
+     * @param e     Cause exception.
+     * @param data  Format data for description.
+     * @return DevicePolicyServerException instance.
      */
-    public static PolicyManagementServerException handleServerException(DevicePolicyErrorMessage error, Throwable e,
-                                                                        String... data) {
+    public static DevicePolicyServerException handleServerException(DevicePolicyErrorMessage error, Throwable e,
+                                                                     String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, (Object[]) data);
         }
-        return new PolicyManagementServerException(error.getMessage(), description, error.getCode(), e);
+        return new DevicePolicyServerException(error.getMessage(), description, error.getCode(), e);
     }
 }

@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
-import org.wso2.carbon.identity.device.policy.internal.config.DeviceFieldConfigLoader;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 
@@ -51,7 +50,6 @@ public class DevicePolicyServiceComponentTest {
     @Mock
     private BundleContext bundleContext;
 
-    private MockedStatic<DeviceFieldConfigLoader> mockedDeviceFieldConfigLoader;
     private MockedStatic<IdentityUtil> mockedIdentityUtil;
     @Mock
     private Log mockLog;
@@ -62,7 +60,6 @@ public class DevicePolicyServiceComponentTest {
         component = new DevicePolicyServiceComponent();
         when(componentContext.getBundleContext()).thenReturn(bundleContext);
 
-        mockedDeviceFieldConfigLoader = mockStatic(DeviceFieldConfigLoader.class);
         mockedIdentityUtil = mockStatic(IdentityUtil.class);
 
         JsFunctionRegistry jsFunctionRegistry = mock(JsFunctionRegistry.class);
@@ -71,7 +68,6 @@ public class DevicePolicyServiceComponentTest {
 
     @AfterMethod
     public void tearDown() {
-        mockedDeviceFieldConfigLoader.close();
         mockedIdentityUtil.close();
         
         DevicePolicyComponentServiceHolder holder = DevicePolicyComponentServiceHolder.getInstance();
@@ -87,7 +83,6 @@ public class DevicePolicyServiceComponentTest {
     @Test
     public void testActivate() {
         mockedIdentityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("false");
-        mockedDeviceFieldConfigLoader.when(DeviceFieldConfigLoader::load).thenAnswer(invocation -> null);
 
         try {
             component.activate(componentContext);

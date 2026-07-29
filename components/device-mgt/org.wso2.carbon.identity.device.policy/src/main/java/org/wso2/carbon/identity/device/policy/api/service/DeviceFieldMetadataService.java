@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.device.policy.api.service;
 
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
+import org.wso2.carbon.identity.device.policy.api.model.Platform;
+
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides platform applicability metadata for device policy fields.
@@ -27,10 +30,22 @@ import java.util.Map;
 public interface DeviceFieldMetadataService {
 
     /**
-     * Returns a map of field name to the list of platforms the field applies to.
-     * Fields that apply to all platforms are omitted from the map.
+     * Returns the list of applicable device fields for the specified platform.
+     * The returned list already includes universal fields that apply to all platforms.
+     * If platform is null, returns all known fields (universal plus every platform's fields, de-duplicated).
      *
-     * @return map of field name -> applicable platforms.
+     * <p>Consumed by the device policy REST API layer in the identity-api-server repository.
+     *
+     * @param platform The platform for which to retrieve applicable fields, or null for all fields.
+     * @return List of field names applicable to the platform.
+     * @throws DevicePolicyServerException If the field configuration is not loaded.
      */
-    Map<String, List<String>> getFieldApplicablePlatforms();
+    List<String> getFieldsForPlatform(Platform platform) throws DevicePolicyServerException;
+
+    /**
+     * Returns the set of all supported device platforms.
+     *
+     * @return Set of supported {@link Platform} values.
+     */
+    Set<Platform> getSupportedPlatforms();
 }

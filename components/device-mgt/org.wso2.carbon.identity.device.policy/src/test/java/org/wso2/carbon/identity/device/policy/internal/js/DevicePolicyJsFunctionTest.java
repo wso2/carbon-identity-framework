@@ -31,21 +31,23 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.CarbonBasedTestListener;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
+import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
-import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
-import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 /**
- * Unit tests for DevicePolicyJsFunction.
+ * Unit tests for DevicePolicyJsFunction covering all 7 paths.
  */
 @WithCarbonHome
 @Listeners(CarbonBasedTestListener.class)
@@ -66,9 +68,9 @@ public class DevicePolicyJsFunctionTest {
         jsContext = Mockito.mock(JsBaseAuthenticationContext.class);
         authContext = Mockito.mock(AuthenticationContext.class);
         Mockito.when(jsContext.getWrapped()).thenReturn(authContext);
-        
+
         devicePolicyEvaluator = Mockito.mock(DevicePolicyEvaluator.class);
-        
+
         mockedHolder = Mockito.mockStatic(DevicePolicyComponentServiceHolder.class);
         DevicePolicyComponentServiceHolder holderInstance = Mockito.mock(DevicePolicyComponentServiceHolder.class);
         mockedHolder.when(DevicePolicyComponentServiceHolder::getInstance).thenReturn(holderInstance);
@@ -90,6 +92,71 @@ public class DevicePolicyJsFunctionTest {
     }
 
     @Test
+    public void testApplyCompliantResult() throws Exception {
+
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "android");
+        Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(deviceData);
+        Mockito.when(authContext.getTenantDomain()).thenReturn("carbon.super");
+        Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
+
+        Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
+                .thenReturn(DevicePolicyEvaluationResult.compliant("testPolicy"));
+
+        String result = jsFunction.apply(jsContext, "testPolicy");
+        assertNull(result);
+    }
+
+    @Test
+    public void testApplyNonCompliantResult() throws Exception {
+
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "android");
+        Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(deviceData);
+        Mockito.when(authContext.getTenantDomain()).thenReturn("carbon.super");
+        Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
+
+        Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
+                .thenReturn(DevicePolicyEvaluationResult.nonCompliant(
+                        "testPolicy", Arrays.asList("isRooted", "diskEncryption")));
+
+        String result = jsFunction.apply(jsContext, "testPolicy");
+        assertEquals(result, "isRooted, diskEncryption");
+    }
+
+    @Test
+    public void testApplyIncompleteDeviceDataResult() throws Exception {
+
+        Map<String, Object> deviceData = new HashMap<>();
+        Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(deviceData);
+        Mockito.when(authContext.getTenantDomain()).thenReturn("carbon.super");
+        Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
+
+        Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
+                .thenReturn(DevicePolicyEvaluationResult.incompleteDeviceData(
+                        "testPolicy", Arrays.asList("platform")));
+
+        String result = jsFunction.apply(jsContext, "testPolicy");
+        assertEquals(result, "platform");
+    }
+
+    @Test
+    public void testApplyPolicyNotFoundResult() throws Exception {
+
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "android");
+        Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(deviceData);
+        Mockito.when(authContext.getTenantDomain()).thenReturn("carbon.super");
+        Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
+
+        Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
+                .thenReturn(DevicePolicyEvaluationResult.policyNotFound("testPolicy"));
+
+        String result = jsFunction.apply(jsContext, "testPolicy");
+        assertEquals(result, "testPolicy:policy_not_found");
+    }
+
+    @Test
     public void testApplyWithMissingDeviceData() {
 
         Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(null);
@@ -99,62 +166,31 @@ public class DevicePolicyJsFunctionTest {
     }
 
     @Test
-    public void testApplyWithValidData() throws Exception {
-
-        Map<String, Object> deviceData = new HashMap<>();
-        deviceData.put("os", "macOS");
-        Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(deviceData);
-        Mockito.when(authContext.getTenantDomain()).thenReturn("carbon.super");
-        Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
-        
-        Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
-                .thenReturn("testPolicy:compliant");
-                
-        String result = jsFunction.apply(jsContext, "testPolicy");
-        assertEquals(result, "testPolicy:compliant");
-    }
-
-    @Test
-    public void testApplyWithPolicyManagementException() throws Exception {
+    public void testApplyWithDevicePolicyClientException() throws Exception {
 
         Map<String, Object> deviceData = new HashMap<>();
         Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(deviceData);
         Mockito.when(authContext.getTenantDomain()).thenReturn("carbon.super");
         Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
-        
+
         Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
-                .thenThrow(Mockito.mock(PolicyManagementException.class));
-                
+                .thenThrow(Mockito.mock(DevicePolicyClientException.class));
+
         String result = jsFunction.apply(jsContext, "testPolicy");
         assertEquals(result, "testPolicy:policy_error");
     }
 
     @Test
-    public void testApplyWithRuleEvaluationException() throws Exception {
+    public void testApplyWithDevicePolicyServerException() throws Exception {
 
         Map<String, Object> deviceData = new HashMap<>();
         Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(deviceData);
         Mockito.when(authContext.getTenantDomain()).thenReturn("carbon.super");
         Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
-        
-        Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
-                .thenThrow(Mockito.mock(RuleEvaluationException.class));
-                
-        String result = jsFunction.apply(jsContext, "testPolicy");
-        assertEquals(result, "testPolicy:evaluation_error");
-    }
-    
-    @Test
-    public void testApplyWithPolicyEvaluationException() throws Exception {
 
-        Map<String, Object> deviceData = new HashMap<>();
-        Mockito.when(authContext.getProperty(FrameworkConstants.DEVICE_DATA)).thenReturn(deviceData);
-        Mockito.when(authContext.getTenantDomain()).thenReturn("carbon.super");
-        Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
-        
         Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
-                .thenThrow(Mockito.mock(PolicyEvaluationException.class));
-                
+                .thenThrow(Mockito.mock(DevicePolicyServerException.class));
+
         String result = jsFunction.apply(jsContext, "testPolicy");
         assertEquals(result, "testPolicy:evaluation_error");
     }

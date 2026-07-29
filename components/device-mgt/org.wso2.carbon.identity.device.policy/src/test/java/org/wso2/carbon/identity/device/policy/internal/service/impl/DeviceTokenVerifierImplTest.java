@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.device.policy.internal.service.impl;
 
 import org.mockito.MockedConstruction;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.device.policy.internal.jwt.DeviceTokenExtractor;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
+import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,7 @@ import static org.testng.Assert.assertNotNull;
 public class DeviceTokenVerifierImplTest {
 
     @Test
-    public void testVerifyWithPublicKey() throws PolicyManagementException {
+    public void testVerifyWithPublicKey() throws DevicePolicyException {
 
         Map<String, Object> mockResult = new HashMap<>();
         mockResult.put("deviceId", "test-device-id");

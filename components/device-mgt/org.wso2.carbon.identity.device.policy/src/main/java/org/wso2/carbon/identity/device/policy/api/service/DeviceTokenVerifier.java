@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.device.policy.api.service;
 
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
 
 import java.util.Map;
 
@@ -41,9 +41,9 @@ public interface DeviceTokenVerifier {
      * @param correlationId   Identifier used only for diagnostic correlation.
      * @param tenantDomain    Tenant domain used for replay-store scoping.
      * @return Map of device field names to their values from verified JWT.
-     * @throws PolicyManagementException If the token is invalid or stale.
+     * @throws DevicePolicyException If the token is invalid or stale.
      */
     Map<String, Object> verifyWithPublicKey(String token, String base64PublicKey,
                                             String correlationId, String tenantDomain)
-            throws PolicyManagementException;
+            throws DevicePolicyException;
 }

@@ -26,8 +26,8 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
 
 import java.util.Date;
 
@@ -38,16 +38,16 @@ import static org.testng.Assert.fail;
 
 @WithH2Database(files = {"dbscripts/h2.sql"})
 @WithCarbonHome
-public class DeviceTokenReplayServiceTest {
+public class DeviceTokenReplayProtectionServiceTest {
 
-    private DeviceTokenReplayService deviceTokenReplayService;
+    private DeviceTokenReplayProtectionService deviceTokenReplayProtectionService;
     private MockedStatic<LoggerUtils> mockedLoggerUtils;
 
     @BeforeMethod
     public void setUp() {
         mockedLoggerUtils = mockStatic(LoggerUtils.class);
         mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
-        deviceTokenReplayService = DeviceTokenReplayService.getInstance();
+        deviceTokenReplayProtectionService = DeviceTokenReplayProtectionService.getInstance();
     }
 
     @AfterMethod
@@ -60,30 +60,30 @@ public class DeviceTokenReplayServiceTest {
     @Test
     public void testGetInstance() {
 
-        assertNotNull(DeviceTokenReplayService.getInstance());
+        assertNotNull(DeviceTokenReplayProtectionService.getInstance());
     }
 
     @Test
-    public void testAssertUnusedAndRecord() throws PolicyManagementException {
+    public void testAssertUnusedAndRecord() throws DevicePolicyException {
 
         String jti = "service-jti-1";
         int tenantId = 1;
         String correlationId = "corr-1";
         Date iat = new Date();
 
-        deviceTokenReplayService.assertUnusedAndRecord(jti, iat, tenantId, correlationId);
+        deviceTokenReplayProtectionService.assertUnusedAndRecord(jti, iat, tenantId, correlationId);
 
         try {
-            deviceTokenReplayService.assertUnusedAndRecord(jti, iat, tenantId, correlationId);
-            fail("Expected PolicyManagementClientException");
-        } catch (PolicyManagementClientException e) {
+            deviceTokenReplayProtectionService.assertUnusedAndRecord(jti, iat, tenantId, correlationId);
+            fail("Expected DevicePolicyClientException");
+        } catch (DevicePolicyClientException e) {
             assertTrue(e.getErrorCode().equals(DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_REPLAYED.getCode()));
         }
     }
 
     @Test
-    public void testRemoveExpiredTokens() throws PolicyManagementException {
-        deviceTokenReplayService.removeExpiredTokens();
+    public void testRemoveExpiredTokens() throws DevicePolicyException {
+        deviceTokenReplayProtectionService.removeExpiredTokens();
         assertTrue(true);
     }
 }

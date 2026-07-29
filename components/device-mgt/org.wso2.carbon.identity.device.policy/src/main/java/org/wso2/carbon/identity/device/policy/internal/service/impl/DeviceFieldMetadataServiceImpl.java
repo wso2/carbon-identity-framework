@@ -18,28 +18,36 @@
 
 package org.wso2.carbon.identity.device.policy.internal.service.impl;
 
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
+import org.wso2.carbon.identity.device.policy.api.model.DeviceField;
+import org.wso2.carbon.identity.device.policy.api.model.Platform;
 import org.wso2.carbon.identity.device.policy.api.service.DeviceFieldMetadataService;
-import org.wso2.carbon.identity.device.policy.internal.config.DeviceFieldConfig;
-import org.wso2.carbon.identity.device.policy.internal.config.DeviceFieldConfigLoader;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
- * Implementation of DeviceFieldMetadataService backed by the cached DeviceFieldConfigLoader.
+ * Implementation of DeviceFieldMetadataService backed by the DeviceField enum.
  */
 public class DeviceFieldMetadataServiceImpl implements DeviceFieldMetadataService {
 
     @Override
-    public Map<String, List<String>> getFieldApplicablePlatforms() {
+    public List<String> getFieldsForPlatform(Platform platform) throws DevicePolicyServerException {
 
-        Map<String, List<String>> result = new HashMap<>();
-        for (DeviceFieldConfig f : DeviceFieldConfigLoader.getInstance().getFields()) {
-            if (!f.isUniversal()) {
-                result.put(f.getName(), f.getApplicablePlatforms());
+        List<String> fields = new ArrayList<>();
+        for (DeviceField field : DeviceField.values()) {
+            if (field.appliesTo(platform)) {
+                fields.add(field.getName());
             }
         }
-        return result;
+        return fields;
+    }
+
+    @Override
+    public Set<Platform> getSupportedPlatforms() {
+
+        return EnumSet.allOf(Platform.class);
     }
 }

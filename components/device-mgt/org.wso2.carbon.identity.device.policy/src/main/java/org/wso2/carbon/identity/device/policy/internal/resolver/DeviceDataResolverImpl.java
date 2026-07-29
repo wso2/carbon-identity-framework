@@ -22,9 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.device.DeviceDataResolver;
-import org.wso2.carbon.identity.device.policy.internal.jwt.DeviceTokenExtractor;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
+import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 
 import java.util.Map;
 import java.util.Optional;
@@ -61,9 +61,9 @@ public class DeviceDataResolverImpl implements DeviceDataResolver {
         try {
             Map<String, Object> deviceData = new DeviceTokenExtractor().extractFromToken(deviceToken, tenantDomain);
             return Optional.of(deviceData);
-        } catch (PolicyManagementClientException e) {
+        } catch (DevicePolicyClientException e) {
             return Optional.empty();
-        } catch (PolicyManagementException e) {
+        } catch (DevicePolicyException e) {
             LOG.error("Error while verifying device token at initiation.", e);
             return Optional.empty();
         }

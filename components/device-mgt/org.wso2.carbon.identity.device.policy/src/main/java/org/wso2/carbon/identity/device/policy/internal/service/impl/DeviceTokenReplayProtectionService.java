@@ -19,39 +19,39 @@
 package org.wso2.carbon.identity.device.policy.internal.service.impl;
 
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 import org.wso2.carbon.identity.device.policy.internal.constant.DeviceTokenConstants;
-import org.wso2.carbon.identity.device.policy.internal.dao.DeviceTokenReplayDAO;
-import org.wso2.carbon.identity.device.policy.internal.dao.impl.DeviceTokenReplayDAOImpl;
+import org.wso2.carbon.identity.device.policy.internal.dao.DeviceTokenJtiDAO;
+import org.wso2.carbon.identity.device.policy.internal.dao.impl.DeviceTokenJtiDAOImpl;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyDiagnosticLogger;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandler;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
 
 import java.sql.Timestamp;
 import java.util.Date;
 
 /**
  * Enforces single-use of device token jti claims against the replay store, and removes expired
- * jti records. This is the only class in the bundle that constructs {@link DeviceTokenReplayDAOImpl}.
+ * jti records. This is the only class in the bundle that constructs {@link DeviceTokenJtiDAOImpl}.
  */
-public class DeviceTokenReplayService {
+public class DeviceTokenReplayProtectionService {
 
-    private static final DeviceTokenReplayService INSTANCE = new DeviceTokenReplayService();
+    private static final DeviceTokenReplayProtectionService INSTANCE = new DeviceTokenReplayProtectionService();
 
-    private final DeviceTokenReplayDAO replayDAO;
+    private final DeviceTokenJtiDAO jtiDAO;
     private final DevicePolicyDiagnosticLogger diagnosticLogger = new DevicePolicyDiagnosticLogger();
 
-    private DeviceTokenReplayService() {
+    private DeviceTokenReplayProtectionService() {
 
-        replayDAO = new DeviceTokenReplayDAOImpl();
+        jtiDAO = new DeviceTokenJtiDAOImpl();
     }
 
     /**
-     * Returns the singleton instance of DeviceTokenReplayService.
+     * Returns the singleton instance of DeviceTokenReplayProtectionService.
      *
-     * @return The singleton DeviceTokenReplayService instance.
+     * @return The singleton DeviceTokenReplayProtectionService instance.
      */
-    public static DeviceTokenReplayService getInstance() {
+    public static DeviceTokenReplayProtectionService getInstance() {
 
         return INSTANCE;
     }
@@ -63,13 +63,13 @@ public class DeviceTokenReplayService {
      * @param issuedAt      The token issued-at (iat) time.
      * @param tenantId      The tenant the device belongs to.
      * @param correlationId Identifier (deviceId or registrationId) used only for diagnostic correlation.
-     * @throws PolicyManagementException If the jti has already been used, or the replay store cannot
-     *                                    be queried or updated.
+     * @throws DevicePolicyException If the jti has already been used, or the replay store cannot
+     *                               be queried or updated.
      */
     public void assertUnusedAndRecord(String jti, Date issuedAt, int tenantId, String correlationId)
-            throws PolicyManagementException {
+            throws DevicePolicyException {
 
-        if (replayDAO.isTokenReplayed(jti, tenantId)) {
+        if (jtiDAO.isTokenReplayed(jti, tenantId)) {
             diagnosticLogger.logTokenValidationFailure(correlationId,
                     "Device token jti has already been used (replay detected).");
             throw DevicePolicyExceptionHandler.handleClientException(
@@ -79,16 +79,16 @@ public class DeviceTokenReplayService {
         Timestamp issuedAtTimestamp = new Timestamp(issuedAt.getTime());
         Timestamp expiryTimestamp = new Timestamp(
                 issuedAt.getTime() + DeviceTokenConstants.TOKEN_FRESHNESS_WINDOW_MILLIS);
-        replayDAO.storeToken(jti, tenantId, issuedAtTimestamp, expiryTimestamp);
+        jtiDAO.storeToken(jti, tenantId, issuedAtTimestamp, expiryTimestamp);
     }
 
     /**
      * Removes device token jti records whose expiry time has passed.
      *
-     * @throws PolicyManagementServerException If the expired records cannot be removed.
+     * @throws DevicePolicyServerException If the expired records cannot be removed.
      */
-    public void removeExpiredTokens() throws PolicyManagementServerException {
+    public void removeExpiredTokens() throws DevicePolicyServerException {
 
-        replayDAO.removeExpiredTokens(new Timestamp(System.currentTimeMillis()));
+        jtiDAO.removeExpiredTokens(new Timestamp(System.currentTimeMillis()));
     }
 }

@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.device.policy.internal.cleanup;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayService;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
+import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayProtectionService;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -74,7 +74,8 @@ public class DeviceTokenJtiCleanupService {
      */
     private static final class DeviceTokenJtiCleanupTask implements Runnable {
 
-        private final DeviceTokenReplayService replayService = DeviceTokenReplayService.getInstance();
+        private final DeviceTokenReplayProtectionService replayService =
+                DeviceTokenReplayProtectionService.getInstance();
 
         @Override
         public void run() {
@@ -84,7 +85,7 @@ public class DeviceTokenJtiCleanupService {
             }
             try {
                 replayService.removeExpiredTokens();
-            } catch (PolicyManagementServerException e) {
+            } catch (DevicePolicyServerException e) {
                 LOG.error("Error while running the device token jti cleanup task.", e);
             }
         }

@@ -24,22 +24,22 @@ import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 import org.wso2.carbon.identity.device.policy.internal.constant.DevicePolicySQLConstants;
-import org.wso2.carbon.identity.device.policy.internal.dao.DeviceTokenReplayDAO;
+import org.wso2.carbon.identity.device.policy.internal.dao.DeviceTokenJtiDAO;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandler;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
 
 import java.sql.Timestamp;
 
 /**
  * JDBC implementation of the device token replay store.
  */
-public class DeviceTokenReplayDAOImpl implements DeviceTokenReplayDAO {
+public class DeviceTokenJtiDAOImpl implements DeviceTokenJtiDAO {
 
-    private static final Log LOG = LogFactory.getLog(DeviceTokenReplayDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(DeviceTokenJtiDAOImpl.class);
 
     @Override
-    public boolean isTokenReplayed(String jti, int tenantId) throws PolicyManagementServerException {
+    public boolean isTokenReplayed(String jti, int tenantId) throws DevicePolicyServerException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
 
@@ -62,7 +62,7 @@ public class DeviceTokenReplayDAOImpl implements DeviceTokenReplayDAO {
 
     @Override
     public void storeToken(String jti, int tenantId, Timestamp issuedAt, Timestamp expiryTime)
-            throws PolicyManagementServerException {
+            throws DevicePolicyServerException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
 
@@ -88,7 +88,7 @@ public class DeviceTokenReplayDAOImpl implements DeviceTokenReplayDAO {
     }
 
     @Override
-    public void removeExpiredTokens(Timestamp cutoff) throws PolicyManagementServerException {
+    public void removeExpiredTokens(Timestamp cutoff) throws DevicePolicyServerException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
 

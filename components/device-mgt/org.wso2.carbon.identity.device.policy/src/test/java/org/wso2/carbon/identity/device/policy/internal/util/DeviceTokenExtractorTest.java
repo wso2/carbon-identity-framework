@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.device.policy.internal.jwt;
+package org.wso2.carbon.identity.device.policy.internal.util;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -36,12 +36,12 @@ import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
 import org.wso2.carbon.identity.device.policy.internal.constant.DeviceTokenConstants;
-import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayService;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
+import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayProtectionService;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -81,9 +81,9 @@ public class DeviceTokenExtractorTest {
 
     private DeviceTokenExtractor extractor;
     private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
-    private MockedStatic<DeviceTokenReplayService> mockedReplayServiceStatic;
+    private MockedStatic<DeviceTokenReplayProtectionService> mockedReplayServiceStatic;
     private MockedStatic<LoggerUtils> mockedLoggerUtils;
-    private DeviceTokenReplayService replayServiceMock;
+    private DeviceTokenReplayProtectionService replayServiceMock;
     private DeviceManagementService deviceManagementServiceMock;
 
     private KeyPair keyPair;
@@ -99,9 +99,9 @@ public class DeviceTokenExtractorTest {
         mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
         mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(TENANT_ID);
 
-        replayServiceMock = mock(DeviceTokenReplayService.class);
-        mockedReplayServiceStatic = mockStatic(DeviceTokenReplayService.class);
-        mockedReplayServiceStatic.when(DeviceTokenReplayService::getInstance).thenReturn(replayServiceMock);
+        replayServiceMock = mock(DeviceTokenReplayProtectionService.class);
+        mockedReplayServiceStatic = mockStatic(DeviceTokenReplayProtectionService.class);
+        mockedReplayServiceStatic.when(DeviceTokenReplayProtectionService::getInstance).thenReturn(replayServiceMock);
 
         deviceManagementServiceMock = mock(DeviceManagementService.class);
         DevicePolicyComponentServiceHolder.getInstance().setDeviceManagementService(deviceManagementServiceMock);
@@ -222,7 +222,7 @@ public class DeviceTokenExtractorTest {
 
         when(deviceManagementServiceMock.getDeviceById(DEVICE_ID, TENANT_DOMAIN)).thenReturn(null);
 
-        PolicyManagementException e = assertClientError(() -> extractor.extractFromToken(validToken, TENANT_DOMAIN),
+        DevicePolicyException e = assertClientError(() -> extractor.extractFromToken(validToken, TENANT_DOMAIN),
                 DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE);
         assertTrue(e.getDescription().contains(DEVICE_ID));
     }
@@ -304,7 +304,7 @@ public class DeviceTokenExtractorTest {
                 - DeviceTokenConstants.TOKEN_FRESHNESS_WINDOW_MILLIS - 60_000L);
         String token = buildToken(keyPair, DEVICE_ID, JTI, stale);
 
-        PolicyManagementException e = assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
+        DevicePolicyException e = assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_EXPIRED);
         assertTrue(e.getDescription().contains(
                 String.valueOf(DeviceTokenConstants.TOKEN_FRESHNESS_WINDOW_MILLIS / 1000)));
@@ -366,7 +366,7 @@ public class DeviceTokenExtractorTest {
     public void testExtractFromTokenWhenJtiIsReplayed() throws Exception {
 
         registerDevice(DEVICE_ID, Device.Status.ACTIVE, base64PublicKey);
-        doThrow(new PolicyManagementClientException("Device token replayed.", "already used",
+        doThrow(new DevicePolicyClientException("Device token replayed.", "already used",
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_REPLAYED.getCode()))
                 .when(replayServiceMock).assertUnusedAndRecord(anyString(), any(Date.class), anyInt(), anyString());
 
@@ -415,7 +415,7 @@ public class DeviceTokenExtractorTest {
 
         String otherKey = encodePublicKey(generateKeyPair());
 
-        PolicyManagementException e = assertClientError(() -> extractor.extractWithPublicKey(validToken, otherKey,
+        DevicePolicyException e = assertClientError(() -> extractor.extractWithPublicKey(validToken, otherKey,
                         CORRELATION_ID, TENANT_DOMAIN),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_SIGNATURE_INVALID);
         assertTrue(e.getDescription().contains(CORRELATION_ID),
@@ -448,31 +448,31 @@ public class DeviceTokenExtractorTest {
 
     private interface ThrowingCall {
 
-        void call() throws PolicyManagementException;
+        void call() throws DevicePolicyException;
     }
 
-    private PolicyManagementException assertClientError(ThrowingCall call, DevicePolicyErrorMessage expected) {
+    private DevicePolicyException assertClientError(ThrowingCall call, DevicePolicyErrorMessage expected) {
 
         try {
             call.call();
-            fail("Expected PolicyManagementClientException with code: " + expected.getCode());
+            fail("Expected DevicePolicyClientException with code: " + expected.getCode());
             return null;
-        } catch (PolicyManagementException e) {
-            assertTrue(e instanceof PolicyManagementClientException,
+        } catch (DevicePolicyException e) {
+            assertTrue(e instanceof DevicePolicyClientException,
                     "Expected a client exception but got: " + e.getClass().getSimpleName());
             assertEquals(e.getErrorCode(), expected.getCode());
             return e;
         }
     }
 
-    private PolicyManagementException assertServerError(ThrowingCall call, DevicePolicyErrorMessage expected) {
+    private DevicePolicyException assertServerError(ThrowingCall call, DevicePolicyErrorMessage expected) {
 
         try {
             call.call();
-            fail("Expected PolicyManagementServerException with code: " + expected.getCode());
+            fail("Expected DevicePolicyServerException with code: " + expected.getCode());
             return null;
-        } catch (PolicyManagementException e) {
-            assertTrue(e instanceof PolicyManagementServerException,
+        } catch (DevicePolicyException e) {
+            assertTrue(e instanceof DevicePolicyServerException,
                     "Expected a server exception but got: " + e.getClass().getSimpleName());
             assertEquals(e.getErrorCode(), expected.getCode());
             return e;

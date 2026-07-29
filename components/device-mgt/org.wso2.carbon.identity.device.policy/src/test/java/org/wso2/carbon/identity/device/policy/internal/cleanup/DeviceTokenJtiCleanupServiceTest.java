@@ -22,8 +22,8 @@ import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayService;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
+import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayProtectionService;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.ScheduledExecutorService;
@@ -38,15 +38,15 @@ import static org.testng.Assert.assertTrue;
 public class DeviceTokenJtiCleanupServiceTest {
 
     private DeviceTokenJtiCleanupService cleanupService;
-    private MockedStatic<DeviceTokenReplayService> mockedReplayServiceStatic;
-    private DeviceTokenReplayService replayServiceMock;
+    private MockedStatic<DeviceTokenReplayProtectionService> mockedReplayServiceStatic;
+    private DeviceTokenReplayProtectionService replayServiceMock;
 
     @BeforeMethod
     public void setUp() {
 
-        replayServiceMock = mock(DeviceTokenReplayService.class);
-        mockedReplayServiceStatic = mockStatic(DeviceTokenReplayService.class);
-        mockedReplayServiceStatic.when(DeviceTokenReplayService::getInstance).thenReturn(replayServiceMock);
+        replayServiceMock = mock(DeviceTokenReplayProtectionService.class);
+        mockedReplayServiceStatic = mockStatic(DeviceTokenReplayProtectionService.class);
+        mockedReplayServiceStatic.when(DeviceTokenReplayProtectionService::getInstance).thenReturn(replayServiceMock);
 
         cleanupService = new DeviceTokenJtiCleanupService(0, 1);
     }
@@ -59,7 +59,7 @@ public class DeviceTokenJtiCleanupServiceTest {
     }
 
     @Test
-    public void testActivateCleanUp() throws PolicyManagementServerException, InterruptedException {
+    public void testActivateCleanUp() throws DevicePolicyServerException, InterruptedException {
 
         doNothing().when(replayServiceMock).removeExpiredTokens();
 

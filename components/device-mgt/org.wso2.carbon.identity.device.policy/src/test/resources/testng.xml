@@ -3,24 +3,25 @@
 <suite name="Device Policy Test Suite">
     <test name="device-policy-tests">
         <classes>
-            <class name="org.wso2.carbon.identity.device.policy.internal.jwt.DeviceTokenExtractorTest"/>
+            <class name="org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractorTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyDiagnosticLoggerTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandlerTest"/>
-            <class name="org.wso2.carbon.identity.device.policy.internal.config.DeviceFieldConfigTest"/>
-            <class name="org.wso2.carbon.identity.device.policy.internal.config.DeviceFieldConfigLoaderTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.js.DevicePolicyJsFunctionTest"/>
-            <class name="org.wso2.carbon.identity.device.policy.internal.dao.impl.DeviceTokenReplayDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.device.policy.internal.dao.impl.DeviceTokenJtiDAOImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyServiceComponentTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolderTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.rule.DevicePolicyEvaluationDataProviderTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.cleanup.DeviceTokenJtiCleanupServiceTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.IntegrityDataEnricherImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceFieldMetadataServiceImplTest"/>
-            <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayServiceTest"/>
+            <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayProtectionServiceTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenVerifierImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.DevicePolicyEvaluatorImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.resolver.DeviceDataResolverImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessageTest"/>
+            <class name="org.wso2.carbon.identity.device.policy.api.model.PlatformTest"/>
+            <class name="org.wso2.carbon.identity.device.policy.api.model.DeviceFieldTest"/>
+            <class name="org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResultTest"/>
         </classes>
     </test>
 </suite>

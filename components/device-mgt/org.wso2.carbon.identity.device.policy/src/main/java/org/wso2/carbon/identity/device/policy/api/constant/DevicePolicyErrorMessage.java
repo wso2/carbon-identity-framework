@@ -62,12 +62,9 @@ public enum DevicePolicyErrorMessage {
             "Device token replay cleanup failed.",
             "Error removing expired device token jti records from " +
                     "the replay store."),
-    ERROR_DEVICE_FIELD_CONFIG_NOT_FOUND("DPM-65017",
-            "Device field configuration not found.",
-            "device-fields.json was not found at: %s."),
-    ERROR_DEVICE_FIELD_CONFIG_PARSE_FAILED("DPM-65018",
-            "Device field configuration invalid.",
-            "Failed to parse device-fields.json from: %s.");
+    ERROR_DEVICE_POLICY_EVALUATION_FAILED("DPM-65020",
+            "Device policy evaluation failed.",
+            "Error evaluating device policy: %s.");
 
     private final String code;
     private final String message;

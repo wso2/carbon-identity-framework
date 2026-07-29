@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.device.policy.internal.util;
 
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -35,7 +35,7 @@ public class DevicePolicyExceptionHandlerTest {
     @Test
     public void testHandleClientException() {
 
-        PolicyManagementClientException exception = DevicePolicyExceptionHandler
+        DevicePolicyClientException exception = DevicePolicyExceptionHandler
                 .handleClientException(DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE);
         assertNotNull(exception);
         assertEquals(exception.getErrorCode(), DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE.getCode());
@@ -47,7 +47,7 @@ public class DevicePolicyExceptionHandlerTest {
     public void testHandleClientExceptionWithData() {
 
         String testData = "device-123";
-        PolicyManagementClientException exception = DevicePolicyExceptionHandler
+        DevicePolicyClientException exception = DevicePolicyExceptionHandler
                 .handleClientException(DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE, testData);
         assertNotNull(exception);
         assertEquals(exception.getErrorCode(), DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE.getCode());
@@ -58,7 +58,7 @@ public class DevicePolicyExceptionHandlerTest {
     public void testHandleClientExceptionWithThrowable() {
 
         Throwable cause = new Throwable("Test cause");
-        PolicyManagementClientException exception = DevicePolicyExceptionHandler
+        DevicePolicyClientException exception = DevicePolicyExceptionHandler
                 .handleClientException(DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE, cause);
         assertNotNull(exception);
         assertEquals(exception.getCause(), cause);
@@ -70,7 +70,7 @@ public class DevicePolicyExceptionHandlerTest {
 
         Throwable cause = new Throwable("Test cause");
         String testData = "device-123";
-        PolicyManagementClientException exception = DevicePolicyExceptionHandler
+        DevicePolicyClientException exception = DevicePolicyExceptionHandler
                 .handleClientException(DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE, cause, testData);
         assertNotNull(exception);
         assertEquals(exception.getCause(), cause);
@@ -81,7 +81,7 @@ public class DevicePolicyExceptionHandlerTest {
     @Test
     public void testHandleServerException() {
 
-        PolicyManagementServerException exception = DevicePolicyExceptionHandler
+        DevicePolicyServerException exception = DevicePolicyExceptionHandler
                 .handleServerException(DevicePolicyErrorMessage.ERROR_DEVICE_LOOKUP_FAILED);
         assertNotNull(exception);
         assertEquals(exception.getErrorCode(), DevicePolicyErrorMessage.ERROR_DEVICE_LOOKUP_FAILED.getCode());
@@ -93,7 +93,7 @@ public class DevicePolicyExceptionHandlerTest {
     public void testHandleServerExceptionWithData() {
 
         String testData = "device-123";
-        PolicyManagementServerException exception = DevicePolicyExceptionHandler
+        DevicePolicyServerException exception = DevicePolicyExceptionHandler
                 .handleServerException(DevicePolicyErrorMessage.ERROR_DEVICE_LOOKUP_FAILED, testData);
         assertNotNull(exception);
         assertEquals(exception.getErrorCode(), DevicePolicyErrorMessage.ERROR_DEVICE_LOOKUP_FAILED.getCode());
@@ -103,7 +103,7 @@ public class DevicePolicyExceptionHandlerTest {
     public void testHandleServerExceptionWithThrowable() {
 
         Throwable cause = new Throwable("Test cause");
-        PolicyManagementServerException exception = DevicePolicyExceptionHandler
+        DevicePolicyServerException exception = DevicePolicyExceptionHandler
                 .handleServerException(DevicePolicyErrorMessage.ERROR_DEVICE_LOOKUP_FAILED, cause);
         assertNotNull(exception);
         assertEquals(exception.getCause(), cause);
@@ -115,7 +115,7 @@ public class DevicePolicyExceptionHandlerTest {
 
         Throwable cause = new Throwable("Test cause");
         String testData = "device-123";
-        PolicyManagementServerException exception = DevicePolicyExceptionHandler
+        DevicePolicyServerException exception = DevicePolicyExceptionHandler
                 .handleServerException(DevicePolicyErrorMessage.ERROR_DEVICE_LOOKUP_FAILED, cause, testData);
         assertNotNull(exception);
         assertEquals(exception.getCause(), cause);

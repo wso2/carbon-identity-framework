@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.device.policy.internal.service.impl;
 
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
 import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenVerifier;
-import org.wso2.carbon.identity.device.policy.internal.jwt.DeviceTokenExtractor;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
+import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 
 import java.util.Map;
 
@@ -31,7 +31,7 @@ public class DeviceTokenVerifierImpl implements DeviceTokenVerifier {
 
     @Override
     public Map<String, Object> verifyWithPublicKey(String token, String base64PublicKey, String correlationId,
-            String tenantDomain) throws PolicyManagementException {
+            String tenantDomain) throws DevicePolicyException {
 
         return new DeviceTokenExtractor().extractWithPublicKey(token, base64PublicKey, correlationId, tenantDomain);
     }
