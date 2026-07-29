@@ -55,7 +55,7 @@ public class DeviceTest {
     }
 
     @Test
-    public void testBuildDeviceDefaultsStatusAndRegisteredAt() {
+    public void testBuildDeviceDefaultsStatusAndLeavesRegisteredAtNull() {
 
         Device device = new Device.Builder()
                 .id("d1")
@@ -64,7 +64,7 @@ public class DeviceTest {
                 .build();
 
         Assert.assertEquals(device.getStatus(), Device.Status.ACTIVE);
-        Assert.assertNotNull(device.getRegisteredAt());
+        Assert.assertNull(device.getRegisteredAt());
     }
 
     @Test

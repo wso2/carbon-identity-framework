@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.device.mgt.api.model;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 
 /**
  * Immutable model for a registered device.
@@ -228,9 +227,6 @@ public class Device {
             }
             if (status == null) {
                 this.status = Status.ACTIVE;
-            }
-            if (registeredAt == null) {
-                this.registeredAt = Timestamp.from(Instant.now());
             }
 
             return new Device(this);

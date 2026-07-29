@@ -35,6 +35,8 @@ import org.wso2.carbon.identity.device.mgt.internal.util.DeviceManagementAuditLo
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceManagementExceptionHandler;
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceValidator;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -77,6 +79,9 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         if (!StringUtils.equals(association.getDeviceId(), device.getId())) {
             throw DeviceManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION);
+        }
+        if (device.getRegisteredAt() == null) {
+            device = new Device.Builder(device).registeredAt(Timestamp.from(Instant.now())).build();
         }
         Device registeredDevice = deviceManagementDAO.registerDevice(
                 device, association, IdentityTenantUtil.getTenantId(tenantDomain));
