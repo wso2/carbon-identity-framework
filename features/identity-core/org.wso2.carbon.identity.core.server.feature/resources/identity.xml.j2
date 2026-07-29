@@ -5362,9 +5362,19 @@
     </IdentityProviders>
 
     <ConnectionSharing>
-        <!-- The fallback provisioning user store applied when a shared (shadow) identity provider's inherited JIT
+        <!-- The fallback provisioning user store applied when a shared identity provider's inherited JIT
              provisioning user store does not exist in the sub-organization. -->
         <DefaultProvisioningUserStore>{{connection_sharing.default_provisioning_user_store}}</DefaultProvisioningUserStore>
+        <IDP>
+            <Enable>{{connection_sharing.idp.enable}}</Enable>
+            {% if connection_sharing.idp.disabled_authenticators is defined %}
+            <DisabledAuthenticators>
+                {% for authenticator in connection_sharing.idp.disabled_authenticators %}
+                <Authenticator>{{authenticator}}</Authenticator>
+                {% endfor %}
+            </DisabledAuthenticators>
+            {% endif %}
+        </IDP>
     </ConnectionSharing>
 
     <TenantLevelAuthenticationConfigForAuthSequence>{{tenant_level_application_authentication_config.enabled_for_auth_sequence}}</TenantLevelAuthenticationConfigForAuthSequence>
