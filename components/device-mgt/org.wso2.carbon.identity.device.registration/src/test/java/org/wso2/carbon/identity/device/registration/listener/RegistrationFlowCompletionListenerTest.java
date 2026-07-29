@@ -32,7 +32,8 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtServerException;
-import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
 import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
@@ -161,7 +162,7 @@ public class RegistrationFlowCompletionListenerTest {
 
         assertTrue(result);
         verify(deviceManagementService, times(1))
-                .registerDevice(argThatUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
+                .registerDevice(any(), argThatOwnerUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
     }
 
     @Test
@@ -174,7 +175,7 @@ public class RegistrationFlowCompletionListenerTest {
         boolean result = listener.doPostExecute(completeStep(), context);
 
         assertTrue(result);
-        verify(deviceManagementService, never()).registerDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any(), any());
     }
 
     @Test
@@ -194,7 +195,7 @@ public class RegistrationFlowCompletionListenerTest {
 
         assertTrue(result);
         verify(deviceManagementService, times(1))
-                .registerDevice(argThatUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
+                .registerDevice(any(), argThatOwnerUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
     }
 
     @Test
@@ -210,7 +211,7 @@ public class RegistrationFlowCompletionListenerTest {
         boolean result = listener.doPostExecute(incompleteStep, context);
 
         assertTrue(result);
-        verify(deviceManagementService, never()).registerDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any(), any());
     }
 
     @Test
@@ -227,7 +228,7 @@ public class RegistrationFlowCompletionListenerTest {
         boolean result = listener.doPostExecute(completeStep(), context);
 
         assertTrue(result);
-        verify(deviceManagementService, never()).registerDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any(), any());
     }
 
     @Test
@@ -238,7 +239,7 @@ public class RegistrationFlowCompletionListenerTest {
         context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
 
         doThrow(new DeviceMgtServerException("Persist failed.", "Simulated failure.", "TEST-001"))
-                .when(deviceManagementService).registerDevice(any(), any());
+                .when(deviceManagementService).registerDevice(any(), any(), any());
 
         boolean result = listener.doPostExecute(completeStep(), context);
 
@@ -272,11 +273,11 @@ public class RegistrationFlowCompletionListenerTest {
                 .build();
     }
 
-    private Device argThatUserIdMatches(String expectedUserId) {
+    private DeviceAssociation argThatOwnerUserIdMatches(String expectedUserId) {
 
-        ArgumentMatcher<Device> matcher = device -> device != null
-                && expectedUserId.equals(device.getUserId())
-                && DEVICE_ID.equals(device.getId());
+        ArgumentMatcher<DeviceAssociation> matcher = owner -> owner instanceof UserDeviceAssociation
+                && expectedUserId.equals(((UserDeviceAssociation) owner).getUserId())
+                && DEVICE_ID.equals(((UserDeviceAssociation) owner).getDeviceId());
         return argThat(matcher);
     }
 }

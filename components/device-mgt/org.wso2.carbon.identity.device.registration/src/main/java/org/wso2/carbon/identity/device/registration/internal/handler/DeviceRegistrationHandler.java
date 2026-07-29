@@ -82,8 +82,8 @@ public class DeviceRegistrationHandler {
 
     /**
      * Verifies the device registration challenge-response. Returns a verified-but-unbound device;
-     * the caller defers persistence via {@code DeviceManagementService.registerDevice(Device, String)}
-     * until a userId is available.
+     * the caller defers persistence via {@code DeviceManagementService.registerDevice(...)} until a
+     * userId is available.
      *
      * @param registrationId Opaque token returned by {@link #initiate(String, String)}.
      * @param challenge      Challenge returned by {@link #initiate(String, String)}. The caller is
@@ -93,7 +93,6 @@ public class DeviceRegistrationHandler {
      * @param signature      Base64-encoded ECDSA signature over the challenge bytes.
      * @param deviceName     Human-readable name for the device.
      * @param deviceModel    Hardware model string (nullable).
-     * @param metadata       Optional JSON string for extensible attributes (nullable).
      * @return A verified device that is not yet bound to a user. The caller must call
      *         {@link VerifiedDevice#bindTo(String)} before it can be persisted.
      * @throws DeviceRegistrationException If the signature is invalid.
@@ -104,8 +103,7 @@ public class DeviceRegistrationHandler {
             String publicKey,
             String signature,
             String deviceName,
-            String deviceModel,
-            String metadata) throws DeviceRegistrationException {
+            String deviceModel) throws DeviceRegistrationException {
 
         validateRequiredField(registrationId, DeviceRegistrationConstants.PROP_REGISTRATION_ID);
         validateRequiredField(challenge, DeviceRegistrationConstants.PROP_CHALLENGE);
@@ -124,7 +122,6 @@ public class DeviceRegistrationHandler {
                 .deviceModel(deviceModel)
                 .publicKey(publicKey)
                 .registeredAt(Timestamp.from(Instant.now()))
-                .metadata(metadata)
                 .build();
     }
 

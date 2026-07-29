@@ -41,7 +41,6 @@ public class VerifiedDevice implements Serializable {
     private final String deviceModel;
     private final String publicKey;
     private final Timestamp registeredAt;
-    private final String metadata;
 
     private VerifiedDevice(Builder builder) {
 
@@ -50,7 +49,6 @@ public class VerifiedDevice implements Serializable {
         this.deviceModel = builder.deviceModel;
         this.publicKey = builder.publicKey;
         this.registeredAt = builder.registeredAt == null ? null : new Timestamp(builder.registeredAt.getTime());
-        this.metadata = builder.metadata;
     }
 
     /**
@@ -104,16 +102,6 @@ public class VerifiedDevice implements Serializable {
     }
 
     /**
-     * Returns the metadata payload.
-     *
-     * @return Metadata string.
-     */
-    public String getMetadata() {
-
-        return metadata;
-    }
-
-    /**
      * Binds this device to the given user, producing a device that can be persisted.
      *
      * @param userId Identifier of the user that owns the device.
@@ -122,13 +110,11 @@ public class VerifiedDevice implements Serializable {
     public Device bindTo(String userId) {
 
         return new Device.Builder()
-                .userId(userId)
                 .id(id)
                 .deviceName(deviceName)
                 .deviceModel(deviceModel)
                 .publicKey(publicKey)
                 .registeredAt(registeredAt == null ? null : new Timestamp(registeredAt.getTime()))
-                .metadata(metadata)
                 .build();
     }
 
@@ -142,7 +128,6 @@ public class VerifiedDevice implements Serializable {
         private String deviceModel;
         private String publicKey;
         private Timestamp registeredAt;
-        private String metadata;
 
         /**
          * Sets the device identifier.
@@ -201,18 +186,6 @@ public class VerifiedDevice implements Serializable {
         public Builder registeredAt(Timestamp registeredAt) {
 
             this.registeredAt = registeredAt;
-            return this;
-        }
-
-        /**
-         * Sets metadata.
-         *
-         * @param metadata Metadata value.
-         * @return Builder instance.
-         */
-        public Builder metadata(String metadata) {
-
-            this.metadata = metadata;
             return this;
         }
 

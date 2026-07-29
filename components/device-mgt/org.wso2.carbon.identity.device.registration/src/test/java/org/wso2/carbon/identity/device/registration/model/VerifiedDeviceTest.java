@@ -40,7 +40,6 @@ public class VerifiedDeviceTest {
                 .deviceModel("iPhone 15")
                 .publicKey("dummy-public-key")
                 .registeredAt(now)
-                .metadata("{\"os\":\"iOS\"}")
                 .build();
 
         Assert.assertEquals(verifiedDevice.getId(), "d1");
@@ -48,7 +47,6 @@ public class VerifiedDeviceTest {
         Assert.assertEquals(verifiedDevice.getDeviceModel(), "iPhone 15");
         Assert.assertEquals(verifiedDevice.getPublicKey(), "dummy-public-key");
         Assert.assertEquals(verifiedDevice.getRegisteredAt(), now);
-        Assert.assertEquals(verifiedDevice.getMetadata(), "{\"os\":\"iOS\"}");
     }
 
     @Test
@@ -63,7 +61,6 @@ public class VerifiedDeviceTest {
         Device device = verifiedDevice.bindTo("alice@example.com");
 
         Assert.assertEquals(device.getId(), "d1");
-        Assert.assertEquals(device.getUserId(), "alice@example.com");
         Assert.assertEquals(device.getDeviceName(), "Alice's iPhone");
         Assert.assertEquals(device.getPublicKey(), "dummy-public-key");
         Assert.assertEquals(device.getStatus(), Device.Status.ACTIVE);

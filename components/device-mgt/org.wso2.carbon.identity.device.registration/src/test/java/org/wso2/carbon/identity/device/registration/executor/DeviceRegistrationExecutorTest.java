@@ -31,6 +31,8 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
+import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenVerifier;
 import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
@@ -48,10 +50,10 @@ import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -312,7 +314,7 @@ public class DeviceRegistrationExecutorTest {
         assertEquals(response.getResult(), STATUS_COMPLETE);
         assertEquals(response.getContextProperties()
                 .get(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION), verified);
-        verify(deviceManagementService, never()).registerDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any(), any());
     }
 
     @Test
@@ -336,7 +338,7 @@ public class DeviceRegistrationExecutorTest {
         assertEquals(response.getResult(), STATUS_COMPLETE);
         assertEquals(response.getContextProperties()
                 .get(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION), verified);
-        verify(deviceManagementService, never()).registerDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any(), any());
     }
 
     @Test
@@ -359,7 +361,7 @@ public class DeviceRegistrationExecutorTest {
 
         assertEquals(response.getResult(), STATUS_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getCode());
-        verify(deviceManagementService, never()).registerDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any(), any());
     }
 
     @Test
@@ -441,7 +443,7 @@ public class DeviceRegistrationExecutorTest {
 
         when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
         when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
-                .thenReturn(null);
+                .thenReturn(DevicePolicyEvaluationResult.compliant("strictPolicy"));
 
         ExecutorResponse retryResponse;
         try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
@@ -467,7 +469,8 @@ public class DeviceRegistrationExecutorTest {
 
         when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
         when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
-                .thenReturn("osVersion,imei");
+                .thenReturn(DevicePolicyEvaluationResult.nonCompliant("strictPolicy",
+                        Arrays.asList("osVersion", "imei")));
 
         ExecutorResponse response;
         try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
@@ -476,7 +479,7 @@ public class DeviceRegistrationExecutorTest {
 
         assertEquals(response.getResult(), STATUS_USER_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_DEVICE_POLICY_NOT_COMPLIANT.getCode());
-        verify(deviceManagementService, never()).registerDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any(), any());
     }
 
     @Test
@@ -494,7 +497,7 @@ public class DeviceRegistrationExecutorTest {
 
         when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
         when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
-                .thenThrow(new PolicyEvaluationException("boom"));
+                .thenThrow(new DevicePolicyServerException("boom"));
 
         ExecutorResponse response;
         try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
@@ -579,7 +582,7 @@ public class DeviceRegistrationExecutorTest {
     private MockedStatic<DeviceRegistrationHandler> mockVerifySuccess(VerifiedDevice device) {
 
         MockedStatic<DeviceRegistrationHandler> mocked = mockStatic(DeviceRegistrationHandler.class);
-        mocked.when(() -> DeviceRegistrationHandler.verify(any(), any(), any(), any(), any(), any(), any()))
+        mocked.when(() -> DeviceRegistrationHandler.verify(any(), any(), any(), any(), any(), any()))
                 .thenReturn(device);
         return mocked;
     }
@@ -587,7 +590,7 @@ public class DeviceRegistrationExecutorTest {
     private MockedStatic<DeviceRegistrationHandler> mockVerifyThrows(DeviceRegistrationException exception) {
 
         MockedStatic<DeviceRegistrationHandler> mocked = mockStatic(DeviceRegistrationHandler.class);
-        mocked.when(() -> DeviceRegistrationHandler.verify(any(), any(), any(), any(), any(), any(), any()))
+        mocked.when(() -> DeviceRegistrationHandler.verify(any(), any(), any(), any(), any(), any()))
                 .thenThrow(exception);
         return mocked;
     }

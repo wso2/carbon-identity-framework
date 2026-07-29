@@ -42,7 +42,6 @@ public class DeviceRegistrationConstants {
     public static final String FIELD_PUBLIC_KEY = "publicKey";
     public static final String FIELD_SIGNATURE = "signature";
     public static final String FIELD_DEVICE_MODEL = "deviceModel";
-    public static final String FIELD_METADATA = "metadata";
     public static final String FIELD_DEVICE_DATA = "deviceData";
     public static final String FIELD_USERNAME = "username";
     public static final String FIELD_TENANT_DOMAIN = "tenantDomain";

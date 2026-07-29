@@ -60,21 +60,6 @@
             <artifactId>org.wso2.carbon.identity.device.policy</artifactId>
         </dependency>
 
-        <!-- Policy management exceptions -->
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Policy evaluation exceptions -->
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.policy.evaluation</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- Flow execution engine — Executor interface, ExecutorResponse, FlowExecutionContext -->
         <dependency>
@@ -192,11 +177,7 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.device.policy.api.service;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.policy.management.api.exception;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.policy.evaluation.api.exception;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.evaluation.api.exception;
+                            org.wso2.carbon.identity.device.policy.api.exception;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",

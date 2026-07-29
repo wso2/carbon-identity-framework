@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.device.registration.executor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
+import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
 import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
@@ -35,10 +38,6 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
-import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -137,8 +136,7 @@ public class DeviceRegistrationExecutor implements Executor {
                     Arrays.asList(DeviceRegistrationConstants.FIELD_PUBLIC_KEY,
                             DeviceRegistrationConstants.FIELD_SIGNATURE));
             List<String> optionalFields = new ArrayList<>(
-                    Arrays.asList(DeviceRegistrationConstants.FIELD_DEVICE_MODEL,
-                            DeviceRegistrationConstants.FIELD_METADATA));
+                    Collections.singletonList(DeviceRegistrationConstants.FIELD_DEVICE_MODEL));
             String policyName = resolvePolicyName(context);
             if (policyName != null) {
                 requiredFields.add(DeviceRegistrationConstants.FIELD_DEVICE_DATA);
@@ -193,8 +191,7 @@ public class DeviceRegistrationExecutor implements Executor {
                     input.get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY),
                     input.get(DeviceRegistrationConstants.FIELD_SIGNATURE),
                     deviceName,
-                    deviceModel,
-                    input.get(DeviceRegistrationConstants.FIELD_METADATA));
+                    deviceModel);
 
             // Step 2: Policy compliance check (skipped when policyName not configured).
             String policyName = resolvePolicyName(context);
@@ -277,7 +274,7 @@ public class DeviceRegistrationExecutor implements Executor {
                     context.getUserInputData().get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY),
                     registrationId,
                     context.getTenantDomain());
-        } catch (PolicyManagementClientException e) {
+        } catch (DevicePolicyClientException e) {
             diagnosticLogger.logRegistrationFailure("Device data token verification failed: " + e.getMessage());
             ExecutorResponse response = new ExecutorResponse();
             response.setResult(STATUS_USER_ERROR);
@@ -285,7 +282,7 @@ public class DeviceRegistrationExecutor implements Executor {
             response.setErrorMessage(e.getMessage());
             response.setErrorDescription(e.getDescription());
             return response;
-        } catch (PolicyManagementException e) {
+        } catch (DevicePolicyException e) {
             diagnosticLogger.logRegistrationFailure("Device data token verification failed: " + e.getMessage());
             LOG.error("Device data token verification failed during registration.", e);
             ExecutorResponse response = new ExecutorResponse();
@@ -297,9 +294,9 @@ public class DeviceRegistrationExecutor implements Executor {
         }
 
         try {
-            String failedFields = evaluator.evaluate(policyName, deviceData, context.getApplicationId(),
-                    context.getTenantDomain());
-            if (failedFields == null) {
+            DevicePolicyEvaluationResult result = evaluator.evaluate(policyName, deviceData,
+                    context.getApplicationId(), context.getTenantDomain());
+            if (result.isCompliant()) {
                 // Device is compliant.
                 diagnosticLogger.logPolicyEvaluation(policyName, true, null);
                 if (LOG.isDebugEnabled()) {
@@ -307,6 +304,8 @@ public class DeviceRegistrationExecutor implements Executor {
                 }
                 return null;
             }
+
+            String failedFields = resolveFailureDetail(result);
 
             diagnosticLogger.logPolicyEvaluation(policyName, false, failedFields);
             if (LOG.isDebugEnabled()) {
@@ -324,7 +323,7 @@ public class DeviceRegistrationExecutor implements Executor {
                     policyName, failedFields));
             return response;
 
-        } catch (PolicyManagementException | RuleEvaluationException | PolicyEvaluationException e) {
+        } catch (DevicePolicyException e) {
             diagnosticLogger.logRegistrationFailure("Policy evaluation failed for policy: " + policyName);
             LOG.error("Policy evaluation failed for policy: " + policyName, e);
             ExecutorResponse response = new ExecutorResponse();
@@ -334,6 +333,26 @@ public class DeviceRegistrationExecutor implements Executor {
             response.setErrorDescription(String.format(
                     ErrorMessage.ERROR_WHILE_EVALUATING_POLICY.getDescription(), policyName));
             return response;
+        }
+    }
+
+    /**
+     * Resolves the failure detail reported to the device for a non-compliant evaluation result.
+     *
+     * @param result Non-compliant device policy evaluation result.
+     * @return Comma separated failed or missing field names, or the policy not found detail.
+     */
+    private String resolveFailureDetail(DevicePolicyEvaluationResult result) {
+
+        switch (result.getStatus()) {
+            case NON_COMPLIANT:
+                return String.join(", ", result.getFailedFields());
+            case INCOMPLETE_DEVICE_DATA:
+                return String.join(", ", result.getMissingFields());
+            case POLICY_NOT_FOUND:
+                return result.getPolicyName() + ":policy_not_found";
+            default:
+                return "";
         }
     }
 }
