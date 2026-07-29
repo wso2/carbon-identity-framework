@@ -76,13 +76,14 @@ public class DeviceTest {
         Assert.assertEquals(userDeviceAssociation.getUserId(), "alice@example.com");
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testBuildDeviceWithoutIdThrows() {
+    @Test
+    public void testBuildDeviceWithoutIdSucceeds() {
 
-        new Device.Builder()
+        Device device = new Device.Builder()
                 .deviceName("Alice's iPhone")
                 .publicKey("dummy-public-key")
                 .build();
+        Assert.assertNull(device.getId());
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)

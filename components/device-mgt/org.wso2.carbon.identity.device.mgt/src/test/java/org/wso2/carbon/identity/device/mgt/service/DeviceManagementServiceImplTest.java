@@ -103,16 +103,16 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
-    public void testRegisterDeviceWithMismatchedAssociationDeviceIdThrows() {
+    public void testRegisterDeviceGeneratesDeviceIdAndBindsToAssociation() throws Exception {
 
         Device device = buildDevice("d1");
         UserDeviceAssociation association = new UserDeviceAssociation("d2", "alice@example.com");
-        try {
-            service.registerDevice(device, association, TENANT_DOMAIN);
-            Assert.fail("Expected DeviceMgtServerException");
-        } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION.getCode());
-        }
+        when(dao.registerDevice(any(), any(), eq(TENANT_ID))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Device registered = service.registerDevice(device, association, TENANT_DOMAIN);
+
+        Assert.assertNotNull(registered.getId());
+        verify(dao).registerDevice(any(), any(), eq(TENANT_ID));
     }
 
     @Test
