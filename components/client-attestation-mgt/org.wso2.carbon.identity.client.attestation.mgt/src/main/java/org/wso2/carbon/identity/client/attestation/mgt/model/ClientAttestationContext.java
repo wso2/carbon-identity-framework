@@ -104,7 +104,7 @@ public class ClientAttestationContext extends MessageContext {
 
     /**
      * Returns Google-verified device recognition verdicts extracted from the Play Integrity response.
-     * Null until set by AndroidAttestationValidator; empty list when testing response or no verdicts.
+     * Null until set by AndroidAttestationValidator; empty list when no verdicts.
      *
      * @return List of device recognition verdict strings, or null if not yet set.
      */
