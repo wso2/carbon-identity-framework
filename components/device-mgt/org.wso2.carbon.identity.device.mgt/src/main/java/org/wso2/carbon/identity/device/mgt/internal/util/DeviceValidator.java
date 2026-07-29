@@ -79,10 +79,6 @@ public class DeviceValidator {
                     ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION);
         }
         UserDeviceAssociation userDeviceAssociation = (UserDeviceAssociation) association;
-        if (StringUtils.isBlank(userDeviceAssociation.getDeviceId())) {
-            throw DeviceManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_ASSOCIATION_FIELD_REQUIRED, "deviceId");
-        }
         if (StringUtils.isBlank(userDeviceAssociation.getUserId())) {
             throw DeviceManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_ASSOCIATION_FIELD_REQUIRED, "userId");

@@ -119,10 +119,11 @@ public class DeviceValidatorTest {
         deviceValidator.validateAssociation(new UserDeviceAssociation("d1", "alice@example.com"));
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testValidateDeviceForRegistrationWithoutIdThrows() {
+    @Test
+    public void testValidateDeviceForRegistrationWithoutIdSucceeds() {
 
-        completeDeviceBuilder().id(null).build();
+        Device device = completeDeviceBuilder().id(null).build();
+        Assert.assertNull(device.getId());
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)

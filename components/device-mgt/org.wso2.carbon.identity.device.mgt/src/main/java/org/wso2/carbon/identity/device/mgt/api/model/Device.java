@@ -216,9 +216,6 @@ public class Device {
          */
         public Device build() {
 
-            if (StringUtils.isBlank(id)) {
-                throw new IllegalArgumentException("Device id cannot be null or blank.");
-            }
             if (StringUtils.isBlank(deviceName)) {
                 throw new IllegalArgumentException("Device name cannot be null or blank.");
             }

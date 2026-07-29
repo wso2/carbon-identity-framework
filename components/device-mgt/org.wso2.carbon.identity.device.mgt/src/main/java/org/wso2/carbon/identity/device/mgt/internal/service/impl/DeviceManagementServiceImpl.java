@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.device.mgt.internal.service.impl;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -38,6 +37,7 @@ import org.wso2.carbon.identity.device.mgt.internal.util.DeviceValidator;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Default implementation of {@link DeviceManagementService}.
@@ -76,17 +76,22 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         DEVICE_VALIDATOR.validateDeviceForRegistration(device);
         DEVICE_VALIDATOR.validateAssociation(association);
-        if (!StringUtils.equals(association.getDeviceId(), device.getId())) {
-            throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION);
-        }
-        if (device.getRegisteredAt() == null) {
-            device = new Device.Builder(device).registeredAt(Timestamp.from(Instant.now())).build();
-        }
+
+        String deviceId = UUID.randomUUID().toString();
+        Timestamp registeredAt = device.getRegisteredAt() != null
+                ? device.getRegisteredAt() : Timestamp.from(Instant.now());
+        device = new Device.Builder(device)
+                .id(deviceId)
+                .registeredAt(registeredAt)
+                .build();
+
+        UserDeviceAssociation userDeviceAssociation = (UserDeviceAssociation) association;
+        association = new UserDeviceAssociation(deviceId, userDeviceAssociation.getUserId());
+
         Device registeredDevice = deviceManagementDAO.registerDevice(
                 device, association, IdentityTenantUtil.getTenantId(tenantDomain));
 
-        String userId = ((UserDeviceAssociation) association).getUserId();
+        String userId = userDeviceAssociation.getUserId();
         AUDIT_LOGGER.printAuditLog(DeviceManagementAuditLogger.Operation.REGISTER,
                 registeredDevice != null ? registeredDevice : device, userId);
 
