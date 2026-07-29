@@ -1,10 +1,10 @@
 {
   "id": "digital-credentials",
-  "name": "Digital Credentials",
-  "description": "Login users with their Digital Credentials.",
+  "name": "Digital Wallet",
+  "description": "Enable Verifiable Credential-based identity interactions using OpenID for Verifiable Presentations (OpenID4VP).",
   "image": "assets/images/logos/wallet.svg",
   "category": "DEFAULT",
   "displayOrder": 3,
-  "tags": [ "Wallet", "Digital Credentials" ],
+  "tags": ["Wallet", "OID4VP"],
   "type": "identity-provider"
 }

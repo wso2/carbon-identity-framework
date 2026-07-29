@@ -1,28 +1,28 @@
 {
   "create": {
     "image": "assets/images/logos/wallet.svg",
-    "header": "Digital Credentials",
-    "Subheading": "Login users with their Digital Credentials.",
+    "header": "Digital Wallet",
+    "Subheading": "Enable Verifiable Credential-based identity interactions using OpenID for Verifiable Presentations (OpenID4VP).",
     "documentation": "https://github.com/wso2-extensions/identity-inbound-auth-openid4vp",
     "modal": {
       "form": {
         "fields": [
           {
             "index": 0,
-            "ariaLabel": "Digital Credentials Name",
+            "ariaLabel": "Digital Wallet Name",
             "name": "name",
             "label": "Name",
             "type": "text",
             "required": true,
             "placeholder": "Enter a name for the connection.",
-            "initialValue": "Digital Credentials",
+            "initialValue": "Digital Wallet",
             "maxLength": "50",
             "minLength": "3",
             "width": "13"
           },
           {
             "index": 1,
-            "ariaLabel": "Digital Credentials Description",
+            "ariaLabel": "Digital Wallet Description",
             "name": "description",
             "label": "Description",
             "type": "textarea",
@@ -54,7 +54,7 @@
           "label": "Name",
           "type": "text",
           "required": true,
-          "placeholder": "Digital Credentials",
+          "placeholder": "Digital Wallet",
           "maxLength": "50",
           "minLength": "3",
           "width": "16"
@@ -65,7 +65,7 @@
           "label": "Description",
           "type": "textarea",
           "required": false,
-          "placeholder": "Login users with their Digital Credentials.",
+          "placeholder": "Enable Verifiable Credential-based identity interactions using OpenID for Verifiable Presentations (OpenID4VP).",
           "maxLength": "300",
           "width": "16"
         }
