@@ -28,7 +28,9 @@ import com.google.api.services.playintegrity.v1.PlayIntegrityRequestInitializer;
 import com.google.api.services.playintegrity.v1.model.AppIntegrity;
 import com.google.api.services.playintegrity.v1.model.DecodeIntegrityTokenRequest;
 import com.google.api.services.playintegrity.v1.model.DecodeIntegrityTokenResponse;
+import com.google.api.services.playintegrity.v1.model.DeviceIntegrity;
 import com.google.api.services.playintegrity.v1.model.RequestDetails;
+import com.google.api.services.playintegrity.v1.model.TestingDetails;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import org.apache.commons.lang.StringUtils;
@@ -44,6 +46,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.TimeZone;
 
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.CLIENT_ATTESTATION_ALLOWED_WINDOW_IN_MILL_SECOND;
@@ -98,6 +101,14 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
                 clientAttestationContext);
 
         if (decodeIntegrityTokenResponse != null) {
+
+            // Log the full, raw response returned by the Google Play Integrity API for this token.
+            // This includes requestDetails, appIntegrity, deviceIntegrity, accountDetails and
+            // testingDetails, and is the authoritative record of what Google decided for the token.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Google Play Integrity API decoded response for application: " + applicationResourceId
+                        + " in tenant: " + tenantDomain + " : " + decodeIntegrityTokenResponse.toString());
+            }
 
             validateIntegrityResponse(decodeIntegrityTokenResponse, clientAttestationContext);
         } else {
@@ -168,6 +179,7 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
     /**
      * Validates the overall integrity of the response by checking various components including
      * request details, device integrity, account details, and application integrity.
+     * Also extracts Google-verified device recognition verdicts into the context.
      *
      * @param decodeIntegrityTokenResponse The response containing the integrity token and various integrity details.
      * @param clientAttestationContext  The context to store the validation results and updated information.
@@ -175,10 +187,30 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
     private void validateIntegrityResponse(DecodeIntegrityTokenResponse decodeIntegrityTokenResponse,
                                            ClientAttestationContext clientAttestationContext) {
 
-        // Validate different aspects of the integrity response, and return true if all checks pass.
+        // Existing — controls isAttested for the token endpoint. Unchanged.
         if (validateRequestDetails(decodeIntegrityTokenResponse, clientAttestationContext) &&
                 validateAppIntegrity(decodeIntegrityTokenResponse, clientAttestationContext)) {
             clientAttestationContext.setAttested(true);
+        }
+
+        // Reject test responses — device verdicts from test tokens are not real Google evaluations.
+        TestingDetails testing = decodeIntegrityTokenResponse.getTokenPayloadExternal().getTestingDetails();
+        if (testing != null && Boolean.TRUE.equals(testing.getIsTestingResponse())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Play Integrity response is a test response for application: " + applicationResourceId
+                        + " in tenant: " + tenantDomain + ". Device verdicts will not be trusted.");
+            }
+            clientAttestationContext.setDeviceIntegrityVerdicts(Collections.emptyList());
+            return;
+        }
+
+        // Extract real device recognition verdicts from the Google response.
+        DeviceIntegrity deviceIntegrity =
+                decodeIntegrityTokenResponse.getTokenPayloadExternal().getDeviceIntegrity();
+        if (deviceIntegrity != null && deviceIntegrity.getDeviceRecognitionVerdict() != null) {
+            clientAttestationContext.setDeviceIntegrityVerdicts(deviceIntegrity.getDeviceRecognitionVerdict());
+        } else {
+            clientAttestationContext.setDeviceIntegrityVerdicts(Collections.emptyList());
         }
     }
 
