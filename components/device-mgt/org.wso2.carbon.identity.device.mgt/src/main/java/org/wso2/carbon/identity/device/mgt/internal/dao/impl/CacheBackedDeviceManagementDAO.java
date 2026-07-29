@@ -173,7 +173,9 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
 
     /**
      * Updates the name of a device.
-     * This method clears the cache entry upon device name update.
+     * This method clears the cache entry after the device name is updated in the data layer, so that
+     * a concurrent read cannot repopulate the cache with the pre-update value while the write is still
+     * in flight.
      *
      * @param deviceId   Device identifier.
      * @param deviceName Device name.
@@ -184,16 +186,19 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
     @Override
     public Device updateDeviceName(String deviceId, String deviceName, int tenantId) throws DeviceMgtException {
 
+        Device updatedDevice = deviceManagementDAO.updateDeviceName(deviceId, deviceName, tenantId);
         deviceCache.clearCacheEntry(new DeviceCacheKey(deviceId), tenantId);
         if (LOG.isDebugEnabled()) {
             LOG.debug(LOG_DEVICE_CACHE_CLEARED + deviceId + " for device name update.");
         }
-        return deviceManagementDAO.updateDeviceName(deviceId, deviceName, tenantId);
+        return updatedDevice;
     }
 
     /**
      * Updates the status of a device and returns the updated record.
-     * This method clears the cache entry upon status change.
+     * This method clears the cache entry after the status change is committed to the data layer, so
+     * that a concurrent read cannot repopulate the cache with the pre-update value while the write is
+     * still in flight.
      *
      * @param deviceId Device identifier.
      * @param status   New status for the device.
@@ -205,16 +210,19 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
     public Device changeDeviceStatus(String deviceId, Device.Status status, int tenantId)
             throws DeviceMgtException {
 
+        Device updatedDevice = deviceManagementDAO.changeDeviceStatus(deviceId, status, tenantId);
         deviceCache.clearCacheEntry(new DeviceCacheKey(deviceId), tenantId);
         if (LOG.isDebugEnabled()) {
             LOG.debug(LOG_DEVICE_CACHE_CLEARED + deviceId + " for status change.");
         }
-        return deviceManagementDAO.changeDeviceStatus(deviceId, status, tenantId);
+        return updatedDevice;
     }
 
     /**
      * Deletes a device.
-     * This method clears the cache entry upon device deletion.
+     * This method clears the cache entry after the device is deleted from the data layer, so that a
+     * concurrent read cannot repopulate the cache with the pre-deletion value while the write is still
+     * in flight.
      *
      * @param deviceId Device identifier.
      * @param tenantId Tenant identifier.
@@ -223,27 +231,27 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
     @Override
     public void deleteDevice(String deviceId, int tenantId) throws DeviceMgtException {
 
+        deviceManagementDAO.deleteDevice(deviceId, tenantId);
         deviceCache.clearCacheEntry(new DeviceCacheKey(deviceId), tenantId);
         if (LOG.isDebugEnabled()) {
             LOG.debug(LOG_DEVICE_CACHE_CLEARED + deviceId + " for device deletion.");
         }
-        deviceManagementDAO.deleteDevice(deviceId, tenantId);
     }
 
     /**
      * Deletes all devices registered by a user.
-     * This method resolves the affected device ids first so that each cached entry can be evicted
-     * after the bulk delete, keeping the cache consistent with the data layer.
+     * This method delegates the bulk delete to the data layer, which resolves the affected devices as
+     * part of the same operation, then reuses that single result to evict each cached entry after the
+     * delete is committed.
      *
      * @param userId   User identifier.
      * @param tenantId Tenant identifier.
      * @throws DeviceMgtException If deletion fails.
      */
     @Override
-    public void deleteDevicesByUserId(String userId, int tenantId) throws DeviceMgtException {
+    public List<Device> deleteDevicesByUserId(String userId, int tenantId) throws DeviceMgtException {
 
-        List<Device> devices = deviceManagementDAO.getDevicesByUserId(userId, tenantId, 0, Integer.MAX_VALUE);
-        deviceManagementDAO.deleteDevicesByUserId(userId, tenantId);
+        List<Device> devices = deviceManagementDAO.deleteDevicesByUserId(userId, tenantId);
         for (Device device : devices) {
             deviceCache.clearCacheEntry(new DeviceCacheKey(device.getId()), tenantId);
         }
@@ -251,5 +259,6 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
             LOG.debug("Cleared " + devices.size() + " device cache entries for user id: " + userId
                     + " after bulk deletion.");
         }
+        return devices;
     }
 }

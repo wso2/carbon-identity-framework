@@ -141,8 +141,9 @@ public interface DeviceManagementDAO {
      *
      * @param userId   User identifier.
      * @param tenantId Tenant identifier.
+     * @return The devices that were deleted.
      * @throws DeviceMgtException If deletion fails.
      */
-    void deleteDevicesByUserId(String userId, int tenantId)
+    List<Device> deleteDevicesByUserId(String userId, int tenantId)
             throws DeviceMgtException;
 }

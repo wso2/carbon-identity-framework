@@ -366,8 +366,11 @@ public class DeviceManagementDAOImplTest {
 
         Assert.assertEquals(deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID, 0, 100).size(), 2);
 
-        deviceManagementDAO.deleteDevicesByUserId(userId, TENANT_ID);
+        List<Device> deletedDevices = deviceManagementDAO.deleteDevicesByUserId(userId, TENANT_ID);
 
+        Assert.assertEquals(deletedDevices.size(), 2);
+        Assert.assertTrue(deletedDevices.stream().map(Device::getId).anyMatch(id1::equals));
+        Assert.assertTrue(deletedDevices.stream().map(Device::getId).anyMatch(id2::equals));
         Assert.assertTrue(deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID, 0, 100).isEmpty());
         Assert.assertNull(deviceManagementDAO.getDeviceById(id1, TENANT_ID));
         Assert.assertNull(deviceManagementDAO.getDeviceById(id2, TENANT_ID));

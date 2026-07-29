@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -158,19 +159,32 @@ public class CacheBackedDeviceManagementDAOTest {
         String userId = "u1";
         Device cached = mock(Device.class);
         deviceCache.addToCache(new DeviceCacheKey(DEVICE_ID), new DeviceCacheEntry(cached), TENANT_ID);
-        when(deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID, 0, Integer.MAX_VALUE))
-                .thenReturn(Collections.singletonList(cached));
         when(cached.getId()).thenReturn(DEVICE_ID);
+        when(deviceManagementDAO.deleteDevicesByUserId(userId, TENANT_ID))
+                .thenReturn(Collections.singletonList(cached));
 
         cacheBackedDeviceManagementDAO.deleteDevicesByUserId(userId, TENANT_ID);
 
         verify(deviceManagementDAO).deleteDevicesByUserId(userId, TENANT_ID);
+        // The cache layer must reuse the deleted-devices list returned by the delegate rather than
+        // issuing its own getDevicesByUserId lookup.
+        verify(deviceManagementDAO, never()).getDevicesByUserId(userId, TENANT_ID, 0, Integer.MAX_VALUE);
         assertNull(deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), TENANT_ID));
     }
-    public void testUpdateDeviceNameInvalidatesCache() throws DeviceMgtException {
+
+    @Test
+    public void testUpdateDeviceNameInvalidatesCacheAfterWrite() throws DeviceMgtException {
 
         Device cached = mock(Device.class);
+        Device updated = mock(Device.class);
         deviceCache.addToCache(new DeviceCacheKey(DEVICE_ID), new DeviceCacheEntry(cached), TENANT_ID);
+        when(deviceManagementDAO.updateDeviceName(DEVICE_ID, "New Name", TENANT_ID)).thenAnswer(invocation -> {
+            // A concurrent reader racing the write must still see the pre-write cache entry here —
+            // proves the cache is not cleared until after the delegate call returns, closing the
+            // window where a stale read could repopulate the cache with the old value.
+            assertEquals(deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), TENANT_ID).getDevice(), cached);
+            return updated;
+        });
 
         cacheBackedDeviceManagementDAO.updateDeviceName(DEVICE_ID, "New Name", TENANT_ID);
 
@@ -187,10 +201,20 @@ public class CacheBackedDeviceManagementDAOTest {
     }
 
     @Test
-    public void testChangeDeviceStatusInvalidatesCache() throws DeviceMgtException {
+    public void testChangeDeviceStatusInvalidatesCacheAfterWrite() throws DeviceMgtException {
 
         Device cached = mock(Device.class);
+        Device updated = mock(Device.class);
         deviceCache.addToCache(new DeviceCacheKey(DEVICE_ID), new DeviceCacheEntry(cached), TENANT_ID);
+        when(deviceManagementDAO.changeDeviceStatus(DEVICE_ID, Device.Status.INACTIVE, TENANT_ID))
+                .thenAnswer(invocation -> {
+                    // Same race-window guard as above, for the status-change path that gates
+                    // device-token validation.
+                    assertEquals(
+                            deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), TENANT_ID).getDevice(),
+                            cached);
+                    return updated;
+                });
 
         cacheBackedDeviceManagementDAO.changeDeviceStatus(DEVICE_ID, Device.Status.INACTIVE, TENANT_ID);
 
@@ -206,10 +230,15 @@ public class CacheBackedDeviceManagementDAOTest {
     }
 
     @Test
-    public void testDeleteDeviceInvalidatesCache() throws DeviceMgtException {
+    public void testDeleteDeviceInvalidatesCacheAfterWrite() throws DeviceMgtException {
 
         Device cached = mock(Device.class);
         deviceCache.addToCache(new DeviceCacheKey(DEVICE_ID), new DeviceCacheEntry(cached), TENANT_ID);
+        doAnswer(invocation -> {
+            // Same race-window guard as above, for the delete path.
+            assertEquals(deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), TENANT_ID).getDevice(), cached);
+            return null;
+        }).when(deviceManagementDAO).deleteDevice(DEVICE_ID, TENANT_ID);
 
         cacheBackedDeviceManagementDAO.deleteDevice(DEVICE_ID, TENANT_ID);
 

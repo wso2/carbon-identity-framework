@@ -398,11 +398,11 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     }
 
     @Override
-    public void deleteDevicesByUserId(String userId, int tenantId) throws DeviceMgtException {
+    public List<Device> deleteDevicesByUserId(String userId, int tenantId) throws DeviceMgtException {
 
         List<Device> devices = getDevicesByUserId(userId, tenantId, 0, Integer.MAX_VALUE);
         if (devices.isEmpty()) {
-            return;
+            return devices;
         }
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -434,5 +434,6 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Devices deleted for user ID: " + userId + " in tenant: " + tenantId);
         }
+        return devices;
     }
 }
