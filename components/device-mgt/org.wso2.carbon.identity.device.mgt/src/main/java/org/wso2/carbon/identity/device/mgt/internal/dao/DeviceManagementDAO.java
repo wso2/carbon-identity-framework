@@ -137,17 +137,6 @@ public interface DeviceManagementDAO {
             throws DeviceMgtException;
 
     /**
-     * Returns the identifiers of all devices registered by a user in the tenant.
-     *
-     * @param userId   User identifier.
-     * @param tenantId Tenant identifier.
-     * @return Device identifiers for the user. Empty list if none.
-     * @throws DeviceMgtException If retrieval fails.
-     */
-    List<String> getDeviceIdsByUserId(String userId, int tenantId)
-            throws DeviceMgtException;
-
-    /**
      * Deletes all devices registered by a user in the tenant.
      *
      * @param userId   User identifier.

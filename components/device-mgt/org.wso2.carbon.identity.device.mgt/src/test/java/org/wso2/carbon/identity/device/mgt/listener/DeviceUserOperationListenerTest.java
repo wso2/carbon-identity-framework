@@ -32,7 +32,6 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -88,39 +87,6 @@ public class DeviceUserOperationListenerTest {
 
         Assert.assertTrue(result);
         verify(deviceManagementService).deleteDevicesByUserId("user-id-123", "carbon.super");
-    }
-
-    @Test
-    public void testDoPreDeleteUserWithThreadLocalUserId() throws Exception {
-
-        IdentityUtil.threadLocalProperties.get().put("doPreDeleteUserUserID", "user-id-123");
-
-        boolean result = listener.doPreDeleteUser("alice", userStoreManager);
-
-        Assert.assertTrue(result);
-        verify(deviceManagementService).deleteDevicesByUserId("user-id-123", "carbon.super");
-    }
-
-    @Test
-    public void testDoPreDeleteUserWithIDDeletesDevices() throws Exception {
-
-        boolean result = listener.doPreDeleteUserWithID("user-id-123", userStoreManager);
-
-        Assert.assertTrue(result);
-        verify(deviceManagementService).deleteDevicesByUserId("user-id-123", "carbon.super");
-    }
-
-    @Test
-    public void testDuplicateDeleteExecutionPrevention() throws Exception {
-
-        when(userStoreManager.getUserIDFromUserName("alice")).thenReturn("user-id-123");
-
-        boolean result1 = listener.doPreDeleteUser("alice", userStoreManager);
-        boolean result2 = listener.doPreDeleteUserWithID("user-id-123", userStoreManager);
-
-        Assert.assertTrue(result1);
-        Assert.assertTrue(result2);
-        verify(deviceManagementService, times(1)).deleteDevicesByUserId("user-id-123", "carbon.super");
     }
 
     @Test

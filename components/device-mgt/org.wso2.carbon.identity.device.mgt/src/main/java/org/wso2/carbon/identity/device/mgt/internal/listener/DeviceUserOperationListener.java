@@ -30,6 +30,7 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
+
 /**
  * User operation event listener that removes a user's registered devices when the user is deleted,
  * so that no orphaned device records or public keys are left behind.

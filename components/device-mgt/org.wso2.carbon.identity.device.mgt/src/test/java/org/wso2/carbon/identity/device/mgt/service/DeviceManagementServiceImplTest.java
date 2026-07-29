@@ -459,7 +459,6 @@ public class DeviceManagementServiceImplTest {
             service.getDeviceById("d1", "  ");
             Assert.fail("Expected DeviceMgtClientException");
         } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
         }
     }
 

@@ -398,31 +398,10 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     }
 
     @Override
-    public List<String> getDeviceIdsByUserId(String userId, int tenantId) throws DeviceMgtException {
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-
-        try {
-            return jdbcTemplate.<List<String>, RuntimeException>withTransaction(
-                    template -> template.executeQuery(
-                            DeviceMgtSQLConstants.Query.GET_DEVICE_IDS_BY_USER,
-                            (resultSet, rowNumber) -> resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_ID),
-                            preparedStatement -> {
-                                preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, userId);
-                                preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
-                            }));
-
-        } catch (TransactionException e) {
-            throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e);
-        }
-    }
-
-    @Override
     public void deleteDevicesByUserId(String userId, int tenantId) throws DeviceMgtException {
 
-        List<String> deviceIds = getDeviceIdsByUserId(userId, tenantId);
-        if (deviceIds.isEmpty()) {
+        List<Device> devices = getDevicesByUserId(userId, tenantId, 0, Integer.MAX_VALUE);
+        if (devices.isEmpty()) {
             return;
         }
 
@@ -436,11 +415,11 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                             preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, userId);
                             preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
                         });
-                for (String deviceId : deviceIds) {
+                for (Device device : devices) {
                     template.executeUpdate(
                             DeviceMgtSQLConstants.Query.DELETE_DEVICE,
                             preparedStatement -> {
-                                preparedStatement.setString(DeviceMgtSQLConstants.Column.ID, deviceId);
+                                preparedStatement.setString(DeviceMgtSQLConstants.Column.ID, device.getId());
                                 preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
                             });
                 }

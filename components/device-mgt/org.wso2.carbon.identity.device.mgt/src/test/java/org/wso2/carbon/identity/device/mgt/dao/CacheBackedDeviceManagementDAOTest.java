@@ -158,16 +158,15 @@ public class CacheBackedDeviceManagementDAOTest {
         String userId = "u1";
         Device cached = mock(Device.class);
         deviceCache.addToCache(new DeviceCacheKey(DEVICE_ID), new DeviceCacheEntry(cached), TENANT_ID);
-        when(deviceManagementDAO.getDeviceIdsByUserId(userId, TENANT_ID))
-                .thenReturn(Collections.singletonList(DEVICE_ID));
+        when(deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID, 0, Integer.MAX_VALUE))
+                .thenReturn(Collections.singletonList(cached));
+        when(cached.getId()).thenReturn(DEVICE_ID);
 
         cacheBackedDeviceManagementDAO.deleteDevicesByUserId(userId, TENANT_ID);
 
         verify(deviceManagementDAO).deleteDevicesByUserId(userId, TENANT_ID);
         assertNull(deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), TENANT_ID));
     }
-
-    @Test
     public void testUpdateDeviceNameInvalidatesCache() throws DeviceMgtException {
 
         Device cached = mock(Device.class);

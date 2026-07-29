@@ -79,8 +79,8 @@ public class DeviceManagementDAOImplTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getId(), createdDeviceId);
-        List<String> userDeviceIds = deviceManagementDAO.getDeviceIdsByUserId(TEST_USER_ID, TENANT_ID);
-        Assert.assertTrue(userDeviceIds.contains(createdDeviceId));
+        List<Device> userDevices = deviceManagementDAO.getDevicesByUserId(TEST_USER_ID, TENANT_ID, 0, 100);
+        Assert.assertTrue(userDevices.stream().anyMatch(d -> d.getId().equals(createdDeviceId)));
     }
 
     /**
@@ -149,7 +149,8 @@ public class DeviceManagementDAOImplTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getId(), id);
-        Assert.assertTrue(deviceManagementDAO.getDeviceIdsByUserId(SECOND_USER_ID, TENANT_ID).contains(id));
+        List<Device> carolDevices = deviceManagementDAO.getDevicesByUserId(SECOND_USER_ID, TENANT_ID, 0, 100);
+        Assert.assertTrue(carolDevices.stream().anyMatch(d -> d.getId().equals(id)));
         Assert.assertEquals(result.getDeviceName(), "Carol Phone");
         Assert.assertEquals(result.getDeviceModel(), "Pixel 8 Pro");
         Assert.assertEquals(result.getPublicKey(), "pk-full-" + id);
@@ -196,8 +197,8 @@ public class DeviceManagementDAOImplTest {
         List<Device> all = deviceManagementDAO.getDevices(OTHER_TENANT_ID, 0, 100);
 
         Assert.assertEquals(all.size(), 2);
-        List<String> daveDeviceIds = deviceManagementDAO.getDeviceIdsByUserId(userId, OTHER_TENANT_ID);
-        Assert.assertEquals(daveDeviceIds.size(), 2);
+        List<Device> daveDevices = deviceManagementDAO.getDevicesByUserId(userId, OTHER_TENANT_ID, 0, 100);
+        Assert.assertEquals(daveDevices.size(), 2);
     }
 
 
@@ -272,8 +273,9 @@ public class DeviceManagementDAOImplTest {
     public void testChangeDeviceStatusActivateUpdatesStatus() throws DeviceMgtException {
 
         String userId = "heidi@example.com";
-        List<String> userDeviceIds = deviceManagementDAO.getDeviceIdsByUserId(userId, TENANT_ID);
-        String id = userDeviceIds.stream()
+        List<Device> userDevices = deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID, 0, 100);
+        String id = userDevices.stream()
+                .map(Device::getId)
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected Heidi's device to still exist"));
 
@@ -362,11 +364,11 @@ public class DeviceManagementDAOImplTest {
         deviceManagementDAO.registerDevice(dev2, new UserDeviceAssociation(id2, userId), TENANT_ID);
         deviceManagementDAO.registerDevice(otherDev, new UserDeviceAssociation(otherId, otherUserId), TENANT_ID);
 
-        Assert.assertEquals(deviceManagementDAO.getDeviceIdsByUserId(userId, TENANT_ID).size(), 2);
+        Assert.assertEquals(deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID, 0, 100).size(), 2);
 
         deviceManagementDAO.deleteDevicesByUserId(userId, TENANT_ID);
 
-        Assert.assertTrue(deviceManagementDAO.getDeviceIdsByUserId(userId, TENANT_ID).isEmpty());
+        Assert.assertTrue(deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID, 0, 100).isEmpty());
         Assert.assertNull(deviceManagementDAO.getDeviceById(id1, TENANT_ID));
         Assert.assertNull(deviceManagementDAO.getDeviceById(id2, TENANT_ID));
         // The other user's device must remain.
