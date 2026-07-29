@@ -73,9 +73,9 @@ public class DeviceValidatorTest {
 
         try {
             deviceValidator.validateDeviceForRegistration(null);
-            Assert.fail("Expected DeviceMgtServerException");
+            Assert.fail("Expected DeviceMgtClientException");
         } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED.getCode());
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
         }
     }
 
@@ -107,9 +107,9 @@ public class DeviceValidatorTest {
 
         try {
             deviceValidator.validateAssociation(new UserDeviceAssociation("d1", ""));
-            Assert.fail("Expected DeviceMgtServerException");
+            Assert.fail("Expected DeviceMgtClientException");
         } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION.getCode());
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_ASSOCIATION_FIELD_REQUIRED.getCode());
         }
     }
 
@@ -143,23 +143,6 @@ public class DeviceValidatorTest {
         Device device = completeDeviceBuilder().deviceModel(null).build();
 
         deviceValidator.validateDeviceForRegistration(device);
-    }
-
-    @Test
-    public void testValidateRequiredDeviceFieldWithBlankValueThrows() {
-
-        try {
-            deviceValidator.validateRequiredDeviceField("", "id");
-            Assert.fail("Expected DeviceMgtException");
-        } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED.getCode());
-        }
-    }
-
-    @Test
-    public void testValidateRequiredDeviceFieldWithValidValueSucceeds() throws Exception {
-
-        deviceValidator.validateRequiredDeviceField("d1", "id");
     }
 
     @Test

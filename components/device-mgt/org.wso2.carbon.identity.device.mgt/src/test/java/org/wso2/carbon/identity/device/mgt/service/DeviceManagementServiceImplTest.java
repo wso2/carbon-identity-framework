@@ -149,9 +149,9 @@ public class DeviceManagementServiceImplTest {
 
         try {
             service.registerDevice(device, new UserDeviceAssociation("d1", "alice@example.com"), TENANT_DOMAIN);
-            Assert.fail("Expected DeviceMgtServerException");
+            Assert.fail("Expected DeviceMgtClientException");
         } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED.getCode());
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
         }
     }
 
