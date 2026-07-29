@@ -25,8 +25,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.dao.impl.CacheBackedDeviceManagementDAO;
@@ -68,19 +68,20 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     }
 
     @Override
-    public Device registerDevice(Device device, DeviceOwner owner, String tenantDomain) throws DeviceMgtException {
+    public Device registerDevice(Device device, DeviceAssociation association, String tenantDomain)
+            throws DeviceMgtException {
 
         DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         DEVICE_VALIDATOR.validateDeviceForRegistration(device);
-        DEVICE_VALIDATOR.validateOwner(owner);
-        if (!StringUtils.equals(owner.getDeviceId(), device.getId())) {
+        DEVICE_VALIDATOR.validateAssociation(association);
+        if (!StringUtils.equals(association.getDeviceId(), device.getId())) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_INVALID_DEVICE_OWNER);
+                    ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION);
         }
         Device registeredDevice = deviceManagementDAO.registerDevice(
-                device, owner, IdentityTenantUtil.getTenantId(tenantDomain));
+                device, association, IdentityTenantUtil.getTenantId(tenantDomain));
 
-        String userId = ((DeviceUser) owner).getUserId();
+        String userId = ((UserDeviceAssociation) association).getUserId();
         AUDIT_LOGGER.printAuditLog(DeviceManagementAuditLogger.Operation.REGISTER,
                 registeredDevice != null ? registeredDevice : device, userId);
 

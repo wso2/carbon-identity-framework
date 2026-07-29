@@ -19,31 +19,29 @@
 package org.wso2.carbon.identity.device.mgt.api.model;
 
 /**
- * Concrete representation of a user device owner.
+ * Abstract base representation of a device-to-owner association.
  */
-public class DeviceUser extends DeviceOwner {
+public abstract class DeviceAssociation {
 
-    private final String userId;
+    private final String deviceId;
 
     /**
-     * Constructs a user device owner.
+     * Constructs a device association bound to the specified device ID.
      *
      * @param deviceId Device identifier.
-     * @param userId   User identifier.
      */
-    public DeviceUser(String deviceId, String userId) {
+    protected DeviceAssociation(String deviceId) {
 
-        super(deviceId);
-        this.userId = userId;
+        this.deviceId = deviceId;
     }
 
     /**
-     * Returns the user identifier of the owner.
+     * Returns the device identifier bound to this association.
      *
-     * @return User identifier.
+     * @return Device identifier.
      */
-    public String getUserId() {
+    public String getDeviceId() {
 
-        return userId;
+        return deviceId;
     }
 }

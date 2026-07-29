@@ -26,8 +26,8 @@ import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 
 /**
  * Device validator class.
@@ -85,21 +85,22 @@ public class DeviceValidator {
     }
 
     /**
-     * Validates the device owner for registration.
+     * Validates the device association for registration.
      *
-     * @param owner Device owner to be validated.
-     * @throws DeviceMgtException If the owner is invalid or not a DeviceUser.
+     * @param association Device association to be validated.
+     * @throws DeviceMgtException If the association is invalid or not a UserDeviceAssociation.
      */
-    public void validateOwner(DeviceOwner owner) throws DeviceMgtException {
+    public void validateAssociation(DeviceAssociation association) throws DeviceMgtException {
 
-        if (owner == null || !(owner instanceof DeviceUser)) {
+        if (association == null || !(association instanceof UserDeviceAssociation)) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_INVALID_DEVICE_OWNER);
+                    ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION);
         }
-        DeviceUser deviceUser = (DeviceUser) owner;
-        if (StringUtils.isBlank(deviceUser.getDeviceId()) || StringUtils.isBlank(deviceUser.getUserId())) {
+        UserDeviceAssociation userDeviceAssociation = (UserDeviceAssociation) association;
+        if (StringUtils.isBlank(userDeviceAssociation.getDeviceId())
+                || StringUtils.isBlank(userDeviceAssociation.getUserId())) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_INVALID_DEVICE_OWNER);
+                    ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION);
         }
     }
 

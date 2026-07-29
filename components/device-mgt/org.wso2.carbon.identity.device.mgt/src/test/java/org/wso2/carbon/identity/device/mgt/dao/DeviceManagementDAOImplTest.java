@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
+import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.internal.dao.impl.DeviceManagementDAOImpl;
 
 import java.sql.Timestamp;
@@ -56,7 +56,7 @@ public class DeviceManagementDAOImplTest {
     public void testRegisterDevice() throws DeviceMgtException {
 
         Device device = buildDevice(UUID.randomUUID().toString(), "Alice Phone", Device.Status.ACTIVE);
-        DeviceUser owner = new DeviceUser(device.getId(), TEST_USER_ID);
+        UserDeviceAssociation owner = new UserDeviceAssociation(device.getId(), TEST_USER_ID);
         Device result = deviceManagementDAO.registerDevice(device, owner, TENANT_ID);
 
         Assert.assertNotNull(result);
@@ -142,7 +142,7 @@ public class DeviceManagementDAOImplTest {
                 .status(Device.Status.ACTIVE)
                 .registeredAt(Timestamp.from(Instant.now()))
                 .build();
-        DeviceUser owner = new DeviceUser(id, SECOND_USER_ID);
+        UserDeviceAssociation owner = new UserDeviceAssociation(id, SECOND_USER_ID);
 
         deviceManagementDAO.registerDevice(device, owner, TENANT_ID);
         Device result = deviceManagementDAO.getDeviceById(id, TENANT_ID);
@@ -167,7 +167,7 @@ public class DeviceManagementDAOImplTest {
 
         String id = UUID.randomUUID().toString();
         Device device = buildDevice(id, "Tenant Device", Device.Status.ACTIVE);
-        deviceManagementDAO.registerDevice(device, new DeviceUser(id, TEST_USER_ID), TENANT_ID);
+        deviceManagementDAO.registerDevice(device, new UserDeviceAssociation(id, TEST_USER_ID), TENANT_ID);
 
         Device fromOtherTenant = deviceManagementDAO.getDeviceById(id, OTHER_TENANT_ID);
         Assert.assertNull(fromOtherTenant);
@@ -190,8 +190,8 @@ public class DeviceManagementDAOImplTest {
         String id2 = UUID.randomUUID().toString();
         Device d1 = buildDevice(id1, "Dave Phone 1", Device.Status.ACTIVE);
         Device d2 = buildDevice(id2, "Dave Phone 2", Device.Status.ACTIVE);
-        deviceManagementDAO.registerDevice(d1, new DeviceUser(id1, userId), OTHER_TENANT_ID);
-        deviceManagementDAO.registerDevice(d2, new DeviceUser(id2, userId), OTHER_TENANT_ID);
+        deviceManagementDAO.registerDevice(d1, new UserDeviceAssociation(id1, userId), OTHER_TENANT_ID);
+        deviceManagementDAO.registerDevice(d2, new UserDeviceAssociation(id2, userId), OTHER_TENANT_ID);
 
         List<Device> all = deviceManagementDAO.getDevices(OTHER_TENANT_ID, 0, 100);
 
@@ -212,7 +212,7 @@ public class DeviceManagementDAOImplTest {
 
         String id = UUID.randomUUID().toString();
         Device device = buildDevice(id, "Frank Phone", Device.Status.ACTIVE);
-        deviceManagementDAO.registerDevice(device, new DeviceUser(id, TEST_USER_ID), TENANT_ID);
+        deviceManagementDAO.registerDevice(device, new UserDeviceAssociation(id, TEST_USER_ID), TENANT_ID);
 
         deviceManagementDAO.updateDeviceName(id, "Frank New Name", OTHER_TENANT_ID);
 
@@ -231,7 +231,7 @@ public class DeviceManagementDAOImplTest {
 
         String id = UUID.randomUUID().toString();
         Device device = buildDevice(id, "Grace Phone", Device.Status.ACTIVE);
-        deviceManagementDAO.registerDevice(device, new DeviceUser(id, TEST_USER_ID), TENANT_ID);
+        deviceManagementDAO.registerDevice(device, new UserDeviceAssociation(id, TEST_USER_ID), TENANT_ID);
 
         deviceManagementDAO.deleteDevice(id, OTHER_TENANT_ID);
 
@@ -252,7 +252,7 @@ public class DeviceManagementDAOImplTest {
         String userId = "heidi@example.com";
         String id = UUID.randomUUID().toString();
         Device device = buildDevice(id, "Heidi Phone", Device.Status.ACTIVE);
-        deviceManagementDAO.registerDevice(device, new DeviceUser(id, userId), TENANT_ID);
+        deviceManagementDAO.registerDevice(device, new UserDeviceAssociation(id, userId), TENANT_ID);
 
         Device updated = deviceManagementDAO.changeDeviceStatus(id, Device.Status.INACTIVE, TENANT_ID);
 
@@ -298,9 +298,10 @@ public class DeviceManagementDAOImplTest {
         Device inactiveDev = buildDevice(inactiveId, "Ivan Tablet", Device.Status.INACTIVE);
         Device otherDev = buildDevice(UUID.randomUUID().toString(), "Someone Else Phone", Device.Status.ACTIVE);
 
-        deviceManagementDAO.registerDevice(activeDev, new DeviceUser(activeId, userId), TENANT_ID);
-        deviceManagementDAO.registerDevice(inactiveDev, new DeviceUser(inactiveId, userId), TENANT_ID);
-        deviceManagementDAO.registerDevice(otherDev, new DeviceUser(otherDev.getId(), "other@example.com"), TENANT_ID);
+        deviceManagementDAO.registerDevice(activeDev, new UserDeviceAssociation(activeId, userId), TENANT_ID);
+        deviceManagementDAO.registerDevice(inactiveDev, new UserDeviceAssociation(inactiveId, userId), TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                otherDev, new UserDeviceAssociation(otherDev.getId(), "other@example.com"), TENANT_ID);
 
         List<Device> devices = deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID, 0, 100);
 
@@ -357,9 +358,9 @@ public class DeviceManagementDAOImplTest {
         Device dev2 = buildDevice(id2, "Wanda Tablet", Device.Status.INACTIVE);
         Device otherDev = buildDevice(otherId, "Victor Phone", Device.Status.ACTIVE);
 
-        deviceManagementDAO.registerDevice(dev1, new DeviceUser(id1, userId), TENANT_ID);
-        deviceManagementDAO.registerDevice(dev2, new DeviceUser(id2, userId), TENANT_ID);
-        deviceManagementDAO.registerDevice(otherDev, new DeviceUser(otherId, otherUserId), TENANT_ID);
+        deviceManagementDAO.registerDevice(dev1, new UserDeviceAssociation(id1, userId), TENANT_ID);
+        deviceManagementDAO.registerDevice(dev2, new UserDeviceAssociation(id2, userId), TENANT_ID);
+        deviceManagementDAO.registerDevice(otherDev, new UserDeviceAssociation(otherId, otherUserId), TENANT_ID);
 
         Assert.assertEquals(deviceManagementDAO.getDeviceIdsByUserId(userId, TENANT_ID).size(), 2);
 

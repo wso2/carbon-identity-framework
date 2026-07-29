@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCache;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheEntry;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheKey;
@@ -62,15 +62,15 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
      * to invalidate in the cache.
      *
      * @param device   Device to register.
-     * @param owner    Ownership association for the device.
-     * @param tenantId Tenant identifier.
+     * @param association Ownership association for the device.
+     * @param tenantId    Tenant identifier.
      * @return Registered device.
      * @throws DeviceMgtException If registration fails.
      */
     @Override
-    public Device registerDevice(Device device, DeviceOwner owner, int tenantId) throws DeviceMgtException {
+    public Device registerDevice(Device device, DeviceAssociation association, int tenantId) throws DeviceMgtException {
 
-        return deviceManagementDAO.registerDevice(device, owner, tenantId);
+        return deviceManagementDAO.registerDevice(device, association, tenantId);
     }
 
     /**

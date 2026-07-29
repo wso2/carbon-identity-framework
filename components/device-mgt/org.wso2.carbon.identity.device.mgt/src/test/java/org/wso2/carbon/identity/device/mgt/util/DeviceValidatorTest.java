@@ -25,8 +25,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceValidator;
 
 import java.sql.Timestamp;
@@ -80,43 +80,43 @@ public class DeviceValidatorTest {
     }
 
     @Test
-    public void testValidateOwnerWithNullOwnerThrows() {
+    public void testValidateAssociationWithNullAssociationThrows() {
 
         try {
-            deviceValidator.validateOwner(null);
+            deviceValidator.validateAssociation(null);
             Assert.fail("Expected DeviceMgtServerException");
         } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_OWNER.getCode());
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION.getCode());
         }
     }
 
     @Test
-    public void testValidateOwnerWithNonDeviceUserThrows() {
+    public void testValidateAssociationWithNonUserDeviceAssociationThrows() {
 
-        DeviceOwner customOwner = new DeviceOwner("d1") { };
+        DeviceAssociation customAssociation = new DeviceAssociation("d1") { };
         try {
-            deviceValidator.validateOwner(customOwner);
+            deviceValidator.validateAssociation(customAssociation);
             Assert.fail("Expected DeviceMgtServerException");
         } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_OWNER.getCode());
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION.getCode());
         }
     }
 
     @Test
-    public void testValidateOwnerWithBlankUserIdThrows() {
+    public void testValidateAssociationWithBlankUserIdThrows() {
 
         try {
-            deviceValidator.validateOwner(new DeviceUser("d1", ""));
+            deviceValidator.validateAssociation(new UserDeviceAssociation("d1", ""));
             Assert.fail("Expected DeviceMgtServerException");
         } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_OWNER.getCode());
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION.getCode());
         }
     }
 
     @Test
-    public void testValidateOwnerWithValidOwnerSucceeds() throws Exception {
+    public void testValidateAssociationWithValidAssociationSucceeds() throws Exception {
 
-        deviceValidator.validateOwner(new DeviceUser("d1", "alice@example.com"));
+        deviceValidator.validateAssociation(new UserDeviceAssociation("d1", "alice@example.com"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)

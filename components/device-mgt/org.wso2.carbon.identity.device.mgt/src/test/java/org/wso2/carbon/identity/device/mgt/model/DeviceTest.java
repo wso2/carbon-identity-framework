@@ -21,14 +21,15 @@ package org.wso2.carbon.identity.device.mgt.model;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 
 /**
- * Unit tests for {@link Device} model, {@link DeviceOwner}, {@link DeviceUser}, and builder validations.
+ * Unit tests for {@link Device} model, {@link DeviceAssociation},
+ * {@link UserDeviceAssociation}, and builder validations.
  */
 public class DeviceTest {
 
@@ -67,12 +68,12 @@ public class DeviceTest {
     }
 
     @Test
-    public void testDeviceUserOwnerModel() {
+    public void testUserDeviceAssociationModel() {
 
-        DeviceUser deviceUser = new DeviceUser("d1", "alice@example.com");
-        Assert.assertTrue(deviceUser instanceof DeviceOwner);
-        Assert.assertEquals(deviceUser.getDeviceId(), "d1");
-        Assert.assertEquals(deviceUser.getUserId(), "alice@example.com");
+        UserDeviceAssociation userDeviceAssociation = new UserDeviceAssociation("d1", "alice@example.com");
+        Assert.assertTrue(userDeviceAssociation instanceof DeviceAssociation);
+        Assert.assertEquals(userDeviceAssociation.getDeviceId(), "d1");
+        Assert.assertEquals(userDeviceAssociation.getUserId(), "alice@example.com");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)

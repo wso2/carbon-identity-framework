@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.device.mgt.internal.dao;
 
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
 
 import java.util.List;
 
@@ -32,13 +32,13 @@ public interface DeviceManagementDAO {
     /**
      * Registers a new device.
      *
-     * @param device   Device to register.
-     * @param owner    Ownership association for the device.
-     * @param tenantId Tenant identifier.
+     * @param device      Device to register.
+     * @param association Ownership association for the device.
+     * @param tenantId    Tenant identifier.
      * @return Registered device.
      * @throws DeviceMgtException If registration fails.
      */
-    Device registerDevice(Device device, DeviceOwner owner, int tenantId)
+    Device registerDevice(Device device, DeviceAssociation association, int tenantId)
             throws DeviceMgtException;
 
     /**

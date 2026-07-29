@@ -40,8 +40,8 @@ public enum ErrorMessage {
             "Cannot register device: a valid user identifier (userId) was not set before registration."),
     ERROR_DEVICE_FIELD_REQUIRED("DM-65006", "Required device field missing.",
             "Cannot register device: the required field '%s' was not set before registration."),
-    ERROR_INVALID_DEVICE_OWNER("DM-65007", "Invalid device owner.",
-            "Device owner must be a valid DeviceUser with matching device ID and non-blank user ID.");
+    ERROR_INVALID_DEVICE_ASSOCIATION("DM-65007", "Invalid device association.",
+            "Device association must be a valid UserDeviceAssociation with matching device ID and non-blank user ID.");
 
     private final String code;
     private final String message;

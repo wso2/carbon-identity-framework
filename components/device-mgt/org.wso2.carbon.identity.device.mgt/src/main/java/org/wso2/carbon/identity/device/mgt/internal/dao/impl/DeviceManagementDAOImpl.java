@@ -30,8 +30,8 @@ import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceOwner;
-import org.wso2.carbon.identity.device.mgt.api.model.DeviceUser;
+import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.internal.constant.DeviceMgtSQLConstants;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceManagementExceptionHandler;
@@ -48,14 +48,14 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     private static final Log LOG = LogFactory.getLog(DeviceManagementDAOImpl.class);
 
     @Override
-    public Device registerDevice(Device device, DeviceOwner owner, int tenantId)
+    public Device registerDevice(Device device, DeviceAssociation association, int tenantId)
             throws DeviceMgtException {
 
-        if (!(owner instanceof DeviceUser)) {
+        if (!(association instanceof UserDeviceAssociation)) {
             throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_INVALID_DEVICE_OWNER);
+                    ErrorMessage.ERROR_INVALID_DEVICE_ASSOCIATION);
         }
-        DeviceUser deviceUser = (DeviceUser) owner;
+        UserDeviceAssociation userDeviceAssociation = (UserDeviceAssociation) association;
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
 
@@ -81,8 +81,10 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                 template.executeInsert(
                         DeviceMgtSQLConstants.Query.ADD_USER_DEVICE,
                         preparedStatement -> {
-                            preparedStatement.setString(DeviceMgtSQLConstants.Column.DEVICE_ID, owner.getDeviceId());
-                            preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, deviceUser.getUserId());
+                            preparedStatement.setString(
+                                    DeviceMgtSQLConstants.Column.DEVICE_ID, association.getDeviceId());
+                            preparedStatement.setString(
+                                    DeviceMgtSQLConstants.Column.USER_ID, userDeviceAssociation.getUserId());
                             preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
                         },
                         device,
