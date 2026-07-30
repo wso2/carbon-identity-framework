@@ -3134,12 +3134,14 @@
                    enable="{{cache.push_auth_context_cache.enable}}"
                    timeout="{{cache.push_auth_context_cache.timeout}}"
                    capacity="{{cache.push_auth_context_cache.capacity}}"
-                   isDistributed="false"/>
+                   isDistributed="false"
+                   isTemporary="true"/>
             <Cache id="push_auth_status_cache" name="PushAuthStatusCache"
                    enable="{{cache.push_auth_status_cache.enable}}"
-                   timeout="{{cache.push_auth_status_cache_cache.timeout}}"
-                   capacity="{{cache.push_auth_status_cache_cache.capacity}}"
-                   isDistributed="false"/>
+                   timeout="{{cache.push_auth_status_cache.timeout}}"
+                   capacity="{{cache.push_auth_status_cache.capacity}}"
+                   isDistributed="false"
+                   isTemporary="true"/>
             <Cache id="push_device_registration_request_cache" name="PushDeviceRegistrationRequestCache"
                    enable="{{cache.push_device_registration_request_cache.enable}}"
                    timeout="{{cache.push_device_registration_request_cache.timeout}}"
