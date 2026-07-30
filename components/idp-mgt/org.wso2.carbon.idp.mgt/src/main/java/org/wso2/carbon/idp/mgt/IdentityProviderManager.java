@@ -1360,7 +1360,6 @@ public class IdentityProviderManager implements IdpManager {
                                                   List<String> idPClaimURIs) throws
             IdentityProviderManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (StringUtils.isEmpty(idPName)) {
             String msg = "Invalid argument: Identity Provider Name value is empty";
             throw new IdentityProviderManagementException(msg);
@@ -1436,7 +1435,6 @@ public class IdentityProviderManager implements IdpManager {
                                                 List<String> localClaimURIs) throws
             IdentityProviderManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (StringUtils.isEmpty(idPName)) {
             String msg = "Invalid argument: Identity Provider Name value is empty";
             throw new IdentityProviderManagementException(msg);
@@ -1510,8 +1508,6 @@ public class IdentityProviderManager implements IdpManager {
     public Set<RoleMapping> getMappedLocalRoles(String idPName, String tenantDomain,
                                                 String[] idPRoles) throws IdentityProviderManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-
         if (StringUtils.isEmpty(idPName)) {
             String msg = "Invalid argument: Identity Provider Name value is empty";
             throw new IdentityProviderManagementException(msg);
@@ -1582,7 +1578,6 @@ public class IdentityProviderManager implements IdpManager {
     public Set<RoleMapping> getMappedIdPRoles(String idPName, String tenantDomain,
                                               LocalRole[] localRoles) throws IdentityProviderManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (StringUtils.isEmpty(idPName)) {
             String msg = "Invalid argument: Identity Provider Name value is empty";
             throw new IdentityProviderManagementException(msg);
