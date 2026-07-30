@@ -123,6 +123,7 @@
         <module>features/rule-mgt</module>
         <module>features/webhook-mgt</module>
         <module>features/action-mgt</module>
+        <module>features/policy-mgt</module>
         <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
         <module>features/servlet-mgt</module>
