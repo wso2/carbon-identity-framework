@@ -189,7 +189,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         try {
             if (StringUtils.isNotEmpty(filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.APPLICATION))) {
                 String appSql = filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.APPLICATION)
-                        + " AND (TENANT_ID = ? OR IS_SAAS_APP = 1)";
+                        + " AND (TENANT_ID = ? OR IS_SAAS_APP = '1')";
                 List<Object> appParams = new ArrayList<>(
                         filterBuilder.getFilterParams(SessionMgtConstants.FilterType.APPLICATION));
                 appParams.add(tenantId);
