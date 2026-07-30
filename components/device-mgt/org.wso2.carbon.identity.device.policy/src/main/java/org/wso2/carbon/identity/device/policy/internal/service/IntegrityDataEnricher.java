@@ -65,6 +65,8 @@ public class IntegrityDataEnricher {
             throws DevicePolicyException {
 
         String attestationToken = (String) deviceData.remove(DeviceTokenConstants.ATTESTATION_TOKEN_KEY);
+        deviceData.remove(ANDROID_INTEGRITY_KEY);
+        deviceData.remove(IOS_INTEGRITY_KEY);
         if (attestationToken == null) {
             return;
         }

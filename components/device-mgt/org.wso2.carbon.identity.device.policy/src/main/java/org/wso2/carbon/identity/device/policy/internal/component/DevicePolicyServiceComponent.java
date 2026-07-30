@@ -129,12 +129,18 @@ public class DevicePolicyServiceComponent {
         long cleanupPeriod = DEFAULT_JTI_CLEANUP_PERIOD_MINUTES;
         String cleanupPeriodValue = IdentityUtil.getProperty(JTI_CLEANUP_PERIOD_PROPERTY);
         if (StringUtils.isNotBlank(cleanupPeriodValue) && StringUtils.isNumeric(cleanupPeriodValue)) {
-            long configuredPeriod = Long.parseLong(cleanupPeriodValue);
-            if (configuredPeriod > 0) {
-                cleanupPeriod = configuredPeriod;
-            } else {
+            try {
+                long configuredPeriod = Long.parseLong(cleanupPeriodValue);
+                if (configuredPeriod > 0) {
+                    cleanupPeriod = configuredPeriod;
+                } else {
+                    LOG.warn("Configured " + JTI_CLEANUP_PERIOD_PROPERTY
+                            + " must be greater than zero; using default: "
+                            + DEFAULT_JTI_CLEANUP_PERIOD_MINUTES + " minutes.");
+                }
+            } catch (NumberFormatException e) {
                 LOG.warn("Configured " + JTI_CLEANUP_PERIOD_PROPERTY
-                        + " must be greater than zero; using default: "
+                        + " is not a valid long value or out of range; using default: "
                         + DEFAULT_JTI_CLEANUP_PERIOD_MINUTES + " minutes.");
             }
         }
