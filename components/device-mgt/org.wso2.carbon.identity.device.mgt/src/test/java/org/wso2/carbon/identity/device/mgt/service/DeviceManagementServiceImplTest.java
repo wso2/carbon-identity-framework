@@ -103,7 +103,7 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
-    public void testRegisterDeviceGeneratesDeviceIdAndBindsToAssociation() throws Exception {
+    public void testRegisterDevicePreservesCallerSuppliedIdAndBindsToAssociation() throws Exception {
 
         Device device = buildDevice("d1");
         UserDeviceAssociation association = new UserDeviceAssociation("d2", "alice@example.com");
@@ -111,8 +111,19 @@ public class DeviceManagementServiceImplTest {
 
         Device registered = service.registerDevice(device, association, TENANT_DOMAIN);
 
-        Assert.assertNotNull(registered.getId());
+        // The caller (e.g. device.registration) already communicated this id to the client as the
+        // registrationId; registerDevice() must not replace it with a different generated id, or the
+        // device the client thinks it registered as no longer matches the persisted row.
+        Assert.assertEquals(registered.getId(), "d1");
         verify(dao).registerDevice(any(), any(), eq(TENANT_ID));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testBuildDeviceWithoutIdThrows() {
+
+        // device.mgt always relies on the caller (e.g. device.registration) to supply the id;
+        // it must never generate one itself, so a blank id must fail at model construction.
+        buildDevice(null);
     }
 
     @Test
