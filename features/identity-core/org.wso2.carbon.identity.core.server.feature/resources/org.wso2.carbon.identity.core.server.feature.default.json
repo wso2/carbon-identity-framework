@@ -2208,6 +2208,7 @@
     "profile",
     "openid"
   ],
+  "myaccount.idp_configs.clockTolerance": 300,
   "myaccount.impersonation.allowed_resources": [
     "/api/server/v1/identity-governance/preferences",
     "/api/server/v1/branding-preference",
