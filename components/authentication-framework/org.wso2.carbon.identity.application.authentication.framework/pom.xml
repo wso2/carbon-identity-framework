@@ -243,6 +243,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.device.policy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
         </dependency>
         <dependency>
@@ -321,6 +325,8 @@
                             org.wso2.carbon.identity.configuration.mgt.core.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.role.v2.mgt.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.device.policy.api.service;
+                            version="${carbon.identity.package.import.version.range}"; resolution:=optional,
                             org.wso2.carbon.consent.mgt.core.listener; version="${carbon.consent.mgt.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.mgt.listener; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service.exception;
