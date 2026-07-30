@@ -887,7 +887,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     log.debug("Device data resolved and stored on the authentication context.");
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             // Device data resolution is best effort and must never break the authentication flow.
             log.error("Error while resolving device data at initiation. Error: " + e.getMessage());
         }
