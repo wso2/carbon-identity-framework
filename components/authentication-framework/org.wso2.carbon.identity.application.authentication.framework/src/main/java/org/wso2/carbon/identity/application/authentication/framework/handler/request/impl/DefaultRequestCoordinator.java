@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator;
@@ -84,6 +83,7 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceDataResolver;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -865,34 +865,31 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     /**
-     * Invokes the registered device data resolvers on the initiation request and stores the first
-     * resolved device data payload on the authentication context.
+     * Invokes the device policy component's device data resolver on the initiation request and
+     * stores any resolved device data payload on the authentication context. A no-op when the
+     * device.policy bundle is not installed.
      *
      * @param request The initiation request carrying the device token.
      * @param context The authentication context being initialized.
      */
     private void resolveAndStoreDeviceData(HttpServletRequest request, AuthenticationContext context) {
 
-        List<DeviceDataResolver> deviceDataResolvers =
-                FrameworkServiceDataHolder.getInstance().getDeviceDataResolvers();
-        if (deviceDataResolvers.isEmpty()) {
+        DeviceDataResolver deviceDataResolver = FrameworkServiceDataHolder.getInstance().getDeviceDataResolver();
+        if (deviceDataResolver == null) {
             return;
         }
-        for (DeviceDataResolver deviceDataResolver : deviceDataResolvers) {
-            try {
-                Optional<Map<String, Object>> deviceData =
-                        deviceDataResolver.resolveDeviceData(request, context.getTenantDomain());
-                if (deviceData.isPresent()) {
-                    context.setProperty(FrameworkConstants.DEVICE_DATA, deviceData.get());
-                    if (log.isDebugEnabled()) {
-                        log.debug("Device data resolved and stored on the authentication context.");
-                    }
-                    break;
+        try {
+            Optional<Map<String, Object>> deviceData =
+                    deviceDataResolver.resolveDeviceData(request, context.getTenantDomain());
+            if (deviceData.isPresent()) {
+                context.setProperty(FrameworkConstants.DEVICE_DATA, deviceData.get());
+                if (log.isDebugEnabled()) {
+                    log.debug("Device data resolved and stored on the authentication context.");
                 }
-            } catch (Exception e) {
-                // Device data resolution is best effort and must never break the authentication flow.
-                log.error("Error while resolving device data at initiation. Error: " + e.getMessage());
             }
+        } catch (Exception e) {
+            // Device data resolution is best effort and must never break the authentication flow.
+            log.error("Error while resolving device data at initiation. Error: " + e.getMessage());
         }
     }
 
