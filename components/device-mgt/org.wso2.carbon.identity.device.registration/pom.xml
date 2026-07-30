@@ -179,6 +179,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.device.policy.api.exception;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.device.policy.api.model;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils;
