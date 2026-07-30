@@ -239,7 +239,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
 
             String isPeriodicTempDataCleanupEnabledVal = IdentityUtil.getProperty
                     ("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.EnablePeriodicCleanup");
-            if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
+            if (StringUtils.isNotBlank(isPeriodicTempDataCleanupEnabledVal)) {
                 periodicTempDataCleanupEnabled = Boolean.parseBoolean(isPeriodicTempDataCleanupEnabledVal);
             }
 
@@ -250,7 +250,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
                     = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize");
             if (StringUtils.isNotBlank(maxTempDataPoolSizeValue)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Temporary data pool size config value: " + maxPoolSizeValue);
+                    log.debug("Temporary data pool size config value: " + maxTempDataPoolSizeValue);
                 }
                 maxTempDataPoolSize = Integer.parseInt(maxTempDataPoolSizeValue);
             }
