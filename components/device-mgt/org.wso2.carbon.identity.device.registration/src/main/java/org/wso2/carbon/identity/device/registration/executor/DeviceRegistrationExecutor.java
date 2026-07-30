@@ -269,7 +269,7 @@ public class DeviceRegistrationExecutor implements Executor {
 
         Map<String, Object> deviceData;
         try {
-            deviceData = holder.getDeviceTokenVerifier().verifyWithPublicKey(
+            deviceData = holder.getDeviceTokenService().resolveAndVerifyDataFromToken(
                     context.getUserInputData().get(DeviceRegistrationConstants.FIELD_DEVICE_DATA),
                     context.getUserInputData().get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY),
                     registrationId,
@@ -323,6 +323,15 @@ public class DeviceRegistrationExecutor implements Executor {
                     policyName, failedFields));
             return response;
 
+        } catch (DevicePolicyClientException e) {
+            diagnosticLogger.logRegistrationFailure("Policy evaluation failed for policy: " + policyName
+                    + ": " + e.getMessage());
+            ExecutorResponse response = new ExecutorResponse();
+            response.setResult(STATUS_USER_ERROR);
+            response.setErrorCode(e.getErrorCode());
+            response.setErrorMessage(e.getMessage());
+            response.setErrorDescription(e.getDescription());
+            return response;
         } catch (DevicePolicyException e) {
             diagnosticLogger.logRegistrationFailure("Policy evaluation failed for policy: " + policyName);
             LOG.error("Policy evaluation failed for policy: " + policyName, e);

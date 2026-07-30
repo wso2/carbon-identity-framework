@@ -31,10 +31,11 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
-import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenVerifier;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenService;
 import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
 import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
 import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
@@ -106,11 +107,11 @@ public class DeviceRegistrationExecutorTest {
     private DevicePolicyEvaluator devicePolicyEvaluator;
 
     @Mock
-    private DeviceTokenVerifier deviceTokenVerifier;
+    private DeviceTokenService deviceTokenService;
 
     private DeviceManagementService originalDeviceManagementService;
     private DevicePolicyEvaluator originalDevicePolicyEvaluator;
-    private DeviceTokenVerifier originalDeviceTokenVerifier;
+    private DeviceTokenService originalDeviceTokenService;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMocked;
     private MockedStatic<LoggerUtils> loggerUtilsMocked;
 
@@ -135,11 +136,11 @@ public class DeviceRegistrationExecutorTest {
         DeviceRegistrationComponentServiceHolder holder = DeviceRegistrationComponentServiceHolder.getInstance();
         originalDeviceManagementService = holder.getDeviceManagementService();
         originalDevicePolicyEvaluator = holder.getDevicePolicyEvaluator();
-        originalDeviceTokenVerifier = holder.getDeviceTokenVerifier();
+        originalDeviceTokenService = holder.getDeviceTokenService();
 
         holder.setDeviceManagementService(deviceManagementService);
         holder.setDevicePolicyEvaluator(devicePolicyEvaluator);
-        holder.setDeviceTokenVerifier(deviceTokenVerifier);
+        holder.setDeviceTokenService(deviceTokenService);
     }
 
     @AfterClass
@@ -148,7 +149,7 @@ public class DeviceRegistrationExecutorTest {
         DeviceRegistrationComponentServiceHolder holder = DeviceRegistrationComponentServiceHolder.getInstance();
         holder.setDeviceManagementService(originalDeviceManagementService);
         holder.setDevicePolicyEvaluator(originalDevicePolicyEvaluator);
-        holder.setDeviceTokenVerifier(originalDeviceTokenVerifier);
+        holder.setDeviceTokenService(originalDeviceTokenService);
 
         identityTenantUtilMocked.close();
         loggerUtilsMocked.close();
@@ -161,7 +162,7 @@ public class DeviceRegistrationExecutorTest {
     @BeforeMethod
     public void setUp() {
 
-        reset(deviceManagementService, devicePolicyEvaluator, deviceTokenVerifier);
+        reset(deviceManagementService, devicePolicyEvaluator, deviceTokenService);
         // The executor's diagnostic logger (and FlowUser's own claim-resolution fallback) reads the
         // tenant domain off the thread-local carbon context, not off FlowExecutionContext — seed it
         // here so those calls resolve instead of failing with "Invalid tenant domain null".
@@ -441,7 +442,7 @@ public class DeviceRegistrationExecutorTest {
         retryInput.put(FIELD_DEVICE_DATA, "{\"osVersion\":\"12\"}");
         afterInitiation.setUserInputData(retryInput);
 
-        when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(deviceTokenService.resolveAndVerifyDataFromToken(any(), any(), any(), any())).thenReturn(new HashMap<>());
         when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
                 .thenReturn(DevicePolicyEvaluationResult.compliant("strictPolicy"));
 
@@ -467,7 +468,7 @@ public class DeviceRegistrationExecutorTest {
         FlowExecutionContext afterInitiation = runInitiation(context);
         VerifiedDevice verified = buildVerifiedDevice();
 
-        when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(deviceTokenService.resolveAndVerifyDataFromToken(any(), any(), any(), any())).thenReturn(new HashMap<>());
         when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
                 .thenReturn(DevicePolicyEvaluationResult.nonCompliant("strictPolicy",
                         Arrays.asList("osVersion", "imei")));
@@ -495,7 +496,7 @@ public class DeviceRegistrationExecutorTest {
         FlowExecutionContext afterInitiation = runInitiation(context);
         VerifiedDevice verified = buildVerifiedDevice();
 
-        when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(deviceTokenService.resolveAndVerifyDataFromToken(any(), any(), any(), any())).thenReturn(new HashMap<>());
         when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
                 .thenThrow(new DevicePolicyServerException("boom"));
 
@@ -506,6 +507,36 @@ public class DeviceRegistrationExecutorTest {
 
         assertEquals(response.getResult(), STATUS_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_WHILE_EVALUATING_POLICY.getCode());
+    }
+
+    @Test
+    public void testExecuteCompletionPolicyEvaluationClientExceptionReturnsUserError() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setCurrentNode(nodeConfigWithPolicy("strictPolicy"));
+        Map<String, String> input = completionInput();
+        input.put(FIELD_DEVICE_DATA, "{\"osVersion\":\"9\"}");
+        context.setUserInputData(input);
+
+        FlowExecutionContext afterInitiation = runInitiation(context);
+        VerifiedDevice verified = buildVerifiedDevice();
+
+        DevicePolicyClientException exception =
+                new DevicePolicyClientException("Attestation failed.", "Attestation failed description.", "DPM-60009");
+        when(deviceTokenService.resolveAndVerifyDataFromToken(any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
+                .thenThrow(exception);
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            response = executor.execute(afterInitiation);
+        }
+
+        assertEquals(response.getResult(), STATUS_USER_ERROR);
+        assertEquals(response.getErrorCode(), "DPM-60009");
+        assertEquals(response.getErrorMessage(), "Attestation failed.");
+        assertEquals(response.getErrorDescription(), "Attestation failed description.");
     }
 
     // ----- rollback() -----
