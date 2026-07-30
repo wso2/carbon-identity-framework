@@ -18,17 +18,20 @@
 
 package org.wso2.carbon.identity.device.policy.internal.dao.impl;
 
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 @WithH2Database(files = {"dbscripts/h2.sql"})
 @WithCarbonHome
@@ -39,10 +42,6 @@ public class DeviceTokenJtiDAOImplTest {
     @BeforeMethod
     public void setUp() {
         deviceTokenJtiDAO = new DeviceTokenJtiDAOImpl();
-    }
-
-    @AfterMethod
-    public void tearDown() {
     }
 
     @Test
@@ -75,5 +74,43 @@ public class DeviceTokenJtiDAOImplTest {
         deviceTokenJtiDAO.removeExpiredTokens(cutoff);
 
         assertFalse(deviceTokenJtiDAO.isTokenReplayed(jti, tenantId));
+    }
+
+    /**
+     * Documents the DAO layer's own behavior on a duplicate (TENANT_ID, JTI) insert: it stays a
+     * server exception whose cause chain bottoms out in a SQLIntegrityConstraintViolationException.
+     * The DAO does not — and should not — reinterpret this as a client replay error itself;
+     * {@link org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayProtectionService}
+     * is the layer that translates a duplicate-key violation here into ERROR_DEVICE_TOKEN_REPLAYED.
+     */
+    @Test
+    public void testStoreTokenDuplicateInsertThrowsServerExceptionWithConstraintViolationCause()
+            throws DevicePolicyServerException {
+
+        String jti = "test-jti-duplicate";
+        int tenantId = 1;
+        Timestamp iat = new Timestamp(System.currentTimeMillis());
+        Timestamp exp = new Timestamp(System.currentTimeMillis() + 100000);
+
+        deviceTokenJtiDAO.storeToken(jti, tenantId, iat, exp);
+
+        try {
+            deviceTokenJtiDAO.storeToken(jti, tenantId, iat, exp);
+            fail("Expected DevicePolicyServerException on duplicate (TENANT_ID, JTI) insert.");
+        } catch (DevicePolicyServerException e) {
+            assertEquals(e.getErrorCode(), DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_REPLAY_STORE_FAILED.getCode());
+
+            Throwable cause = e;
+            boolean foundConstraintViolation = false;
+            while (cause != null) {
+                if (cause instanceof SQLIntegrityConstraintViolationException) {
+                    foundConstraintViolation = true;
+                    break;
+                }
+                cause = cause.getCause();
+            }
+            assertTrue(foundConstraintViolation,
+                    "Expected a SQLIntegrityConstraintViolationException somewhere in the cause chain.");
+        }
     }
 }

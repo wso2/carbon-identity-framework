@@ -18,8 +18,12 @@
 
 package org.wso2.carbon.identity.device.policy.api.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -56,6 +60,38 @@ public enum DeviceField {
 
     WINDOWS_HELLO("windowsHello", EnumSet.of(Platform.WINDOWS)),
     TRUSTED_PLATFORM_MODULE("trustedPlatformModule", EnumSet.of(Platform.WINDOWS));
+
+    /**
+     * Reverse index of platform to the wire names of fields applicable to it, precomputed
+     * once at class load time rather than rebuilt on every lookup. Built from
+     * {@link #appliesTo(Platform)} so the applicability logic stays defined in one place.
+     */
+    private static final Map<Platform, List<String>> FIELDS_BY_PLATFORM;
+
+    /**
+     * All field wire names, in declaration order, precomputed once at class load time.
+     */
+    private static final List<String> ALL_FIELD_NAMES;
+
+    static {
+        Map<Platform, List<String>> fieldsByPlatform = new EnumMap<>(Platform.class);
+        for (Platform platform : Platform.values()) {
+            List<String> fields = new ArrayList<>();
+            for (DeviceField field : DeviceField.values()) {
+                if (field.appliesTo(platform)) {
+                    fields.add(field.getName());
+                }
+            }
+            fieldsByPlatform.put(platform, Collections.unmodifiableList(fields));
+        }
+        FIELDS_BY_PLATFORM = Collections.unmodifiableMap(fieldsByPlatform);
+
+        List<String> allFieldNames = new ArrayList<>();
+        for (DeviceField field : DeviceField.values()) {
+            allFieldNames.add(field.getName());
+        }
+        ALL_FIELD_NAMES = Collections.unmodifiableList(allFieldNames);
+    }
 
     private final String name;
     private final Set<Platform> platforms;
@@ -95,6 +131,21 @@ public enum DeviceField {
     public boolean appliesTo(Platform platform) {
 
         return platform == null || platforms.contains(platform);
+    }
+
+    /**
+     * Returns the wire names of the fields applicable to the specified platform, looked up
+     * from the precomputed reverse index rather than recomputed per call.
+     *
+     * @param platform Platform to look up, or {@code null} for every known field.
+     * @return List of applicable field wire names.
+     */
+    public static List<String> getFieldNamesForPlatform(Platform platform) {
+
+        if (platform == null) {
+            return ALL_FIELD_NAMES;
+        }
+        return FIELDS_BY_PLATFORM.getOrDefault(platform, Collections.emptyList());
     }
 
     /**

@@ -26,6 +26,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.internal.constant.DeviceTokenConstants;
 import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 
 import java.util.HashMap;
@@ -121,6 +122,48 @@ public class DeviceDataResolverImplTest {
             Optional<Map<String, Object>> result = deviceDataResolver.resolveDeviceData(request, "carbon.super");
             assertTrue(result.isPresent());
             assertEquals(result.get().get("deviceId"), "device-456");
+        }
+    }
+
+    @Test
+    public void testResolveDeviceDataInjectsAttestationHeaderIntoDeviceData() throws Exception {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter("device_token")).thenReturn("valid-token");
+        when(request.getHeader("x-client-attestation")).thenReturn("attestation-header-value");
+
+        Map<String, Object> mockData = new HashMap<>();
+        mockData.put("deviceId", "device-789");
+
+        try (MockedConstruction<DeviceTokenExtractor> mockedConstruction = mockConstruction(DeviceTokenExtractor.class,
+                (mock, context) -> {
+                    when(mock.extractFromToken(anyString(), anyString())).thenReturn(mockData);
+                })) {
+
+            Optional<Map<String, Object>> result = deviceDataResolver.resolveDeviceData(request, "carbon.super");
+            assertTrue(result.isPresent());
+            assertEquals(result.get().get(DeviceTokenConstants.ATTESTATION_TOKEN_KEY), "attestation-header-value");
+        }
+    }
+
+    @Test
+    public void testResolveDeviceDataWithoutAttestationHeaderDoesNotInjectKey() throws Exception {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter("device_token")).thenReturn("valid-token");
+        when(request.getHeader("x-client-attestation")).thenReturn(null);
+
+        Map<String, Object> mockData = new HashMap<>();
+        mockData.put("deviceId", "device-999");
+
+        try (MockedConstruction<DeviceTokenExtractor> mockedConstruction = mockConstruction(DeviceTokenExtractor.class,
+                (mock, context) -> {
+                    when(mock.extractFromToken(anyString(), anyString())).thenReturn(mockData);
+                })) {
+
+            Optional<Map<String, Object>> result = deviceDataResolver.resolveDeviceData(request, "carbon.super");
+            assertTrue(result.isPresent());
+            assertFalse(result.get().containsKey(DeviceTokenConstants.ATTESTATION_TOKEN_KEY));
         }
     }
 

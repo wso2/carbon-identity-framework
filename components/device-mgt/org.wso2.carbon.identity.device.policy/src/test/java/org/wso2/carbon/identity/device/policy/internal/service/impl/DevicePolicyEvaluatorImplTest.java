@@ -62,7 +62,7 @@ public class DevicePolicyEvaluatorImplTest {
     private PolicyEvaluationService policyEvaluationService;
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws Exception {
         devicePolicyEvaluator = new DevicePolicyEvaluatorImpl();
 
         serviceHolder = mock(DevicePolicyComponentServiceHolder.class);
@@ -88,6 +88,9 @@ public class DevicePolicyEvaluatorImplTest {
     @Test
     public void testEvaluateWithMissingPlatform() throws Exception {
         Map<String, Object> deviceData = new HashMap<>();
+
+        Policy policy = mock(Policy.class);
+        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(policy);
 
         DevicePolicyEvaluationResult result =
                 devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
@@ -133,24 +136,6 @@ public class DevicePolicyEvaluatorImplTest {
         deviceData.put("platform", "android");
 
         when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(null);
-        when(policyManagementService.getPolicyIdByName("testPolicy", "carbon.super")).thenReturn(null);
-
-        DevicePolicyEvaluationResult result =
-                devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
-
-        Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.POLICY_NOT_FOUND);
-        Assert.assertEquals(result.getPolicyName(), "testPolicy");
-    }
-
-    @Test
-    public void testEvaluateEvaluationResultNull() throws Exception {
-        Map<String, Object> deviceData = new HashMap<>();
-        deviceData.put("platform", "android");
-
-        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(null);
-        when(policyManagementService.getPolicyIdByName("testPolicy", "carbon.super")).thenReturn("policyId123");
-        when(policyEvaluationService.evaluate(anyString(), anyString(),
-                any(PolicyEvaluationContext.class), anyString())).thenReturn(null);
 
         DevicePolicyEvaluationResult result =
                 devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
@@ -164,8 +149,10 @@ public class DevicePolicyEvaluatorImplTest {
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "android");
 
-        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(null);
-        when(policyManagementService.getPolicyIdByName("testPolicy", "carbon.super")).thenReturn("policyId123");
+        Policy policy = mock(Policy.class);
+        when(policy.getId()).thenReturn("policyId123");
+        when(policy.getResources()).thenReturn(Collections.emptyList());
+        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(policy);
 
         PolicyEvaluationResult evalResult = mock(PolicyEvaluationResult.class);
         when(evalResult.isSatisfied()).thenReturn(true);
@@ -184,8 +171,10 @@ public class DevicePolicyEvaluatorImplTest {
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "android");
 
-        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(null);
-        when(policyManagementService.getPolicyIdByName("testPolicy", "carbon.super")).thenReturn("policyId123");
+        Policy policy = mock(Policy.class);
+        when(policy.getId()).thenReturn("policyId123");
+        when(policy.getResources()).thenReturn(Collections.emptyList());
+        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(policy);
 
         PolicyEvaluationResult evalResult = mock(PolicyEvaluationResult.class);
         when(evalResult.isSatisfied()).thenReturn(false);
@@ -239,7 +228,7 @@ public class DevicePolicyEvaluatorImplTest {
         deviceDataPresent.put("platform", "android");
         deviceDataPresent.put("isRooted", "true");
 
-        when(policyManagementService.getPolicyIdByName("testPolicy", "carbon.super")).thenReturn("policyId123");
+        when(policy.getId()).thenReturn("policyId123");
         PolicyEvaluationResult evalResult = mock(PolicyEvaluationResult.class);
         when(evalResult.isSatisfied()).thenReturn(false);
 

@@ -32,10 +32,10 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-public class DeviceTokenVerifierImplTest {
+public class DeviceTokenServiceImplTest {
 
     @Test
-    public void testVerifyWithPublicKey() throws DevicePolicyException {
+    public void testResolveAndVerifyDataFromToken() throws DevicePolicyException {
 
         Map<String, Object> mockResult = new HashMap<>();
         mockResult.put("deviceId", "test-device-id");
@@ -46,8 +46,8 @@ public class DeviceTokenVerifierImplTest {
                             .thenReturn(mockResult);
                 })) {
 
-            DeviceTokenVerifierImpl verifier = new DeviceTokenVerifierImpl();
-            Map<String, Object> result = verifier.verifyWithPublicKey("dummyToken", "dummyKey", "corrId",
+            DeviceTokenServiceImpl service = new DeviceTokenServiceImpl();
+            Map<String, Object> result = service.resolveAndVerifyDataFromToken("dummyToken", "dummyKey", "corrId",
                     "carbon.super");
 
             assertNotNull(result);

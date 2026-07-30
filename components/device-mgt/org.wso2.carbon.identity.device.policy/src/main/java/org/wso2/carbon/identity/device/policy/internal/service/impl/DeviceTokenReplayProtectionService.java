@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.device.policy.internal.dao.impl.DeviceTokenJtiDA
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyDiagnosticLogger;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandler;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -59,6 +60,12 @@ public class DeviceTokenReplayProtectionService {
     /**
      * Asserts that the given jti has not already been used, then records it in the replay store.
      *
+     * <p>The pre-check below is a fast-path optimization only, not the correctness guarantee —
+     * two concurrent requests for the same jti can both pass it before either inserts. Correctness
+     * comes from the (TENANT_ID, JTI) primary key on IDN_DEVICE_TOKEN_JTI: the insert that loses
+     * the race fails with a duplicate-key violation, which is caught below and translated into the
+     * same client-facing replay error the pre-check would have produced.
+     *
      * @param jti           The JWT ID claim of the device token.
      * @param issuedAt      The token issued-at (iat) time.
      * @param tenantId      The tenant the device belongs to.
@@ -69,6 +76,9 @@ public class DeviceTokenReplayProtectionService {
     public void assertUnusedAndRecord(String jti, Date issuedAt, int tenantId, String correlationId)
             throws DevicePolicyException {
 
+        // Fast-path only: the PRIMARY KEY (TENANT_ID, JTI) on IDN_DEVICE_TOKEN_JTI, enforced by the
+        // storeToken() insert below, is the actual single-use guard. This check just avoids the
+        // insert-and-catch round trip in the common (non-racing) case.
         if (jtiDAO.isTokenReplayed(jti, tenantId)) {
             diagnosticLogger.logTokenValidationFailure(correlationId,
                     "Device token jti has already been used (replay detected).");
@@ -79,7 +89,37 @@ public class DeviceTokenReplayProtectionService {
         Timestamp issuedAtTimestamp = new Timestamp(issuedAt.getTime());
         Timestamp expiryTimestamp = new Timestamp(
                 issuedAt.getTime() + DeviceTokenConstants.TOKEN_FRESHNESS_WINDOW_MILLIS);
-        jtiDAO.storeToken(jti, tenantId, issuedAtTimestamp, expiryTimestamp);
+        try {
+            jtiDAO.storeToken(jti, tenantId, issuedAtTimestamp, expiryTimestamp);
+        } catch (DevicePolicyServerException e) {
+            if (isDuplicateKeyViolation(e)) {
+                diagnosticLogger.logTokenValidationFailure(correlationId,
+                        "Device token jti has already been used (replay detected).");
+                throw DevicePolicyExceptionHandler.handleClientException(
+                        DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_REPLAYED, jti);
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Checks whether the given exception's cause chain contains a SQL unique/primary-key
+     * constraint violation — the signal that a concurrent request already recorded this jti
+     * between the {@link #assertUnusedAndRecord} pre-check and the insert.
+     *
+     * @param e Exception thrown while storing the token.
+     * @return {@code true} if the failure was a duplicate-key violation.
+     */
+    private boolean isDuplicateKeyViolation(Throwable e) {
+
+        Throwable cause = e;
+        while (cause != null) {
+            if (cause instanceof SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 
     /**

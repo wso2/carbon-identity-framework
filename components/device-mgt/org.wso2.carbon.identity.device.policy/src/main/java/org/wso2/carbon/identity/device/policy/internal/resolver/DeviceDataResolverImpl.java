@@ -22,8 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.device.DeviceDataResolver;
+import org.wso2.carbon.identity.client.attestation.mgt.utils.Constants;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
+import org.wso2.carbon.identity.device.policy.internal.constant.DeviceTokenConstants;
 import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 
 import java.util.Map;
@@ -36,6 +38,18 @@ import javax.servlet.http.HttpServletRequest;
  * The device token is read from the {@code device_token} query parameter first (redirect flows),
  * then from the {@code X-Device-Token} header (app native / headless flows). The token is verified
  * via {@link DeviceTokenExtractor} and the resulting claims are returned as the device payload.
+ *
+ * <p>If the request carries the {@code x-client-attestation} header (the same header already
+ * required elsewhere in the login path for client attestation), its value is copied into the
+ * resolved device data under the attestation token key so {@code IntegrityDataEnricher} can use
+ * it — the caller does not need to also embed the attestation token a second time inside the
+ * device-data JWT payload.
+ *
+ * <p>The token's {@code jti} is single-use and consumed here at initiation (see
+ * {@link DeviceTokenExtractor}'s replay protection). A caller that re-submits the same
+ * {@code device_token} on a retry or page refresh will have it rejected as a replay and this
+ * method silently returns {@link Optional#empty()} — callers MUST mint a fresh device token on
+ * every initiation attempt, including retries and refreshes; the same token cannot be reused.
  */
 public class DeviceDataResolverImpl implements DeviceDataResolver {
 
@@ -60,11 +74,17 @@ public class DeviceDataResolverImpl implements DeviceDataResolver {
 
         try {
             Map<String, Object> deviceData = new DeviceTokenExtractor().extractFromToken(deviceToken, tenantDomain);
+
+            String attestationHeader = request.getHeader(Constants.ATTESTATION_HEADER);
+            if (StringUtils.isNotBlank(attestationHeader)) {
+                deviceData.put(DeviceTokenConstants.ATTESTATION_TOKEN_KEY, attestationHeader);
+            }
+
             return Optional.of(deviceData);
         } catch (DevicePolicyClientException e) {
             return Optional.empty();
         } catch (DevicePolicyException e) {
-            LOG.error("Error while verifying device token at initiation.", e);
+            LOG.error("Error while verifying device token at initiation.");
             return Optional.empty();
         }
     }

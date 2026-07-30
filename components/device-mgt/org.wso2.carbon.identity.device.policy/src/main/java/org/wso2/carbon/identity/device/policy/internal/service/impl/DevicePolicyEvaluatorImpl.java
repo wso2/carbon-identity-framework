@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.device.policy.internal.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
@@ -41,6 +42,7 @@ import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -63,29 +65,18 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
 
         String platform = (String) deviceData.get(DEVICE_PLATFORM_FIELD);
 
-        List<String> missingFields = findMissingRequiredFields(policyName, platform, deviceData, tenantDomain);
-        if (!missingFields.isEmpty()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Device data incomplete for policy '" + policyName + "': " + missingFields);
-            }
-            return DevicePolicyEvaluationResult.incompleteDeviceData(policyName, missingFields);
-        }
-
-        String policyId;
-        try {
-            policyId = DevicePolicyComponentServiceHolder.getInstance()
-                    .getPolicyManagementService()
-                    .getPolicyIdByName(policyName, tenantDomain);
-        } catch (PolicyManagementException e) {
-            throw DevicePolicyExceptionHandler.handleServerException(
-                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyName);
-        }
-
-        if (policyId == null) {
+        Policy policy = getPolicy(policyName, tenantDomain);
+        if (policy == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Policy not found: " + policyName + " for tenant: " + tenantDomain);
             }
             return DevicePolicyEvaluationResult.policyNotFound(policyName);
+        }
+
+        Optional<DevicePolicyEvaluationResult> incompleteResult =
+                checkDeviceDataCompleteness(policyName, platform, policy, deviceData);
+        if (incompleteResult.isPresent()) {
+            return incompleteResult.get();
         }
 
         PolicyEvaluationContext context = new PolicyEvaluationContext(FLOW_TYPE_DEVICE_POLICY);
@@ -94,17 +85,10 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
         try {
             result = DevicePolicyComponentServiceHolder.getInstance()
                     .getPolicyEvaluationService()
-                    .evaluate(policyId, platform != null ? platform : "", context, tenantDomain);
+                    .evaluate(policy.getId(), platform != null ? platform : "", context, tenantDomain);
         } catch (PolicyEvaluationException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
                     DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyName);
-        }
-
-        if (result == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Policy not found: " + policyName + " for tenant: " + tenantDomain);
-            }
-            return DevicePolicyEvaluationResult.policyNotFound(policyName);
         }
 
         if (!result.isSatisfied()) {
@@ -119,24 +103,39 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
         return DevicePolicyEvaluationResult.compliant(policyName);
     }
 
-    private List<String> findMissingRequiredFields(String policyName, String platform,
-            Map<String, Object> deviceData, String tenantDomain) throws DevicePolicyServerException {
+    private Policy getPolicy(String policyName, String tenantDomain) throws DevicePolicyServerException {
 
-        if (platform == null || platform.trim().isEmpty()) {
-            return Collections.singletonList(DEVICE_PLATFORM_FIELD);
-        }
-        Policy policy;
         try {
-            policy = DevicePolicyComponentServiceHolder.getInstance()
+            return DevicePolicyComponentServiceHolder.getInstance()
                     .getPolicyManagementService()
                     .getPolicyByName(policyName, tenantDomain);
         } catch (PolicyManagementException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
                     DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyName);
         }
-        if (policy == null) {
-            return Collections.emptyList();
+    }
+
+    private Optional<DevicePolicyEvaluationResult> checkDeviceDataCompleteness(String policyName, String platform,
+            Policy policy, Map<String, Object> deviceData) {
+
+        List<String> missingFields;
+        if (StringUtils.isBlank(platform)) {
+            missingFields = Collections.singletonList(DEVICE_PLATFORM_FIELD);
+        } else {
+            missingFields = findMissingRequiredFields(platform, policy, deviceData);
         }
+
+        if (!missingFields.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Device data incomplete for policy '" + policyName + "': " + missingFields);
+            }
+            return Optional.of(DevicePolicyEvaluationResult.incompleteDeviceData(policyName, missingFields));
+        }
+        return Optional.empty();
+    }
+
+    private List<String> findMissingRequiredFields(String platform, Policy policy, Map<String, Object> deviceData) {
+
         PolicyResource resource = policy.getResources().stream()
                 .filter(r -> r.getResourceType() == ResourceType.RULE
                         && platform.equalsIgnoreCase(r.getTarget()))

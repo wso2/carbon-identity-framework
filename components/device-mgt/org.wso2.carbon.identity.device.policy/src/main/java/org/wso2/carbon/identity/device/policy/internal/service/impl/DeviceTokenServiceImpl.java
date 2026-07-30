@@ -19,19 +19,19 @@
 package org.wso2.carbon.identity.device.policy.internal.service.impl;
 
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
-import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenVerifier;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenService;
 import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 
 import java.util.Map;
 
 /**
- * Default {@link DeviceTokenVerifier} implementation backed by {@link DeviceTokenExtractor}.
+ * Default {@link DeviceTokenService} implementation backed by {@link DeviceTokenExtractor}.
  */
-public class DeviceTokenVerifierImpl implements DeviceTokenVerifier {
+public class DeviceTokenServiceImpl implements DeviceTokenService {
 
     @Override
-    public Map<String, Object> verifyWithPublicKey(String token, String base64PublicKey, String correlationId,
-            String tenantDomain) throws DevicePolicyException {
+    public Map<String, Object> resolveAndVerifyDataFromToken(String token, String base64PublicKey,
+            String correlationId, String tenantDomain) throws DevicePolicyException {
 
         return new DeviceTokenExtractor().extractWithPublicKey(token, base64PublicKey, correlationId, tenantDomain);
     }

@@ -33,4 +33,9 @@ public final class DeviceTokenConstants {
 
     // A small allowance granted for the device clock running ahead of the server.
     public static final long CLOCK_SKEW_MILLIS = 30 * 1000L;
+
+    // Key under which the client attestation token is carried in the device data map, consumed
+    // by IntegrityDataEnricher and populated either from the device-data JWT claims or, when
+    // present, from the x-client-attestation request header (see DeviceDataResolverImpl).
+    public static final String ATTESTATION_TOKEN_KEY = "attestationToken";
 }

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.device.policy.internal.service.impl;
+package org.wso2.carbon.identity.device.policy.internal.service;
 
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -33,6 +33,9 @@ import org.wso2.carbon.identity.client.attestation.mgt.utils.Constants;
 import org.wso2.carbon.identity.common.testng.CarbonBasedTestListener;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
 import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
 
 import java.util.Arrays;
@@ -47,9 +50,9 @@ import static org.mockito.Mockito.when;
 
 @WithCarbonHome
 @Listeners(CarbonBasedTestListener.class)
-public class IntegrityDataEnricherImplTest {
+public class IntegrityDataEnricherTest {
 
-    private IntegrityDataEnricherImpl integrityDataEnricher;
+    private IntegrityDataEnricher integrityDataEnricher;
     private MockedStatic<DevicePolicyComponentServiceHolder> mockedServiceHolder;
     private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
     private MockedStatic<LoggerUtils> mockedLoggerUtils;
@@ -58,7 +61,7 @@ public class IntegrityDataEnricherImplTest {
 
     @BeforeMethod
     public void setUp() {
-        integrityDataEnricher = new IntegrityDataEnricherImpl();
+        integrityDataEnricher = new IntegrityDataEnricher();
         serviceHolder = mock(DevicePolicyComponentServiceHolder.class);
         clientAttestationService = mock(ClientAttestationService.class);
 
@@ -81,7 +84,7 @@ public class IntegrityDataEnricherImplTest {
     }
 
     @Test
-    public void testEnrichWithoutToken() {
+    public void testEnrichWithoutToken() throws Exception {
         Map<String, Object> deviceData = new HashMap<>();
         integrityDataEnricher.enrich(deviceData, "appId", "carbon.super");
 
@@ -89,7 +92,7 @@ public class IntegrityDataEnricherImplTest {
     }
 
     @Test
-    public void testEnrichWithoutAttestationService() {
+    public void testEnrichWithoutAttestationService() throws Exception {
         when(serviceHolder.getClientAttestationService()).thenReturn(null);
 
         Map<String, Object> deviceData = new HashMap<>();
@@ -102,7 +105,7 @@ public class IntegrityDataEnricherImplTest {
     }
 
     @Test
-    public void testEnrichWithAndroidAttestation() throws ClientAttestationMgtException {
+    public void testEnrichWithAndroidAttestation() throws Exception {
         ClientAttestationContext context = mock(ClientAttestationContext.class);
         when(context.getClientType()).thenReturn(Constants.ClientTypes.ANDROID);
         when(context.getDeviceIntegrityVerdicts()).thenReturn(Collections.singletonList("MEETS_STRONG_INTEGRITY"));
@@ -117,8 +120,8 @@ public class IntegrityDataEnricherImplTest {
     }
 
     @Test
-    public void testEnrichWithAndroidAttestationVariousVerdicts() throws ClientAttestationMgtException {
-        // Device integrity
+    public void testEnrichWithAndroidAttestationVariousVerdicts() throws Exception {
+        // Device integrity.
         ClientAttestationContext context = mock(ClientAttestationContext.class);
         when(context.getClientType()).thenReturn(Constants.ClientTypes.ANDROID);
         when(context.getDeviceIntegrityVerdicts()).thenReturn(Arrays.asList("MEETS_DEVICE_INTEGRITY"));
@@ -128,19 +131,19 @@ public class IntegrityDataEnricherImplTest {
         integrityDataEnricher.enrich(deviceData, "appId", "carbon.super");
         Assert.assertEquals(deviceData.get("androidIntegrity"), "MEETS_DEVICE_INTEGRITY");
 
-        // Basic integrity
+        // Basic integrity.
         when(context.getDeviceIntegrityVerdicts()).thenReturn(Arrays.asList("MEETS_BASIC_INTEGRITY"));
         deviceData.put("attestationToken", "test-token");
         integrityDataEnricher.enrich(deviceData, "appId", "carbon.super");
         Assert.assertEquals(deviceData.get("androidIntegrity"), "MEETS_BASIC_INTEGRITY");
 
-        // Virtual integrity
+        // Virtual integrity.
         when(context.getDeviceIntegrityVerdicts()).thenReturn(Arrays.asList("MEETS_VIRTUAL_INTEGRITY"));
         deviceData.put("attestationToken", "test-token");
         integrityDataEnricher.enrich(deviceData, "appId", "carbon.super");
         Assert.assertEquals(deviceData.get("androidIntegrity"), "MEETS_VIRTUAL_INTEGRITY");
 
-        // Integrity failed (empty verdicts)
+        // Integrity failed (empty verdicts).
         when(context.getDeviceIntegrityVerdicts()).thenReturn(Collections.emptyList());
         deviceData.put("attestationToken", "test-token");
         integrityDataEnricher.enrich(deviceData, "appId", "carbon.super");
@@ -148,7 +151,7 @@ public class IntegrityDataEnricherImplTest {
     }
 
     @Test
-    public void testEnrichWithIOSAttestation() throws ClientAttestationMgtException {
+    public void testEnrichWithIOSAttestation() throws Exception {
         ClientAttestationContext context = mock(ClientAttestationContext.class);
         when(context.getClientType()).thenReturn(Constants.ClientTypes.IOS);
         when(context.isAttested()).thenReturn(true);
@@ -163,9 +166,11 @@ public class IntegrityDataEnricherImplTest {
     }
 
     @Test
-    public void testEnrichWithAttestationException() throws ClientAttestationMgtException {
-        when(clientAttestationService.validateAttestation(anyString(), anyString(), anyString()))
-                .thenThrow(new ClientAttestationMgtException("Invalid token"));
+    public void testEnrichWithUnrecognizedClientTypeFailsClosed() throws Exception {
+        ClientAttestationContext context = mock(ClientAttestationContext.class);
+        when(context.getClientType()).thenReturn(null);
+
+        when(clientAttestationService.validateAttestation(anyString(), anyString(), anyString())).thenReturn(context);
 
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("attestationToken", "test-token");
@@ -173,5 +178,22 @@ public class IntegrityDataEnricherImplTest {
 
         Assert.assertEquals(deviceData.get("androidIntegrity"), "INTEGRITY_FAILED");
         Assert.assertEquals(deviceData.get("iosIntegrity"), "false");
+    }
+
+    @Test
+    public void testEnrichWithAttestationException() throws ClientAttestationMgtException, DevicePolicyException {
+        when(clientAttestationService.validateAttestation(anyString(), anyString(), anyString()))
+                .thenThrow(new ClientAttestationMgtException("Invalid token"));
+
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("attestationToken", "test-token");
+
+        try {
+            integrityDataEnricher.enrich(deviceData, "appId", "carbon.super");
+            Assert.fail("Expected a DevicePolicyClientException to be thrown.");
+        } catch (DevicePolicyClientException e) {
+            Assert.assertEquals(e.getErrorCode(),
+                    DevicePolicyErrorMessage.ERROR_DEVICE_ATTESTATION_VERIFICATION_FAILED.getCode());
+        }
     }
 }

@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.device.policy.api.model;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DeviceFieldTest {
@@ -82,5 +84,68 @@ public class DeviceFieldTest {
             Assert.assertTrue(names.add(field.getName()), "Duplicate wire name found: " + field.getName());
         }
         Assert.assertEquals(names.size(), 22);
+    }
+
+    @Test
+    public void testGetFieldNamesForAndroid() {
+
+        List<String> expected = Arrays.asList(
+                "platform", "lockScreen", "androidOsVersion", "isRooted", "usbDebugging",
+                "hardwareKeystore", "biometric", "screenLockComplexity", "diskEncryption",
+                "networkProxies", "wifiNetworkSecurity", "androidIntegrity"
+        );
+        Assert.assertEquals(DeviceField.getFieldNamesForPlatform(Platform.ANDROID), expected);
+    }
+
+    @Test
+    public void testGetFieldNamesForIos() {
+
+        List<String> expected = Arrays.asList(
+                "platform", "lockScreen", "iosOsVersion", "iosIntegrity",
+                "passcode", "touchIdOrFaceId", "jailbreak"
+        );
+        Assert.assertEquals(DeviceField.getFieldNamesForPlatform(Platform.IOS), expected);
+    }
+
+    @Test
+    public void testGetFieldNamesForMacos() {
+
+        List<String> expected = Arrays.asList(
+                "platform", "lockScreen", "macosOsVersion", "diskEncryption", "secureEnclave"
+        );
+        Assert.assertEquals(DeviceField.getFieldNamesForPlatform(Platform.MACOS), expected);
+    }
+
+    @Test
+    public void testGetFieldNamesForWindows() {
+
+        List<String> expected = Arrays.asList(
+                "platform", "lockScreen", "windowsOsVersion", "diskEncryption",
+                "windowsHello", "trustedPlatformModule"
+        );
+        Assert.assertEquals(DeviceField.getFieldNamesForPlatform(Platform.WINDOWS), expected);
+    }
+
+    @Test
+    public void testGetFieldNamesForNullPlatformReturnsEveryField() {
+
+        List<String> fields = DeviceField.getFieldNamesForPlatform(null);
+
+        Assert.assertEquals(fields.size(), 22);
+        for (DeviceField field : DeviceField.values()) {
+            Assert.assertTrue(fields.contains(field.getName()));
+        }
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void testGetFieldNamesForPlatformReturnsUnmodifiableList() {
+
+        DeviceField.getFieldNamesForPlatform(Platform.ANDROID).add("extraField");
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void testGetFieldNamesForNullPlatformReturnsUnmodifiableList() {
+
+        DeviceField.getFieldNamesForPlatform(null).add("extraField");
     }
 }

@@ -29,10 +29,10 @@ import java.util.Map;
  * verifies the key via the challenge signature) and the device is not yet
  * persisted, so a registry lookup is neither possible nor required.
  */
-public interface DeviceTokenVerifier {
+public interface DeviceTokenService {
 
     /**
-     * Verifies a device-data JWT signed with the given public key and returns
+     * Resolves and verifies a device-data JWT signed with the given public key and returns
      * its claims. Runs signature, {@code iat} freshness and {@code jti}
      * single-use checks before the claims are trusted.
      *
@@ -43,7 +43,7 @@ public interface DeviceTokenVerifier {
      * @return Map of device field names to their values from verified JWT.
      * @throws DevicePolicyException If the token is invalid or stale.
      */
-    Map<String, Object> verifyWithPublicKey(String token, String base64PublicKey,
+    Map<String, Object> resolveAndVerifyDataFromToken(String token, String base64PublicKey,
                                             String correlationId, String tenantDomain)
             throws DevicePolicyException;
 }

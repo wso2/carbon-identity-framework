@@ -83,10 +83,10 @@ public class DevicePolicyJsFunction implements BiFunction<JsBaseAuthenticationCo
             }
 
         } catch (DevicePolicyClientException e) {
-            LOG.error("Error while evaluating device policy: " + policyName, e);
+            LOG.warn("Error while evaluating device policy: " + policyName);
             return policyName + ":policy_error";
         } catch (DevicePolicyException e) {
-            LOG.error("Error while evaluating device policy: " + policyName, e);
+            LOG.error("Error while evaluating device policy: " + policyName);
             return policyName + ":evaluation_error";
         }
     }

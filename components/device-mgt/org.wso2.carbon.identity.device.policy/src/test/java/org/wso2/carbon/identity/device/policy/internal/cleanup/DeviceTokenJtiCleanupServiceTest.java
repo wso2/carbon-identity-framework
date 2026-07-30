@@ -31,6 +31,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -59,16 +60,13 @@ public class DeviceTokenJtiCleanupServiceTest {
     }
 
     @Test
-    public void testActivateCleanUp() throws DevicePolicyServerException, InterruptedException {
+    public void testActivateCleanUp() throws DevicePolicyServerException {
 
         doNothing().when(replayServiceMock).removeExpiredTokens();
 
         cleanupService.activateCleanUp();
-        
-        // Wait briefly for the task to run
-        Thread.sleep(100);
-        
-        verify(replayServiceMock).removeExpiredTokens();
+
+        verify(replayServiceMock, timeout(1000)).removeExpiredTokens();
     }
 
     @Test

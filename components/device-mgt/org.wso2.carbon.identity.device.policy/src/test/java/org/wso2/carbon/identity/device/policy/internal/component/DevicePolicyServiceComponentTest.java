@@ -32,8 +32,12 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
+import org.wso2.carbon.identity.device.policy.internal.cleanup.DeviceTokenJtiCleanupService;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -95,12 +99,32 @@ public class DevicePolicyServiceComponentTest {
     }
 
     @Test
-    public void testDeactivate() {
+    public void testDeactivate() throws Exception {
+        mockedIdentityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn(null);
+
+        try {
+            component.activate(componentContext);
+        } catch (NoSuchMethodError e) {
+            // Ignore PaxLogger error
+        }
+
+        Field cleanupServiceField = DevicePolicyServiceComponent.class.getDeclaredField("deviceTokenJtiCleanupService");
+        cleanupServiceField.setAccessible(true);
+        DeviceTokenJtiCleanupService cleanupService = (DeviceTokenJtiCleanupService) cleanupServiceField.get(component);
+        Assert.assertNotNull(cleanupService, "Cleanup service should have been created by activate().");
+
+        Field schedulerField = DeviceTokenJtiCleanupService.class.getDeclaredField("scheduler");
+        schedulerField.setAccessible(true);
+        ScheduledExecutorService scheduler = (ScheduledExecutorService) schedulerField.get(cleanupService);
+        Assert.assertFalse(scheduler.isShutdown(), "Scheduler should be running after activate().");
+
         try {
             component.deactivate(componentContext);
         } catch (NoSuchMethodError e) {
             // Ignore
         }
+
+        Assert.assertTrue(scheduler.isShutdown(), "Scheduler should be shut down after deactivate().");
     }
 
     @Test

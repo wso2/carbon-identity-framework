@@ -24,6 +24,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.SignedJWT;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -75,12 +76,13 @@ public class DeviceTokenExtractor {
         try {
             SignedJWT signedJWT = parseSignedJWT(token);
 
-            String deviceId = (String) signedJWT.getHeader().getCustomParam(DEVICE_ID_PARAM);
-            if (deviceId == null || deviceId.trim().isEmpty()) {
+            Object deviceIdParam = signedJWT.getHeader().getCustomParam(DEVICE_ID_PARAM);
+            if (!(deviceIdParam instanceof String) || StringUtils.isBlank((String) deviceIdParam)) {
                 diagnosticLogger.logTokenValidationFailure(null, "Device token header is missing the deviceId.");
                 throw DevicePolicyExceptionHandler.handleClientException(
                         DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_MISSING_DEVICE_ID);
             }
+            String deviceId = (String) deviceIdParam;
             // Strip any stray leading/trailing quotes or backslashes introduced by JWT serialisation bugs.
             deviceId = deviceId.replaceAll("[\"\\\\]+$", "").replaceAll("^[\"\\\\]+", "").trim();
 
@@ -222,6 +224,10 @@ public class DeviceTokenExtractor {
     private ECPublicKey decodePublicKey(String base64PublicKey)
             throws DevicePolicyServerException {
 
+        if (base64PublicKey == null) {
+            throw DevicePolicyExceptionHandler.handleServerException(
+                    DevicePolicyErrorMessage.ERROR_DEVICE_PUBLIC_KEY_DECODE_FAILED);
+        }
         try {
             byte[] keyBytes = Base64.getDecoder().decode(base64PublicKey);
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);

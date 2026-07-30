@@ -34,18 +34,15 @@ import org.wso2.carbon.identity.application.authentication.framework.device.Devi
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
-import org.wso2.carbon.identity.device.policy.api.service.DeviceFieldMetadataService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
-import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenVerifier;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenService;
 import org.wso2.carbon.identity.device.policy.internal.cleanup.DeviceTokenJtiCleanupService;
 import org.wso2.carbon.identity.device.policy.internal.js.DevicePolicyJsFunction;
 import org.wso2.carbon.identity.device.policy.internal.resolver.DeviceDataResolverImpl;
 import org.wso2.carbon.identity.device.policy.internal.rule.DevicePolicyEvaluationDataProvider;
 import org.wso2.carbon.identity.device.policy.internal.service.IntegrityDataEnricher;
-import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceFieldMetadataServiceImpl;
 import org.wso2.carbon.identity.device.policy.internal.service.impl.DevicePolicyEvaluatorImpl;
-import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenVerifierImpl;
-import org.wso2.carbon.identity.device.policy.internal.service.impl.IntegrityDataEnricherImpl;
+import org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenServiceImpl;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
@@ -77,17 +74,15 @@ public class DevicePolicyServiceComponent {
             BundleContext bundleCtx = context.getBundleContext();
 
             DevicePolicyEvaluator devicePolicyEvaluator = new DevicePolicyEvaluatorImpl();
-            IntegrityDataEnricher integrityDataEnricher = new IntegrityDataEnricherImpl();
+            IntegrityDataEnricher integrityDataEnricher = new IntegrityDataEnricher();
 
             bundleCtx.registerService(DevicePolicyEvaluator.class.getName(), devicePolicyEvaluator, null);
             bundleCtx.registerService(RuleEvaluationDataProvider.class.getName(),
                     new DevicePolicyEvaluationDataProvider(), null);
-            bundleCtx.registerService(DeviceFieldMetadataService.class.getName(),
-                    new DeviceFieldMetadataServiceImpl(), null);
             bundleCtx.registerService(DeviceDataResolver.class.getName(),
                     new DeviceDataResolverImpl(), null);
-            bundleCtx.registerService(DeviceTokenVerifier.class.getName(),
-                    new DeviceTokenVerifierImpl(), null);
+            bundleCtx.registerService(DeviceTokenService.class.getName(),
+                    new DeviceTokenServiceImpl(), null);
 
             DevicePolicyComponentServiceHolder holder = DevicePolicyComponentServiceHolder.getInstance();
             holder.setDevicePolicyEvaluator(devicePolicyEvaluator);
@@ -134,7 +129,14 @@ public class DevicePolicyServiceComponent {
         long cleanupPeriod = DEFAULT_JTI_CLEANUP_PERIOD_MINUTES;
         String cleanupPeriodValue = IdentityUtil.getProperty(JTI_CLEANUP_PERIOD_PROPERTY);
         if (StringUtils.isNotBlank(cleanupPeriodValue) && StringUtils.isNumeric(cleanupPeriodValue)) {
-            cleanupPeriod = Long.parseLong(cleanupPeriodValue);
+            long configuredPeriod = Long.parseLong(cleanupPeriodValue);
+            if (configuredPeriod > 0) {
+                cleanupPeriod = configuredPeriod;
+            } else {
+                LOG.warn("Configured " + JTI_CLEANUP_PERIOD_PROPERTY
+                        + " must be greater than zero; using default: "
+                        + DEFAULT_JTI_CLEANUP_PERIOD_MINUTES + " minutes.");
+            }
         }
         deviceTokenJtiCleanupService = new DeviceTokenJtiCleanupService(cleanupPeriod / 4, cleanupPeriod);
         deviceTokenJtiCleanupService.activateCleanUp();

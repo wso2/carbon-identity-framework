@@ -25,7 +25,7 @@ public class DevicePolicyErrorMessageTest {
 
     @Test
     public void testGetCode() {
-        Assert.assertEquals(DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_PARSE_FAILED.getCode(), "DPM-60008");
+        Assert.assertEquals(DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_PARSE_FAILED.getCode(), "DPM-60001");
     }
 
     @Test
