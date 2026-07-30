@@ -774,6 +774,8 @@ public class IdPManagementConstants {
                 "directly. It is created only through the connection sharing process."),
         ERROR_CODE_SHARED_IDP_DIRECT_DELETION("IDP-60018", "A shared identity provider cannot be deleted " +
                 "directly. It is removed only through the connection unsharing process."),
+        ERROR_CODE_SHARED_PARENT_IDP_DELETION("IDP-60019", "An identity provider that has been shared with " +
+                "organizations cannot be deleted. Unshare it from all organizations before deleting."),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
