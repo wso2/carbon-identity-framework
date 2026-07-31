@@ -1148,11 +1148,28 @@ public class RoleDAOTest {
         userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
         userCoreUtil.when(() -> UserCoreUtil.extractDomainFromName(anyString())).thenCallRealMethod();
         userCoreUtil.when(() -> UserCoreUtil.addDomainToName(anyString(), anyString())).thenCallRealMethod();
-        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
-        addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
 
-        List<String> roles = roleDAO.getRoleIdListOfGroupNames(groupNamesList, SAMPLE_TENANT_DOMAIN);
-        assertEquals(roles.size(), 2);
+        // Assign each role to a distinct group so the returned role IDs can be verified per group name.
+        RoleBasicInfo role1 = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, SAMPLE_TENANT_DOMAIN,
+                permissions, userIDsList, userNamesList,
+                Collections.singletonList("groupID1"), Collections.singletonMap("groupID1", "group1"), roleDAO, false);
+        RoleBasicInfo role2 = addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, SAMPLE_TENANT_DOMAIN,
+                permissions, userIDsList, userNamesList,
+                Collections.singletonList("groupID2"), Collections.singletonMap("groupID2", "group2"), roleDAO, false);
+
+        // A single group name should resolve only to the role associated with that group.
+        List<String> group1Roles = roleDAO.getRoleIdListOfGroupNames(Collections.singletonList("group1"),
+                SAMPLE_TENANT_DOMAIN);
+        assertEquals(group1Roles.size(), 1);
+        assertTrue(group1Roles.contains(role1.getId()));
+        assertFalse(group1Roles.contains(role2.getId()));
+
+        // Both group names should resolve to both associated roles.
+        List<String> allRoles = roleDAO.getRoleIdListOfGroupNames(Arrays.asList("group1", "group2"),
+                SAMPLE_TENANT_DOMAIN);
+        assertEquals(allRoles.size(), 2);
+        assertTrue(allRoles.contains(role1.getId()));
+        assertTrue(allRoles.contains(role2.getId()));
     }
 
     @Test
