@@ -91,6 +91,17 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
+    public void testGenerateDeviceIdReturnsUniqueNonBlankIds() {
+
+        String id1 = service.generateDeviceId();
+        String id2 = service.generateDeviceId();
+
+        Assert.assertNotNull(id1);
+        Assert.assertFalse(id1.isBlank());
+        Assert.assertNotEquals(id1, id2);
+    }
+
+    @Test
     public void testRegisterDeviceDelegatesToDao() throws Exception {
 
         Device device = buildDevice("d1");

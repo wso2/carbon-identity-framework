@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.device.mgt.internal.util.DeviceValidator;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Default implementation of {@link DeviceManagementService}.
@@ -66,6 +67,12 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
      */
     public static DeviceManagementServiceImpl getInstance() {
         return INSTANCE;
+    }
+
+    @Override
+    public String generateDeviceId() {
+
+        return UUID.randomUUID().toString();
     }
 
     @Override
