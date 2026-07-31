@@ -45,6 +45,8 @@ public enum DevicePolicyErrorMessage {
     ERROR_DEVICE_ATTESTATION_VERIFICATION_FAILED("DPM-60009",
             "Device attestation verification failed.",
             "Failed to verify the attestation token for application: %s, tenant: %s."),
+    ERROR_DEVICE_POLICY_NOT_FOUND("DPM-60010", "Device policy not found.",
+            "No device policy found with name: %s for tenant: %s."),
 
     // Server errors.
     ERROR_DEVICE_ECDSA_VERIFICATION_FAILED("DPM-65001",

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
 import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
@@ -76,13 +77,14 @@ public class DevicePolicyJsFunction implements BiFunction<JsBaseAuthenticationCo
                     return String.join(", ", result.getFailedFields());
                 case INCOMPLETE_DEVICE_DATA:
                     return String.join(", ", result.getMissingFields());
-                case POLICY_NOT_FOUND:
-                    return result.getPolicyName() + ":policy_not_found";
                 default:
                     return null;
             }
 
         } catch (DevicePolicyClientException e) {
+            if (DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND.getCode().equals(e.getErrorCode())) {
+                return policyName + ":policy_not_found";
+            }
             LOG.warn("Error while evaluating device policy: " + policyName);
             return policyName + ":policy_error";
         } catch (DevicePolicyException e) {

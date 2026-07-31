@@ -24,6 +24,7 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
 import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
 import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
 import org.wso2.carbon.identity.device.policy.internal.service.IntegrityDataEnricher;
@@ -130,18 +131,14 @@ public class DevicePolicyEvaluatorImplTest {
         Assert.assertTrue(result.getFailedFields().isEmpty());
     }
 
-    @Test
-    public void testEvaluatePolicyNotFoundId() throws Exception {
+    @Test(expectedExceptions = DevicePolicyClientException.class)
+    public void testEvaluatePolicyNotFoundThrows() throws Exception {
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "android");
 
         when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(null);
 
-        DevicePolicyEvaluationResult result =
-                devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
-
-        Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.POLICY_NOT_FOUND);
-        Assert.assertEquals(result.getPolicyName(), "testPolicy");
+        devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
     }
 
     @Test

@@ -67,14 +67,12 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
 
         Policy policy = getPolicy(policyName, tenantDomain);
         if (policy == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Policy not found: " + policyName + " for tenant: " + tenantDomain);
-            }
-            return DevicePolicyEvaluationResult.policyNotFound(policyName);
+            throw DevicePolicyExceptionHandler.handleClientException(
+                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyName, tenantDomain);
         }
 
         Optional<DevicePolicyEvaluationResult> incompleteResult =
-                checkDeviceDataCompleteness(policyName, platform, policy, deviceData);
+                checkDeviceDataCompleteness(policyName, policy, deviceData);
         if (incompleteResult.isPresent()) {
             return incompleteResult.get();
         }
@@ -115,9 +113,10 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
         }
     }
 
-    private Optional<DevicePolicyEvaluationResult> checkDeviceDataCompleteness(String policyName, String platform,
+    private Optional<DevicePolicyEvaluationResult> checkDeviceDataCompleteness(String policyName,
             Policy policy, Map<String, Object> deviceData) {
 
+        String platform = (String) deviceData.get(DEVICE_PLATFORM_FIELD);
         List<String> missingFields;
         if (StringUtils.isBlank(platform)) {
             missingFields = Collections.singletonList(DEVICE_PLATFORM_FIELD);

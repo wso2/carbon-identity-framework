@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.CarbonBasedTestListener;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
 import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
@@ -150,7 +151,9 @@ public class DevicePolicyJsFunctionTest {
         Mockito.when(authContext.getServiceProviderResourceId()).thenReturn("app-123");
 
         Mockito.when(devicePolicyEvaluator.evaluate("testPolicy", deviceData, "app-123", "carbon.super"))
-                .thenReturn(DevicePolicyEvaluationResult.policyNotFound("testPolicy"));
+                .thenThrow(new DevicePolicyClientException("Device policy not found.",
+                        "No device policy found with name: testPolicy for tenant: carbon.super",
+                        DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND.getCode()));
 
         String result = jsFunction.apply(jsContext, "testPolicy");
         assertEquals(result, "testPolicy:policy_not_found");

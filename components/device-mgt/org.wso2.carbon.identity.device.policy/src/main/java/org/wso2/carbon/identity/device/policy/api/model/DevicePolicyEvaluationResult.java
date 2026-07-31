@@ -33,8 +33,7 @@ public class DevicePolicyEvaluationResult {
     public enum Status {
         COMPLIANT,
         NON_COMPLIANT,
-        INCOMPLETE_DEVICE_DATA,
-        POLICY_NOT_FOUND
+        INCOMPLETE_DEVICE_DATA
     }
 
     private final Status status;
@@ -86,17 +85,6 @@ public class DevicePolicyEvaluationResult {
     public static DevicePolicyEvaluationResult incompleteDeviceData(String policyName, List<String> missingFields) {
 
         return new DevicePolicyEvaluationResult(Status.INCOMPLETE_DEVICE_DATA, policyName, null, missingFields);
-    }
-
-    /**
-     * Creates a {@link DevicePolicyEvaluationResult} representing a policy not found result.
-     *
-     * @param policyName Name of the policy that could not be found or evaluated.
-     * @return Policy not found result.
-     */
-    public static DevicePolicyEvaluationResult policyNotFound(String policyName) {
-
-        return new DevicePolicyEvaluationResult(Status.POLICY_NOT_FOUND, policyName, null, null);
     }
 
     /**

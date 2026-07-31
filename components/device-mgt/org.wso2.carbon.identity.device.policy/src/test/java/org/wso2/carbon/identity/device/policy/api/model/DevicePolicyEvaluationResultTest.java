@@ -91,15 +91,4 @@ public class DevicePolicyEvaluationResultTest {
         }
     }
 
-    @Test
-    public void testPolicyNotFoundFactory() {
-
-        DevicePolicyEvaluationResult result = DevicePolicyEvaluationResult.policyNotFound(POLICY_NAME);
-
-        Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.POLICY_NOT_FOUND);
-        Assert.assertEquals(result.getPolicyName(), POLICY_NAME);
-        Assert.assertFalse(result.isCompliant());
-        Assert.assertTrue(result.getFailedFields().isEmpty());
-        Assert.assertTrue(result.getMissingFields().isEmpty());
-    }
 }
