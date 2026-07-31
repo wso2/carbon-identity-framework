@@ -413,6 +413,108 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         cleanupTestData();
     }
 
+    /**
+     * Test getActiveSessionIds returns only the sessions that have no DELETE marker, scoped to the given user.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionCountWithoutMaxSessionTimeout"})
+    public void testGetActiveSessionIds() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), false, mockedIdentityDatabaseUtil);
+        cleanupTestData();
+
+        long currentTime = System.currentTimeMillis();
+        // The active user owns two sessions; one has a DELETE marker and should be excluded.
+        createUserSessionMapping("activeUser", "activeSession1");
+        createUserSessionMapping("activeUser", "activeSession2");
+        createSession("activeSession1", "CREATE", currentTime - 30000);
+        createSession("activeSession2", "CREATE", currentTime - 30000);
+        createSession("activeSession2", "DELETE", currentTime - 5000);
+        // A session belonging to another user must not be returned.
+        createUserSessionMapping("otherUser", "otherSession");
+        createSession("otherSession", "CREATE", currentTime - 30000);
+
+        List<String> activeSessionIds = UserSessionStore.getInstance().getActiveSessionIds("activeUser");
+
+        Assert.assertEquals(activeSessionIds.size(), 1,
+                "Only the session without a DELETE marker should be returned as active.");
+        Assert.assertTrue(activeSessionIds.contains("activeSession1"),
+                "The active session of the user should be returned.");
+        Assert.assertFalse(activeSessionIds.contains("activeSession2"),
+                "The deleted session of the user should not be returned as active.");
+        Assert.assertFalse(activeSessionIds.contains("otherSession"),
+                "A session belonging to another user should not be returned.");
+
+        cleanupTestData();
+    }
+
+    /**
+     * Test getActiveSessionIds treats a session as terminated once a DELETE marker exists, even when a STORE record
+     * was written after it. A racing request can persist the session context after the session has been terminated,
+     * and SessionDataStore's cleanup task purges every STORE record of such a session regardless of the record
+     * timestamps.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionIds"})
+    public void testGetActiveSessionIdsWhenStoreFollowsDelete() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), false, mockedIdentityDatabaseUtil);
+        cleanupTestData();
+
+        long currentTime = System.currentTimeMillis();
+        createUserSessionMapping("racingUser", "racingSession");
+        createSession("racingSession", "CREATE", currentTime - 30000);
+        createSession("racingSession", "DELETE", currentTime - 10000);
+        createSession("racingSession", "CREATE", currentTime - 5000);
+
+        List<String> activeSessionIds = UserSessionStore.getInstance().getActiveSessionIds("racingUser");
+
+        Assert.assertTrue(activeSessionIds.isEmpty(),
+                "A session with a DELETE marker should stay excluded even when a later STORE record exists.");
+
+        cleanupTestData();
+    }
+
+    /**
+     * Test getActiveSessionIds skips sessions that are mapped to the user but no longer have any record in the
+     * session store, since the mapping table can retain entries after the session records are cleaned up.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionIdsWhenStoreFollowsDelete"})
+    public void testGetActiveSessionIdsForStaleSessionMapping() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), false, mockedIdentityDatabaseUtil);
+        cleanupTestData();
+
+        long currentTime = System.currentTimeMillis();
+        createUserSessionMapping("staleUser", "staleSession");
+        createUserSessionMapping("staleUser", "liveSession");
+        createSession("liveSession", "CREATE", currentTime - 30000);
+
+        List<String> activeSessionIds = UserSessionStore.getInstance().getActiveSessionIds("staleUser");
+
+        Assert.assertEquals(activeSessionIds.size(), 1,
+                "Only the session that still has a session store record should be returned.");
+        Assert.assertTrue(activeSessionIds.contains("liveSession"),
+                "The session with a session store record should be returned.");
+        Assert.assertFalse(activeSessionIds.contains("staleSession"),
+                "A session without any session store record should not be returned.");
+
+        cleanupTestData();
+    }
+
+    /**
+     * Test getActiveSessionIds returns an empty list when the user has no sessions.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionIdsForStaleSessionMapping"})
+    public void testGetActiveSessionIdsForUserWithoutSessions() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), false, mockedIdentityDatabaseUtil);
+        cleanupTestData();
+
+        List<String> activeSessionIds = UserSessionStore.getInstance().getActiveSessionIds("userWithoutSessions");
+
+        Assert.assertNotNull(activeSessionIds, "An empty list is expected instead of null.");
+        Assert.assertTrue(activeSessionIds.isEmpty(), "No active sessions are expected for the user.");
+    }
+
     private void mockIdentityDataBaseUtilConnection(Connection connection, Boolean shouldApplyTransaction,
                                                     MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil)
             throws SQLException {
