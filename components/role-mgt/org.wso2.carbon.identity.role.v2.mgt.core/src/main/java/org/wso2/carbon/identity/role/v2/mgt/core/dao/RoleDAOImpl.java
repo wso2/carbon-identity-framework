@@ -1308,6 +1308,13 @@ public class RoleDAOImpl implements RoleDAO {
 
         Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupIds, tenantDomain);
         List<String> groupNamesList = new ArrayList<>(groupIdsToNames.values());
+        return getRoleIdListOfGroupNames(groupNamesList, tenantDomain);
+    }
+
+    @Override
+    public List<String> getRoleIdListOfGroupNames(List<String> groupNames, String tenantDomain)
+            throws IdentityRoleManagementException {
+
         String primaryDomainName = IdentityUtil.getPrimaryDomainName();
         if (primaryDomainName != null) {
             primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
@@ -1316,7 +1323,7 @@ public class RoleDAOImpl implements RoleDAO {
         List<String> roleIds = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_ID_LIST_OF_GROUP_SQL)) {
-            for (String groupName : groupNamesList) {
+            for (String groupName : groupNames) {
                 // Add domain if not set.
                 groupName = UserCoreUtil.addDomainToName(groupName, primaryDomainName);
                 // Get domain from name.
@@ -1337,8 +1344,8 @@ public class RoleDAOImpl implements RoleDAO {
             }
         } catch (SQLException e) {
             String errorMessage =
-                    "Error while retrieving role list of groups by ids: " + String.join(", ", groupIds)
-                            + " and tenantDomain : " + tenantDomain;
+                    "Error while retrieving role ID list of groups by names: " + String.join(", ", groupNames)
+                            + " and tenantDomain: " + tenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
         return roleIds.stream().distinct().collect(Collectors.toList());

@@ -438,6 +438,20 @@ public interface RoleManagementService {
             throws IdentityRoleManagementException;
 
     /**
+     * Get role id list of groups by group names.
+     *
+     * @param groupNames
+     * @param tenantDomain
+     * @return
+     * @throws IdentityRoleManagementException
+     */
+    default List<String> getRoleIdListOfGroupNames(List<String> groupNames, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getRoleIdListOfGroupNames method is not implemented");
+    }
+
+    /**
      * Get role id list of idp groups.
      *
      * @param groupIds     Idp Group IDs.
