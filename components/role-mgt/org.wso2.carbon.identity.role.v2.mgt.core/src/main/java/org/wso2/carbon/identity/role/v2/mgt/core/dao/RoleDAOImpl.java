@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -61,6 +61,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -3413,7 +3414,8 @@ public class RoleDAOImpl implements RoleDAO {
         IdentityProvider identityProvider;
         try {
             identityProvider = RoleManagementServiceComponentHolder.getInstance()
-                    .getIdentityProviderManager().getIdPByResourceId(idpId, tenantDomain, true);
+                    .getIdentityProviderManager().getIdPByResourceId(idpId, tenantDomain, true,
+                            SharedIdPResolveType.RAW);
         } catch (IdentityProviderManagementException e) {
             throw new IdentityRoleManagementException("Error while retrieving idp", "Error while retrieving idp "
                     + "for idpId: " + idpId, e);
