@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.device.registration.internal.handler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
 import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
 import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
 import org.wso2.carbon.identity.device.registration.internal.model.DeviceRegistrationChallenge;
@@ -30,7 +31,6 @@ import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.UUID;
 
 import static org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage.ERROR_INVALID_DEVICE_FIELD;
 
@@ -71,7 +71,9 @@ public class DeviceRegistrationHandler {
         SECURE_RANDOM.nextBytes(challengeBytes);
         String challenge = Base64.getUrlEncoder().withoutPadding().encodeToString(challengeBytes);
 
-        String registrationId = UUID.randomUUID().toString();
+        String registrationId = DeviceRegistrationComponentServiceHolder.getInstance()
+                .getDeviceManagementService()
+                .generateDeviceId();
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Device registration initiated in tenant: " + tenantDomain +

@@ -26,6 +26,8 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
+import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
+import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
 import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
 import org.wso2.carbon.identity.device.registration.internal.model.DeviceRegistrationChallenge;
 import org.wso2.carbon.identity.device.registration.model.VerifiedDevice;
@@ -36,6 +38,7 @@ import java.security.Signature;
 import java.util.Base64;
 import java.util.UUID;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -51,17 +54,27 @@ public class DeviceRegistrationHandlerTest {
     private static final int TENANT_ID = 1;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMocked;
+    private DeviceManagementService originalDeviceManagementService;
 
     @BeforeClass
     public void setUpClass() {
 
         identityTenantUtilMocked = mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+
+        DeviceManagementService deviceManagementService = mock(DeviceManagementService.class);
+        when(deviceManagementService.generateDeviceId()).thenAnswer(invocation -> UUID.randomUUID().toString());
+
+        DeviceRegistrationComponentServiceHolder holder = DeviceRegistrationComponentServiceHolder.getInstance();
+        originalDeviceManagementService = holder.getDeviceManagementService();
+        holder.setDeviceManagementService(deviceManagementService);
     }
 
     @AfterClass
     public void tearDownClass() {
 
+        DeviceRegistrationComponentServiceHolder.getInstance().setDeviceManagementService(
+                originalDeviceManagementService);
         identityTenantUtilMocked.close();
     }
 

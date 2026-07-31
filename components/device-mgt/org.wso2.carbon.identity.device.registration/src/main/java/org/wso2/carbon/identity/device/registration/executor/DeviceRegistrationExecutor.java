@@ -358,8 +358,6 @@ public class DeviceRegistrationExecutor implements Executor {
                 return String.join(", ", result.getFailedFields());
             case INCOMPLETE_DEVICE_DATA:
                 return String.join(", ", result.getMissingFields());
-            case POLICY_NOT_FOUND:
-                return result.getPolicyName() + ":policy_not_found";
             default:
                 return "";
         }
