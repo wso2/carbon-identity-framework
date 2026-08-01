@@ -112,6 +112,7 @@ public class AuthorizedAPIManagementServiceImplTest {
         identityEventService = mock(IdentityEventService.class);
         doNothing().when(identityEventService).handleEvent(any());
         ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
         APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
         APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
@@ -148,7 +149,6 @@ public class AuthorizedAPIManagementServiceImplTest {
     public void testCreateAuthorizedAPI(AuthorizedAPI authorizedAPI, int expectedAPIs)
             throws Exception {
 
-        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
         authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
         List<AuthorizedAPI> authorizedAPIS = authorizedAPIManagementService.getAuthorizedAPIs(authorizedAPI.getAppId(),
                 tenantDomain);
