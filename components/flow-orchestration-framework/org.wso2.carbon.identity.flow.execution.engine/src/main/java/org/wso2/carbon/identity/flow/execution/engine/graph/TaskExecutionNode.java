@@ -80,6 +80,16 @@ public class TaskExecutionNode implements Node {
 
         String executorName = configs.getExecutorConfig().getName();
 
+        /*
+         * The executor name comes from a stored flow definition, so it can be absent. The registry is a
+         * ConcurrentHashMap, which throws on a null key rather than returning null, so screen it here to
+         * keep an incomplete flow definition reporting as an unsupported executor.
+         */
+        if (executorName == null || executorName.trim().isEmpty()) {
+            throw handleServerException(flowType, ERROR_CODE_UNSUPPORTED_EXECUTOR, executorName, flowType, graphId,
+                    tenantDomain);
+        }
+
         Executor mappedFlowExecutor = FlowExecutionEngineDataHolder.getInstance().getExecutors().get(executorName);
         if (mappedFlowExecutor == null) {
             throw handleServerException(flowType, ERROR_CODE_UNSUPPORTED_EXECUTOR, executorName, flowType, graphId,

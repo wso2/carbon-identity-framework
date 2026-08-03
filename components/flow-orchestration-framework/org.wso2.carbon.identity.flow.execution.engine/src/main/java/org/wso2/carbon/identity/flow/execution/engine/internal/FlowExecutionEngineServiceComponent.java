@@ -141,14 +141,35 @@ public class FlowExecutionEngineServiceComponent {
             unbind = "unsetExecutors")
     protected void setExecutors(Executor executor) {
 
-        LOG.debug("Setting executor in the Flow Engine component.");
-        FlowExecutionEngineDataHolder.getInstance().getExecutors().put(executor.getName(), executor);
+        String name = executor.getName();
+        if (name == null || name.trim().isEmpty()) {
+            LOG.warn("Ignoring the executor contributed by " + executor.getClass().getName()
+                    + ": it reports a blank name, which a flow step has no way to reference.");
+            return;
+        }
+
+        LOG.debug("Setting executor in the Flow Engine component: " + name);
+        Executor replaced = FlowExecutionEngineDataHolder.getInstance().addExecutor(executor);
+        if (replaced != null && replaced != executor) {
+            LOG.warn("Two executors are registered with the same name: " + name
+                    + ". The executor contributed by " + replaced.getClass().getName()
+                    + " has been replaced by the one contributed by " + executor.getClass().getName() + ".");
+        }
     }
 
     protected void unsetExecutors(Executor executor) {
 
-        LOG.debug("Unsetting executor in the Flow Engine component.");
-        FlowExecutionEngineDataHolder.getInstance().getExecutors().remove(executor.getName());
+        LOG.debug("Unsetting executor in the Flow Engine component: " + executor.getName());
+        if (!FlowExecutionEngineDataHolder.getInstance().removeExecutor(executor)
+                && LOG.isDebugEnabled()) {
+            /*
+             * Either the executor was never registered, or another bundle has since taken over its
+             * name. Either way the registry entry belongs to somebody else and must be left alone.
+             */
+            LOG.debug("Executor contributed by " + executor.getClass().getName()
+                    + " was not the registered holder of the name: " + executor.getName()
+                    + ". Leaving the registry entry untouched.");
+        }
     }
 
     @Reference(
