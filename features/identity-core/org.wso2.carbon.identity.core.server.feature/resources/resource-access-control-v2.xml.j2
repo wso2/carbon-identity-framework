@@ -1648,6 +1648,23 @@
             <Scopes>internal_session_delete</Scopes>
         </Resource>
 
+        <!-- [Organization] Identity Provider Sharing API -->
+        <Resource context="(.*)/o/api/server/v1/identity-providers/share" secured="true" http-method="POST">
+            <Scopes>internal_org_idp_share</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/identity-providers/share-with-all" secured="true" http-method="POST">
+            <Scopes>internal_org_idp_share</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/identity-providers/unshare" secured="true" http-method="POST">
+            <Scopes>internal_org_idp_unshare</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/identity-providers/unshare-with-all" secured="true" http-method="POST">
+            <Scopes>internal_org_idp_unshare</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/identity-providers/(.*)/share" secured="true" http-method="GET">
+            <Scopes>internal_org_idp_shared_access_view</Scopes>
+        </Resource>
+
         <!-- [Organization] Identity Provider Management API -->
         <Resource context="(.*)/o/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_idp_create</Scopes>
@@ -1660,6 +1677,23 @@
         </Resource>
         <Resource context="(.*)/o/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_idp_view</Scopes>
+        </Resource>
+
+        <!-- Identity Provider Sharing API -->
+        <Resource context="(.*)/api/server/v1/identity-providers/share" secured="true" http-method="POST">
+            <Scopes>internal_idp_share</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-providers/share-with-all" secured="true" http-method="POST">
+            <Scopes>internal_idp_share</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-providers/unshare" secured="true" http-method="POST">
+            <Scopes>internal_idp_unshare</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-providers/unshare-with-all" secured="true" http-method="POST">
+            <Scopes>internal_idp_unshare</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-providers/(.*)/share" secured="true" http-method="GET">
+            <Scopes>internal_idp_shared_access_view</Scopes>
         </Resource>
 
         <!-- Identity Provider Management API -->
