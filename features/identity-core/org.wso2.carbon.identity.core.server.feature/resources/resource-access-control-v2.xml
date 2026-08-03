@@ -1274,10 +1274,10 @@
     <Resource context="(.*)/o/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/server/v1/applications/(.*)/generate-secret" secured="true" http-method="POST">
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets/(.*)/revoke" secured="true" http-method="POST">
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets(.*)" secured="true" http-method="GET">
@@ -1341,10 +1341,10 @@
     <Resource context="(.*)/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_client_secret_create</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/applications/(.*)/generate-secret" secured="true" http-method="POST">
+    <Resource context="(.*)/api/server/v1/applications/(.*)/secrets" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_client_secret_create</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/applications/(.*)/secrets/(.*)/revoke" secured="true" http-method="POST">
+    <Resource context="(.*)/api/server/v1/applications/(.*)/secrets/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_application_mgt_client_secret_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/applications/(.*)/secrets(.*)" secured="true" http-method="GET">
