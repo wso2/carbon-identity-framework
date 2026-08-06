@@ -101,10 +101,8 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         AccessConfig accessConfig = flowExtensionAction.getAccessConfig();
         Certificate certificate = flowExtensionAction.getCertificate();
 
-        List<String> exposePaths = resolveExposePaths(accessConfig);
-        exposePaths = applyFlowSpecificAccessPolicy(exposePaths, execCtx.getFlowType());
-        List<ContextPath> modifyPaths = applyModifyPathRestrictions(
-                resolveModifyPaths(accessConfig), execCtx.getFlowType());
+        List<String> exposePaths = resolveExposePaths(accessConfig, execCtx.getFlowType());
+        List<ContextPath> modifyPaths = resolveModifyPaths(accessConfig, execCtx.getFlowType());
         actionFlowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
 
         List<AllowedOperation> allowedOperations = buildAllowedOperations(modifyPaths, actionFlowContext);
@@ -255,12 +253,12 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         return (FlowExtensionAction) rawAction;
     }
 
-    private List<String> resolveExposePaths(AccessConfig accessConfig) {
+    private List<String> resolveExposePaths(AccessConfig accessConfig, String flowType) {
 
         if (accessConfig == null || accessConfig.getExpose() == null) {
             return Collections.emptyList();
         }
-        return accessConfig.getExposePaths();
+        return applyFlowSpecificAccessPolicy(accessConfig.getExposePaths(), flowType);
     }
 
     /**
@@ -287,12 +285,12 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         return effectivePaths;
     }
 
-    private List<ContextPath> resolveModifyPaths(AccessConfig accessConfig) {
+    private List<ContextPath> resolveModifyPaths(AccessConfig accessConfig, String flowType) {
 
         if (accessConfig == null || accessConfig.getModify() == null) {
             return Collections.emptyList();
         }
-        return accessConfig.getModify();
+        return applyModifyPathRestrictions(accessConfig.getModify(), flowType);
     }
 
     private String resolveOutboundCertificate(AccessConfig accessConfig, Certificate certificate) {
