@@ -83,6 +83,10 @@ public class AuthenticatedUser extends User {
      */
     public AuthenticatedUser(AuthenticatedUser authenticatedUser) {
 
+        // AUTHDIAG (temporary) - copying calls getUserId() below, which resolves and caches the id
+        // on the source object using whatever user store domain is set at this moment.
+        log.info("AUTHDIAG copy-ctor srcDomain=" + authenticatedUser.getUserStoreDomain()
+                + " srcUserIdSet=" + authenticatedUser.isUserIdExists() + " caller=" + authDiagCaller());
         this.authenticatedSubjectIdentifier = authenticatedUser.getAuthenticatedSubjectIdentifier();
         this.tenantDomain = authenticatedUser.getTenantDomain();
         try {
@@ -314,12 +318,32 @@ public class AuthenticatedUser extends User {
         if (this.userId != null) {
             return this.userId;
         }
+        // AUTHDIAG (temporary) - the first lazy resolution decides sub and all claims.
+        log.info("AUTHDIAG resolve-start domain=" + this.userStoreDomain + " tenant=" + this.tenantDomain
+                + " federated=" + isFederatedUser() + " caller=" + authDiagCaller());
         // User id can be null sometimes in some flows. Hence trying to resolve it here.
         this.userId = resolveUserIdInternal();
+        log.info("AUTHDIAG resolve-end domain=" + this.userStoreDomain + " userId=" + this.userId);
         if (this.userId == null) {
             throw new UserIdNotFoundException("User id is not available for user.");
         }
         return this.userId;
+    }
+
+    /**
+     * AUTHDIAG (temporary). Compact caller trace, so a log line says which code path triggered it.
+     * Class names and line numbers only - carries no user data.
+     */
+    private static String authDiagCaller() {
+
+        StackTraceElement[] frames = Thread.currentThread().getStackTrace();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 3; i < Math.min(frames.length, 10); i++) {
+            String cls = frames[i].getClassName();
+            sb.append(cls.substring(cls.lastIndexOf('.') + 1)).append('#')
+                    .append(frames[i].getMethodName()).append(':').append(frames[i].getLineNumber()).append(" < ");
+        }
+        return sb.toString();
     }
 
     public boolean isUserIdExists() {
@@ -329,6 +353,9 @@ public class AuthenticatedUser extends User {
 
     public void setUserId(String userId) {
 
+        // AUTHDIAG (temporary) - explicit writes of the user id.
+        log.info("AUTHDIAG setUserId old=" + this.userId + " new=" + userId + " domain=" + this.userStoreDomain
+                + " caller=" + authDiagCaller());
         this.userId = userId;
     }
 
@@ -369,6 +396,10 @@ public class AuthenticatedUser extends User {
             return userId;
         }
 
+        // AUTHDIAG (temporary) - this resolves against the user store but does NOT cache the result,
+        // so it produces a DB lookup without binding the id. Logged so such lookups are attributable.
+        log.info("AUTHDIAG loggable-resolve variant=plain domain=" + this.userStoreDomain
+                + " caller=" + authDiagCaller());
         // User id can be null sometimes in some flows. Hence, trying to resolve it here.
         String loggableUserId = resolveUserIdInternal();
         if (loggableUserId == null) {
@@ -392,6 +423,9 @@ public class AuthenticatedUser extends User {
             return userId;
         }
 
+        // AUTHDIAG (temporary) - same as above: resolves without caching.
+        log.info("AUTHDIAG loggable-resolve variant=masked domain=" + this.userStoreDomain
+                + " caller=" + authDiagCaller());
         // User id can be null sometimes in some flows. Hence, trying to resolve it here.
         String loggableUserId = resolveUserIdInternal();
         if (loggableUserId == null) {
