@@ -2339,7 +2339,7 @@
     <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
     <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/oid4vci/nonce" secured="false" http-method="POST"/>
-    <Resource context="(.*)/oid4vp/v1/vp-request/(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/oid4vp/v1/request/(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/oid4vp/v1/response" secured="false" http-method="POST"/>
 
     <!-- [Organization] Verifiable Presentation Definition Management API -->
