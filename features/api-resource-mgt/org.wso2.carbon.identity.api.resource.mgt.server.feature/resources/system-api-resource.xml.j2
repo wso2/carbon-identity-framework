@@ -3016,9 +3016,34 @@
             <Scope displayName="VP Templates Feature" name="console:vp_templates"
                    description="Manage VP templates from the Console"/>
             <Scope displayName="VP Templates View Feature" name="console:vp_templates_view"
-                   description="Manage views of VP templates from the Console"/>
+                   description="View VP templates from the Console"/>
             <Scope displayName="VP Templates Edit Feature" name="console:vp_templates_edit"
-                   description="Manage edits of VP templates from the Console"/>
+                   description="Edit VP templates from the Console"/>
+            <Scope displayName="VP Templates Create Feature" name="console:vp_templates_create"
+                   description="Create VP templates from the Console"/>
+            <Scope displayName="VP Templates Update Feature" name="console:vp_templates_update"
+                   description="Update VP templates from the Console"/>
+            <Scope displayName="VP Templates Delete Feature" name="console:vp_templates_delete"
+                   description="Delete VP templates from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Verifiable Presentation Settings Feature" identifier="console:verifiablePresentationSettings"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Verifiable Presentation Settings Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Verifiable Presentation Settings Feature" name="console:verifiablePresentationSettings"
+                   description="Manage Verifiable Presentation Settings from the Console"/>
+            <Scope displayName="Verifiable Presentation Settings View Feature" name="console:verifiablePresentationSettings_view"
+                   description="View Verifiable Presentation Settings from the Console"/>
+            <Scope displayName="Verifiable Presentation Settings Edit Feature" name="console:verifiablePresentationSettings_edit"
+                   description="Edit Verifiable Presentation Settings from the Console"/>
+            <Scope displayName="Verifiable Presentation Settings Create Feature" name="console:verifiablePresentationSettings_create"
+                   description="Create Verifiable Presentation Settings from the Console"/>
+            <Scope displayName="Verifiable Presentation Settings Update Feature" name="console:verifiablePresentationSettings_update"
+                   description="Update Verifiable Presentation Settings from the Console"/>
+            <Scope displayName="Verifiable Presentation Settings Delete Feature" name="console:verifiablePresentationSettings_delete"
+                   description="Delete Verifiable Presentation Settings from the Console"/>
         </Scopes>
     </APIResource>
     {% endif %}
