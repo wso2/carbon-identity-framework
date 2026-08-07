@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -65,14 +64,22 @@ public class FlowExecutorMetadataServiceTest {
     private final Map<String, Executor> originalExecutors = new HashMap<>();
     private final FlowExecutorMetadataService metadataService = FlowExecutorMetadataService.getInstance();
 
+    /**
+     * Takes the executor registry over for the duration of this class. The registry is static and
+     * shared across the suite, so whatever other tests put in it is stashed and handed back by
+     * {@link #restoreRegistry()}.
+     */
     @BeforeClass
     public void isolateRegistry() {
 
-        // The executor registry is static and shared across the suite, so stash whatever is in it.
         originalExecutors.putAll(FlowExecutionEngineDataHolder.getInstance().getExecutors());
         FlowExecutionEngineDataHolder.getInstance().getExecutors().clear();
     }
 
+    /**
+     * Hands the executor registry back to the rest of the suite in the state
+     * {@link #isolateRegistry()} found it in.
+     */
     @AfterClass
     public void restoreRegistry() {
 
@@ -80,6 +87,10 @@ public class FlowExecutorMetadataServiceTest {
         FlowExecutionEngineDataHolder.getInstance().getExecutors().putAll(originalExecutors);
     }
 
+    /**
+     * Empties the registry between test methods so each one starts from a known set of executors and
+     * cannot see what a previous method registered.
+     */
     @AfterMethod
     public void clearRegistry() {
 
@@ -314,7 +325,7 @@ public class FlowExecutorMetadataServiceTest {
 
     private List<String> names(List<FlowExecutorInfo> executors) {
 
-        return executors.stream().map(FlowExecutorInfo::getName).collect(Collectors.toList());
+        return executors.stream().map(FlowExecutorInfo::getName).toList();
     }
 
     /**

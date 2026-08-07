@@ -147,8 +147,9 @@ public class FlowExecutionEngineServiceComponent {
                     + ": it reports a blank name, which a flow step has no way to reference.");
             return;
         }
-
-        LOG.debug("Setting executor in the Flow Engine component: " + name);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting executor in the Flow Engine component: " + name);
+        }
         Executor replaced = FlowExecutionEngineDataHolder.getInstance().addExecutor(executor);
         if (replaced != null && replaced != executor) {
             LOG.warn("Two executors are registered with the same name: " + name
@@ -159,7 +160,9 @@ public class FlowExecutionEngineServiceComponent {
 
     protected void unsetExecutors(Executor executor) {
 
-        LOG.debug("Unsetting executor in the Flow Engine component: " + executor.getName());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting executor in the Flow Engine component: " + executor.getName());
+        }
         if (!FlowExecutionEngineDataHolder.getInstance().removeExecutor(executor)
                 && LOG.isDebugEnabled()) {
             /*

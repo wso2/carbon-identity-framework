@@ -30,8 +30,9 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Resolves an {@link Executor} into a {@link FlowExecutorInfo}, filling in engine derived defaults
- * for anything the executor did not declare.
+ * Resolves an {@link Executor} into a {@link FlowExecutorInfo}: reads the two SPI hooks defensively
+ * and derives the values the executor cannot declare about itself. Defaulting for anything left
+ * undeclared is {@link FlowExecutorInfo}'s job, not this class's.
  *
  * <p><b>Backward compatibility contract.</b> An executor that declares nothing gets: an empty set of
  * supported flow types (so it is not offered as a composer step), a display name falling back to
@@ -58,30 +59,11 @@ public class FlowExecutorMetadataResolver {
      */
     public static FlowExecutorInfo resolve(Executor executor) {
 
-        String name = executor.getName();
-        FlowExecutorMetadata declared = declaredMetadata(executor);
-        Set<FlowTypes> supportedFlowTypes = declaredFlowTypes(executor);
-
-        FlowExecutorInfo.Builder builder = FlowExecutorInfo.builder()
-                .name(name)
-                .supportedFlowTypes(supportedFlowTypes)
-                .metadataDeclared(declared != null || !supportedFlowTypes.isEmpty())
-                .idpRequired(executor instanceof AuthenticationExecutor);
-
-        if (declared == null) {
-            return builder
-                    .displayName(name)
-                    .build();
-        }
-
-        return builder
-                .displayName(isBlank(declared.getDisplayName()) ? name : declared.getDisplayName())
-                .description(declared.getDescription())
-                .icon(declared.getIcon())
-                .tags(declared.getTags())
-                .associatedAuthenticator(declared.getAssociatedAuthenticator())
-                .connectionRequired(declared.isConnectionRequired())
-                .visibleInComposer(declared.isVisibleInComposer())
+        return FlowExecutorInfo.builder()
+                .name(executor.getName())
+                .declaredMetadata(declaredMetadata(executor))
+                .supportedFlowTypes(declaredFlowTypes(executor))
+                .idpRequired(executor instanceof AuthenticationExecutor)
                 .build();
     }
 
@@ -96,8 +78,8 @@ public class FlowExecutorMetadataResolver {
         try {
             return executor.getExecutorMetadata();
         } catch (RuntimeException | LinkageError e) {
-            LOG.warn("Failed to read declared metadata from executor: " + executor.getName()
-                    + ". Falling back to derived defaults.", e);
+            LOG.error("Failed to read declared metadata from executor: " + executor.getName()
+                    + ". Falling back to derived defaults.");
             return null;
         }
     }
@@ -108,14 +90,9 @@ public class FlowExecutorMetadataResolver {
             Set<FlowTypes> flowTypes = executor.getSupportedFlowTypes();
             return flowTypes == null ? Collections.emptySet() : flowTypes;
         } catch (RuntimeException | LinkageError e) {
-            LOG.warn("Failed to read supported flow types from executor: " + executor.getName()
-                    + ". Treating it as supporting no flow type.", e);
+            LOG.error("Failed to read supported flow types from executor: " + executor.getName()
+                    + ". Treating it as supporting no flow type.");
             return Collections.emptySet();
         }
-    }
-
-    private static boolean isBlank(String value) {
-
-        return value == null || value.trim().isEmpty();
     }
 }

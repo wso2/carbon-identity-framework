@@ -56,6 +56,12 @@ public final class FlowExecutorMetadataService {
 
     }
 
+    /**
+     * The shared instance. Stateless: it reads the live executor registry on every call, so the same
+     * instance is safe to use from any thread and across bundle lifecycles.
+     *
+     * @return Singleton instance of this service.
+     */
     public static FlowExecutorMetadataService getInstance() {
 
         return INSTANCE;
