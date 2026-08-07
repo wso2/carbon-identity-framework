@@ -662,6 +662,7 @@
                 <EnableSecurityProfile>false</EnableSecurityProfile>
             </FAPI>
             <EnableClaimsSeparationForAccessToken>true</EnableClaimsSeparationForAccessToken>
+            <HonorMultivaluedClaimMetadata>true</HonorMultivaluedClaimMetadata>
         </OpenIDConnect>
 
         <!--
