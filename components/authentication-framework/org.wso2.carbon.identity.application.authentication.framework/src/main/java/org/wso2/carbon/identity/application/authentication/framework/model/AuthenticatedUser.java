@@ -85,8 +85,10 @@ public class AuthenticatedUser extends User {
 
         // AUTHDIAG (temporary) - copying calls getUserId() below, which resolves and caches the id
         // on the source object using whatever user store domain is set at this moment.
+        // The id is read from the field directly - calling getUserId() here would resolve it early
+        // and change the behaviour being investigated.
         log.info("AUTHDIAG copy-ctor srcDomain=" + authenticatedUser.getUserStoreDomain()
-                + " srcUserIdSet=" + authenticatedUser.isUserIdExists() + " caller=" + authDiagCaller());
+                + " srcUserId=" + authenticatedUser.userId + " caller=" + authDiagCaller());
         this.authenticatedSubjectIdentifier = authenticatedUser.getAuthenticatedSubjectIdentifier();
         this.tenantDomain = authenticatedUser.getTenantDomain();
         try {
