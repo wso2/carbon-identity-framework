@@ -30,17 +30,7 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Resolves an {@link Executor} into a {@link FlowExecutorInfo}, filling in engine derived defaults
- * for anything the executor did not declare.
- *
- * <p><b>Backward compatibility contract.</b> An executor that declares nothing gets: an empty set of
- * supported flow types (so it is not offered as a composer step), a display name falling back to
- * {@link Executor#getName()}, and
- * {@code idpRequired} inferred from {@code instanceof AuthenticationExecutor}. Executors written
- * before this SPI existed therefore keep working unchanged at execution time; they simply do not
- * advertise themselves, which is what lets consumers keep their own curated lists as a baseline.</p>
- *
- * <p>Deliberately in the {@code internal} package: this is implementation detail, not API.</p>
+ * Resolves a dynamically registered {@link Executor} into a {@link FlowExecutorInfo}.
  */
 public class FlowExecutorMetadataResolver {
 
@@ -58,64 +48,40 @@ public class FlowExecutorMetadataResolver {
      */
     public static FlowExecutorInfo resolve(Executor executor) {
 
-        String name = executor.getName();
-        FlowExecutorMetadata declared = declaredMetadata(executor);
-        Set<FlowTypes> supportedFlowTypes = declaredFlowTypes(executor);
-
-        FlowExecutorInfo.Builder builder = FlowExecutorInfo.builder()
-                .name(name)
-                .supportedFlowTypes(supportedFlowTypes)
-                .metadataDeclared(declared != null || !supportedFlowTypes.isEmpty())
-                .idpRequired(executor instanceof AuthenticationExecutor);
-
-        if (declared == null) {
-            return builder
-                    .displayName(name)
-                    .build();
-        }
-
-        return builder
-                .displayName(isBlank(declared.getDisplayName()) ? name : declared.getDisplayName())
-                .description(declared.getDescription())
-                .icon(declared.getIcon())
-                .tags(declared.getTags())
-                .associatedAuthenticator(declared.getAssociatedAuthenticator())
-                .connectionRequired(declared.isConnectionRequired())
-                .visibleInComposer(declared.isVisibleInComposer())
+        return FlowExecutorInfo.builder()
+                .name(executor.getName())
+                .metadata(getMetadata(executor))
+                .supportedFlowTypes(getSupportedFlowTypes(executor))
+                .idpRequired(executor instanceof AuthenticationExecutor)
                 .build();
     }
 
     /**
-     * An executor is third party code that may be contributed by a bundle dropped into
-     * repository/components/dropins, so a faulty implementation must not break metadata resolution
-     * for every other executor. {@link LinkageError} is caught alongside runtime exceptions because
-     * that is how a dropin built against a different framework version fails.
+     * Reads the metadata declared by dynamically registered executors.
      */
-    private static FlowExecutorMetadata declaredMetadata(Executor executor) {
+    private static FlowExecutorMetadata getMetadata(Executor executor) {
 
         try {
             return executor.getExecutorMetadata();
         } catch (RuntimeException | LinkageError e) {
-            LOG.warn("Failed to read declared metadata from executor: " + executor.getName()
-                    + ". Falling back to derived defaults.", e);
+            LOG.error("Failed to read metadata from executor: " + executor.getName()
+                    + ". Falling back to derived defaults.");
             return null;
         }
     }
 
-    private static Set<FlowTypes> declaredFlowTypes(Executor executor) {
+    /**
+     * Reads the supported flow types declared by dynamically registered executors.
+     */
+    private static Set<FlowTypes> getSupportedFlowTypes(Executor executor) {
 
         try {
             Set<FlowTypes> flowTypes = executor.getSupportedFlowTypes();
             return flowTypes == null ? Collections.emptySet() : flowTypes;
         } catch (RuntimeException | LinkageError e) {
-            LOG.warn("Failed to read supported flow types from executor: " + executor.getName()
-                    + ". Treating it as supporting no flow type.", e);
+            LOG.error("Failed to read supported flow types from executor: " + executor.getName()
+                    + ". Treating it as supporting no flow type.");
             return Collections.emptySet();
         }
-    }
-
-    private static boolean isBlank(String value) {
-
-        return value == null || value.trim().isEmpty();
     }
 }

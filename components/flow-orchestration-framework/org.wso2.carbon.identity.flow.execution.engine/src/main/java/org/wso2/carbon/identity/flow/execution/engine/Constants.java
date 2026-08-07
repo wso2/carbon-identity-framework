@@ -309,21 +309,4 @@ public class Constants {
         public static final String FLOW_TYPE_ATTRIBUTE = "type";
     }
 
-    /**
-     * Tags an executor can declare in its metadata that carry meaning beyond display. These are the
-     * only tags any consumer acts on; unrecognised tags are passed through untouched but have no effect.
-     */
-    public static final class ExecutorTags {
-
-        private ExecutorTags() {
-
-        }
-
-        /**
-         * Marks an executor as a password recovery factor, i.e. one that is sufficient on its own to
-         * satisfy the "at least one recovery factor" requirement of a password recovery flow.
-         */
-        public static final String RECOVERY_FACTOR = "RECOVERY_FACTOR";
-    }
-
 }

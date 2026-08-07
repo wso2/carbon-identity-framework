@@ -34,19 +34,7 @@ import java.util.TreeSet;
 
 /**
  * Public API entry point for discovering the {@link Executor}s currently registered with the flow
- * engine, together with the metadata they declare.
- *
- * <p>Lives in the {@code metadata} package, which the engine OSGi bundle exports, so external bundles
- * such as the flow management API server can call it without reaching into the engine's
- * {@code internal} package. This mirrors
- * {@code org.wso2.carbon.identity.flow.extension.metadata.FlowExtensionContextTreeService}.</p>
- *
- * <p><b>Late binding: do not cache these results.</b> Executors are bound through an OSGi reference
- * with {@code MULTIPLE} cardinality and {@code DYNAMIC} policy, so a connector bundle placed in
- * {@code repository/components/dropins} can activate long after the server - and any consuming web
- * application - has started. Every method here reads the live executor registry at call time and
- * snapshots nothing, which is precisely what makes a late activating connector visible on the very
- * next call. A caller that caches the result defeats this.</p>
+ * engine and the metadata they declare.
  */
 public final class FlowExecutorMetadataService {
 
@@ -56,16 +44,21 @@ public final class FlowExecutorMetadataService {
 
     }
 
+    /**
+     * The shared instance that reads the live executor registry on every call, so the same
+     * instance is safe to use from any thread and across bundle lifecycles.
+     *
+     * @return Singleton instance of this service.
+     */
     public static FlowExecutorMetadataService getInstance() {
 
         return INSTANCE;
     }
 
     /**
-     * Every registered executor, resolved and sorted by display name. Includes executors that are not
-     * composer visible; use {@link #getComposerExecutors(String)} to build a step palette.
+     * Every registered executor, resolved and sorted by display name.
      *
-     * @return Immutable list of resolved executor metadata. Never null.
+     * @return Immutable list of resolved executor metadata.
      */
     public List<FlowExecutorInfo> getExecutors() {
 
@@ -79,17 +72,12 @@ public final class FlowExecutorMetadataService {
     }
 
     /**
-     * Executors that are selectable as a step in the given flow type, i.e. those that are composer
-     * visible and declared support for it.
+     * Executors that are selectable as a step in the given flow type.
      *
-     * <p>An executor that declares no supported flow types is never returned. Declaring a flow type
-     * is the opt in: it keeps executors that exist only as engine plumbing out of the palette.</p>
-     *
-     * @param flowType Flow type name, matched against {@link FlowTypes}. Unknown or blank values yield
-     *                 an empty list.
-     * @return Immutable list of resolved executor metadata. Never null.
+     * @param flowType Flow type name, matched against {@link FlowTypes}.
+     * @return Immutable list of resolved executor metadata.
      */
-    public List<FlowExecutorInfo> getComposerExecutors(String flowType) {
+    public List<FlowExecutorInfo> getSupportedExtensionExecutors(String flowType) {
 
         FlowTypes resolvedFlowType = toFlowType(flowType);
         if (resolvedFlowType == null) {
@@ -97,7 +85,7 @@ public final class FlowExecutorMetadataService {
         }
         List<FlowExecutorInfo> filtered = new ArrayList<>();
         for (FlowExecutorInfo info : getExecutors()) {
-            if (info.isVisibleInComposer() && info.supportsFlowType(resolvedFlowType)) {
+            if (info.supportsFlowType(resolvedFlowType)) {
                 filtered.add(info);
             }
         }
@@ -120,9 +108,7 @@ public final class FlowExecutorMetadataService {
     }
 
     /**
-     * Whether an executor is currently registered under the given name. Intended for design time
-     * validation, so that an unusable executor is reported when a flow is saved rather than only when
-     * it is executed.
+     * Whether an executor is currently registered under the given name.
      *
      * @param executorName Executor name.
      * @return True if registered.
@@ -134,9 +120,9 @@ public final class FlowExecutorMetadataService {
     }
 
     /**
-     * Names of all currently registered executors, sorted. Cheap: performs no metadata resolution.
+     * Names of all currently registered executors, sorted.
      *
-     * @return Immutable sorted set of executor names. Never null.
+     * @return Immutable sorted set of executor names.
      */
     public Set<String> getRegisteredExecutorNames() {
 

@@ -20,63 +20,42 @@ package org.wso2.carbon.identity.flow.execution.engine.metadata;
 
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Fully resolved view of one registered executor: what the executor declared, with engine derived
- * defaults filled in for everything it left out.
- *
- * <p>This is the type served by {@link FlowExecutorMetadataService} and consumed by callers such as
- * the flow management REST API. Instances are immutable.</p>
+ * Fully resolved view of a registered executor including what the executor declared, with engine derived defaults.
  */
 public class FlowExecutorInfo {
 
+    private static final FlowExecutorMetadata NO_DECLARED_METADATA = FlowExecutorMetadata.builder().build();
+
     private final String name;
-    private final String displayName;
-    private final String description;
-    private final String icon;
-    private final List<String> tags;
+    private final FlowExecutorMetadata declaredMetadata;
     private final Set<FlowTypes> supportedFlowTypes;
-    private final String associatedAuthenticator;
-    private final boolean connectionRequired;
-    private final boolean visibleInComposer;
     private final boolean idpRequired;
     private final boolean metadataDeclared;
 
     private FlowExecutorInfo(Builder builder) {
 
         this.name = builder.name;
-        this.displayName = builder.displayName;
-        this.description = builder.description;
-        this.icon = builder.icon;
-        this.tags = builder.tags == null
-                ? Collections.emptyList()
-                : Collections.unmodifiableList(new ArrayList<>(builder.tags));
+        this.declaredMetadata = builder.metadata == null ? NO_DECLARED_METADATA : builder.metadata;
         /*
-         * EnumSet.noneOf(..) + addAll rather than EnumSet.copyOf(..): copyOf throws
-         * IllegalArgumentException on an empty non-EnumSet, and an empty set is a legitimate value
-         * meaning "this executor is not offered in any flow".
+         * Empty set means the executor is not offered as a step in any flow.
          */
         Set<FlowTypes> flowTypes = EnumSet.noneOf(FlowTypes.class);
         if (builder.supportedFlowTypes != null) {
             flowTypes.addAll(builder.supportedFlowTypes);
         }
         this.supportedFlowTypes = Collections.unmodifiableSet(flowTypes);
-        this.associatedAuthenticator = builder.associatedAuthenticator;
-        this.connectionRequired = builder.connectionRequired;
-        this.visibleInComposer = builder.visibleInComposer;
         this.idpRequired = builder.idpRequired;
-        this.metadataDeclared = builder.metadataDeclared;
+        this.metadataDeclared = builder.metadata != null || !this.supportedFlowTypes.isEmpty();
     }
 
     /**
-     * Unique executor name, as returned by
-     * {@link org.wso2.carbon.identity.flow.execution.engine.graph.Executor#getName()}. This is the
-     * value a flow step references.
+     * Unique executor name referenced by flow steps.
      *
      * @return Executor name.
      */
@@ -86,13 +65,14 @@ public class FlowExecutorInfo {
     }
 
     /**
-     * Display name. Never null: falls back to {@link #getName()} when the executor declared none.
+     * Executor display name. Falls back to {@link #getName()} when the executor declared none.
      *
      * @return Display name.
      */
     public String getDisplayName() {
 
-        return displayName;
+        String declaredDisplayName = declaredMetadata.getDisplayName();
+        return declaredDisplayName == null || declaredDisplayName.trim().isEmpty() ? name : declaredDisplayName;
     }
 
     /**
@@ -100,7 +80,7 @@ public class FlowExecutorInfo {
      */
     public String getDescription() {
 
-        return description;
+        return declaredMetadata.getDescription();
     }
 
     /**
@@ -108,19 +88,17 @@ public class FlowExecutorInfo {
      */
     public String getIcon() {
 
-        return icon;
+        return declaredMetadata.getIcon();
     }
 
     /**
-     * Reserved tags declared by the executor. See
-     * {@link org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorTags} for the values
-     * that carry behaviour.
+     * Behavior flags declared by the executor.
      *
-     * @return Immutable list of tags. Never null.
+     * @return Immutable list of behavior flags.
      */
-    public List<String> getTags() {
+    public List<String> getBehaviorFlags() {
 
-        return tags;
+        return declaredMetadata.getBehaviorFlags();
     }
 
     /**
@@ -139,7 +117,7 @@ public class FlowExecutorInfo {
      */
     public String getAssociatedAuthenticator() {
 
-        return associatedAuthenticator;
+        return declaredMetadata.getAssociatedAuthenticator();
     }
 
     /**
@@ -147,23 +125,13 @@ public class FlowExecutorInfo {
      */
     public boolean isConnectionRequired() {
 
-        return connectionRequired;
+        return declaredMetadata.isConnectionRequired();
     }
 
     /**
-     * @return True if this executor should be offered as a selectable step.
-     */
-    public boolean isVisibleInComposer() {
-
-        return visibleInComposer;
-    }
-
-    /**
-     * Whether the executor resolves identity provider configuration from its step metadata, which
-     * means the composer has to ask the admin to pick a connection. Derived from
-     * {@code instanceof AuthenticationExecutor} when not declared.
+     * Whether the executor resolves IDP configuration from its step metadata.
      *
-     * @return True if an identity provider must be bound to the step.
+     * @return True if an IDP must be bound to the step.
      */
     public boolean isIdpRequired() {
 
@@ -171,8 +139,7 @@ public class FlowExecutorInfo {
     }
 
     /**
-     * Whether the executor declared any metadata of its own. False means every value above was
-     * derived by the engine, which is the normal state for executors written before this SPI existed.
+     * Whether the executor declared any metadata of its own.
      *
      * @return True if the executor declared metadata.
      */
@@ -203,16 +170,9 @@ public class FlowExecutorInfo {
     public static final class Builder {
 
         private String name;
-        private String displayName;
-        private String description;
-        private String icon;
-        private List<String> tags;
+        private FlowExecutorMetadata metadata;
         private Set<FlowTypes> supportedFlowTypes;
-        private String associatedAuthenticator;
-        private boolean connectionRequired;
-        private boolean visibleInComposer = true;
         private boolean idpRequired;
-        private boolean metadataDeclared;
 
         private Builder() {
 
@@ -224,27 +184,14 @@ public class FlowExecutorInfo {
             return this;
         }
 
-        public Builder displayName(String displayName) {
+        /**
+         * @param metadata Metadata the executor declared, or null if it declared none, in
+         *                         which case engine derived defaults apply.
+         * @return This builder.
+         */
+        public Builder metadata(FlowExecutorMetadata metadata) {
 
-            this.displayName = displayName;
-            return this;
-        }
-
-        public Builder description(String description) {
-
-            this.description = description;
-            return this;
-        }
-
-        public Builder icon(String icon) {
-
-            this.icon = icon;
-            return this;
-        }
-
-        public Builder tags(List<String> tags) {
-
-            this.tags = tags;
+            this.metadata = metadata;
             return this;
         }
 
@@ -254,33 +201,9 @@ public class FlowExecutorInfo {
             return this;
         }
 
-        public Builder associatedAuthenticator(String associatedAuthenticator) {
-
-            this.associatedAuthenticator = associatedAuthenticator;
-            return this;
-        }
-
-        public Builder connectionRequired(boolean connectionRequired) {
-
-            this.connectionRequired = connectionRequired;
-            return this;
-        }
-
-        public Builder visibleInComposer(boolean visibleInComposer) {
-
-            this.visibleInComposer = visibleInComposer;
-            return this;
-        }
-
         public Builder idpRequired(boolean idpRequired) {
 
             this.idpRequired = idpRequired;
-            return this;
-        }
-
-        public Builder metadataDeclared(boolean metadataDeclared) {
-
-            this.metadataDeclared = metadataDeclared;
             return this;
         }
 

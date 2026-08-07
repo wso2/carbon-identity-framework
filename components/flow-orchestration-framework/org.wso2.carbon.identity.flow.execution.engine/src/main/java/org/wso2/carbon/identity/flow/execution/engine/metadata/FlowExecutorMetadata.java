@@ -23,42 +23,31 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Display metadata declared by an executor, describing how the flow composer should present it as a
- * selectable step.
- *
- * <p>Returned from
- * {@link org.wso2.carbon.identity.flow.execution.engine.graph.Executor#getExecutorMetadata()}.
- * Every field is optional; anything left unset is derived from the executor's name by
- * the engine. An executor that declares nothing at all keeps working exactly as before - see
- * {@link FlowExecutorMetadataService} for the resolution rules.</p>
- *
- * <p>Instances are immutable. Build them with {@link #builder()}.</p>
+ * Display metadata declared by an executor. Describes how flow composer presents it as a selectable step.
  */
 public class FlowExecutorMetadata {
 
     private final String displayName;
     private final String description;
     private final String icon;
-    private final List<String> tags;
+    private final List<String> behaviorFlags;
     private final String associatedAuthenticator;
     private final boolean connectionRequired;
-    private final boolean visibleInComposer;
 
     private FlowExecutorMetadata(Builder builder) {
 
         this.displayName = builder.displayName;
         this.description = builder.description;
         this.icon = builder.icon;
-        this.tags = builder.tags == null
+        this.behaviorFlags = builder.behaviorFlags == null
                 ? Collections.emptyList()
-                : Collections.unmodifiableList(new ArrayList<>(builder.tags));
+                : Collections.unmodifiableList(new ArrayList<>(builder.behaviorFlags));
         this.associatedAuthenticator = builder.associatedAuthenticator;
         this.connectionRequired = builder.connectionRequired;
-        this.visibleInComposer = builder.visibleInComposer;
     }
 
     /**
-     * Human readable name shown in the composer step palette, e.g. "Daon TrustX Verification".
+     * Human-readable name shown in the composer step palette.
      *
      * @return Display name, or null to let the engine derive one from the executor name.
      */
@@ -78,7 +67,7 @@ public class FlowExecutorMetadata {
     }
 
     /**
-     * Icon path or URL for the step, e.g. "assets/images/logos/daon.svg".
+     * Icon path or URL for the step.
      *
      * @return Icon reference, or null if not declared.
      */
@@ -88,24 +77,17 @@ public class FlowExecutorMetadata {
     }
 
     /**
-     * Reserved tags that alter how a consumer treats this executor. See
-     * {@link org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorTags} for the
-     * recognised values; declaring anything else has no
-     * effect today, so prefer leaving this empty over adding descriptive labels.
+     * Behavior flags declared by this executor.
      *
-     * @return Immutable list of tags. Never null.
+     * @return Immutable list of behavior flags.
      */
-    public List<String> getTags() {
+    public List<String> getBehaviorFlags() {
 
-        return tags;
+        return behaviorFlags;
     }
 
     /**
-     * Name of the {@code ApplicationAuthenticator} that backs this executor, e.g. "DaonAuthenticator".
-     *
-     * <p>Declaring this lets a consumer resolve the identity providers configured with that
-     * authenticator and offer them as the connections available to this step, without needing a
-     * hardcoded authenticator-to-executor mapping.</p>
+     * Name of the {@code ApplicationAuthenticator} that backs this executor.
      *
      * @return Authenticator name, or null if this executor is not backed by one.
      */
@@ -124,17 +106,6 @@ public class FlowExecutorMetadata {
         return connectionRequired;
     }
 
-    /**
-     * Whether this executor should be offered as a selectable step. Set false for executors that
-     * exist only to be inserted into the graph by the engine itself.
-     *
-     * @return True if the executor should appear in the composer.
-     */
-    public boolean isVisibleInComposer() {
-
-        return visibleInComposer;
-    }
-
     public static Builder builder() {
 
         return new Builder();
@@ -148,10 +119,9 @@ public class FlowExecutorMetadata {
         private String displayName;
         private String description;
         private String icon;
-        private List<String> tags;
+        private List<String> behaviorFlags;
         private String associatedAuthenticator;
         private boolean connectionRequired;
-        private boolean visibleInComposer = true;
 
         private Builder() {
 
@@ -175,9 +145,9 @@ public class FlowExecutorMetadata {
             return this;
         }
 
-        public Builder tags(List<String> tags) {
+        public Builder behaviorFlags(List<String> behaviorFlags) {
 
-            this.tags = tags;
+            this.behaviorFlags = behaviorFlags;
             return this;
         }
 
@@ -190,12 +160,6 @@ public class FlowExecutorMetadata {
         public Builder connectionRequired(boolean connectionRequired) {
 
             this.connectionRequired = connectionRequired;
-            return this;
-        }
-
-        public Builder visibleInComposer(boolean visibleInComposer) {
-
-            this.visibleInComposer = visibleInComposer;
             return this;
         }
 

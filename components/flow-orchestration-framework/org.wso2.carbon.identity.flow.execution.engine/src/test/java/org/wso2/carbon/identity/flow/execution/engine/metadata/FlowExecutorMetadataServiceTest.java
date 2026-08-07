@@ -22,7 +22,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.graph.AuthenticationExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -39,13 +38,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorBehaviorFlags.RECOVERY_FACTOR;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.INVITED_USER_REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.PASSWORD_RECOVERY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
@@ -56,23 +55,32 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION
 public class FlowExecutorMetadataServiceTest {
 
     private static final String PLAIN_EXECUTOR = "PasswordProvisioningExecutor";
-    private static final String DECLARING_EXECUTOR = "DaonExecutor";
-    private static final String HIDDEN_EXECUTOR = "UserOnboardingExecutor";
+    private static final String DECLARING_EXECUTOR = "CustomVerificationExecutor";
     private static final String AUTH_EXECUTOR = "GoogleExecutor";
     private static final String FAULTY_EXECUTOR = "FaultyExecutor";
     private static final String LATE_EXECUTOR = "LateArrivingExecutor";
+    private static final String ALL_FLOW_TYPES_EXECUTOR = "AllFlowTypesExecutor";
+    private static final String MISDECLARED_EXECUTOR = "MisdeclaredExecutor";
 
     private final Map<String, Executor> originalExecutors = new HashMap<>();
     private final FlowExecutorMetadataService metadataService = FlowExecutorMetadataService.getInstance();
 
+    /**
+     * Takes the executor registry over for the duration of this class. The registry is static and
+     * shared across the suite, so whatever other tests put in it is stashed and handed back by
+     * {@link #restoreRegistry()}.
+     */
     @BeforeClass
     public void isolateRegistry() {
 
-        // The executor registry is static and shared across the suite, so stash whatever is in it.
         originalExecutors.putAll(FlowExecutionEngineDataHolder.getInstance().getExecutors());
         FlowExecutionEngineDataHolder.getInstance().getExecutors().clear();
     }
 
+    /**
+     * Hands the executor registry back to the rest of the suite in the state
+     * {@link #isolateRegistry()} found it in.
+     */
     @AfterClass
     public void restoreRegistry() {
 
@@ -80,6 +88,10 @@ public class FlowExecutorMetadataServiceTest {
         FlowExecutionEngineDataHolder.getInstance().getExecutors().putAll(originalExecutors);
     }
 
+    /**
+     * Empties the registry between test methods so each one starts from a known set of executors and
+     * cannot see what a previous method registered.
+     */
     @AfterMethod
     public void clearRegistry() {
 
@@ -91,10 +103,10 @@ public class FlowExecutorMetadataServiceTest {
 
         register(new PlainExecutor());
 
-        assertTrue(metadataService.getComposerExecutors(REGISTRATION.name()).isEmpty(),
+        assertTrue(metadataService.getSupportedExtensionExecutors(REGISTRATION.name()).isEmpty(),
                 "An executor that declares no flow type must not be offered as a composer step.");
-        assertTrue(metadataService.getComposerExecutors(PASSWORD_RECOVERY.name()).isEmpty());
-        assertTrue(metadataService.getComposerExecutors(INVITED_USER_REGISTRATION.name()).isEmpty());
+        assertTrue(metadataService.getSupportedExtensionExecutors(PASSWORD_RECOVERY.name()).isEmpty());
+        assertTrue(metadataService.getSupportedExtensionExecutors(INVITED_USER_REGISTRATION.name()).isEmpty());
     }
 
     @Test
@@ -112,12 +124,11 @@ public class FlowExecutorMetadataServiceTest {
         assertNull(info.getDescription());
         assertNull(info.getIcon());
         assertNull(info.getAssociatedAuthenticator());
-        assertTrue(info.getTags().isEmpty());
+        assertTrue(info.getBehaviorFlags().isEmpty());
         assertTrue(info.getSupportedFlowTypes().isEmpty());
         assertFalse(info.isMetadataDeclared());
         assertFalse(info.isIdpRequired());
         assertFalse(info.isConnectionRequired());
-        assertTrue(info.isVisibleInComposer());
     }
 
     @Test
@@ -127,12 +138,12 @@ public class FlowExecutorMetadataServiceTest {
 
         FlowExecutorInfo info = metadataService.getExecutor(DECLARING_EXECUTOR).orElse(null);
         assertNotNull(info);
-        assertEquals(info.getDisplayName(), "Daon TrustX Verification");
-        assertEquals(info.getDescription(), "Verifies the user with Daon TrustX.");
-        assertEquals(info.getIcon(), "assets/images/logos/daon.svg");
-        assertEquals(info.getTags(),
-                Collections.singletonList(Constants.ExecutorTags.RECOVERY_FACTOR));
-        assertEquals(info.getAssociatedAuthenticator(), "DaonAuthenticator");
+        assertEquals(info.getDisplayName(), "Custom Verification");
+        assertEquals(info.getDescription(), "Verifies the user with an external verification service.");
+        assertEquals(info.getIcon(), "assets/images/logos/custom-verification.svg");
+        assertEquals(info.getBehaviorFlags(),
+                Collections.singletonList(RECOVERY_FACTOR));
+        assertEquals(info.getAssociatedAuthenticator(), "CustomVerificationAuthenticator");
         assertTrue(info.isConnectionRequired());
         assertTrue(info.isMetadataDeclared());
         assertEquals(info.getSupportedFlowTypes(), EnumSet.of(REGISTRATION, PASSWORD_RECOVERY));
@@ -143,11 +154,11 @@ public class FlowExecutorMetadataServiceTest {
 
         register(new DeclaringExecutor());
 
-        assertEquals(names(metadataService.getComposerExecutors(REGISTRATION.name())),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors(REGISTRATION.name())),
                 Collections.singletonList(DECLARING_EXECUTOR));
-        assertEquals(names(metadataService.getComposerExecutors(PASSWORD_RECOVERY.name())),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors(PASSWORD_RECOVERY.name())),
                 Collections.singletonList(DECLARING_EXECUTOR));
-        assertTrue(metadataService.getComposerExecutors(INVITED_USER_REGISTRATION.name()).isEmpty(),
+        assertTrue(metadataService.getSupportedExtensionExecutors(INVITED_USER_REGISTRATION.name()).isEmpty(),
                 "A flow type the executor did not declare must not include it.");
     }
 
@@ -156,9 +167,9 @@ public class FlowExecutorMetadataServiceTest {
 
         register(new DeclaringExecutor());
 
-        assertEquals(names(metadataService.getComposerExecutors(REGISTRATION.getType())),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors(REGISTRATION.getType())),
                 Collections.singletonList(DECLARING_EXECUTOR));
-        assertEquals(names(metadataService.getComposerExecutors("registration")),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors("registration")),
                 Collections.singletonList(DECLARING_EXECUTOR));
     }
 
@@ -167,20 +178,69 @@ public class FlowExecutorMetadataServiceTest {
 
         register(new DeclaringExecutor());
 
-        assertTrue(metadataService.getComposerExecutors(null).isEmpty());
-        assertTrue(metadataService.getComposerExecutors("").isEmpty());
-        assertTrue(metadataService.getComposerExecutors("ASK_PASSWORD").isEmpty());
+        assertTrue(metadataService.getSupportedExtensionExecutors(null).isEmpty());
+        assertTrue(metadataService.getSupportedExtensionExecutors("").isEmpty());
+        assertTrue(metadataService.getSupportedExtensionExecutors("ASK_PASSWORD").isEmpty());
     }
 
     @Test
-    public void testExecutorHiddenFromComposerIsStillRegistered() {
+    public void testExecutorDeclaringAllIsOfferedInEveryFlowType() {
 
-        register(new HiddenExecutor());
+        register(new AllFlowTypesExecutor());
 
-        assertTrue(metadataService.getComposerExecutors(REGISTRATION.name()).isEmpty(),
-                "An executor marked as not composer visible must be excluded even when it declares a flow type.");
-        assertEquals(names(metadataService.getExecutors()), Collections.singletonList(HIDDEN_EXECUTOR));
-        assertTrue(metadataService.isExecutorRegistered(HIDDEN_EXECUTOR));
+        /*
+         * Asserted against FlowTypes.values() rather than a hardcoded list, so a flow type added to
+         * the product is automatically covered by this test too.
+         */
+        for (FlowTypes flowType : FlowTypes.values()) {
+            assertEquals(names(metadataService.getSupportedExtensionExecutors(flowType.name())),
+                    Collections.singletonList(ALL_FLOW_TYPES_EXECUTOR),
+                    "An executor declaring every flow type must be offered in flow type: " + flowType.name());
+        }
+    }
+
+    @Test
+    public void testDeclaringEveryFlowTypeResolvesToTheFullSet() {
+
+        register(new AllFlowTypesExecutor());
+
+        FlowExecutorInfo info = metadataService.getExecutor(ALL_FLOW_TYPES_EXECUTOR).orElse(null);
+        assertNotNull(info);
+        assertEquals(info.getSupportedFlowTypes(), EnumSet.allOf(FlowTypes.class),
+                "The declared set must resolve to every flow type in flow-mgt Constants.");
+        for (FlowTypes flowType : FlowTypes.values()) {
+            assertTrue(info.supportsFlowType(flowType));
+        }
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void testExecutorDeclaringMetadataWithoutFlowTypesIsRejected() {
+
+        register(new MetadataWithoutFlowTypesExecutor());
+    }
+
+    @Test
+    public void testRejectedExecutorIsNotRegistered() {
+
+        try {
+            register(new MetadataWithoutFlowTypesExecutor());
+        } catch (IllegalStateException e) {
+            // Expected; the assertion below is the point of this test.
+        }
+        assertFalse(metadataService.isExecutorRegistered(MISDECLARED_EXECUTOR),
+                "An executor rejected at registration must not end up in the registry.");
+    }
+
+    @Test
+    public void testExecutorDeclaringNeitherMetadataNorFlowTypesIsAccepted() {
+
+        /*
+         * The executors that consumers offer from their own hardcoded lists declare nothing at all.
+         * They must keep registering, which is what stops this validation from being a breaking change.
+         */
+        register(new PlainExecutor());
+
+        assertTrue(metadataService.isExecutorRegistered(PLAIN_EXECUTOR));
     }
 
     @Test
@@ -192,7 +252,7 @@ public class FlowExecutorMetadataServiceTest {
         assertNotNull(info);
         assertTrue(info.isIdpRequired(),
                 "An AuthenticationExecutor must be reported as needing an identity provider.");
-        assertEquals(names(metadataService.getComposerExecutors(REGISTRATION.name())),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors(REGISTRATION.name())),
                 Collections.singletonList(AUTH_EXECUTOR));
     }
 
@@ -208,24 +268,24 @@ public class FlowExecutorMetadataServiceTest {
         assertEquals(faulty.getDisplayName(), FAULTY_EXECUTOR);
         assertTrue(faulty.getSupportedFlowTypes().isEmpty());
 
-        assertEquals(names(metadataService.getComposerExecutors(REGISTRATION.name())),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors(REGISTRATION.name())),
                 Collections.singletonList(DECLARING_EXECUTOR));
     }
 
     @Test
-    public void testLateRegisteredExecutorIsVisibleWithoutRestart() {
+    public void testLateRegisteredExecutorIsVisibleOnTheNextCall() {
 
         register(new DeclaringExecutor());
-        assertEquals(names(metadataService.getComposerExecutors(REGISTRATION.name())),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors(REGISTRATION.name())),
                 Collections.singletonList(DECLARING_EXECUTOR));
 
-        // Simulates a connector bundle in repository/components/dropins activating after the first
-        // metadata read; nothing may be cached from that earlier call.
+        // Simulates an executor bundle activating after the first metadata read, as can happen while
+        // the server is still starting up; nothing may be cached from that earlier call.
         register(new LateExecutor());
 
-        assertEquals(names(metadataService.getComposerExecutors(REGISTRATION.name())),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors(REGISTRATION.name())),
                 Arrays.asList(DECLARING_EXECUTOR, LATE_EXECUTOR),
-                "A late registered executor must appear without a restart.");
+                "An executor registered after an earlier read must appear on the next call.");
     }
 
     @Test
@@ -239,7 +299,7 @@ public class FlowExecutorMetadataServiceTest {
 
         assertFalse(metadataService.isExecutorRegistered(LATE_EXECUTOR));
         assertEquals(metadataService.getExecutor(LATE_EXECUTOR), Optional.empty());
-        assertTrue(metadataService.getComposerExecutors(REGISTRATION.name()).isEmpty());
+        assertTrue(metadataService.getSupportedExtensionExecutors(REGISTRATION.name()).isEmpty());
     }
 
     @Test
@@ -252,29 +312,30 @@ public class FlowExecutorMetadataServiceTest {
         register(winner);
 
         // The loser's bundle stops. Removal is identity based, so the winner must survive it.
-        assertFalse(FlowExecutionEngineDataHolder.getInstance().removeExecutor(shadowed),
-                "Removing a shadowed executor must report that it was not the registered holder.");
+        FlowExecutionEngineDataHolder.getInstance().removeExecutor(shadowed);
         assertTrue(metadataService.isExecutorRegistered(LATE_EXECUTOR),
                 "Unbinding the shadowed executor must not delete the still active registration.");
 
-        assertTrue(FlowExecutionEngineDataHolder.getInstance().removeExecutor(winner));
-        assertFalse(metadataService.isExecutorRegistered(LATE_EXECUTOR));
+        FlowExecutionEngineDataHolder.getInstance().removeExecutor(winner);
+        assertFalse(metadataService.isExecutorRegistered(LATE_EXECUTOR),
+                "Unbinding the registered executor must delete its entry.");
     }
 
     @Test
     public void testExecutorWithABlankNameIsNotRegistered() {
 
         // The name is the only handle a flow step has, so a blank one is unusable rather than merely odd.
-        assertNull(FlowExecutionEngineDataHolder.getInstance().addExecutor(new BlankNameExecutor()));
-        assertFalse(FlowExecutionEngineDataHolder.getInstance().removeExecutor(new BlankNameExecutor()));
-        assertTrue(metadataService.getExecutors().isEmpty());
+        FlowExecutionEngineDataHolder.getInstance().addExecutor(new BlankNameExecutor());
+        FlowExecutionEngineDataHolder.getInstance().removeExecutor(new BlankNameExecutor());
+        assertTrue(metadataService.getExecutors().isEmpty(),
+                "An executor reporting a blank name must never enter the registry.");
     }
 
     @Test
     public void testExecutorFailingWithALinkageErrorDoesNotBreakResolution() {
 
-        // The characteristic failure of a dropin built against another framework version is an Error,
-        // not an exception, and it must be contained the same way.
+        // The characteristic failure of a connector built against another framework version is an
+        // Error, not an exception, and it must be contained the same way.
         register(new LinkageFaultyExecutor());
         register(new DeclaringExecutor());
 
@@ -283,7 +344,7 @@ public class FlowExecutorMetadataServiceTest {
         assertEquals(faulty.getDisplayName(), FAULTY_EXECUTOR);
         assertTrue(faulty.getSupportedFlowTypes().isEmpty());
 
-        assertEquals(names(metadataService.getComposerExecutors(REGISTRATION.name())),
+        assertEquals(names(metadataService.getSupportedExtensionExecutors(REGISTRATION.name())),
                 Collections.singletonList(DECLARING_EXECUTOR));
     }
 
@@ -314,7 +375,7 @@ public class FlowExecutorMetadataServiceTest {
 
     private List<String> names(List<FlowExecutorInfo> executors) {
 
-        return executors.stream().map(FlowExecutorInfo::getName).collect(Collectors.toList());
+        return executors.stream().map(FlowExecutorInfo::getName).toList();
     }
 
     /**
@@ -348,7 +409,7 @@ public class FlowExecutorMetadataServiceTest {
     }
 
     /**
-     * Stands in for a connector that opts in fully, as the Daon connector does.
+     * Stands in for a connector that opts in fully, declaring every property the metadata SPI offers.
      */
     private static class DeclaringExecutor extends PlainExecutor {
 
@@ -368,39 +429,32 @@ public class FlowExecutorMetadataServiceTest {
         public FlowExecutorMetadata getExecutorMetadata() {
 
             return FlowExecutorMetadata.builder()
-                    .displayName("Daon TrustX Verification")
-                    .description("Verifies the user with Daon TrustX.")
-                    .icon("assets/images/logos/daon.svg")
-                    .tags(Collections.singletonList(Constants.ExecutorTags.RECOVERY_FACTOR))
-                    .associatedAuthenticator("DaonAuthenticator")
+                    .displayName("Custom Verification")
+                    .description("Verifies the user with an external verification service.")
+                    .icon("assets/images/logos/custom-verification.svg")
+                    .behaviorFlags(Collections.singletonList(RECOVERY_FACTOR))
+                    .associatedAuthenticator("CustomVerificationAuthenticator")
                     .connectionRequired(true)
                     .build();
         }
     }
 
     /**
-     * Declares a flow type but opts out of the composer, as engine plumbing executors should.
+     * Declares composer metadata but no flow type, so it would be described and offered nowhere.
      */
-    private static class HiddenExecutor extends PlainExecutor {
+    private static class MetadataWithoutFlowTypesExecutor extends PlainExecutor {
 
         @Override
         public String getName() {
 
-            return HIDDEN_EXECUTOR;
-        }
-
-        @Override
-        public Set<FlowTypes> getSupportedFlowTypes() {
-
-            return EnumSet.allOf(FlowTypes.class);
+            return MISDECLARED_EXECUTOR;
         }
 
         @Override
         public FlowExecutorMetadata getExecutorMetadata() {
 
             return FlowExecutorMetadata.builder()
-                    .displayName("User Onboarding")
-                    .visibleInComposer(false)
+                    .displayName("Misdeclared Verification")
                     .build();
         }
     }
@@ -417,6 +471,24 @@ public class FlowExecutorMetadataServiceTest {
         public Set<FlowTypes> getSupportedFlowTypes() {
 
             return EnumSet.of(REGISTRATION);
+        }
+    }
+
+    /**
+     * Declares support for every flow type at once rather than enumerating them.
+     */
+    private static class AllFlowTypesExecutor extends PlainExecutor {
+
+        @Override
+        public String getName() {
+
+            return ALL_FLOW_TYPES_EXECUTOR;
+        }
+
+        @Override
+        public Set<FlowTypes> getSupportedFlowTypes() {
+
+            return EnumSet.allOf(FlowTypes.class);
         }
     }
 
@@ -445,7 +517,7 @@ public class FlowExecutorMetadataServiceTest {
     }
 
     /**
-     * A dropin compiled against a different framework version: the metadata hooks fail with a
+     * A connector compiled against a different framework version: the metadata hooks fail with a
      * linkage error rather than an exception.
      */
     private static class LinkageFaultyExecutor extends PlainExecutor {

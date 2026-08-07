@@ -23,27 +23,23 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Data holder for the User Flow Service.
  */
 public class FlowExecutionEngineDataHolder {
 
-    /*
-     * Concurrent because executors are bound and unbound by OSGi at any time - including long after
-     * server startup, when a connector bundle placed in repository/components/dropins activates -
-     * while the flow execution path reads this map on every task execution node.
-     */
-    private static final Map<String, Executor> executors = new ConcurrentHashMap<>();
+    private static final Map<String, Executor> executors = new HashMap<>();
     private static final FlowExecutionEngineDataHolder instance = new FlowExecutionEngineDataHolder();
     private FlowMgtService flowMgtService;
     private RealmService realmService;
@@ -74,38 +70,37 @@ public class FlowExecutionEngineDataHolder {
     }
 
     /**
-     * Register an executor, keyed by {@link Executor#getName()}.
+     * Add an executor to the executors map, keyed by {@link Executor#getName()}.
      *
-     * @param executor Executor to register. Ignored if it reports a blank name, since the name is the
-     *                 only handle a flow step has on it.
-     * @return The executor previously registered under the same name, or null if there was none.
+     * @param executor Executor to register. Ignored if it reports a blank name.
+     * @throws IllegalStateException
      */
-    public Executor addExecutor(Executor executor) {
+    public void addExecutor(Executor executor) {
 
         String name = executor.getName();
         if (name == null || name.trim().isEmpty()) {
-            return null;
+            return;
         }
-        return executors.put(name, executor);
+        FlowExecutorInfo info = FlowExecutorMetadataResolver.resolve(executor);
+        if (info.isMetadataDeclared() && info.getSupportedFlowTypes().isEmpty()) {
+            throw new IllegalStateException("Executor " + name + " contributed by "
+                    + executor.getClass().getName() + " declares composer metadata but no supported flow type.");
+        }
+        executors.put(name, executor);
     }
 
     /**
-     * Remove a previously registered executor.
-     *
-     * <p>Removal is identity based. Two bundles may register executors under the same name - the
-     * second replaces the first in the map - and unbinding the loser must not delete the winner's
-     * still active registration.</p>
+     * Remove an executor from the executors map.
      *
      * @param executor Executor to remove.
-     * @return True if this executor was the registered one and has been removed.
      */
-    public boolean removeExecutor(Executor executor) {
+    public void removeExecutor(Executor executor) {
 
         String name = executor.getName();
         if (name == null || name.trim().isEmpty()) {
-            return false;
+            return;
         }
-        return executors.remove(name, executor);
+        executors.remove(name, executor);
     }
 
     /**

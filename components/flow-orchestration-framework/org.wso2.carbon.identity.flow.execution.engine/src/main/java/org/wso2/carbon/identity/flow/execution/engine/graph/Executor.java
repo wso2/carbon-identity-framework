@@ -64,20 +64,9 @@ public interface Executor {
     ExecutorResponse rollback(FlowExecutionContext context) throws FlowEngineException;
 
     /**
-     * Get the flow types in which this executor may be used as a step.
+     * Declare supported flow types for dynamically registered executors.
      *
-     * <p>Declaring at least one flow type is how an executor makes itself selectable in the flow
-     * composer. This is an opt in: the default is an empty set, which keeps executors that exist only
-     * as engine plumbing out of the composer, and leaves executors written before this method existed
-     * behaving exactly as they did. Such executors remain fully usable at execution time; they simply
-     * do not advertise themselves, so consumers can continue to offer them from their own curated
-     * lists.</p>
-     *
-     * <p>A connector deployed into {@code repository/components/dropins} needs nothing more than this
-     * to become available as a step - it is already registered with the engine by publishing itself as
-     * an {@code Executor} OSGi service.</p>
-     *
-     * @return Set of supported flow types. Never null.
+     * @return Set of supported flow types.
      */
     default Set<FlowTypes> getSupportedFlowTypes() {
 
@@ -85,7 +74,7 @@ public interface Executor {
     }
 
     /**
-     * Get the metadata describing how the flow composer should present this executor.
+     * Get the metadata describing how the flow composer should present a dynamically registered executor.
      *
      * @return Executor metadata, or null to let the engine derive defaults from {@link #getName()}.
      */

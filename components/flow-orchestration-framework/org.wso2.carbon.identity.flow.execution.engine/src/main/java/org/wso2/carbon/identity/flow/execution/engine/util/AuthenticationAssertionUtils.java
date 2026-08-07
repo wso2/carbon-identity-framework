@@ -92,8 +92,6 @@ public class AuthenticationAssertionUtils {
 
             List<String> amrValues = context.getCompletedNodes().stream()
                     .map(node -> node.getExecutorConfig().getName())
-                    // The registry is a ConcurrentHashMap, which throws rather than miss on a null key.
-                    .filter(Objects::nonNull)
                     .map(FlowExecutionEngineDataHolder.getInstance().getExecutors()::get)
                     .filter(AuthenticationExecutor.class::isInstance)
                     .map(executor -> ((AuthenticationExecutor) executor).getAMRValue())

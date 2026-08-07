@@ -255,6 +255,21 @@ public class Constants {
     }
 
     /**
+     * Behavior flags an executor can declare in its metadata.
+     */
+    public static class ExecutorBehaviorFlags {
+
+        /**
+         * Marks an executor as a password recovery factor.
+         */
+        public static final String RECOVERY_FACTOR = "RECOVERY_FACTOR";
+
+        private ExecutorBehaviorFlags() {
+
+        }
+    }
+
+    /**
      * Constants for the flow configurations.
      */
     public static class FlowConfigConstants {
