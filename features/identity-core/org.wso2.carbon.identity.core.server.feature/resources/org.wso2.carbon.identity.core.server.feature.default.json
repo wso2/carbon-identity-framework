@@ -2320,6 +2320,9 @@
   "actions.types.pre_update_password.version.latest": "v2",
   "actions.types.flow_extension.enable": true,
   "actions.types.flow_extension.version.latest": "v1",
+  "actions.types.flow_extension.non_modifiable_paths": [
+  "/user/claims[uri=http://wso2.org/claims/userid]",
+  "/user/claims[uri=http://wso2.org/claims/created]"],
 
   "external_api_client.http_client.connection_timeout": "2000",
   "external_api_client.http_client.read_timeout": "3000",

@@ -20,13 +20,20 @@ package org.wso2.carbon.identity.flow.extension.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.extension.executor.PathTypeAnnotationUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.HandoverPolicy;
+import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS_PROPERTY;
 
 /**
  * Utilities for the Flow Extension module.
@@ -42,6 +49,50 @@ public final class FlowExtensionUtil {
 
     private FlowExtensionUtil() {
 
+    }
+
+    /**
+     * Validate that no declared modify path is configured as non-modifiable.
+     *
+     * @param modify The modify context paths declared in an action's access config.
+     * @throws ActionDTOModelResolverClientException if any path is configured as non-modifiable.
+     */
+    public static void validateModifyPaths(List<ContextPath> modify)
+            throws ActionDTOModelResolverClientException {
+
+        List<String> nonModifiablePaths = getNonModifiablePaths();
+        if (nonModifiablePaths.isEmpty()) {
+            return;
+        }
+
+        for (ContextPath modifyPath : modify) {
+            String rawPath = modifyPath == null ? null : modifyPath.getPath();
+            if (rawPath == null) {
+                continue;
+            }
+
+            String cleanPath = PathTypeAnnotationUtil.stripAnnotation(rawPath)[0];
+            if (nonModifiablePaths.contains(cleanPath)) {
+                throw new ActionDTOModelResolverClientException("Invalid modify path.",
+                        String.format("Path '%s' cannot be marked as modifiable.", cleanPath));
+            }
+        }
+    }
+
+    /**
+     * Check a single context path against the non-modifiable path configuration.
+     *
+     * @param path The context path targeted by an operation.
+     * @return {@code true} if the path is configured as non-modifiable.
+     */
+    public static boolean isNonModifiablePath(String path) {
+
+        return getNonModifiablePaths().contains(path);
+    }
+
+    private static List<String> getNonModifiablePaths() {
+
+        return IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY);
     }
 
     /**

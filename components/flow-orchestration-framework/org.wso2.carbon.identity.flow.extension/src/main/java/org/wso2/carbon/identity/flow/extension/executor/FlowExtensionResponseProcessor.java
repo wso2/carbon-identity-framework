@@ -207,10 +207,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "Claim URI must be in the local dialect (" +
                             PathTypeAnnotationUtil.LOCAL_CLAIM_DIALECT_PREFIX + "): " + claimUri);
         }
-        if (claimUri.startsWith(PathTypeAnnotationUtil.IDENTITY_CLAIM_URI_PREFIX)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Identity-system claims cannot be modified by Flow Extensions: " + claimUri);
-        }
 
         Optional<LocalClaim> optionalLocalClaim = getLocalClaim(claimUri, tenantDomain);
         if (optionalLocalClaim.isEmpty()) {
