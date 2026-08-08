@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceDataResolver;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
@@ -91,6 +92,7 @@ public class FrameworkServiceDataHolder {
     private JsGenericGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
+    private DeviceDataResolver deviceDataResolver;
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
     private ConsentManager consentManager = null;
     private ConsentAppMappingService consentAppMappingService = null;
@@ -342,6 +344,27 @@ public class FrameworkServiceDataHolder {
     public List<PostAuthenticationHandler> getPostAuthenticationHandlers() {
 
         return this.postAuthenticationHandlers;
+    }
+
+    /**
+     * Get {@link DeviceDataResolver}. May be {@code null} when the device.policy bundle is not
+     * installed — device data resolution is best-effort and optional.
+     *
+     * @return DeviceDataResolver instance, or {@code null} if not registered.
+     */
+    public DeviceDataResolver getDeviceDataResolver() {
+
+        return this.deviceDataResolver;
+    }
+
+    /**
+     * Set {@link DeviceDataResolver}.
+     *
+     * @param deviceDataResolver DeviceDataResolver instance.
+     */
+    public void setDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        this.deviceDataResolver = deviceDataResolver;
     }
 
     /**
