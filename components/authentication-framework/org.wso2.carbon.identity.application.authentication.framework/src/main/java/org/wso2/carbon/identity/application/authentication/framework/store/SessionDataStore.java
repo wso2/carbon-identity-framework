@@ -22,1060 +22,354 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionSerializerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Data will be persisted or stored date will be removed from the store. These two events are considered as STORE
- * operation and DELETE operations.
- * And these events are stored with unique sessionId, operation type and operation initiated timestamp.
- * Expired DELETE operations and related STORE operations will be deleted by a OperationCleanUpService task.
- * All expired operations will be deleted by SessionCleanUpService task.
+ * Storage contract for authentication session data, and the factory that selects the active
+ * implementation.
+ * <p>
+ * This type is backend-agnostic: it defines the operations a session data store must provide, offers
+ * convenience defaults for optional operations, and resolves the configured implementation on behalf
+ * of callers. Concrete stores (for example a relational or an in-memory/key-value store) extend this
+ * class and are contributed as OSGi services; the built-in default store is wired in by the
+ * framework. The implementation to use is chosen from the {@code SessionDataStore.ImplType}
+ * configuration property and cached, so callers simply use {@link #getInstance()} without knowing
+ * which backend is active.
  */
-public class SessionDataStore {
+public abstract class SessionDataStore {
+
     private static final Log log = LogFactory.getLog(SessionDataStore.class);
 
-    private static final String OPERATION_DELETE = "DELETE";
-    private static final String OPERATION_STORE = "STORE";
-    private static final String SQL_INSERT_STORE_OPERATION =
-            "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, " +
-                    "EXPIRY_TIME, TENANT_ID) VALUES (?,?,?,?,?,?,?)";
-    private static final String SQL_INSERT_DELETE_OPERATION =
-            "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED, EXPIRY_TIME) " +
-                    "VALUES (?,?,?,?,?)";
-    private static final String SQL_DELETE_STORE_OPERATIONS_TASK =
-            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_STORE +
-                    "' AND EXISTS (" +
-                        "SELECT 1 FROM IDN_AUTH_SESSION_STORE DELETE_OP " +
-                        "WHERE DELETE_OP.OPERATION = '" + OPERATION_DELETE + "' " +
-                        "AND IDN_AUTH_SESSION_STORE.SESSION_ID = DELETE_OP.SESSION_ID " +
-                        "AND IDN_AUTH_SESSION_STORE.TIME_CREATED < DELETE_OP.TIME_CREATED)";
-
-    private static final String SQL_DELETE_TEMP_STORE_OPERATIONS_TASK =
-            "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE EXPIRY_TIME < ?";
-    private static final String SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL =
-            "DELETE FROM IDN_AUTH_SESSION_STORE STORE_OP WHERE OPERATION = '" + OPERATION_STORE + "'" +
-                    "AND SESSION_ID IN (" +
-                        "SELECT STORE_OP.SESSION_ID FROM (" +
-                            "SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE DELETE_OP " +
-                            "WHERE OPERATION = '" + OPERATION_DELETE + "' " +
-                            "AND STORE_OP.SESSION_ID = SESSION_ID " +
-                            "AND STORE_OP.TIME_CREATED < DELETE_OP.TIME_CREATED" +
-                        ") AS STORE_OP" +
-                    ");";
-    private static final String SQL_DELETE_DELETE_OPERATIONS_TASK =
-            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "' AND  EXPIRY_TIME < ?";
-    private static final String SQL_DELETE_TEMP_RECORDS =
-            "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE SESSION_ID = ? AND  SESSION_TYPE = ?";
-
-    private static final String SQL_DESERIALIZE_OBJECT_MYSQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_DESERIALIZE_OBJECT_BY_BY_OPERATION_MYSQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_DESERIALIZE_OBJECT_DB2SQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
-    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_DB2SQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
-    private static final String SQL_DESERIALIZE_OBJECT_MSSQL =
-            "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC";
-    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_MSSQL =
-            "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC";
-    private static final String SQL_DESERIALIZE_OBJECT_POSTGRESQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_POSTGRESQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_DESERIALIZE_OBJECT_INFORMIX =
-            "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE " +
-                    "WHERE SESSION_ID =? AND " +
-                    "SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_INFORMIX =
-            "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE " +
-                    "WHERE SESSION_ID =? AND " +
-                    "SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_DESERIALIZE_OBJECT_ORACLE =
-            "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED " +
-                    "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
-                    "SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
-    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_ORACLE =
-            "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED " +
-                    "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
-                    "SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
-    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MYSQL =
-            "SELECT OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_DB2SQL =
-            "SELECT OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
-    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MSSQL =
-            "SELECT TOP 1 OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC";
-    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_POSTGRESQL =
-            "SELECT OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_INFORMIX =
-            "SELECT FIRST 1 OPERATION FROM IDN_AUTH_SESSION_STORE " +
-                    "WHERE SESSION_ID =? AND " +
-                    "SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
-    private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_ORACLE =
-            "SELECT * FROM (SELECT OPERATION " +
-                    "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
-                    "SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
-
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK_MYSQL =
-            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME < ? LIMIT %d";
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK_MSSQL =
-            "DELETE TOP (%d) FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME < ?";
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK_POSTGRESQL = "DELETE FROM IDN_AUTH_SESSION_STORE WHERE " +
-            "CTID IN (SELECT CTID FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME < ? LIMIT %d)";
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK_ORACLE = "DELETE FROM IDN_AUTH_SESSION_STORE WHERE ROWID" +
-            " IN (SELECT ROWID FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME < ? AND ROWNUM <= %d)";
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK_INFOMIXSQL = "DELETE FROM (SELECT SESSION_ID, " +
-            "SESSION_TYPE, OPERATION, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME < ? LIMIT %d) ";
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK_DB2SQL =
-            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE (SESSION_ID, SESSION_TYPE, OPERATION, TIME_CREATED) IN " +
-                    "(SELECT SESSION_ID, SESSION_TYPE, OPERATION, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE " +
-                    "EXPIRY_TIME < ? FETCH FIRST %d ROWS ONLY)";
-    private static final String MYSQL_DATABASE = "MySQL";
-    private static final String MARIA_DATABASE = "MariaDB";
-    private static final String H2_DATABASE = "H2";
-    private static final String DB2_DATABASE = "DB2";
-    private static final String MS_SQL_DATABASE = "MS SQL";
-    private static final String MICROSOFT_DATABASE = "Microsoft";
-    private static final String POSTGRESQL_DATABASE = "PostgreSQL";
-    private static final String INFORMIX_DATABASE = "Informix";
-
-    private static final int DEFAULT_DELETE_LIMIT = 50000;
-    private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 250;
-    private static final String BATCH_INSERT_CHUNK_SIZE_PROPERTY =
-            "JDBCPersistenceManager.SessionDataPersist.BatchInsertChunkSize";
-    private static int batchInsertChunkSize = DEFAULT_BATCH_INSERT_CHUNK_SIZE;
-    public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
+    private static final String STORE_IMPL_TYPE_PROPERTY = "SessionDataStore.ImplType";
+    // Identifier of the built-in default store; used when no store is configured or the default is
+    // requested explicitly. It is only a configuration/selection name, not a dependency on any
+    // concrete implementation.
+    private static final String DEFAULT_STORE_NAME = "JDBC";
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
-    public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
-    private static int maxSessionDataPoolSize = 100;
-    private static int maxTempDataPoolSize = 50;
-    private static BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
-    private static BlockingDeque<SessionContextDO> tempAuthnContextDataDeleteQueue = new LinkedBlockingDeque();
-    private static volatile SessionDataStore instance;
-    private boolean enablePersist;
-    private String sqlInsertSTORE;
-    private String sqlInsertDELETE;
-    private String sqlDeleteSTORETask;
-    private String sqlDeleteTempDataTask;
-    private String sqlDeleteDELETETask;
-    private String sqlSelect;
-    private String sqlOperationSelect;
-    private String sqlDeleteExpiredDataTask;
-    private String sqlGetLastOperation;
-    private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
-    private boolean sessionDataCleanupEnabled = true;
-    private boolean operationDataCleanupEnabled = false;
-    private static boolean tempDataCleanupEnabled = false;
-    private static boolean periodicTempDataCleanupEnabled = true;
-    private static boolean sessionAndTempDataSeparationEnabled = false;
-    private static boolean checkExistingEntryForDeleteOperationInsert = false;
 
-    static {
-        try {
-            String maxPoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
-            if (StringUtils.isNotBlank(maxPoolSizeValue)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Session data pool size config value: " + maxPoolSizeValue);
-                }
-                maxSessionDataPoolSize = Integer.parseInt(maxPoolSizeValue);
-            }
+    // Cached store returned by getInstance(); invalidated on store bind/unbind.
+    private static volatile SessionDataStore selectedStore;
 
-            String isTempDataCleanupEnabledVal
-                    = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable");
-            if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
-                tempDataCleanupEnabled = Boolean.parseBoolean(isTempDataCleanupEnabledVal);
-            }
+    // ---------------------------------------------------------------------
+    // Factory / selection
+    // ---------------------------------------------------------------------
 
-            String isPeriodicTempDataCleanupEnabledVal = IdentityUtil.getProperty
-                    ("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.EnablePeriodicCleanup");
-            if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
-                periodicTempDataCleanupEnabled = Boolean.parseBoolean(isPeriodicTempDataCleanupEnabledVal);
-            }
-
-            sessionAndTempDataSeparationEnabled = Boolean.parseBoolean(IdentityUtil
-                    .getProperty("JDBCPersistenceManager.SessionDataPersist.SessionAndTempDataSeparation.Enable"));
-
-            String maxTempDataPoolSizeValue
-                    = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize");
-            if (StringUtils.isNotBlank(maxTempDataPoolSizeValue)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Temporary data pool size config value: " + maxPoolSizeValue);
-                }
-                maxTempDataPoolSize = Integer.parseInt(maxTempDataPoolSizeValue);
-            }
-
-        } catch (NumberFormatException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Exception ignored : ", e);
-            }
-            log.warn("One or more pool size configurations cause NumberFormatException. Default values would be used");
-        }
-        if (maxSessionDataPoolSize > 0) {
-            log.info("Thread pool size for session persistent consumer : " + maxSessionDataPoolSize);
-            ExecutorService threadPool = Executors.newFixedThreadPool(maxSessionDataPoolSize);
-            for (int i = 0; i < maxSessionDataPoolSize; i++) {
-                threadPool.execute(new SessionDataPersistTask(sessionContextQueue));
-            }
-        }
-        if (tempDataCleanupEnabled && maxTempDataPoolSize > 0) {
-            log.info("Thread pool size for temporary authentication context data delete task: " + maxTempDataPoolSize);
-            ExecutorService threadPool = Executors.newFixedThreadPool(maxTempDataPoolSize);
-            for (int i = 0; i < maxTempDataPoolSize; i++) {
-                threadPool.execute(new TempAuthContextDataDeleteTask(tempAuthnContextDataDeleteQueue));
-            }
-        }
-    }
-
-    private SessionDataStore() {
-        String enablePersistVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Enable");
-        enablePersist = true;
-        if (enablePersistVal != null) {
-            enablePersist = Boolean.parseBoolean(enablePersistVal);
-        }
-        String insertSTORESQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.InsertSTORE");
-        String insertDELETESQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.InsertDELETE");
-        String deleteSTORETaskSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteSTORETask");
-        String deleteTempSTORETaskSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteTempDataTask");
-        String deleteDELETETaskSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteDELETETask");
-        String selectSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.Select");
-        String deleteExpiredDataTaskSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteExpiredDataTask");
-        if (!StringUtils.isBlank(insertSTORESQL)) {
-            sqlInsertSTORE = insertSTORESQL;
-        } else {
-            sqlInsertSTORE = SQL_INSERT_STORE_OPERATION;
-        }
-        if (!StringUtils.isBlank(insertDELETESQL)) {
-            sqlInsertDELETE = insertDELETESQL;
-        } else {
-            sqlInsertDELETE = SQL_INSERT_DELETE_OPERATION;
-        }
-        if (!StringUtils.isBlank(deleteSTORETaskSQL)) {
-            sqlDeleteSTORETask = deleteSTORETaskSQL;
-        }
-        if (!StringUtils.isBlank(deleteTempSTORETaskSQL)) {
-            sqlDeleteTempDataTask = deleteTempSTORETaskSQL;
-        } else {
-            sqlDeleteTempDataTask = SQL_DELETE_TEMP_STORE_OPERATIONS_TASK;
-        }
-
-        if (!StringUtils.isBlank(deleteDELETETaskSQL)) {
-            sqlDeleteDELETETask = deleteDELETETaskSQL;
-        } else {
-            sqlDeleteDELETETask = SQL_DELETE_DELETE_OPERATIONS_TASK;
-        }
-        if (!StringUtils.isBlank(selectSQL)) {
-            sqlSelect = selectSQL;
-        }
-
-        String deleteChunkSizeString = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist" +
-                ".SessionDataCleanUp.DeleteChunkSize");
-        if (StringUtils.isNotBlank(deleteChunkSizeString)) {
-            deleteChunkSize = Integer.parseInt(deleteChunkSizeString);
-        }
-
-        if (StringUtils.isNotBlank(deleteExpiredDataTaskSQL)) {
-            sqlDeleteExpiredDataTask = String.format(deleteExpiredDataTaskSQL, deleteChunkSize);
-        }
-
-        if (!enablePersist) {
-            log.info("Session Data Persistence of Authentication framework is not enabled.");
-        }
-        String isCleanUpEnabledVal
-                = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable");
-
-        String isOperationCleanUpEnabledVal
-                = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
-
-        if (StringUtils.isNotBlank(isCleanUpEnabledVal)) {
-            sessionDataCleanupEnabled = Boolean.parseBoolean(isCleanUpEnabledVal);
-        }
-        if (StringUtils.isNotBlank(isOperationCleanUpEnabledVal)) {
-            operationDataCleanupEnabled = Boolean.parseBoolean(isOperationCleanUpEnabledVal);
-        }
-
-        if (sessionDataCleanupEnabled || operationDataCleanupEnabled ||
-                (tempDataCleanupEnabled && periodicTempDataCleanupEnabled)) {
-            long sessionCleanupPeriod = IdentityUtil.getCleanUpPeriod(
-                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Session clean up task enabled to run in %d minutes intervals",
-                        sessionCleanupPeriod));
-            }
-            SessionCleanUpService sessionCleanUpService = new SessionCleanUpService(sessionCleanupPeriod / 4,
-                    sessionCleanupPeriod);
-            sessionCleanUpService.activateCleanUp();
-        }
-
-        String checkExistingEntryForDeleteOperationInsertProperty = IdentityUtil.getProperty(
-                "JDBCPersistenceManager.SessionDataPersist.CheckExistingEntryForDeleteOperationInsert");
-        if (StringUtils.isNotBlank(checkExistingEntryForDeleteOperationInsertProperty)) {
-            checkExistingEntryForDeleteOperationInsert = Boolean.parseBoolean(
-                    checkExistingEntryForDeleteOperationInsertProperty);
-        }
-
-        String batchInsertChunkSizeValue = IdentityUtil.getProperty(BATCH_INSERT_CHUNK_SIZE_PROPERTY);
-        if (StringUtils.isNotBlank(batchInsertChunkSizeValue)) {
-            try {
-                int parsedChunkSize = Integer.parseInt(batchInsertChunkSizeValue);
-                if (parsedChunkSize > 0) {
-                    batchInsertChunkSize = parsedChunkSize;
-                } else {
-                    log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
-                            + batchInsertChunkSizeValue + ". Value must be positive. Using default: "
-                            + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
-                }
-            } catch (NumberFormatException e) {
-                log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
-                        + batchInsertChunkSizeValue + ". Using default: " + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
-            }
-        }
-    }
-
+    /**
+     * Returns the active session data store, resolving it from configuration on first use and
+     * caching the result. This is the single accessor callers use, independent of which backend is
+     * configured.
+     * <p>
+     * When no store is configured (or the default is requested), the built-in default store is
+     * returned. When a non-default store is configured, it must have been contributed as an OSGi
+     * {@code SessionDataStore} service; if it is not yet available this throws
+     * {@link IdentityRuntimeException} rather than falling back to the default, so session data is
+     * never split across two stores.
+     *
+     * @return the active session data store.
+     */
     public static SessionDataStore getInstance() {
-        if (instance == null) {
+
+        SessionDataStore resolved = selectedStore;
+        if (resolved == null) {
             synchronized (SessionDataStore.class) {
-                if (instance == null) {
-                    instance = new SessionDataStore();
+                resolved = selectedStore;
+                if (resolved == null) {
+                    resolved = resolveStore();
+                    selectedStore = resolved;
                 }
             }
         }
-        return instance;
-    }
-
-    public Object getSessionData(String key, String type) {
-        SessionContextDO sessionContextDO = getSessionContextData(key, type);
-        return sessionContextDO != null ? sessionContextDO.getEntry() : null;
+        return resolved;
     }
 
     /**
-     * Get session data for a given key, type and operation.
-     *
-     * @param key       Key
-     * @param type      Type
-     * @param operation Operation
-     * @return Session data object
+     * Drops the cached store selection so the next {@link #getInstance()} re-resolves. Called when a
+     * store OSGi service binds/unbinds, or after a runtime configuration change.
      */
-    public Object getSessionData(String key, String type, String operation) {
+    public static void invalidateSelectedStore() {
 
-        SessionContextDO sessionContextDO = getSessionContextData(key, type, operation);
-        return sessionContextDO != null ? sessionContextDO.getEntry() : null;
+        selectedStore = null;
     }
 
-    public SessionContextDO getSessionContextData(String key, String type) {
+    private static SessionDataStore resolveStore() {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type);
-        }
-        if (!enablePersist) {
-            return null;
-        }
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(false);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return null;
-        }
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            if (StringUtils.isBlank(sqlSelect)) {
-                String driverName = connection.getMetaData().getDriverName();
-                if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
-                        || driverName.contains(H2_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_MYSQL;
-                } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_DB2SQL;
-                } else if (driverName.contains(MS_SQL_DATABASE)
-                        || driverName.contains(MICROSOFT_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_MSSQL;
-                } else if (driverName.contains(POSTGRESQL_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_POSTGRESQL;
-                } else if (driverName.contains(INFORMIX_DATABASE)) {
-                    // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_INFORMIX;
-                } else {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_ORACLE;
-                }
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        String configured = IdentityUtil.getProperty(STORE_IMPL_TYPE_PROPERTY);
+
+        // The default store is used only when nothing is configured or the default is requested.
+        if (StringUtils.isBlank(configured) || DEFAULT_STORE_NAME.equalsIgnoreCase(configured.trim())) {
+            SessionDataStore defaultStore = dataHolder.getDefaultSessionDataStore();
+            if (defaultStore != null) {
+                return defaultStore;
             }
-            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlSelect, type));
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, type);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                String operation = resultSet.getString(1);
-                long nanoTime = resultSet.getLong(3);
-                if (StringUtils.equalsIgnoreCase(OPERATION_STORE, operation)) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
-                }
-            }
-        } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
-                 IdentityApplicationManagementException e) {
+            throw new IdentityRuntimeException("The default session data store is not available yet; "
+                    + "the authentication framework component may not have completed activation.");
+        }
+
+        // A non-default store is explicitly configured: it MUST be registered and available. We do
+        // not fall back to the default here, because that would split session data across two stores
+        // — records written to the default store before the configured store binds (or during a
+        // temporary unbind) would be invisible once it (re)binds. Fail closed instead: the selection
+        // is not cached (see getInstance()), so once the configured store's OSGi service binds, the
+        // next call resolves successfully.
+        SessionDataStore external = dataHolder.getSessionDataStore(configured.trim());
+        if (external != null) {
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving session data", e);
+                log.debug("Resolved session data store: " + configured.trim());
             }
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+            return external;
         }
-        return null;
+        throw new IdentityRuntimeException("Configured session data store '" + configured.trim()
+                + "' is not available; its bundle may not be installed or its OSGi service may not "
+                + "have bound yet. Refusing to fall back to the default store to avoid splitting "
+                + "session data across stores.");
     }
+
+    // ---------------------------------------------------------------------
+    // Core store contract (implemented by every backend)
+    // ---------------------------------------------------------------------
 
     /**
-     * Get Session context data for a given key, type and operation.
+     * The unique name this store registers under and is selected by (case-insensitive). Callers
+     * configure {@code SessionDataStore.ImplType} with this value to activate the store.
      *
-     * @param key       Key
-     * @param type      Type
-     * @param operation Operation
-     * @return SessionContextDO
+     * @return the store name.
      */
-    public SessionContextDO getSessionContextData(String key, String type, String operation) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type + " operation : " +
-                    operation);
-        }
-        if (!enablePersist) {
-            return null;
-        }
-
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
-            if (StringUtils.isBlank(sqlOperationSelect)) {
-                String driverName = connection.getMetaData().getDriverName();
-                if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
-                        || driverName.contains(H2_DATABASE)) {
-                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_BY_OPERATION_MYSQL;
-                } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
-                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_DB2SQL;
-                } else if (driverName.contains(MS_SQL_DATABASE)
-                        || driverName.contains(MICROSOFT_DATABASE)) {
-                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_MSSQL;
-                } else if (driverName.contains(POSTGRESQL_DATABASE)) {
-                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_POSTGRESQL;
-                } else if (driverName.contains(INFORMIX_DATABASE)) {
-                    // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
-                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_INFORMIX;
-                } else {
-                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_ORACLE;
-                }
-            }
-            try (PreparedStatement preparedStatement = connection.prepareStatement(
-                    getSessionStoreDBQuery(sqlOperationSelect, type))) {
-                preparedStatement.setString(1, key);
-                preparedStatement.setString(2, type);
-                preparedStatement.setString(3, operation);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if (resultSet.next()) {
-                        long nanoTime = resultSet.getLong(3);
-                        return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
-                    }
-                }
-            }
-        } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
-                 IdentityApplicationManagementException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving session data", e);
-            }
-        }
-        return null;
-    }
+    public abstract String getStoreName();
 
     /**
-     * Validate last operation performed on the session data with given key and type.
+     * Whether a live (non-expired, not cleared) record exists for the given key and type.
      *
-     * @param key               Session data key.
-     * @param type              Session data type.
-     * @param requiredOperation Required operation to validate.
-     * @return True if the last operation is same as the required operation.
+     * @param key  the record key (e.g. a session or context identifier).
+     * @param type the logical record type (typically a cache name).
+     * @return {@code true} if a live record exists, {@code false} otherwise.
      */
-    public boolean validateLastOperationOnSessionData(String key, String type, String requiredOperation) {
+    public abstract boolean isSessionLive(String key, String type);
 
-        if (!enablePersist) {
-            return false;
-        }
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(false);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return false;
-        }
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            if (StringUtils.isBlank(sqlGetLastOperation)) {
-                sqlGetLastOperation = getSqlGetLastOperation(connection);
-            }
-            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlGetLastOperation, type));
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, type);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                String operation = resultSet.getString(1);
-                if (StringUtils.equalsIgnoreCase(requiredOperation, operation)) {
-                    return true;
-                }
-            }
-        } catch (SQLException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error while checking session data", e);
-            }
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
-        }
-        return false;
-    }
+    /**
+     * Stores a record for the given key and type, scoped to a tenant. An existing record for the
+     * same key and type is replaced, and its validity/expiry is (re)set from the entry and the
+     * configured session timeouts.
+     *
+     * @param key      the record key.
+     * @param type     the logical record type.
+     * @param entry    the value to store.
+     * @param tenantId the owning tenant, or {@link MultitenantConstants#INVALID_TENANT_ID} if none.
+     */
+    public abstract void storeSessionData(String key, String type, Object entry, int tenantId);
 
-    private String getSqlGetLastOperation(Connection connection) throws SQLException {
+    /**
+     * Returns the stored value for the given key and type, or {@code null} if none exists or it has
+     * expired.
+     *
+     * @param key  the record key.
+     * @param type the logical record type.
+     * @return the stored value, or {@code null}.
+     */
+    public abstract Object getSessionData(String key, String type);
 
-        String sqlGetLastOperationQuery;
-        String driverName = connection.getMetaData().getDriverName();
-        if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
-                || driverName.contains(H2_DATABASE)) {
-            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MYSQL;
-        } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
-            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_DB2SQL;
-        } else if (driverName.contains(MS_SQL_DATABASE)
-                || driverName.contains(MICROSOFT_DATABASE)) {
-            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MSSQL;
-        } else if (driverName.contains(POSTGRESQL_DATABASE)) {
-            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_POSTGRESQL;
-        } else if (driverName.contains(INFORMIX_DATABASE)) {
-            // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
-            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_INFORMIX;
-        } else {
-            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_ORACLE;
-        }
-        return sqlGetLastOperationQuery;
-    }
+    /**
+     * Returns the stored record together with its metadata (tenant, type, creation time), or
+     * {@code null} if none exists or it has expired.
+     *
+     * @param key  the record key.
+     * @param type the logical record type.
+     * @return the record and its metadata, or {@code null}.
+     */
+    public abstract SessionContextDO getSessionContextData(String key, String type);
 
+    /**
+     * Marks the record for the given key and type as cleared (logged out / invalidated) so that
+     * subsequent reads no longer return it.
+     *
+     * @param key  the record key.
+     * @param type the logical record type.
+     */
+    public abstract void clearSessionData(String key, String type);
+
+    /**
+     * Permanently removes the record for the given key and type, without leaving a cleared marker.
+     *
+     * @param key      the record key.
+     * @param type     the logical record type.
+     * @param nanoTime the timestamp (nanoseconds) qualifying which record instance to remove.
+     */
+    public abstract void removeSessionData(String key, String type, long nanoTime);
+
+    /**
+     * Removes records that have passed their validity period. Stores with native expiry may treat
+     * this as a no-op.
+     */
+    public abstract void removeExpiredSessionData();
+
+    /**
+     * Removes temporary authentication-context data for the given key and type.
+     *
+     * @param key  the record key.
+     * @param type the logical record type.
+     */
+    public abstract void removeTempAuthnContextData(String key, String type);
+
+    // ---------------------------------------------------------------------
+    // Convenience defaults and optional operations
+    // ---------------------------------------------------------------------
+
+    /**
+     * Stores a record for the given key and type with no tenant scope. Convenience overload of
+     * {@link #storeSessionData(String, String, Object, int)}.
+     *
+     * @param key   the record key.
+     * @param type  the logical record type.
+     * @param entry the value to store.
+     */
     public void storeSessionData(String key, String type, Object entry) {
 
         storeSessionData(key, type, entry, MultitenantConstants.INVALID_TENANT_ID);
     }
 
-    public void storeSessionData(String key, String type, Object entry, int tenantId) {
-        if (!enablePersist) {
-            return;
-        }
-        long nanoTime = FrameworkUtils.getCurrentStandardNano();
-        if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
-            sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime, tenantId));
-        } else {
-            persistSessionData(key, type, entry, nanoTime, tenantId);
-        }
-    }
+    /**
+     * Returns the stored value only if the store's most recently recorded operation for the given
+     * key and type matches {@code operation}. Optional: stores that do not track per-record
+     * operations return {@code null} by default.
+     *
+     * @param key       the record key.
+     * @param type      the logical record type.
+     * @param operation the operation the last write must match.
+     * @return the stored value, or {@code null}.
+     */
+    public Object getSessionData(String key, String type, String operation) {
 
-    public void clearSessionData(String key, String type) {
-        if (!enablePersist) {
-            return;
-        }
-        long nanoTime = FrameworkUtils.getCurrentStandardNano();
-        if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
-            sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
-        } else {
-            removeSessionData(key, type, nanoTime);
-        }
+        return null;
     }
 
     /**
-     * Clears session data for a batch of keys (e.g., bulk OAuth token cache eviction).
-     * JDBC batching is engaged only when the async persist pool is disabled. When the async pool is enabled, keys are
-     * enqueued individually to preserve ordering with concurrent single-key writes;
-     * batching the async path is a follow-up.
+     * Returns the stored record and metadata only if the store's most recently recorded operation
+     * for the given key and type matches {@code operation}. Optional: stores that do not track
+     * per-record operations return {@code null} by default.
      *
-     * @param keys List of session data keys to clear.
-     * @param type The session data type.
+     * @param key       the record key.
+     * @param type      the logical record type.
+     * @param operation the operation the last write must match.
+     * @return the record and its metadata, or {@code null}.
+     */
+    public SessionContextDO getSessionContextData(String key, String type, String operation) {
+
+        return null;
+    }
+
+    /**
+     * Whether the store's most recently recorded operation for the given key and type equals
+     * {@code requiredOperation}. Optional: stores that do not track per-record operations return
+     * {@code false} by default.
+     *
+     * @param key               the record key.
+     * @param type              the logical record type.
+     * @param requiredOperation the operation to check for.
+     * @return {@code true} if the last recorded operation matches, {@code false} otherwise.
+     */
+    public boolean validateLastOperationOnSessionData(String key, String type, String requiredOperation) {
+
+        return false;
+    }
+
+    /**
+     * Clears several records of the same type in one call. The default clears each key individually;
+     * stores that support batching may override for efficiency.
+     *
+     * @param keys the record keys to clear.
+     * @param type the logical record type.
      */
     public void clearSessionDataBatch(List<String> keys, String type) {
 
-        if (!enablePersist || keys == null || keys.isEmpty()) {
+        if (keys == null) {
             return;
         }
-        long nanoTime = FrameworkUtils.getCurrentStandardNano();
-        if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
-            for (String key : keys) {
-                if (StringUtils.isNotBlank(key)) {
-                    sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
-                }
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Enqueued " + keys.size() + " SessionContextData entries to async persist queue. type: "
-                        + type);
-            }
-        } else {
-            removeSessionDataBatch(keys, type, nanoTime);
-            if (log.isDebugEnabled()) {
-                log.debug("Submitted " + keys.size() + " SessionContextData entries for synchronous batch removal. "
-                        + "type: " + type);
+        for (String key : keys) {
+            if (StringUtils.isNotBlank(key)) {
+                clearSessionData(key, type);
             }
         }
     }
 
     /**
-     * Removes session data for a batch of keys using JDBC batch operations. Each key gets a DELETE marker row
-     * inserted into the session store.
+     * Synchronously writes a record. Optional hook for stores whose {@code storeSessionData}
+     * enqueues writes for asynchronous processing; the default is a no-op.
      *
-     * @param keys     List of session data keys to remove.
-     * @param type     The session data type.
-     * @param nanoTime The operation timestamp in nanoseconds.
+     * @param key      the record key.
+     * @param type     the logical record type.
+     * @param entry    the value to store.
+     * @param nanoTime the write timestamp (nanoseconds).
+     * @param tenantId the owning tenant, or {@link MultitenantConstants#INVALID_TENANT_ID} if none.
      */
-    private void removeSessionDataBatch(List<String> keys, String type, long nanoTime) {
+    public void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) {
 
-        if (!enablePersist || keys == null || keys.isEmpty()) {
-            return;
-        }
-
-        if (tempDataCleanupEnabled && maxTempDataPoolSize > 0 && isTempCache(type)) {
-            for (String key : keys) {
-                if (StringUtils.isNotBlank(key)) {
-                    tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
-                }
-            }
-            return;
-        }
-
-        // Filter out keys that already have a DELETE marker, consistent with the single-key
-        // removeSessionData path. This is a per-key DB query, so it is only applied when
-        // checkExistingEntryForDeleteOperationInsert is explicitly enabled.
-        if (checkExistingEntryForDeleteOperationInsert) {
-            List<String> filteredKeys = new ArrayList<>();
-            for (String key : keys) {
-                if (StringUtils.isNotBlank(key) &&
-                        !validateLastOperationOnSessionData(key, type, OPERATION_DELETE)) {
-                    filteredKeys.add(key);
-                }
-            }
-            keys = filteredKeys;
-            if (keys.isEmpty()) {
-                return;
-            }
-        }
-
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-        PreparedStatement preparedStatement = null;
-        long timeoutNano = nanoTime + getCleanupTimeout(type, MultitenantConstants.INVALID_TENANT_ID);
-        try {
-            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlInsertDELETE, type));
-            int count = 0;
-            for (String key : keys) {
-                if (StringUtils.isNotBlank(key)) {
-                    preparedStatement.setString(1, key);
-                    preparedStatement.setString(2, type);
-                    preparedStatement.setString(3, OPERATION_DELETE);
-                    preparedStatement.setLong(4, nanoTime);
-                    preparedStatement.setLong(5, timeoutNano);
-                    preparedStatement.addBatch();
-                    count++;
-                    if (count % batchInsertChunkSize == 0) {
-                        preparedStatement.executeBatch();
-                        IdentityDatabaseUtil.commitTransaction(connection);
-                    }
-                }
-            }
-            if (count % batchInsertChunkSize != 0) {
-                preparedStatement.executeBatch();
-                IdentityDatabaseUtil.commitTransaction(connection);
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Batch removed " + count + " SessionContextData entries from DB. type: " + type);
-            }
-        } catch (Exception e) {
-            // Only the current uncommitted chunk is rolled back. Previously committed chunks
-            // remain, matching the original per-entry commit semantics of removeSessionData.
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            log.error("Error while storing batch DELETE operation session data.", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
-        }
     }
 
     /**
-     * Method to stop running tasks, when the component is deactivated.
-     */
-    public void stopService() {
-
-        TempAuthContextDataDeleteTask.shutdown();
-        SessionDataPersistTask.shutdown();
-    }
-
-    /**
-     * Gets the DB specific query for the session data removal, this may be overridden by the configuration
-     * "JDBCPersistenceManager.SessionDataPersist.SQL.DeleteExpiredDataTask"
-     *
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    private String getDBSpecificSessionDataRemovalQuery() throws IdentityApplicationManagementException {
-
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
-            String nonFormattedQuery;
-            String driverName = connection.getMetaData().getDriverName();
-            if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
-                    || driverName.contains(H2_DATABASE)) {
-                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_MYSQL;
-            } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
-                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_DB2SQL;
-            } else if (driverName.contains(MS_SQL_DATABASE)
-                    || driverName.contains(MICROSOFT_DATABASE)) {
-                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_MSSQL;
-            } else if (driverName.contains(POSTGRESQL_DATABASE)) {
-                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_POSTGRESQL;
-            } else if (driverName.contains(INFORMIX_DATABASE)) {
-                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_INFOMIXSQL;
-            } else {
-                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_ORACLE;
-            }
-            IdentityDatabaseUtil.commitTransaction(connection);
-            return String.format(nonFormattedQuery, deleteChunkSize);
-        } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new IdentityApplicationManagementException("Error while retrieving DB connection meta-data", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, null);
-        }
-    }
-
-    /**
-     * Removes the records related to expired sessions from DB.
-     */
-    private void removeExpiredSessionData(String sqlQuery) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("DB query for removing expired data: " + sqlQuery);
-        }
-        long currentTime = FrameworkUtils.getCurrentStandardNano();
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
-            boolean deleteCompleted = false;
-            int totalDeletedEntries = 0;
-            while (!deleteCompleted) {
-                try (PreparedStatement statement = connection.prepareStatement(sqlQuery)) {
-                    statement.setLong(1, currentTime);
-                    int noOfDeletedRecords = statement.executeUpdate();
-                    deleteCompleted = noOfDeletedRecords < deleteChunkSize;
-                    totalDeletedEntries += noOfDeletedRecords;
-                    // Commit the chunk deletion.
-                    IdentityDatabaseUtil.commitTransaction(connection);
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format("Removed %d expired session records.", noOfDeletedRecords));
-                    }
-                }
-            }
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Deleted total of %d entries", totalDeletedEntries));
-            }
-        } catch (SQLException | IdentityRuntimeException e) {
-            log.error("Error while removing session data from the database for nano time: " + currentTime, e);
-        }
-    }
-
-    /**
-     * Cleans the session data and operation data (if enabled) from the DB
-     */
-    public void removeExpiredSessionData() {
-
-        if (StringUtils.isBlank(sqlDeleteExpiredDataTask)) {
-            try {
-                sqlDeleteExpiredDataTask = getDBSpecificSessionDataRemovalQuery();
-            } catch (IdentityApplicationManagementException e) {
-                log.error("Error when initializing the db specific cleanup query.", e);
-            }
-        }
-        if (sessionDataCleanupEnabled) {
-            removeExpiredSessionData(sqlDeleteExpiredDataTask);
-        }
-        if (tempDataCleanupEnabled && periodicTempDataCleanupEnabled) {
-            removeExpiredSessionData(replaceTableName(sqlDeleteExpiredDataTask));
-        }
-        if (operationDataCleanupEnabled) {
-            removeInvalidatedSTOREOperations();
-        }
-    }
-
-    /**
-     * @deprecated This is now run as a part of the {@link #removeExpiredSessionData()} due to a possible deadlock as
-     * mentioned in IDENTITY-5131
+     * @deprecated Now handled as part of {@link #removeExpiredSessionData()} (IDENTITY-5131).
      */
     @Deprecated
     public void removeExpiredOperationData() {
 
     }
 
-    public void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) {
-        if (!enablePersist) {
-            return;
-        }
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-
-        long validityPeriodNano = 0L;
-
-        if (entry instanceof CacheEntry) {
-            validityPeriodNano = ((CacheEntry) entry).getValidityPeriod();
-        }
-
-        if (validityPeriodNano == 0L) {
-            validityPeriodNano = getCleanupTimeout(type, tenantId);
-        }
-
-        PreparedStatement preparedStatement = null;
-        try {
-            String sqlQuery = getSessionStoreDBQuery(sqlInsertSTORE, type);
-            preparedStatement = connection.prepareStatement(sqlQuery);
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, type);
-            preparedStatement.setString(3, OPERATION_STORE);
-            setBlobObject(preparedStatement, entry, 4);
-            preparedStatement.setLong(5, nanoTime);
-            preparedStatement.setLong(6, nanoTime + validityPeriodNano);
-            preparedStatement.setInt(7, tenantId);
-            preparedStatement.executeUpdate();
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException | IOException | SessionSerializerException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            log.error("Error while storing session data", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Persisted SessionContextData to DB. key : " + key + " type : " + type);
-        }
-    }
-
-    public void removeSessionData(String key, String type, long nanoTime) {
-        if (!enablePersist) {
-            return;
-        }
-
-        if (tempDataCleanupEnabled && maxTempDataPoolSize > 0 && isTempCache(type)) {
-            tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
-            return;
-        }
-        if (checkExistingEntryForDeleteOperationInsert &&
-                validateLastOperationOnSessionData(key, type, OPERATION_DELETE)) {
-            return;
-        }
-
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-        PreparedStatement preparedStatement = null;
-
-        long timeoutNano = nanoTime + getCleanupTimeout(type, MultitenantConstants.INVALID_TENANT_ID);
-        try {
-            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlInsertDELETE, type));
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, type);
-            preparedStatement.setString(3, OPERATION_DELETE);
-            preparedStatement.setLong(4, nanoTime);
-            preparedStatement.setLong(5, timeoutNano);
-            preparedStatement.executeUpdate();
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (Exception e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            log.error("Error while storing DELETE operation session data", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removed SessionContextData from DB. key : " + key + " type : " + type);
-        }
-    }
-
     /**
-     * Removes temporary authn context data from the table if temporary data cleanup is enabled.
+     * Whether this store runs its own background cleanup of expired records. Stores with native
+     * expiry, or none, return {@code false} by default.
      *
-     * @param key
-     * @param type
+     * @return {@code true} if background cleanup is enabled.
      */
-    public void removeTempAuthnContextData(String key, String type) {
-
-        if (!enablePersist) {
-            return;
-        }
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-        PreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = connection.prepareStatement(SQL_DELETE_TEMP_RECORDS);
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, type);
-            preparedStatement.executeUpdate();
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (Exception e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            log.error("Error while deleting temporary authentication context data", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
-        }
-    }
-
     public boolean isSessionDataCleanupEnabled() {
 
-        return sessionDataCleanupEnabled;
-    }
-
-    private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
-            throws SQLException, IOException, SessionSerializerException {
-        if (value != null) {
-            InputStream inputStream = FrameworkServiceDataHolder.getInstance().
-                    getSessionSerializer().serializeSessionObject(value);
-            prepStmt.setBinaryStream(index, inputStream, inputStream.available());
-        } else {
-            prepStmt.setBinaryStream(index, null, 0);
-        }
-    }
-
-    private Object getBlobObject(InputStream is)
-            throws IdentityApplicationManagementException, IOException, ClassNotFoundException,
-            SessionSerializerException {
-        if (is != null) {
-            ObjectInput ois = null;
-            try {
-                return FrameworkServiceDataHolder.getInstance().getSessionSerializer().deSerializeSessionObject(is);
-            } finally {
-                if (ois != null) {
-                    try {
-                        ois.close();
-                    } catch (IOException e) {
-                        log.error("IOException while trying to close ObjectInputStream.", e);
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Removes STORE records related to DELETE records in IDN_AUTH_SESSION_STORE table
-     */
-    private void removeInvalidatedSTOREOperations() {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-
-        try {
-            if (StringUtils.isBlank(sqlDeleteSTORETask)) {
-                String driverName = connection.getMetaData().getDriverName();
-                if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)) {
-                    sqlDeleteSTORETask = SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL;
-                } else {
-                    sqlDeleteSTORETask = SQL_DELETE_STORE_OPERATIONS_TASK;
-                }
-            }
-            statement = connection.prepareStatement(sqlDeleteSTORETask);
-            statement.execute();
-            IdentityDatabaseUtil.commitTransaction(connection);
-            return;
-        } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            log.error("Error while removing STORE operation data from the database. ", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
-
-        }
-
-    }
-
-    private boolean isTempCache(String type) {
-
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, type);
-
-        if (identityCacheConfig != null) {
-            return identityCacheConfig.isTemporary();
-        }
         return false;
     }
 
-    private String getSessionStoreDBQuery(String query, String type) {
+    /**
+     * Stops any background workers (asynchronous writers, cleanup tasks) and releases resources.
+     * Called on component shutdown; the default is a no-op.
+     */
+    public void stopService() {
 
-        if ((sessionAndTempDataSeparationEnabled || tempDataCleanupEnabled) && isTempCache(type)) {
-            query = replaceTableName(query);
-        }
-        return query;
     }
 
-    private String replaceTableName(String query) {
+    // ---------------------------------------------------------------------
+    // Shared validity derivation (available to stores that manage their own expiry)
+    // ---------------------------------------------------------------------
 
-        query = query.replace(DEFAULT_SESSION_STORE_TABLE_NAME, DEFAULT_TEMP_SESSION_STORE_TABLE_NAME);
-        return query;
+    /**
+     * Remaining validity (nanoseconds) for a record: a {@link CacheEntry}'s own validity period if
+     * set, otherwise the configured cleanup timeout for the type/tenant. Shared so a store that
+     * manages its own expiry sizes it consistently with the configured session/cleanup timeouts.
+     *
+     * @param entry    the value being stored.
+     * @param type     the logical record type.
+     * @param tenantId the owning tenant, or {@link MultitenantConstants#INVALID_TENANT_ID} if none.
+     * @return the validity period in nanoseconds.
+     */
+    protected long getValidityPeriodNano(Object entry, String type, int tenantId) {
+
+        long validityPeriodNano = 0L;
+        if (entry instanceof CacheEntry) {
+            validityPeriodNano = ((CacheEntry) entry).getValidityPeriod();
+        }
+        if (validityPeriodNano == 0L) {
+            validityPeriodNano = getCleanupTimeout(type, tenantId);
+        }
+        return validityPeriodNano;
     }
 
     private long getCleanupTimeout(String type, int tenantId) {
+
         if (isTempCache(type)) {
             return TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout());
         } else if (tenantId != MultitenantConstants.INVALID_TENANT_ID) {
@@ -1083,7 +377,6 @@ public class SessionDataStore {
             int timeout = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
             Optional<Integer> maximumSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
             if (maximumSessionTimeout.isPresent()) {
-                // Get the max value from remember me timeout and maximum session timeout to set the validity period.
                 timeout = Math.max(timeout, maximumSessionTimeout.get());
             }
             return TimeUnit.SECONDS.toNanos(timeout);
@@ -1092,4 +385,9 @@ public class SessionDataStore {
         }
     }
 
+    private boolean isTempCache(String type) {
+
+        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, type);
+        return identityCacheConfig != null && identityCacheConfig.isTemporary();
+    }
 }

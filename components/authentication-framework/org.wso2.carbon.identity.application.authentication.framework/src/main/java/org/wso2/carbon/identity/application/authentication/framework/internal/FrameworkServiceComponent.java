@@ -90,6 +90,7 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Po
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.store.JDBCSessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavaSessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.PushedAuthDataStore;
@@ -275,9 +276,16 @@ public class FrameworkServiceComponent {
                 jitProvisioningIDPMgtListener, null);
         bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
 
-        // This is done to load SessionDataStore and PushedAuthDataStore classes and start the cleanup tasks.
-        SessionDataStore.getInstance();
+        // This is done to load the PushedAuthDataStore class and start its cleanup tasks.
         PushedAuthDataStore.getInstance();
+
+        // Wire the built-in default session data store behind a supplier so the selector can resolve
+        // it without depending on any concrete store type. The supplier is invoked lazily, so the
+        // default store (and its cleanup tasks) is created only when it is actually selected; a
+        // deployment that configures and registers a different store never triggers it. The active
+        // store is otherwise resolved lazily on first use, so a configured external store that has
+        // not bound yet does not fail activation here.
+        dataHolder.setDefaultSessionDataStoreSupplier(JDBCSessionDataStore::getInstance);
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();
@@ -550,6 +558,32 @@ public class FrameworkServiceComponent {
             log.debug("Removed session serializer.");
         }
 
+    }
+
+    @Reference(
+            name = "session.data.store",
+            service = SessionDataStore.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionDataStore"
+    )
+    protected void setSessionDataStore(SessionDataStore sessionDataStore) {
+
+        FrameworkServiceDataHolder.getInstance().addSessionDataStore(sessionDataStore);
+        // A newly-registered store may now be the configured one; drop the cached selection.
+        SessionDataStore.invalidateSelectedStore();
+        if (log.isDebugEnabled()) {
+            log.debug("Session data store registered: " + sessionDataStore.getStoreName());
+        }
+    }
+
+    protected void unsetSessionDataStore(SessionDataStore sessionDataStore) {
+
+        FrameworkServiceDataHolder.getInstance().removeSessionDataStore(sessionDataStore);
+        SessionDataStore.invalidateSelectedStore();
+        if (log.isDebugEnabled()) {
+            log.debug("Session data store unregistered: " + sessionDataStore.getStoreName());
+        }
     }
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
