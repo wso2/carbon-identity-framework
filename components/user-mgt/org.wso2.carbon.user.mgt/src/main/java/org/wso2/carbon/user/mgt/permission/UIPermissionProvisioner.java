@@ -1,19 +1,19 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.user.mgt.permission;
@@ -98,24 +98,29 @@ public final class UIPermissionProvisioner {
      * Records declared permissions. The first declaration of a path wins, matching the legacy behaviour
      * where a component that found the collection already present left the existing display name alone.
      * <p>
-     * Under {@link #EAGER_PROVISIONING_PROPERTY} the batch is also written to the registry immediately, so
-     * that components declaring permissions after the server has started are still picked up.
+     * The batch is written to the registry immediately when the tree has already been flushed, or when
+     * {@link #EAGER_PROVISIONING_PROPERTY} is set. Bundles can start at any point in the server lifecycle,
+     * including after the permission tree has been read, and a declaration that only ever landed in the
+     * buffer would not reach the registry until the next restart.
+     * <p>
+     * This holds the class lock for the whole method so that a declaration cannot slip past the snapshot
+     * taken by {@link #ensureProvisioned()} while that snapshot is being written.
      *
      * @param permissions Permission resource path to display name.
-     * @throws RegistryException If eager provisioning is enabled and the registry write fails.
+     * @throws RegistryException If the batch has to be written now and the registry write fails.
      */
     public static void declare(Map<String, String> permissions) throws RegistryException {
 
         if (permissions == null || permissions.isEmpty()) {
             return;
         }
-        synchronized (DECLARED_PERMISSIONS) {
-            for (Map.Entry<String, String> permission : permissions.entrySet()) {
-                DECLARED_PERMISSIONS.putIfAbsent(permission.getKey(), permission.getValue());
+        synchronized (UIPermissionProvisioner.class) {
+            synchronized (DECLARED_PERMISSIONS) {
+                for (Map.Entry<String, String> permission : permissions.entrySet()) {
+                    DECLARED_PERMISSIONS.putIfAbsent(permission.getKey(), permission.getValue());
+                }
             }
-        }
-        if (isEagerProvisioningEnabled()) {
-            synchronized (UIPermissionProvisioner.class) {
+            if (provisioned || isEagerProvisioningEnabled()) {
                 writeBatch(permissions);
             }
         }
@@ -129,6 +134,9 @@ public final class UIPermissionProvisioner {
      * <p>
      * A failure leaves the provisioner un-provisioned so that a later call retries rather than silently
      * serving an incomplete tree forever.
+     * <p>
+     * Declarations arriving after this has run are written by {@link #declare(Map)} itself, which shares
+     * this lock, so nothing can be buffered and then forgotten.
      *
      * @throws RegistryException If the permission tree could not be written to the registry.
      */
@@ -197,7 +205,7 @@ public final class UIPermissionProvisioner {
      * @return {@code true} if the collection was created.
      * @throws RegistryException If the registry operation fails.
      */
-    public static boolean addPermission(Registry registry, String path, String displayName)
+    private static boolean addPermission(Registry registry, String path, String displayName)
             throws RegistryException {
 
         if (registry.resourceExists(path)) {

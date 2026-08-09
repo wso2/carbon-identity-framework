@@ -89,6 +89,13 @@ public class ManagementPermissionsAdder implements BundleListener {
         // them back, so the declarations are buffered here and written to the registry on first use.
         Map<String, String> declaredPermissions = new LinkedHashMap<>();
         for (ManagementPermission uiPermission : uiPermissions) {
+            // A malformed component.xml can yield a null resource id, and the buffer would happily accept
+            // it as a map key. Drop it here, while the originating bundle is still known.
+            if (uiPermission == null || uiPermission.getResourceId() == null) {
+                log.warn("Skipping a management permission declared without a resource id in bundle "
+                        + bundle.getSymbolicName());
+                continue;
+            }
             declaredPermissions.put(uiPermission.getResourceId(), uiPermission.getDisplayName());
         }
         UIPermissionProvisioner.declare(declaredPermissions);
