@@ -575,7 +575,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
 
         if (flowStatus != SUCCESS_COMPLETED && flowStatus != INCOMPLETE && !(FAIL_COMPLETED.equals(flowStatus) &&
-                context.isRetrying())) {
+                (context.isRetrying() || stepConfigGraphNode.getNext() instanceof DynamicDecisionNode))) {
             stepConfig.setSubjectAttributeStep(false);
             stepConfig.setSubjectIdentifierStep(false);
         }
