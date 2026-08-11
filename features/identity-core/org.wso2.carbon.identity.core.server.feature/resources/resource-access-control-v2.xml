@@ -204,6 +204,20 @@
         <Scopes>internal_webhook_mgt_delete</Scopes>
     </Resource>
 
+    <!-- Policy Management API -->
+    <Resource context="(.*)/api/server/v1/policies(.*)" secured="true" http-method="POST">
+        <Scopes>internal_policy_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/policies(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_policy_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/policies(.*)" secured="true" http-method="GET">
+        <Scopes>internal_policy_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/policies(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_policy_mgt_delete</Scopes>
+    </Resource>
+
     <!-- [Organization] Secret Management API -->
     <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_secret_mgt_add</Scopes>

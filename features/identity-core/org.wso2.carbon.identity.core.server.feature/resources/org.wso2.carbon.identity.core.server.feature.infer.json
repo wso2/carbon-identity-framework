@@ -341,6 +341,14 @@
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ],
+      "oauth.oidc.honor_multivalued_claim_metadata": false,
+      "token_exchange.limit_scopes_to_subject_token": false,
       "oauth.multiple_client_secrets.enable": false
     },
     "IS_7.1.0": {
@@ -411,6 +419,14 @@
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ],
+      "oauth.oidc.honor_multivalued_claim_metadata": false,
+      "token_exchange.limit_scopes_to_subject_token": false,
       "oauth.multiple_client_secrets.enable": false
     },
     "IS_7.2.0": {
@@ -443,6 +459,9 @@
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
       "oauth.dcrm.decode_redirect_uris_in_response": false,
+      "oauth.oidc.honor_multivalued_claim_metadata": false,
+      "ai_services.http_client_use_system_properties": false,
+      "token_exchange.limit_scopes_to_subject_token": false,
       "oauth.multiple_client_secrets.enable": false
     },
     "IS_7.3.0": {
@@ -454,6 +473,15 @@
         "https://schemas.identity.wso2.org/events/consent-purpose",
         "https://schemas.identity.wso2.org/events/consent"
       ],
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ],
+      "oauth.oidc.honor_multivalued_claim_metadata": false,
+      "ai_services.http_client_use_system_properties": false,
+      "token_exchange.limit_scopes_to_subject_token": false,
       "oauth.multiple_client_secrets.enable": false
     }
   }

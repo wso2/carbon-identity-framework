@@ -125,6 +125,7 @@ public class DefaultStepHandler implements StepHandler {
     private static final String FAILURE = "Failure";
 
     private static final String USERNAME = "username";
+    private static final String MULTI_OPTION_BASIC_AUTHENTICATOR = "multiOptionBasicAuthenticator";
 
     public static DefaultStepHandler getInstance() {
 
@@ -451,6 +452,13 @@ public class DefaultStepHandler implements StepHandler {
                             authenticatorConfig = config;
                             isAuthFlowHandlerOrBasicAuthInMultiOptionStep = true;
                             sendToPage = false;
+                            // Store the basic authenticator name so that on auth failure, the API-based flow
+                            // can populate auth initiation data on auth failure scenario.
+                            if (config.getApplicationAuthenticator() instanceof LocalApplicationAuthenticator &&
+                                    (BASIC_AUTH_MECHANISM).equalsIgnoreCase(config.getApplicationAuthenticator()
+                                            .getAuthMechanism())) {
+                                context.setProperty(MULTI_OPTION_BASIC_AUTHENTICATOR, config.getName());
+                            }
                             break;
                         }
                     }
@@ -460,6 +468,11 @@ public class DefaultStepHandler implements StepHandler {
                     if (authenticatorConfig.getIdpNames().size() > 1) {
                         sendToPage = true;
                     }
+                }
+
+                if (!isAuthFlowHandlerOrBasicAuthInMultiOptionStep && IdentityUtil.getIdentityErrorMsg() == null &&
+                        context.getProperty(MULTI_OPTION_BASIC_AUTHENTICATOR) != null) {
+                    context.removeProperty(MULTI_OPTION_BASIC_AUTHENTICATOR);
                 }
 
                 if (!sendToPage) {
@@ -1086,6 +1099,9 @@ public class DefaultStepHandler implements StepHandler {
             audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
                     data, FAILURE));
 
+            // Populate auth initiation data for the API-based flow on retry, so the client receives
+            // a consistent response with available authenticator options after a credential failure.
+            handleAuthInitDataOnRetryForAPIBasedFlow(request, response, context);
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (AuthenticationFailedException e) {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
@@ -1153,6 +1169,10 @@ public class DefaultStepHandler implements StepHandler {
                 diagLogBuilder.resultMessage("Authentication failed exception: " + errorMessage);
                 LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
             }
+
+            // Populate auth initiation data for the API-based flow on retry, so the client receives
+            // a consistent response with available authenticator options after an authentication failure.
+            handleAuthInitDataOnRetryForAPIBasedFlow(request, response, context);
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {
             throw new FrameworkException(e.getMessage(), e);
@@ -1809,6 +1829,91 @@ public class DefaultStepHandler implements StepHandler {
                     "accountrecoveryendpoint/confirmrecovery.do", e);
         }
         return null;
+    }
+
+    /**
+     * Orchestrates auth initiation data population on retry for API-based flows. Performs all prerequisite
+     * checks, resolves the basic authenticator, and delegates the actual population. Errors are absorbed
+     * here so the caller's failure handling path is never disrupted.
+     *
+     * @param request HTTP servlet request.
+     * @param response HTTP servlet response.
+     * @param context Authentication context.
+     */
+    private void handleAuthInitDataOnRetryForAPIBasedFlow(HttpServletRequest request, HttpServletResponse response,
+                                                          AuthenticationContext context) {
+
+        if (!Boolean.parseBoolean(IdentityUtil.getProperty(
+                FrameworkConstants.INCLUDE_AUTH_INIT_DATA_ON_RETRY_IN_API_BASED_AUTH_RESPONSE))) {
+            return;
+        }
+        if (!FrameworkUtils.isAPIBasedAuthenticationFlow(request)) {
+            return;
+        }
+        if (IdentityUtil.getIdentityErrorMsg() == null) {
+            return;
+        }
+        if (!context.isSendToMultiOptionPage()) {
+            return;
+        }
+        String basicAuthName = (String) context.getProperty(MULTI_OPTION_BASIC_AUTHENTICATOR);
+        if (basicAuthName == null) {
+            return;
+        }
+        StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+        AuthenticatorConfig basicAuthConfig = stepConfig.getAuthenticatorList().stream()
+                .filter(c -> basicAuthName.equals(c.getName()))
+                .findFirst().orElse(null);
+        if (basicAuthConfig == null) {
+            return;
+        }
+        ApplicationAuthenticator authenticator = basicAuthConfig.getApplicationAuthenticator();
+        // Guard against stale or tampered context values — only proceed if the resolved authenticator
+        // is genuinely a basic auth mechanism.
+        if (!(authenticator instanceof LocalApplicationAuthenticator) ||
+                !BASIC_AUTH_MECHANISM.equalsIgnoreCase(authenticator.getAuthMechanism())) {
+            return;
+        }
+        IdentityErrorMsgContext errorMsgContext = IdentityUtil.getIdentityErrorMsg();
+        try {
+            populateAuthInitDataForAPIBasedFlow(request, response, context, authenticator);
+        } catch (AuthenticationFailedException | LogoutFailedException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while populating auth initiation data for API-based flow on retry.", e);
+            }
+        } catch (Exception e) {
+            // Safety net for unexpected errors (e.g. a custom authenticator throwing an unchecked exception
+            // from initiateAuthenticationRequest due to the added retry logic). Ensures this best-effort
+            // enrichment never disrupts the existing authentication failure handling path.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Unexpected error while populating auth initiation data for API-based flow on retry.", e);
+            }
+        } finally {
+            // Restore the original error context so downstream failure handling is not affected.
+            if (IdentityUtil.getIdentityErrorMsg() == null) {
+                IdentityUtil.setIdentityErrorMsg(errorMsgContext);
+            }
+            context.setRetrying(true);
+        }
+    }
+
+    /**
+     * Invokes the basic authenticator to populate API-based authentication initiation data.
+     *
+     * @param request HTTP servlet request.
+     * @param response HTTP servlet response.
+     * @param context Authentication context.
+     * @param authenticator The basic authenticator to invoke.
+     * @throws AuthenticationFailedException if authenticator processing fails.
+     * @throws LogoutFailedException if logout processing fails.
+     */
+    private void populateAuthInitDataForAPIBasedFlow(HttpServletRequest request, HttpServletResponse response,
+                                                     AuthenticationContext context,
+                                                     ApplicationAuthenticator authenticator)
+            throws AuthenticationFailedException, LogoutFailedException {
+
+        authenticator.process(request, response, context);
+        handleAPIBasedAuthenticationData(request, authenticator, context);
     }
 
     /**

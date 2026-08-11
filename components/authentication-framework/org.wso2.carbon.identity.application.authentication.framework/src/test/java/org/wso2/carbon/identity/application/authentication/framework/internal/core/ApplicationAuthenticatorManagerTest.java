@@ -119,7 +119,7 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
 
         when(identityProviderManager.getAllUserDefinedFederatedAuthenticators(TENANT_DOMAIN))
                 .thenReturn(Arrays.asList(fedAuthConfig));
-        when(identityProviderManager.getIdPByResourceId(anyString(), anyString(), anyBoolean())).thenReturn(idp);
+        when(identityProviderManager.getIdPByResourceId(anyString(), anyString(), anyBoolean(), any())).thenReturn(idp);
         mockedIdentityProviderManager.when(IdentityProviderManager::getInstance).thenReturn(identityProviderManager);
         FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(identityProviderManager);
     }

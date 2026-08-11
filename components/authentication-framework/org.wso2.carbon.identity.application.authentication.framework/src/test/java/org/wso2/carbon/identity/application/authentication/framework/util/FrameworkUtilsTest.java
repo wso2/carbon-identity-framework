@@ -1103,8 +1103,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @Test
     public void testGetUserIdClaimURI() throws Exception {
 
-        when(mockedIdentityProviderManager.getIdPByName("testIdp", "testTenant"))
-                .thenReturn(mockedIdentityProvider);
+        when(mockedIdentityProviderManager.getIdPByName(eq("testIdp"), eq("testTenant"), anyBoolean(),
+                any())).thenReturn(mockedIdentityProvider);
         when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
 
         when(mockedClaimConfig.getUserClaimURI()).thenReturn("http://wso2.org/claims/username");

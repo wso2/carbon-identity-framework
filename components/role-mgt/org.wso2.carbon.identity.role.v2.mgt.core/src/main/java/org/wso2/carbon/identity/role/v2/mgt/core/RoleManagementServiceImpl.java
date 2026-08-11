@@ -917,6 +917,26 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public List<String> getRoleIdListOfGroupNames(List<String> groupNames, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
+                .getRoleManagementListenerList();
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.preGetRoleIdListOfGroupNames(groupNames, tenantDomain);
+            }
+        }
+        List<String> roleIDs = roleDAO.getRoleIdListOfGroupNames(groupNames, tenantDomain);
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.postGetRoleIdListOfGroupNames(groupNames, tenantDomain);
+            }
+        }
+        return roleIDs;
+    }
+
+    @Override
     public List<String> getRoleIdListOfIdpGroups(List<String> groupIds, String tenantDomain)
             throws IdentityRoleManagementException {
 

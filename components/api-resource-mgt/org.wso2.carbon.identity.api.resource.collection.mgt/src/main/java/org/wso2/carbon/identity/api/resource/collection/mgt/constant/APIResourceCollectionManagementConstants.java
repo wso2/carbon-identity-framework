@@ -38,7 +38,12 @@ public class APIResourceCollectionManagementConstants {
     public static final String WRITE_SCOPES = "writeScopes";
     public static final String READ = "read";
     public static final String WRITE = "write";
+    public static final String CREATE = "create";
+    public static final String UPDATE = "update";
+    public static final String DELETE = "delete";
     public static final String API_RESOURCES = "apiResources";
+    public static final String USE_GRANULAR_CONSOLE_PERMISSIONS_CONFIG =
+            "ConsoleSettings.UseGranularConsolePermissions";
 
     /**
      * API resource collection configuration builder constants.
@@ -53,10 +58,16 @@ public class APIResourceCollectionManagementConstants {
         public static final String DISPLAY_NAME = "displayName";
         public static final String TYPE = "type";
         public static final String READ = "Read";
+        public static final String CREATE = "Create";
+        public static final String UPDATE = "Update";
+        public static final String DELETE = "Delete";
         public static final String FEATURE = "Feature";
         public static final String VERSION = "version";
         public static final String VIEW_FEATURE_SCOPE_SUFFIX = "_view";
         public static final String EDIT_FEATURE_SCOPE_SUFFIX = "_edit";
+        public static final String CREATE_FEATURE_SCOPE_SUFFIX = "_create";
+        public static final String UPDATE_FEATURE_SCOPE_SUFFIX = "_update";
+        public static final String DELETE_FEATURE_SCOPE_SUFFIX = "_delete";
         public static final String CONSOLE_SCOPE_PREFIX = "console:";
         public static final String COLLECTION_VERSION_V0 = "v0";
     }

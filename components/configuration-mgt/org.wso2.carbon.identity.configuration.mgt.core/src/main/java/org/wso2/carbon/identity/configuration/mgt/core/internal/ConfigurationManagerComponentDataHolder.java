@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,24 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.internal;
 
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.configuration.mgt.core.DefaultConfigResolver;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceIdentifier;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.user.core.service.RealmService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A class to keep the data of the configuration manager component.
  */
 public class ConfigurationManagerComponentDataHolder {
 
+    private static final Log LOG = LogFactory.getLog(ConfigurationManagerComponentDataHolder.class);
     private static ConfigurationManagerComponentDataHolder instance = new ConfigurationManagerComponentDataHolder();
     private static boolean useCreatedTime = false;
 
@@ -32,6 +41,7 @@ public class ConfigurationManagerComponentDataHolder {
     private RealmService realmService;
     private OrganizationManager organizationManager;
     private OrgResourceResolverService orgResourceResolverService;
+    private final Map<ResourceIdentifier, DefaultConfigResolver> defaultConfigResolvers = new HashMap<>();
 
     public static ConfigurationManagerComponentDataHolder getInstance() {
 
@@ -106,5 +116,52 @@ public class ConfigurationManagerComponentDataHolder {
     public void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
 
         this.orgResourceResolverService = orgResourceResolverService;
+    }
+
+    /**
+     * Add a DefaultConfigResolver.
+     *
+     * @param resolver DefaultConfigResolver to add.
+     */
+    public void addDefaultConfigResolver(DefaultConfigResolver resolver) {
+
+        ResourceIdentifier resourceIdentifier = resolver.getResourceIdentifier();
+        if (resourceIdentifier == null) {
+            if(LOG.isDebugEnabled()){
+                LOG.debug("Skipping registration of DefaultConfigResolver with a null resource identifier: "
+                        + resolver.getClass().getName());
+            }
+            return;
+        }
+        defaultConfigResolvers.put(resourceIdentifier, resolver);
+    }
+
+    /**
+     * Remove a DefaultConfigResolver.
+     *
+     * @param resolver DefaultConfigResolver to remove.
+     */
+    public void removeDefaultConfigResolver(DefaultConfigResolver resolver) {
+
+        ResourceIdentifier resourceIdentifier = resolver.getResourceIdentifier();
+        if (resourceIdentifier == null) {
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("Skipping removal of DefaultConfigResolver with a null resource identifier: "
+                        + resolver.getClass().getName());
+            }
+            return;
+        }
+        defaultConfigResolvers.remove(resourceIdentifier);
+    }
+
+    /**
+     * Get the DefaultConfigResolver for the given resource type and name.
+     * @param resourceType
+     * @param resourceName
+     * @return
+     */
+    public DefaultConfigResolver getDefaultConfigResolver(String resourceType, String resourceName){
+
+        return defaultConfigResolvers.get(new ResourceIdentifier(resourceType, resourceName));
     }
 }
