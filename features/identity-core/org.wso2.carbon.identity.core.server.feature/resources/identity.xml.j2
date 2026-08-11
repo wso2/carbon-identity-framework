@@ -3152,6 +3152,13 @@
                    timeout="{{cache.saml_cert_cache.timeout}}"
                    capacity="{{cache.saml_cert_cache.capacity}}"
                    isDistributed="false"/>
+            {% if openid4vp.enabled %}
+            <Cache id="vp_session_cache" name="VPSessionCache"
+                   enable="{{cache.vp_session_cache.enable | default('true')}}"
+                   timeout="{{cache.vp_session_cache.timeout | default('300')}}"
+                   capacity="{{cache.vp_session_cache.capacity | default('1000')}}"
+                   isDistributed="false"/>
+            {% endif %}
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
                     enable="true"
@@ -5425,4 +5432,11 @@
             <MaxExpressionsCombinedWithAnd>{{rules.device_policy.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
         </DevicePolicy>
     </Rules>
+
+    {% if openid4vp is defined %}
+    <OpenID4VP>
+        <Enabled>{{openid4vp.enabled}}</Enabled>
+        <RequestAudience>{{openid4vp.request_audience}}</RequestAudience>
+    </OpenID4VP>
+    {% endif %}
 </Server>
