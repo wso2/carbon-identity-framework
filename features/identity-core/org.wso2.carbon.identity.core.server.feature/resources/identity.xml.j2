@@ -291,12 +291,12 @@
         </GracefulRefreshTokenRotation>
         <!-- Multi-secret (multiple client secrets per OAuth application) config.
              `Enable` toggles the feature at the server level.
-             `SecretCountMax` acts as the server-level ceiling on the maximum number of
-             concurrent secrets an application may hold. Tenant-level overrides are
+             `MaxSecretCount` acts as the server-level ceiling on the maximum number of
+             secrets an application may hold. Tenant-level overrides are
              clamped to this value. -->
         <MultipleClientSecrets>
             <Enable>{{oauth.multiple_client_secrets.enable}}</Enable>
-            <SecretCountMax>{{oauth.multiple_client_secrets.secret_count}}</SecretCountMax>
+            <MaxSecretCount>{{oauth.multiple_client_secrets.max_secret_count}}</MaxSecretCount>
         </MultipleClientSecrets>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
