@@ -179,18 +179,20 @@ public class DefaultClaimHandlerTest {
             StepConfig stepConfig = new StepConfig();
             stepConfig.setSubjectAttributeStep(true);
             AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setTenantDomain(TEST_TENANT_DOMAIN);
             stepConfig.setAuthenticatedUser(authenticatedUser);
 
             ServiceProvider serviceProvider = new ServiceProvider();
             serviceProvider.setApplicationResourceId(applicationId);
+            serviceProvider.setTenantDomain(TEST_TENANT_DOMAIN);
 
             when(authenticationContext.getSequenceConfig()).thenReturn(sequenceConfig);
             when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
             when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
 
             frameworkUtils.when(FrameworkUtils::getMultiAttributeSeparator).thenReturn(",");
-            frameworkUtils.when(() -> FrameworkUtils
-                            .getAppAssociatedRolesOfLocalUser(eq(authenticatedUser), eq(applicationId)))
+            frameworkUtils.when(() -> FrameworkUtils.getAppAssociatedRolesOfLocalUser(eq(authenticatedUser),
+                            eq(applicationId), eq(TEST_TENANT_DOMAIN)))
                     .thenReturn(mappedApplicationRoles);
 
             List<String> applicationRoles =
