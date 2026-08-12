@@ -430,14 +430,21 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (serviceProvider == null) {
             return null;
         }
+        /* A user shared into the organization the application belongs to is not accessing a SaaS application of
+           another tenant, even though the user is resident in a different tenant. Their roles are resolved within
+           the accessed organization, so the SaaS restriction below does not apply. */
+        boolean isSharedUserOfAppOrganization = authenticatedUser.isSharedUser() &&
+                StringUtils.isNotEmpty(authenticatedUser.getAccessingOrganization());
         /* If the application and user are in different tenant domains and the ReturnRolesInSaaSAppsInIDToken config
            is disabled, return an empty list. */
-        if (!StringUtils.equals(serviceProvider.getTenantDomain(), authenticatedUser.getTenantDomain()) &&
+        if (!isSharedUserOfAppOrganization &&
+                !StringUtils.equals(serviceProvider.getTenantDomain(), authenticatedUser.getTenantDomain()) &&
                 !Boolean.parseBoolean(IdentityUtil.getProperty(RETURN_ROLES_IN_SAAS_APPS_IN_ID_TOKEN))) {
             return new ArrayList<>();
         }
         String applicationId = serviceProvider.getApplicationResourceId();
-        return FrameworkUtils.getAppAssociatedRolesOfLocalUser(authenticatedUser, applicationId);
+        return FrameworkUtils.getAppAssociatedRolesOfLocalUser(authenticatedUser, applicationId,
+                serviceProvider.getTenantDomain());
     }
 
     /**
