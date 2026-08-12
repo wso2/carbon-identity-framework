@@ -296,6 +296,7 @@
 
   "oauth.allow_disabled_application_credentials_for_authentication": false,
   "authentication.jit_provisioning.associating_to_existing_user": false,
+  "authentication.jit_provisioning.resolve_existing_user_before_consent_prompt": false,
   "authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association": false,
 
   "ai_services.token_endpoint": "https://api.asgardeo.io/t/wso2devtools/oauth2/token",
