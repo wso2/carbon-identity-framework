@@ -37,9 +37,11 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -59,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RETRIEVING_APP_ROLES;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RETRIEVING_IDENTITY_PROVIDER;
@@ -180,7 +183,8 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
         List<RoleV2> rolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId, appTenantDomain);
         if (StringUtils.isNotEmpty(authenticatedUser.getSharedUserId())) {
             // Add the shared role details to the roles list which are associated with the application.
-            addSharedRoleAssociations(authenticatedUser, rolesAssociatedWithApp, userRoleIds);
+            addSharedRoleAssociations(authenticatedUser, rolesAssociatedWithApp, userRoleIds, applicationId,
+                    appTenantDomain);
         }
 
         return rolesAssociatedWithApp.stream()
@@ -217,7 +221,8 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
     }
 
     private void addSharedRoleAssociations(AuthenticatedUser authenticatedUser, List<RoleV2> rolesAssociatedWithApp,
-                                           Set<String> userRoleIds) throws ApplicationRolesException {
+                                           Set<String> userRoleIds, String applicationId, String appTenantDomain)
+            throws ApplicationRolesException {
 
         if (!isSharedUserAccessingSharedOrg(authenticatedUser)) {
             return;
@@ -251,12 +256,59 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
                     }
                 }
             }
+            /*
+            For organization audience applications, every organization role of the organization is associated with
+            the application. Roles created within the shared organization have no main role to map from, hence they
+            are resolved here from the roles assigned to the user in that organization.
+            */
+            if (isOrganizationAudienceApp(applicationId, appTenantDomain)) {
+                addOrganizationAudienceRolesOfSharedOrg(sharedTenantDomain, rolesAssociatedWithApp, userRoleIds);
+            }
         } catch (OrganizationManagementException e) {
             throw new ApplicationRolesException("Error while resolving the tenant domain from the organization " +
                     "id: " + authenticatedUser.getAccessingOrganization(), e.getMessage());
         } catch (IdentityRoleManagementException e) {
             throw new ApplicationRolesException("Error while extracting the role details for the organization " +
                     "id: " + authenticatedUser.getAccessingOrganization(), e.getMessage());
+        }
+    }
+
+    /**
+     * Add the organization audience roles of the shared organization which are assigned to the user. These are the
+     * roles created within the shared organization itself, which have no counterpart in the main organization.
+     *
+     * @param sharedTenantDomain     Tenant domain of the shared organization.
+     * @param rolesAssociatedWithApp Roles associated with the application.
+     * @param userRoleIds            Role IDs assigned to the user in the shared organization.
+     * @throws IdentityRoleManagementException If an error occurred while retrieving the role details.
+     */
+    private void addOrganizationAudienceRolesOfSharedOrg(String sharedTenantDomain,
+                                                         List<RoleV2> rolesAssociatedWithApp, Set<String> userRoleIds)
+            throws IdentityRoleManagementException {
+
+        Set<String> resolvedRoleIds = rolesAssociatedWithApp.stream().map(RoleV2::getId).collect(Collectors.toSet());
+        RoleManagementService roleManagementService =
+                FrameworkServiceDataHolder.getInstance().getRoleManagementServiceV2();
+        for (String userRoleId : userRoleIds) {
+            if (resolvedRoleIds.contains(userRoleId)) {
+                continue;
+            }
+            RoleBasicInfo role = roleManagementService.getRoleBasicInfoById(userRoleId, sharedTenantDomain);
+            if (role != null && RoleConstants.ORGANIZATION.equalsIgnoreCase(role.getAudience())) {
+                rolesAssociatedWithApp.add(new RoleV2(role.getId(), role.getName()));
+            }
+        }
+    }
+
+    private boolean isOrganizationAudienceApp(String applicationId, String appTenantDomain)
+            throws ApplicationRolesException {
+
+        try {
+            return RoleConstants.ORGANIZATION.equalsIgnoreCase(FrameworkServiceDataHolder.getInstance()
+                    .getApplicationManagementService()
+                    .getAllowedAudienceForRoleAssociation(applicationId, appTenantDomain));
+        } catch (IdentityApplicationManagementException e) {
+            throw RoleResolverUtils.handleServerException(ERROR_CODE_RETRIEVING_APP_ROLES, e);
         }
     }
 
