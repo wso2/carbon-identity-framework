@@ -299,7 +299,10 @@ public class FlowExtensionRequestBuilderTest {
         assertNull(event.getFlow().getUser());
     }
 
-    // ------------------------------------------------------------------ flow-specific expose policy
+    // ------------------------------------------------------------------ expose is not flow scoped
+
+    // Exposure is opted into explicitly through the access config, so it is honoured on every flow
+    // type. Only modification of the username is scoped to self registration.
 
     @Test
     public void testUsernameExposedForSelfRegistrationFlow() throws Exception {
@@ -317,10 +320,8 @@ public class FlowExtensionRequestBuilderTest {
     }
 
     @Test
-    public void testUsernameExposeDroppedForNonSelfRegistrationFlow() throws Exception {
+    public void testUsernameExposedForNonSelfRegistrationFlow() throws Exception {
 
-        // '/user/username' is only exposable during self registration; on any other flow type the
-        // path is silently dropped while the rest of the expose configuration is honoured.
         AccessConfig accessConfig = new AccessConfig(
                 Arrays.asList(new ContextPath("/user/id", false), new ContextPath(USERNAME_PATH, false)), null);
 
@@ -328,34 +329,9 @@ public class FlowExtensionRequestBuilderTest {
                 flowContextWith(execContext("PASSWORD_RECOVERY")), actionContext(accessConfig));
 
         FlowExtensionUser user = (FlowExtensionUser) ((FlowExtensionEvent) request.getEvent()).getFlow().getUser();
-        assertNotNull(user, "Remaining expose paths must still produce a user.");
-        assertEquals(user.getId(), "uid");
-        assertNull(user.getUsername(), "Username must not be exposed outside self registration.");
-    }
-
-    @Test
-    public void testExposeUntouchedWhenUsernameNotExposed() throws Exception {
-
-        // Nothing to drop: the policy must leave a username-free expose list alone.
-        AccessConfig accessConfig = new AccessConfig(
-                Collections.singletonList(new ContextPath("/user/id", false)), null);
-
-        ActionExecutionRequest request = builder.buildActionExecutionRequest(
-                flowContextWith(execContext("PASSWORD_RECOVERY")), actionContext(accessConfig));
-
-        FlowExtensionUser user = (FlowExtensionUser) ((FlowExtensionEvent) request.getEvent()).getFlow().getUser();
         assertNotNull(user);
         assertEquals(user.getId(), "uid");
-    }
-
-    @Test
-    public void testEmptyExposeToleratedOnNonSelfRegistrationFlow() throws Exception {
-
-        ActionExecutionRequest request = builder.buildActionExecutionRequest(
-                flowContextWith(execContext("PASSWORD_RECOVERY")),
-                actionContext(new AccessConfig(null, null)));
-
-        assertNull(((FlowExtensionEvent) request.getEvent()).getFlow().getUser());
+        assertEquals(user.getUsername(), "alice", "Expose config must be honoured on every flow type.");
     }
 
     // ------------------------------------------------------------------ modify path restrictions
