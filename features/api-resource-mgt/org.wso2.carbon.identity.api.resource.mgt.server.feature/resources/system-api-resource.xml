@@ -2890,20 +2890,7 @@
                    description="Manage deletes of VC templates from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Presentation Definition Management API" identifier="/api/server/v1/openid4vp/presentation-definitions"
-                 requiresAuthorization="true"
-                 description="API representation of the Presentation Definition Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="View Presentation Definitions" name="internal_presentation_definition_view"
-                   description="View Presentation Definitions"/>
-            <Scope displayName="Create Presentation Definition" name="internal_presentation_definition_create"
-                   description="Create new Presentation Definition"/>
-            <Scope displayName="Update Presentation Definition" name="internal_presentation_definition_update"
-                   description="Update Presentation Definition"/>
-            <Scope displayName="Delete Presentation Definition" name="internal_presentation_definition_delete"
-                   description="Delete Presentation Definition"/>
-        </Scopes>
-    </APIResource>
+    <!-- [Organization] Presentation Definition Management API -->
     <APIResource name="Presentation Definition Management API" identifier="/o/api/server/v1/openid4vp/presentation-definitions"
                  requiresAuthorization="true"
                  description="API representation of the Presentation Definition Management API" type="ORGANIZATION">
@@ -2918,16 +2905,22 @@
                    description="Delete Presentation Definition"/>
         </Scopes>
     </APIResource>
-    <APIResource name="VC Verification API" identifier="/api/server/v1/openid4vp/vc-verifications"
+    <!-- Presentation Definition Management API -->
+    <APIResource name="Presentation Definition Management API" identifier="/api/server/v1/openid4vp/presentation-definitions"
                  requiresAuthorization="true"
-                 description="API for standalone VC Verification" type="TENANT">
+                 description="API representation of the Presentation Definition Management API" type="TENANT">
         <Scopes>
-            <Scope displayName="Initiate VC Verification" name="internal_vc_verification_create"
-                   description="Initiate a new VC Verification session"/>
-            <Scope displayName="View VC Verification Status" name="internal_vc_verification_view"
-                   description="Poll the status of a VC Verification session"/>
+            <Scope displayName="View Presentation Definitions" name="internal_presentation_definition_view"
+                   description="View Presentation Definitions"/>
+            <Scope displayName="Create Presentation Definition" name="internal_presentation_definition_create"
+                   description="Create new Presentation Definition"/>
+            <Scope displayName="Update Presentation Definition" name="internal_presentation_definition_update"
+                   description="Update Presentation Definition"/>
+            <Scope displayName="Delete Presentation Definition" name="internal_presentation_definition_delete"
+                   description="Delete Presentation Definition"/>
         </Scopes>
     </APIResource>
+    <!-- [Organization] VC Verification API -->
     <APIResource name="VC Verification API" identifier="/o/api/server/v1/openid4vp/vc-verifications"
                  requiresAuthorization="true"
                  description="API for standalone VC Verification" type="ORGANIZATION">
@@ -2938,6 +2931,18 @@
                    description="Poll the status of a VC Verification session"/>
         </Scopes>
     </APIResource>
+    <!-- VC Verification API -->
+    <APIResource name="VC Verification API" identifier="/api/server/v1/openid4vp/vc-verifications"
+                 requiresAuthorization="true"
+                 description="API for standalone VC Verification" type="TENANT">
+        <Scopes>
+            <Scope displayName="Initiate VC Verification" name="internal_vc_verification_create"
+                   description="Initiate a new VC Verification session"/>
+            <Scope displayName="View VC Verification Status" name="internal_vc_verification_view"
+                   description="Poll the status of a VC Verification session"/>
+        </Scopes>
+    </APIResource>
+    <!-- Presentation Definitions Console Feature -->
     <APIResource name="Presentation Definitions Feature" identifier="console:presentation_definitions"
                  requiresAuthorization="true"
                  description="Resource representation of the Presentation Definitions Feature"
@@ -2957,6 +2962,7 @@
                    description="Delete Presentation Definitions from the Console"/>
         </Scopes>
     </APIResource>
+    <!-- Verifiable Presentation Settings Console Feature -->
     <APIResource name="Verifiable Presentation Settings Feature" identifier="console:verifiablePresentationSettings"
                  requiresAuthorization="true"
                  description="Resource representation of the Verifiable Presentation Settings Feature"
