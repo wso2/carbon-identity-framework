@@ -91,7 +91,6 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Po
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
-import org.wso2.carbon.identity.application.authentication.framework.store.JDBCSessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavaSessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.PushedAuthDataStore;
@@ -280,9 +279,11 @@ public class FrameworkServiceComponent {
         // This is done to load the PushedAuthDataStore class and start its cleanup tasks.
         PushedAuthDataStore.getInstance();
 
-        // Wired as a supplier so that the default store and its cleanup tasks are created only when that
-        // store is selected.
-        dataHolder.setDefaultSessionDataStoreSupplier(JDBCSessionDataStore::getInstance);
+        // This is done to load the default SessionDataStore class and start its cleanup tasks. A configured
+        // store is loaded on first use instead, since its service may not have been registered yet.
+        if (SessionStorageSelector.isDefaultStoreConfigured(SessionStorageSelector.getConfiguredStoreName())) {
+            SessionDataStore.getInstance();
+        }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();

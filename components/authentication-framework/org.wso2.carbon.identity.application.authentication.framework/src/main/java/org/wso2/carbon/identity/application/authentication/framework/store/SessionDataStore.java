@@ -78,18 +78,12 @@ public abstract class SessionDataStore {
 
     private static SessionDataStore resolveStore() {
 
-        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         String storeName = SessionStorageSelector.getConfiguredStoreName();
         if (SessionStorageSelector.isDefaultStoreConfigured(storeName)) {
-            SessionDataStore defaultStore = dataHolder.getDefaultSessionDataStore();
-            if (defaultStore == null) {
-                throw IdentityRuntimeException.error("The default session data store is not available. The "
-                        + "authentication framework component may not have completed activation.");
-            }
-            return defaultStore;
+            return JDBCSessionDataStore.getInstance();
         }
 
-        SessionDataStore sessionDataStore = dataHolder.getSessionDataStore(storeName);
+        SessionDataStore sessionDataStore = FrameworkServiceDataHolder.getInstance().getSessionDataStore(storeName);
         if (sessionDataStore == null) {
             throw IdentityRuntimeException.error("Configured session data store is not available: " + storeName
                     + ". Its bundle may not be installed or its service may not have been registered yet.");

@@ -73,7 +73,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * Authentication framework data holder.
@@ -124,9 +123,6 @@ public class FrameworkServiceDataHolder {
     // Registry of the pluggable session data stores, keyed by store name. Concurrent because registration
     // can happen while a store selection is being resolved.
     private final Map<String, SessionDataStore> sessionDataStores = new ConcurrentHashMap<>();
-
-    // Kept as a supplier so that the default store is created only when it is selected.
-    private volatile Supplier<SessionDataStore> defaultSessionDataStoreSupplier;
 
     // Registry of the pluggable user session DAOs, keyed by store name.
     private final Map<String, UserSessionDAO> userSessionDAOs = new ConcurrentHashMap<>();
@@ -856,26 +852,6 @@ public class FrameworkServiceDataHolder {
     public Map<String, UserSessionDAO> getUserSessionDAOs() {
 
         return userSessionDAOs;
-    }
-
-    /**
-     * Sets the supplier of the default session data store. The supplier is invoked only when the default
-     * store is selected.
-     *
-     * @param supplier supplier of the default store.
-     */
-    public void setDefaultSessionDataStoreSupplier(Supplier<SessionDataStore> supplier) {
-
-        this.defaultSessionDataStoreSupplier = supplier;
-    }
-
-    /**
-     * @return the built-in default session data store, or {@code null} if no default has been wired.
-     */
-    public SessionDataStore getDefaultSessionDataStore() {
-
-        Supplier<SessionDataStore> supplier = defaultSessionDataStoreSupplier;
-        return supplier == null ? null : supplier.get();
     }
 
     /**
