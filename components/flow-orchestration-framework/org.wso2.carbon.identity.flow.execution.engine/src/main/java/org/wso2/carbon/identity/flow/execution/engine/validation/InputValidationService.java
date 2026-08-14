@@ -50,6 +50,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,6 +61,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.DOB_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
@@ -101,6 +103,10 @@ public class InputValidationService {
     private static final String DATE_VARIANT = "DATE";
     private static final String DATE_VALIDATOR = "DateValidator";
     private static final String DISALLOW_FUTURE_CONDITION = "disallow.future";
+    // Claims whose value can never be a future date. Kept as a fixed set rather than claim
+    // configuration so the rule applies uniformly to every tenant without provisioning changes.
+    // Not every date claim belongs here: expiry or renewal dates are legitimately in the future.
+    private static final Set<String> NO_FUTURE_DATE_CLAIMS = Collections.singleton(DOB_CLAIM_URI);
 
     private InputValidationService() {
 
@@ -667,12 +673,11 @@ public class InputValidationService {
             }
         }
         // Process all components and apply validations at once.
-        processComponentValidations(dataDTO.getComponents(), validationMap, context.getTenantDomain());
+        processComponentValidations(dataDTO.getComponents(), validationMap);
     }
 
     private void processComponentValidations(List<ComponentDTO> components,
-                                             Map<String, ArrayList<ValidationDTO>> validationMap,
-                                             String tenantDomain) {
+                                             Map<String, ArrayList<ValidationDTO>> validationMap) {
 
         if (components == null || components.isEmpty()) {
             return;
@@ -682,10 +687,10 @@ public class InputValidationService {
             if (Constants.ComponentTypes.INPUT.equals(component.getType())) {
                 String identifier = (String) component.getConfigs().get(IDENTIFIER);
                 applyValidationIfNeeded(component, identifier, validationMap);
-                applyDateValidationIfNeeded(component, identifier, tenantDomain);
+                applyDateValidationIfNeeded(component, identifier);
             } else if (Constants.ComponentTypes.FORM.equals(component.getType())) {
                 // Process nested components.
-                processComponentValidations(component.getComponents(), validationMap, tenantDomain);
+                processComponentValidations(component.getComponents(), validationMap);
             }
         }
     }
@@ -699,48 +704,29 @@ public class InputValidationService {
     }
 
     /**
-     * Attach a client-side date validation rule to a date input component when its claim is
-     * configured to disallow future values (claim property {@code disallowFutureDate=true}).
-     * The rule is consumed by the client to show an inline error before submission. Server-side
-     * enforcement is handled separately by the user store operation listeners.
+     * Attach a client-side date validation rule to a date input component backed by a claim whose
+     * value can never be a future date. The rule is consumed by the client to show an inline error
+     * before submission. Server-side enforcement is handled separately by the user store operation
+     * listeners, which apply the same rule regardless of what the client was told.
      *
-     * @param component    Input component.
-     * @param identifier   Component identifier (claim URI for claim-backed inputs).
-     * @param tenantDomain Tenant domain.
+     * @param component  Input component.
+     * @param identifier Component identifier (claim URI for claim-backed inputs).
      */
-    private void applyDateValidationIfNeeded(ComponentDTO component, String identifier, String tenantDomain) {
+    private void applyDateValidationIfNeeded(ComponentDTO component, String identifier) {
 
-        if (identifier == null || !DATE_VARIANT.equalsIgnoreCase(component.getVariant())) {
+        if (!NO_FUTURE_DATE_CLAIMS.contains(identifier) ||
+                !DATE_VARIANT.equalsIgnoreCase(component.getVariant())) {
             return;
         }
-        if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
-            return;
-        }
-        try {
-            Optional<LocalClaim> localClaim = FlowExecutionEngineDataHolder.getInstance()
-                    .getClaimMetadataManagementService().getLocalClaim(identifier, tenantDomain);
-            if (!localClaim.isPresent()) {
-                return;
-            }
-            String disallowFutureDate = localClaim.get()
-                    .getClaimProperty(ClaimConstants.DISALLOW_FUTURE_DATE_PROPERTY);
-            if (!Boolean.parseBoolean(disallowFutureDate)) {
-                return;
-            }
-            ValidationDTO dateValidation = new ValidationDTO();
-            dateValidation.setName(DATE_VALIDATOR);
-            dateValidation.setType(RULES);
-            List<ValidationDTO.Condition> conditions = new ArrayList<>();
-            conditions.add(new ValidationDTO.Condition(DISALLOW_FUTURE_CONDITION, Boolean.TRUE.toString()));
-            dateValidation.setConditions(conditions);
-            addValidationToComponent(component, dateValidation);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Attached future-date validation for claim: " + identifier);
-            }
-        } catch (ClaimMetadataException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error while retrieving claim metadata for date validation of claim: " + identifier);
-            }
+        ValidationDTO dateValidation = new ValidationDTO();
+        dateValidation.setName(DATE_VALIDATOR);
+        dateValidation.setType(RULES);
+        List<ValidationDTO.Condition> conditions = new ArrayList<>();
+        conditions.add(new ValidationDTO.Condition(DISALLOW_FUTURE_CONDITION, Boolean.TRUE.toString()));
+        dateValidation.setConditions(conditions);
+        addValidationToComponent(component, dateValidation);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Attached future-date validation for claim: " + identifier);
         }
     }
 
