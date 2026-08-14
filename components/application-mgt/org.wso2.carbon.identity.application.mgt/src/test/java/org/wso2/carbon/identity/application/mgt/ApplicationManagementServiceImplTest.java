@@ -69,6 +69,7 @@ import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
@@ -148,6 +149,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.DEFAULT_SP_CONFIG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
@@ -1165,6 +1167,70 @@ public class ApplicationManagementServiceImplTest {
 
         // Deleting all added application.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @DataProvider(name = "clientIdWithOnlyAtSymbolsDataProvider")
+    public Object[][] clientIdWithOnlyAtSymbolsDataProvider() {
+
+        return new Object[][]{
+                {"@"},
+                {"@@"},
+                {"@@@"}
+        };
+    }
+
+    @Test(dataProvider = "clientIdWithOnlyAtSymbolsDataProvider")
+    public void testGetServiceProviderByClientIdWithOnlyAtSymbols(String clientId)
+            throws IdentityApplicationManagementException {
+
+        // An unresolvable client id falls back to the default service provider. A client id made up of only '@'
+        // characters has no application either, so it must follow that same path instead of failing while the
+        // appended tenant domain is split off.
+        ServiceProvider defaultSP = new ServiceProvider();
+        defaultSP.setApplicationName(DEFAULT_SP_CONFIG);
+        ApplicationManagementServiceComponent.getFileBasedSPs().put(DEFAULT_SP_CONFIG, defaultSP);
+        try {
+            ServiceProvider expected = applicationManagementService.getServiceProviderByClientId(
+                    "unknown auth key", "oauth2", SUPER_TENANT_DOMAIN_NAME);
+            ServiceProvider actual = applicationManagementService.getServiceProviderByClientId(clientId, "oauth2",
+                    SUPER_TENANT_DOMAIN_NAME);
+
+            Assert.assertNotNull(actual);
+            Assert.assertEquals(actual.getApplicationName(), expected.getApplicationName());
+        } finally {
+            ApplicationManagementServiceComponent.getFileBasedSPs().remove(DEFAULT_SP_CONFIG);
+        }
+    }
+
+    @Test
+    public void testGetServiceProviderByClientIdWithEmbeddedAtSymbol()
+            throws IdentityApplicationManagementException {
+
+        // Only the appended tenant domain should be removed from the client id. A client id that itself contains
+        // an '@' must still resolve its application.
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP);
+        setApplicationInboundAuthConfigs(inputSP, "auth@key", "oauth2");
+
+        applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Registered so that a client id which resolves no application returns the default service provider
+        // instead of failing, which keeps the assertion below on the resolved application name.
+        ServiceProvider defaultSP = new ServiceProvider();
+        defaultSP.setApplicationName(DEFAULT_SP_CONFIG);
+        ApplicationManagementServiceComponent.getFileBasedSPs().put(DEFAULT_SP_CONFIG, defaultSP);
+        try {
+            ServiceProvider actual = applicationManagementService.getServiceProviderByClientId(
+                    "auth@key@" + SUPER_TENANT_DOMAIN_NAME, "oauth2", SUPER_TENANT_DOMAIN_NAME);
+
+            Assert.assertNotNull(actual);
+            Assert.assertEquals(actual.getApplicationName(), inputSP.getApplicationName());
+        } finally {
+            ApplicationManagementServiceComponent.getFileBasedSPs().remove(DEFAULT_SP_CONFIG);
+            // Deleting all added application.
+            applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+        }
     }
 
     @DataProvider(name = "testAddApplicationWithIsManagementApplicationData")
