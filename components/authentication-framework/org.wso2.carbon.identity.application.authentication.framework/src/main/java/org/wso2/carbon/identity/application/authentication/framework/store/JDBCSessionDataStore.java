@@ -195,8 +195,6 @@ public class JDBCSessionDataStore extends SessionDataStore {
     private static int batchInsertChunkSize = DEFAULT_BATCH_INSERT_CHUNK_SIZE;
     // Store name this relational implementation registers under and is selected by.
     public static final String STORE_NAME = "JDBC";
-    public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
-    public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     private static int maxSessionDataPoolSize = 100;
     private static int maxTempDataPoolSize = 50;
@@ -239,7 +237,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
 
             String isPeriodicTempDataCleanupEnabledVal = IdentityUtil.getProperty
                     ("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.EnablePeriodicCleanup");
-            if (StringUtils.isNotBlank(isPeriodicTempDataCleanupEnabledVal)) {
+            if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
                 periodicTempDataCleanupEnabled = Boolean.parseBoolean(isPeriodicTempDataCleanupEnabledVal);
             }
 

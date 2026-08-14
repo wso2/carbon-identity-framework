@@ -43,6 +43,9 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class SessionDataStore {
 
+    public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
+    public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
+
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
 
     private static volatile SessionDataStore selectedStore;
