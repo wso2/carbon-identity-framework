@@ -19,10 +19,9 @@
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.SessionStorageSelector;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -35,47 +34,23 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Storage contract for authentication session data, and the factory that selects the active
- * implementation.
+ * Class to store and retrieve authentication session data.
  * <p>
- * This type is backend-agnostic: it defines the operations a session data store must provide, offers
- * convenience defaults for optional operations, and resolves the configured implementation on behalf
- * of callers. Concrete stores (for example a relational or an in-memory/key-value store) extend this
- * class and are contributed as OSGi services; the built-in default store is wired in by the
- * framework. The implementation to use is chosen from the {@code SessionDataStore.ImplType}
- * configuration property and cached, so callers simply use {@link #getInstance()} without knowing
- * which backend is active.
+ * Implementations are pluggable. The relational {@link JDBCSessionDataStore} is used by default, and an
+ * alternative store extends this class and registers itself as an OSGi {@code SessionDataStore} service
+ * named by {@value SessionStorageSelector#STORE_IMPL_TYPE_PROPERTY}. Callers use {@link #getInstance()}
+ * without knowing which store is active.
  */
 public abstract class SessionDataStore {
 
-    private static final Log log = LogFactory.getLog(SessionDataStore.class);
-
-    private static final String STORE_IMPL_TYPE_PROPERTY = "SessionDataStore.ImplType";
-    // Identifier of the built-in default store; used when no store is configured or the default is
-    // requested explicitly. It is only a configuration/selection name, not a dependency on any
-    // concrete implementation.
-    private static final String DEFAULT_STORE_NAME = "JDBC";
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
 
-    // Cached store returned by getInstance(); invalidated on store bind/unbind.
     private static volatile SessionDataStore selectedStore;
 
-    // ---------------------------------------------------------------------
-    // Factory / selection
-    // ---------------------------------------------------------------------
-
     /**
-     * Returns the active session data store, resolving it from configuration on first use and
-     * caching the result. This is the single accessor callers use, independent of which backend is
-     * configured.
-     * <p>
-     * When no store is configured (or the default is requested), the built-in default store is
-     * returned. When a non-default store is configured, it must have been contributed as an OSGi
-     * {@code SessionDataStore} service; if it is not yet available this throws
-     * {@link IdentityRuntimeException} rather than falling back to the default, so session data is
-     * never split across two stores.
+     * Returns the configured session data store. The selection is resolved on first use and cached.
      *
-     * @return the active session data store.
+     * @return the session data store to use.
      */
     public static SessionDataStore getInstance() {
 
@@ -93,8 +68,8 @@ public abstract class SessionDataStore {
     }
 
     /**
-     * Drops the cached store selection so the next {@link #getInstance()} re-resolves. Called when a
-     * store OSGi service binds/unbinds, or after a runtime configuration change.
+     * Clears the cached store selection, so that the next {@link #getInstance()} resolves it again. Called
+     * when a store service is registered or unregistered.
      */
     public static void invalidateSelectedStore() {
 
@@ -104,44 +79,26 @@ public abstract class SessionDataStore {
     private static SessionDataStore resolveStore() {
 
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        String configured = IdentityUtil.getProperty(STORE_IMPL_TYPE_PROPERTY);
-
-        // The default store is used only when nothing is configured or the default is requested.
-        if (StringUtils.isBlank(configured) || DEFAULT_STORE_NAME.equalsIgnoreCase(configured.trim())) {
+        String storeName = SessionStorageSelector.getConfiguredStoreName();
+        if (SessionStorageSelector.isDefaultStoreConfigured(storeName)) {
             SessionDataStore defaultStore = dataHolder.getDefaultSessionDataStore();
-            if (defaultStore != null) {
-                return defaultStore;
+            if (defaultStore == null) {
+                throw IdentityRuntimeException.error("The default session data store is not available. The "
+                        + "authentication framework component may not have completed activation.");
             }
-            throw new IdentityRuntimeException("The default session data store is not available yet; "
-                    + "the authentication framework component may not have completed activation.");
+            return defaultStore;
         }
 
-        // A non-default store is explicitly configured: it MUST be registered and available. We do
-        // not fall back to the default here, because that would split session data across two stores
-        // — records written to the default store before the configured store binds (or during a
-        // temporary unbind) would be invisible once it (re)binds. Fail closed instead: the selection
-        // is not cached (see getInstance()), so once the configured store's OSGi service binds, the
-        // next call resolves successfully.
-        SessionDataStore external = dataHolder.getSessionDataStore(configured.trim());
-        if (external != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Resolved session data store: " + configured.trim());
-            }
-            return external;
+        SessionDataStore sessionDataStore = dataHolder.getSessionDataStore(storeName);
+        if (sessionDataStore == null) {
+            throw IdentityRuntimeException.error("Configured session data store is not available: " + storeName
+                    + ". Its bundle may not be installed or its service may not have been registered yet.");
         }
-        throw new IdentityRuntimeException("Configured session data store '" + configured.trim()
-                + "' is not available; its bundle may not be installed or its OSGi service may not "
-                + "have bound yet. Refusing to fall back to the default store to avoid splitting "
-                + "session data across stores.");
+        return sessionDataStore;
     }
 
-    // ---------------------------------------------------------------------
-    // Core store contract (implemented by every backend)
-    // ---------------------------------------------------------------------
-
     /**
-     * The unique name this store registers under and is selected by (case-insensitive). Callers
-     * configure {@code SessionDataStore.ImplType} with this value to activate the store.
+     * Returns the name this store is registered under and selected by, matched case-insensitively.
      *
      * @return the store name.
      */

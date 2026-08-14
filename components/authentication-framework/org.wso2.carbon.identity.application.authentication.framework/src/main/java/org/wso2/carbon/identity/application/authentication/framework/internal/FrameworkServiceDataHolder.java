@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
@@ -120,15 +121,15 @@ public class FrameworkServiceDataHolder {
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
     private SessionSerializer sessionSerializer;
 
-    // Registry of pluggable session data stores keyed by getStoreName(). Populated by the OSGi
-    // MULTIPLE/DYNAMIC reference for SessionDataStore.
-    // ConcurrentHashMap because bind/unbind can race SessionDataStore.getInstance()'s resolution.
+    // Registry of the pluggable session data stores, keyed by store name. Concurrent because registration
+    // can happen while a store selection is being resolved.
     private final Map<String, SessionDataStore> sessionDataStores = new ConcurrentHashMap<>();
 
-    // Supplier of the built-in default store, wired by the framework component. Kept behind a
-    // supplier (rather than eagerly registered) so the default implementation is instantiated only
-    // when it is actually selected; a deployment that configures a different store never triggers it.
+    // Kept as a supplier so that the default store is created only when it is selected.
     private volatile Supplier<SessionDataStore> defaultSessionDataStoreSupplier;
+
+    // Registry of the pluggable user session DAOs, keyed by store name.
+    private final Map<String, UserSessionDAO> userSessionDAOs = new ConcurrentHashMap<>();
 
     private JSExecutionSupervisor jsExecutionSupervisor;
     private IdpManager identityProviderManager = null;
@@ -756,9 +757,15 @@ public class FrameworkServiceDataHolder {
      */
     public void addSessionDataStore(SessionDataStore store) {
 
-        if (store != null && store.getStoreName() != null) {
-            sessionDataStores.put(normalizeStoreName(store.getStoreName()), store);
+        if (store == null) {
+            return;
         }
+        if (store.getStoreName() == null) {
+            log.warn("Ignoring the session data store since it does not define a store name: "
+                    + store.getClass().getName() + ".");
+            return;
+        }
+        sessionDataStores.put(normalizeStoreName(store.getStoreName()), store);
     }
 
     /**
@@ -769,8 +776,8 @@ public class FrameworkServiceDataHolder {
     public void removeSessionDataStore(SessionDataStore store) {
 
         if (store != null && store.getStoreName() != null) {
-            // Remove only if the mapping still points to this exact service instance, so unbinding
-            // an older service does not evict a newer registration under the same name.
+            // Remove only if the mapping still points to this instance, so that unregistering an older
+            // service does not evict a newer one registered under the same name.
             sessionDataStores.remove(normalizeStoreName(store.getStoreName()), store);
         }
     }
@@ -790,7 +797,7 @@ public class FrameworkServiceDataHolder {
      */
     private static String normalizeStoreName(String storeName) {
 
-        return storeName == null ? null : storeName.trim().toLowerCase(java.util.Locale.ENGLISH);
+        return SessionStorageSelector.normalizeStoreName(storeName);
     }
 
     /**
@@ -802,10 +809,58 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Wires the supplier of the built-in default session data store. The framework component sets
-     * this so the selector can obtain the default store without depending on any concrete store
-     * type. The supplier is invoked lazily, so the default implementation is created only if it is
-     * selected.
+     * Register a user session DAO, keyed by {@link UserSessionDAO#getStoreName()}. A DAO without a store
+     * name is ignored.
+     *
+     * @param userSessionDAO the DAO to register.
+     */
+    public void addUserSessionDAO(UserSessionDAO userSessionDAO) {
+
+        if (userSessionDAO == null) {
+            return;
+        }
+        if (userSessionDAO.getStoreName() == null) {
+            log.warn("Ignoring the user session DAO since it does not define a store name: "
+                    + userSessionDAO.getClass().getName() + ".");
+            return;
+        }
+        userSessionDAOs.put(normalizeStoreName(userSessionDAO.getStoreName()), userSessionDAO);
+    }
+
+    /**
+     * Deregister a previously registered user session DAO.
+     *
+     * @param userSessionDAO the DAO to remove.
+     */
+    public void removeUserSessionDAO(UserSessionDAO userSessionDAO) {
+
+        if (userSessionDAO != null && userSessionDAO.getStoreName() != null) {
+            // Remove only if the mapping still points to this instance, so that unregistering an older
+            // service does not evict a newer one registered under the same name.
+            userSessionDAOs.remove(normalizeStoreName(userSessionDAO.getStoreName()), userSessionDAO);
+        }
+    }
+
+    /**
+     * @param storeName the store name (e.g. "JDBC", "Redis"); matched case-insensitively.
+     * @return the registered user session DAO for the given name, or {@code null} if none.
+     */
+    public UserSessionDAO getUserSessionDAO(String storeName) {
+
+        return storeName == null ? null : userSessionDAOs.get(normalizeStoreName(storeName));
+    }
+
+    /**
+     * @return the live registry of user session DAOs, keyed by store name.
+     */
+    public Map<String, UserSessionDAO> getUserSessionDAOs() {
+
+        return userSessionDAOs;
+    }
+
+    /**
+     * Sets the supplier of the default session data store. The supplier is invoked only when the default
+     * store is selected.
      *
      * @param supplier supplier of the default store.
      */

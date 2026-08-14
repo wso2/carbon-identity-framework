@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.dao;
 
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
@@ -27,17 +28,30 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Feder
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * Perform operations for {@link UserSession}.
  */
 public interface UserSessionDAO {
+
+    /**
+     * Returns the name of the store this DAO belongs to, matched case-insensitively. A DAO registered as an
+     * OSGi service must override this to be selectable.
+     *
+     * @return the store name, or {@code null} if this DAO is not selectable by name.
+     */
+    default String getStoreName() {
+
+        return null;
+    }
 
     /**
      * Method to retrieve session information for a given session id.
@@ -138,5 +152,396 @@ public interface UserSessionDAO {
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_FED_USER_SESSION,
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_FED_USER_SESSION.getDescription(), e);
         }
+    }
+
+    /**
+     * Method to store user id and session id mapping in the database table IDN_AUTH_USER_SESSION_MAPPING.
+     *
+     * @param userId    Id of the user
+     * @param sessionId Id of the authenticated session
+     * @throws UserSessionException if an error occurs when storing the mapping in the database
+     */
+    default void storeUserSessionData(String userId, String sessionId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "storeUserSessionData is not supported by this user session DAO.");
+    }
+
+    /**
+     * Method to check whether the user id and session id mapping is already exists in the database.
+     *
+     * @param userId    Id of the user
+     * @param sessionId Id of the authenticated session
+     * @return the boolean decision
+     * @throws UserSessionException if an error occurs when retrieving the mapping from the database
+     */
+    default boolean isExistingMapping(String userId, String sessionId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "isExistingMapping is not supported by this user session DAO.");
+    }
+
+    /**
+     * Method to get session Id list of a given user Id.
+     *
+     * @param userId id of the user
+     * @return the list of session ids
+     * @throws UserSessionException if an error occurs when retrieving the session id list from the database
+     */
+    default List<String> getSessionId(String userId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "getSessionId is not supported by this user session DAO.");
+    }
+
+    /**
+     * Removes all the expired session records from relevant tables.
+     */
+    default void removeExpiredSessionRecords() {
+
+        throw new UnsupportedOperationException(
+                "removeExpiredSessionRecords is not supported by this user session DAO.");
+    }
+
+    /**
+     * Remove the session information records of a given set of session IDs from the relevant tables.
+     *
+     * @param sessionIdList list of terminated session IDs
+     */
+    default void removeTerminatedSessionRecords(List<String> sessionIdList) {
+
+        throw new UnsupportedOperationException(
+                "removeTerminatedSessionRecords is not supported by this user session DAO.");
+    }
+
+    /**
+     * Method to store app session data.
+     *
+     * @param sessionId   id of the authenticated session
+     * @param subject     username in application
+     * @param appID       id of the application
+     * @param inboundAuth protocol used in app
+     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database
+     */
+    default void storeAppSessionData(String sessionId, String subject, int appID, String inboundAuth) throws
+            DataAccessException {
+
+        throw new UnsupportedOperationException(
+                "storeAppSessionData is not supported by this user session DAO.");
+    }
+
+    /**
+     * Method to store app session data if the particular app session is not already exists in the database.
+     *
+     * @param sessionId   Id of the authenticated session.
+     * @param subject     Username in application.
+     * @param appID       Id of the application.
+     * @param inboundAuth Protocol used in the app.
+     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
+     * @deprecated Please use storeAppSessionData method instead.
+     */
+    @Deprecated
+    default void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
+            DataAccessException {
+
+        throw new UnsupportedOperationException(
+                "storeAppSessionDataIfNotExist is not supported by this user session DAO.");
+    }
+
+    /**
+     * Method to check whether the particular app session is already exists in the database.
+     *
+     * @param sessionId   id of the authenticated session
+     * @param subject     user name of app
+     * @param appID       id of application
+     * @param inboundAuth protocol used in app
+     * @return whether the app session is already available or not
+     * @throws UserSessionException while retrieving existing session data
+     */
+    default boolean isExistingAppSession(String sessionId, String subject, int appID, String inboundAuth) throws
+            UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "isExistingAppSession is not supported by this user session DAO.");
+    }
+
+    /**
+     * Method to store session meta data as a batch.
+     *
+     * @param sessionId id of the authenticated session
+     * @param metaData  map of metadata type and value of the session
+     * @throws UserSessionException while storing session meta data
+     */
+    default void storeSessionMetaData(String sessionId, Map<String, String> metaData) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "storeSessionMetaData is not supported by this user session DAO.");
+    }
+
+    /**
+     * Update session meta data.
+     *
+     * @param sessionId    id of the authenticated session
+     * @param propertyType type of the meta data
+     * @param value        value of the meta data
+     * @throws UserSessionException if the meta data update in the database fails.
+     */
+    default void updateSessionMetaData(String sessionId, String propertyType, String value) throws
+            UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "updateSessionMetaData is not supported by this user session DAO.");
+    }
+
+    /**
+     * Method to get session Id list of a given user.
+     *
+     * @param user  user object
+     * @param idpId id of the user's idp
+     * @return the list of session ids
+     * @throws UserSessionException if an error occurs when retrieving the session id list from the database
+     */
+    default List<String> getSessionId(User user, int idpId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "getSessionId is not supported by this user session DAO.");
+    }
+
+    /**
+     * Method to check whether a given user already has a mapping with a given session id.
+     *
+     * @param user      user object
+     * @param sessionId id of the authenticated session
+     * @return the boolean decision
+     * @throws UserSessionException if an error occurs when retrieving the mapping from the database
+     */
+    default boolean isExistingMapping(User user, int idpId, String sessionId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "isExistingMapping is not supported by this user session DAO.");
+    }
+
+    /**
+     * Store session details of a given session context key to map the session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @throws UserSessionException Error while storing session details.
+     */
+    default void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory)
+            throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "storeFederatedAuthSessionInfo is not supported by this user session DAO.");
+    }
+
+    /**
+     * Store session details with the given session context key for the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @param tenantId          Tenant id.
+     * @throws UserSessionException Error while storing session details.
+     */
+    default void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory, int tenantId)
+            throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "storeFederatedAuthSessionInfo is not supported by this user session DAO.");
+    }
+
+    /**
+     * Store session details with the given session context key for the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @param idpId             Federated IDP ID.
+     * @throws UserSessionException Error while storing session details.
+     */
+    default void storeFederatedAuthSessionInfoWithIdpId(String sessionContextKey, AuthHistory authHistory, int idpId)
+            throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "storeFederatedAuthSessionInfoWithIdpId is not supported by this user session DAO.");
+    }
+
+    /**
+     * Store session details if not exist of a given session context key to map the session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @param tenantId          Tenant id.
+     * @param idpId             Federated IdP id.
+     * @throws UserSessionException Error while storing session details.
+     */
+    default void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory, int tenantId,
+                                              int idpId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "storeFederatedAuthSessionInfo is not supported by this user session DAO.");
+    }
+
+    /**
+     * Update session details of a given session context key to map the current session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @throws UserSessionException Error while storing session details.
+     */
+    default void updateFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory) throws
+            UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "updateFederatedAuthSessionInfo is not supported by this user session DAO.");
+    }
+
+    /**
+     * Update session details of a given session context key to map the current session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @param tenantId          Tenant id.
+     * @throws UserSessionException Error while storing session details.
+     */
+    default void updateFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory, int tenantId) throws
+            UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "updateFederatedAuthSessionInfo is not supported by this user session DAO.");
+    }
+
+    /**
+     * Update session details of a given session context key to map the current session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @param idpId             Federated IDP id.
+     * @throws UserSessionException Error while storing session details.
+     */
+    default void updateFederatedAuthSessionInfoWithIdpId(String sessionContextKey, AuthHistory authHistory, int idpId)
+            throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "updateFederatedAuthSessionInfoWithIdpId is not supported by this user session DAO.");
+    }
+
+    /**
+     * Update session details of a given session context key to map the current session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @param tenantId          Tenant id.
+     * @param idpId             Federated IdP id.
+     * @throws UserSessionException Error while storing session details.
+     */
+    default void updateFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory, int tenantId,
+            int idpId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "updateFederatedAuthSessionInfo is not supported by this user session DAO.");
+    }
+
+    /**
+     * Check whether there is already existing federated auth session with the given session index.
+     *
+     * @param idpSessionIndex IDP session index.
+     * @return True if a federated auth session found with the given session index.
+     * @throws UserSessionException If an error occurred while checking for an federated auth session.
+     */
+    default boolean hasExistingFederatedAuthSession(String idpSessionIndex) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "hasExistingFederatedAuthSession is not supported by this user session DAO.");
+    }
+
+    /**
+     * Check whether there is already existing federated auth session with the given session index and the tenant id.
+     *
+     * @param idpSessionIndex IDP session index.
+     * @param tenantId        Tenant id.
+     * @return True if a federated auth session found with the given session index.
+     * @throws UserSessionException If an error occurred while checking for an federated auth session.
+     */
+    default boolean isExistingFederatedAuthSessionAvailable(String idpSessionIndex, int tenantId)
+            throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "isExistingFederatedAuthSessionAvailable is not supported by this user session DAO.");
+    }
+
+    /**
+     * Check whether there is already existing federated auth session with the given session index and the idp id.
+     *
+     * @param idpSessionIndex IDP session index.
+     * @param idpId           Federated IDP ID.
+     * @return True if a federated auth session found with the given session index.
+     * @throws UserSessionException If an error occurred while checking for an federated auth session.
+     */
+    default boolean hasExistingFederatedAuthSessionWithIdpId(String idpSessionIndex, int idpId)
+            throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "hasExistingFederatedAuthSessionWithIdpId is not supported by this user session DAO.");
+    }
+
+    /**
+     * Check whether there is already existing federated auth session with the given session index, tenant id and
+     * idp id.
+     *
+     * @param idpSessionIndex IDP session index.
+     * @param tenantId        Tenant id.
+     * @param idpId           Federated IDP id.
+     * @return True if a federated auth session found with the given session index.
+     * @throws UserSessionException If an error occurred while checking for an federated auth session.
+     */
+    default boolean hasExistingFederatedAuthSession(String idpSessionIndex, int tenantId, int idpId)
+            throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "hasExistingFederatedAuthSession is not supported by this user session DAO.");
+    }
+
+    /**
+     * Remove federated authentication session details of a given session context key.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @throws UserSessionException Error while deleting session details of a given session id.
+     */
+    default void removeFederatedAuthSessionInfo(String sessionContextKey) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "removeFederatedAuthSessionInfo is not supported by this user session DAO.");
+    }
+
+    /**
+     * Remove federated authentication session details of a given session context key.
+     *
+     * @param sessionContextKey     Session Context Key.
+     * @param idpId                 ID of the federated IdP.
+     * @throws UserSessionException Error while deleting session details of a given session id.
+     */
+    default void removeFederatedAuthSessionInfo(String sessionContextKey, int idpId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "removeFederatedAuthSessionInfo is not supported by this user session DAO.");
+    }
+
+    /**
+     * Counts the number of active sessions of the given tenant domain.
+     *
+     * @param tenantDomain tenant domain
+     * @return number of active sessions of the given tenant domain
+     * @throws UserSessionException if something goes wrong
+     */
+    default int getActiveSessionCount(String tenantDomain) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "getActiveSessionCount is not supported by this user session DAO.");
     }
 }

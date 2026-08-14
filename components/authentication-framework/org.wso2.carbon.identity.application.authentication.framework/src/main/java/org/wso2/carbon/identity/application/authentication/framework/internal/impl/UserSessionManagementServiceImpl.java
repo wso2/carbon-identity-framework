@@ -26,7 +26,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
-import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
+import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAOFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
@@ -388,7 +388,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
                 FrameworkUtils.getLoginTenantDomainFromContext());
         if (sessionContext != null) {
-            UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+            UserSessionDAO userSessionDAO = UserSessionDAOFactory.getUserSessionDAO();
             try {
                 String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
                 int tenantId = getTenantId(tenantDomain);
@@ -494,7 +494,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (log.isDebugEnabled()) {
                 log.debug("Searching active sessions on the system.");
             }
-            UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+            UserSessionDAO userSessionDAO = UserSessionDAOFactory.getUserSessionDAO();
 
             List<UserSession> sessionsList = userSessionDAO.getSessions(getTenantId(tenantDomain),
                     filter, limit, sortOrder);
@@ -584,7 +584,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throw handleSessionManagementClientException(
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION_ID, null);
         }
-        UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
+        UserSessionDAO userSessionDTO = UserSessionDAOFactory.getUserSessionDAO();
         UserSession userSession = userSessionDTO.getSession(sessionId);
 
         return Optional.ofNullable(userSession);
@@ -666,7 +666,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
                         FrameworkUtils.getLoginTenantDomainFromContext());
                 if (sessionContext != null) {
-                    UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+                    UserSessionDAO userSessionDAO = UserSessionDAOFactory.getUserSessionDAO();
                     UserSession userSession = userSessionDAO.getSession(sessionId);
                     if (userSession != null) {
                         if (!isEffectiveSession(sessionContext, userSession)) {

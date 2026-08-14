@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -279,12 +280,8 @@ public class FrameworkServiceComponent {
         // This is done to load the PushedAuthDataStore class and start its cleanup tasks.
         PushedAuthDataStore.getInstance();
 
-        // Wire the built-in default session data store behind a supplier so the selector can resolve
-        // it without depending on any concrete store type. The supplier is invoked lazily, so the
-        // default store (and its cleanup tasks) is created only when it is actually selected; a
-        // deployment that configures and registers a different store never triggers it. The active
-        // store is otherwise resolved lazily on first use, so a configured external store that has
-        // not bound yet does not fail activation here.
+        // Wired as a supplier so that the default store and its cleanup tasks are created only when that
+        // store is selected.
         dataHolder.setDefaultSessionDataStoreSupplier(JDBCSessionDataStore::getInstance);
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
@@ -570,7 +567,7 @@ public class FrameworkServiceComponent {
     protected void setSessionDataStore(SessionDataStore sessionDataStore) {
 
         FrameworkServiceDataHolder.getInstance().addSessionDataStore(sessionDataStore);
-        // A newly-registered store may now be the configured one; drop the cached selection.
+        // The new store may be the configured one, so drop the cached selection.
         SessionDataStore.invalidateSelectedStore();
         if (log.isDebugEnabled()) {
             log.debug("Session data store registered: " + sessionDataStore.getStoreName());
@@ -583,6 +580,30 @@ public class FrameworkServiceComponent {
         SessionDataStore.invalidateSelectedStore();
         if (log.isDebugEnabled()) {
             log.debug("Session data store unregistered: " + sessionDataStore.getStoreName());
+        }
+    }
+
+    @Reference(
+            name = "user.session.dao",
+            service = UserSessionDAO.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserSessionDAO"
+    )
+    protected void setUserSessionDAO(UserSessionDAO userSessionDAO) {
+
+        // The DAO is resolved per call, so there is no cached selection to drop here.
+        FrameworkServiceDataHolder.getInstance().addUserSessionDAO(userSessionDAO);
+        if (log.isDebugEnabled()) {
+            log.debug("User session DAO registered: " + userSessionDAO.getStoreName());
+        }
+    }
+
+    protected void unsetUserSessionDAO(UserSessionDAO userSessionDAO) {
+
+        FrameworkServiceDataHolder.getInstance().removeUserSessionDAO(userSessionDAO);
+        if (log.isDebugEnabled()) {
+            log.debug("User session DAO unregistered: " + userSessionDAO.getStoreName());
         }
     }
 
