@@ -10,7 +10,7 @@
   "tags": ["Wallet", "OpenID4VP"],
   "idp": {
     "name": "Digital Wallet",
-    "description": "Login with Digital Wallet",
+    "description": "Allow users to sign in or register using verifiable credentials presented from a compatible digital wallet.",
     "image": "assets/images/logos/wallet.svg",
     "isPrimary": false,
     "isFederationHub": false,
@@ -44,7 +44,7 @@
             {
               "key": "presentationDefinitionId",
               "displayName": "Presentation Definition ID",
-              "description": "ID of the presentation definition to use for VP requests",
+              "description": "Specify the presentation definition that determines the credentials and claims requested from the user's digital wallet.",
               "type": "STRING",
               "displayOrder": 1,
               "isMandatory": true
@@ -52,7 +52,7 @@
             {
               "key": "timeout",
               "displayName": "Timeout (seconds)",
-              "description": "Timeout for VP requests in seconds",
+              "description": "Specify how long to wait for the user to complete the digital wallet interaction before the request expires.",
               "type": "INTEGER",
               "displayOrder": 3,
               "defaultValue": "300",
