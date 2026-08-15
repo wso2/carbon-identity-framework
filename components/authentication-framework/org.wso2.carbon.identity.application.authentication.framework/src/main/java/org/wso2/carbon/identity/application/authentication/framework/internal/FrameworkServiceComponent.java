@@ -110,6 +110,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceDataResolver;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
@@ -718,6 +719,29 @@ public class FrameworkServiceComponent {
             log.debug("Post Authenticaion Handler : " + postAuthenticationHandler.getName() + " unregistered");
         }
         FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().remove(postAuthenticationHandler);
+    }
+
+    @Reference(
+            name = "device.data.resolver",
+            service = DeviceDataResolver.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDeviceDataResolver"
+    )
+    protected void setDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Device data resolver : " + deviceDataResolver.getClass().getName() + " registered");
+        }
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+    }
+
+    protected void unsetDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Device data resolver : " + deviceDataResolver.getClass().getName() + " unregistered");
+        }
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
     }
 
     @Reference(

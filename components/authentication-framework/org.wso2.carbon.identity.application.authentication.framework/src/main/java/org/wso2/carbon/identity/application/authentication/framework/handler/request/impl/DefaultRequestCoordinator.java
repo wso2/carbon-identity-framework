@@ -83,6 +83,7 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceDataResolver;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -274,6 +275,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (authRequest != null) {
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
+
+                // Resolve verified device data from the initiation request and store it on the context.
+                resolveAndStoreDeviceData(request, context);
 
                 // We'll use the cloned context to re-initiate the login flow when the session
                 // nonce cookie validation failed.
@@ -858,6 +862,35 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // set current request and response to the authentication context.
         context.setProperty(FrameworkConstants.RequestAttribute.HTTP_REQUEST, new TransientObjectWrapper(request));
         context.setProperty(FrameworkConstants.RequestAttribute.HTTP_RESPONSE, new TransientObjectWrapper(response));
+    }
+
+    /**
+     * Invokes the device policy component's device data resolver on the initiation request and
+     * stores any resolved device data payload on the authentication context. A no-op when the
+     * device.policy bundle is not installed.
+     *
+     * @param request The initiation request carrying the device token.
+     * @param context The authentication context being initialized.
+     */
+    private void resolveAndStoreDeviceData(HttpServletRequest request, AuthenticationContext context) {
+
+        DeviceDataResolver deviceDataResolver = FrameworkServiceDataHolder.getInstance().getDeviceDataResolver();
+        if (deviceDataResolver == null) {
+            return;
+        }
+        try {
+            Optional<Map<String, Object>> deviceData =
+                    deviceDataResolver.resolveDeviceData(request, context.getTenantDomain());
+            if (deviceData.isPresent()) {
+                context.setProperty(FrameworkConstants.DEVICE_DATA, deviceData.get());
+                if (log.isDebugEnabled()) {
+                    log.debug("Device data resolved and stored on the authentication context.");
+                }
+            }
+        } catch (RuntimeException e) {
+            // Device data resolution is best effort and must never break the authentication flow.
+            log.error("Error while resolving device data at initiation. Error: " + e.getMessage());
+        }
     }
 
     /**
