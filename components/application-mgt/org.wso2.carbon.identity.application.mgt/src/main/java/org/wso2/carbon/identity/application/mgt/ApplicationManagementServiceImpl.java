@@ -1481,8 +1481,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
         // client id can contain the @ to identify the tenant domain.
-        if (StringUtils.isNotBlank(clientId) && clientId.contains("@")) {
-            clientId = clientId.substring(0, clientId.lastIndexOf('@'));
+        if (clientId != null) {
+            int tenantSeparatorIndex = clientId.indexOf('@');
+            if (tenantSeparatorIndex > 0) {
+                clientId = clientId.substring(0, tenantSeparatorIndex);
+            }
         }
 
         String serviceProviderName;

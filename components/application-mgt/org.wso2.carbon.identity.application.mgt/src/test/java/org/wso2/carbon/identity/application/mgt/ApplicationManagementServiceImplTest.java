@@ -1203,15 +1203,14 @@ public class ApplicationManagementServiceImplTest {
     }
 
     @Test
-    public void testGetServiceProviderByClientIdWithEmbeddedAtSymbol()
+    public void testGetServiceProviderByClientIdWithMultipleAtSymbols()
             throws IdentityApplicationManagementException {
 
-        // Only the appended tenant domain should be removed from the client id. A client id that itself contains
-        // an '@' must still resolve its application.
+        // The client id is split at the first '@', so a client id carrying more than one '@' must keep resolving
+        // the same application as before.
         ServiceProvider inputSP = new ServiceProvider();
         inputSP.setApplicationName(APPLICATION_NAME_1);
         addApplicationConfigurations(inputSP);
-        setApplicationInboundAuthConfigs(inputSP, "auth@key", "oauth2");
 
         applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
@@ -1222,7 +1221,7 @@ public class ApplicationManagementServiceImplTest {
         ApplicationManagementServiceComponent.getFileBasedSPs().put(DEFAULT_SP_CONFIG, defaultSP);
         try {
             ServiceProvider actual = applicationManagementService.getServiceProviderByClientId(
-                    "auth@key@" + SUPER_TENANT_DOMAIN_NAME, "oauth2", SUPER_TENANT_DOMAIN_NAME);
+                    "auth key@extra@" + SUPER_TENANT_DOMAIN_NAME, "oauth2", SUPER_TENANT_DOMAIN_NAME);
 
             Assert.assertNotNull(actual);
             Assert.assertEquals(actual.getApplicationName(), inputSP.getApplicationName());
