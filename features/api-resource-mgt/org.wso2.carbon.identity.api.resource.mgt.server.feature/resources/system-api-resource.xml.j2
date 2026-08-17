@@ -111,14 +111,10 @@
                    name="internal_application_business_api_update"
                    description="Allows updating authorized business APIs of an application. Requires both this scope and
                     the application update scope (internal_application_mgt_update) for fine-grained access control."/>
-            <Scope displayName="View application client secret"
+            <Scope displayName="View Application Client Secret"
                    name="internal_application_mgt_client_secret_view"
-                   description="Allows viewing the client secrets of an application. Required together with the
-                    application view scope (internal_application_mgt_view) when viewing the client secret within
-                    the application details."/>
-            <Scope displayName="Regenerate Application Client Secret"
-                   name="internal_application_mgt_client_secret_regenerate"
-                   description="Regenerate the client secret of an application"/>
+                   description="Allows viewing the client secret of an application. Requires both this scope and
+                    the application view scope (internal_application_mgt_view) for fine-grained access control."/>
             <Scope displayName="Delete Application Client Secret"
                    name="internal_application_mgt_client_secret_delete"
                    description="Delete client secrets of an application"/>
@@ -147,14 +143,10 @@
                    name="internal_org_application_business_api_update"
                    description="Allows updating authorized business APIs of an application. Requires both this scope and
                     the application update scope (internal_org_application_mgt_update) for fine-grained access control."/>
-            <Scope displayName="View application client secret"
+            <Scope displayName="View Application Client Secret"
                    name="internal_org_application_mgt_client_secret_view"
-                   description="Allows viewing the client secrets of an application. Required together with the
-                    application view scope (internal_org_application_mgt_view) when viewing the client secret within
-                    the application details."/>
-            <Scope displayName="Regenerate Application Client Secret"
-                   name="internal_org_application_mgt_client_secret_regenerate"
-                   description="Regenerate the client secret of an application in the organization"/>
+                   description="Allows viewing the client secret of an application. Requires both this scope and
+                    the application view scope (internal_org_application_mgt_view) for fine-grained access control."/>
             <Scope displayName="Delete Application Client Secret"
                    name="internal_org_application_mgt_client_secret_delete"
                    description="Delete client secrets of an application in the organization"/>

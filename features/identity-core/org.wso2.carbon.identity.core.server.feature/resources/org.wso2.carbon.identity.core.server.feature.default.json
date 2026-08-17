@@ -1619,9 +1619,6 @@
   "console.applications.sub_features.applicationClientSecretManagement.scopes.read": [
     "internal_application_mgt_client_secret_view"
   ],
-  "console.applications.sub_features.applicationClientSecretManagement.scopes.regenerate": [
-    "internal_application_mgt_client_secret_regenerate"
-  ],
   "console.applications.sub_features.applicationAuthenticationScript.scopes.update": [
     "internal_application_script_update"
   ],

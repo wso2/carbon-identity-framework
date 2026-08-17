@@ -1286,7 +1286,7 @@
 
     <!-- [Organization] Application Management API -->
     <Resource context="(.*)/o/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
-        <Scopes>internal_org_application_mgt_client_secret_regenerate</Scopes>
+        <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
@@ -1353,7 +1353,7 @@
 
     <!-- Application Management API -->
     <Resource context="(.*)/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
-        <Scopes>internal_application_mgt_client_secret_regenerate</Scopes>
+        <Scopes>internal_application_mgt_client_secret_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/applications/(.*)/secrets" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_client_secret_create</Scopes>
