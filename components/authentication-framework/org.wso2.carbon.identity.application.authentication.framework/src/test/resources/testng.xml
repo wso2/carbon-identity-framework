@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.AbstractAppAuthSkipRetryTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandlerTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContextTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
