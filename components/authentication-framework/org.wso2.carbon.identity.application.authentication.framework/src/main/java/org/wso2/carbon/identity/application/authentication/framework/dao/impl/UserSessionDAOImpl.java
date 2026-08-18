@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.dao.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionFilterQueryBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionReferenceDataUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -105,7 +105,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
         try {
             List<Application> applicationList = getApplicationsForSessionID(sessionId);
-            generateApplicationFromAppID(applicationList);
+            SessionReferenceDataUtils.setApplicationDetails(applicationList);
             String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
                     ? SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_H2
                     : SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA;
@@ -188,7 +188,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             });
 
             List<Application> applicationList = getApplicationsForSessionID(sessionId);
-            generateApplicationFromAppID(applicationList);
+            SessionReferenceDataUtils.setApplicationDetails(applicationList);
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
@@ -223,12 +223,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
         try {
             if (StringUtils.isNotEmpty(filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.APPLICATION))) {
-                String appSql = filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.APPLICATION)
-                        + " AND (TENANT_ID = ? OR IS_SAAS_APP = '1')";
-                List<Object> appParams = new ArrayList<>(
-                        filterBuilder.getFilterParams(SessionMgtConstants.FilterType.APPLICATION));
-                appParams.add(tenantId);
-                appDetails = getApplicationsForFilter(appSql, appParams);
+                appDetails = SessionReferenceDataUtils.getApplicationsByFilter(filterBuilder, tenantId);
                 if (appDetails.isEmpty()) {
                     return Collections.emptyList();
                 }
@@ -338,8 +333,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                                 .collect(Collectors.toList()));
                         userIdList.add(userSession.getUserId());
                     }
-                    Map<String, Application> applicationMap = getApplicationsFromAppID(appIdList);
-                    Map<String, String> userIdpMap = getIdpIdsByUserIdList(userIdList);
+                    Map<String, Application> applicationMap = SessionReferenceDataUtils
+                            .getApplicationsByIds(appIdList);
+                    Map<String, String> userIdpMap = SessionReferenceDataUtils.getIdpIdsByUserIds(userIdList);
 
                     for (UserSession userSession : userSessionsList) {
                         for (Application app : userSession.getApplications()) {
@@ -363,7 +359,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     for (UserSession userSession : userSessionsList) {
                         userIdList.add(userSession.getUserId());
                     }
-                    Map<String, String> userIdpMap = getIdpIdsByUserIdList(userIdList);
+                    Map<String, String> userIdpMap = SessionReferenceDataUtils.getIdpIdsByUserIds(userIdList);
 
                     for (UserSession userSession : userSessionsList) {
                         userSession.setIdpId(userIdpMap.get(userSession.getUserId()));
@@ -373,88 +369,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         } catch (DataAccessException e) {
             throw new UserSessionException(String.format("Error while retrieving sessions from the database for the " +
                     "tenant with id: %s.", tenantId), e);
-        } catch (SessionManagementServerException e) {
-            throw new UserSessionException(String.format("Error while retrieving application details for the " +
-                    "retrieved sessions for the tenant with id: %s.", tenantId), e);
         }
 
         return userSessionsList;
-    }
-
-    private void generateApplicationFromAppID(List<Application> applications) throws SessionManagementServerException {
-
-        if (CollectionUtils.isEmpty(applications)) {
-            return;
-        }
-
-        Map<String, List<Application>> appIdMap =
-                applications.stream().collect(Collectors.groupingBy(Application::getAppId));
-        String placeholder = String.join(", ", Collections.nCopies(appIdMap.keySet().size(), "?"));
-        // TODO:: Get applications using application-mgt services and remove component unrelated queries.
-        String sql = SQLQueries.SQL_GET_APPLICATION.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement ps = connection.prepareStatement(sql)) {
-            int index = 1;
-            for (String appId : appIdMap.keySet()) {
-                ps.setInt(index, Integer.parseInt(appId));
-                index++;
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    for (Application application : appIdMap.get(rs.getString("ID"))) {
-                        application.setAppName(rs.getString("APP_NAME"));
-                        application.setResourceId(rs.getString("UUID"));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw new SessionManagementServerException(
-                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
-                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
-        }
-        /**
-         * If application is not present in the SP_APP table but has a session associated with it that application
-         * should not be considered for the session object.
-         */
-        applications.removeIf(application -> application.getAppName() == null);
-    }
-
-    private Map<String, Application> getApplicationsFromAppID(Set<String> applicationIds)
-            throws SessionManagementServerException, DataAccessException {
-
-        if (CollectionUtils.isEmpty(applicationIds)) {
-            return new HashMap<>();
-        }
-
-        Map<String, Application> applications = new HashMap<>();
-        int[] parsedAppIds = new int[applicationIds.size()];
-        int idx = 0;
-        try {
-            for (String appId : applicationIds) {
-                parsedAppIds[idx++] = Integer.parseInt(appId);
-            }
-        } catch (NumberFormatException e) {
-            throw new SessionManagementServerException(
-                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
-                    "Invalid application ID found in session data: " + applicationIds, e);
-        }
-        String placeholder = String.join(", ", Collections.nCopies(parsedAppIds.length, "?"));
-        // TODO:: Get applications using application-mgt services and remove component unrelated queries.
-        String sql = SQLQueries.SQL_GET_APPLICATION.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
-        List<Application> result = jdbcTemplate.executeQuery(sql,
-                (rs, rowNumber) -> new Application(null, rs.getString("APP_NAME"), rs.getString("ID"),
-                        rs.getString("UUID")),
-                preparedStatement -> {
-                    for (int i = 0; i < parsedAppIds.length; i++) {
-                        preparedStatement.setInt(i + 1, parsedAppIds[i]);
-                    }
-                });
-        for (Application app : result) {
-            applications.put(app.getAppId(), app);
-        }
-
-        return applications;
     }
 
     private List<Application> getApplicationsForSessionID(String sessionId) throws DataAccessException {
@@ -465,50 +382,6 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                         new Application(resultSet.getString("SUBJECT"),
                                 null, resultSet.getString("APP_ID"), null),
                 preparedStatement -> preparedStatement.setString(1, sessionId));
-    }
-
-    private Map<String, Application> getApplicationsForFilter(String appFilterSql, List<Object> params)
-            throws DataAccessException {
-
-        // TODO:: Get applications using application-mgt services and remove component unrelated queries.
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
-        List<Application> applicationsList = jdbcTemplate.executeQuery(
-                MessageFormat.format(SQLQueries.SQL_GET_APPLICATIONS_BY_FILTER_AND_TENANT, appFilterSql),
-                (resultSet, rowNumber) ->
-                        new Application(null, resultSet.getString("APP_NAME"),
-                                resultSet.getString("ID"), resultSet.getString("UUID")),
-                preparedStatement -> bindFilterParams(preparedStatement, params, 1));
-
-        return applicationsList.stream().collect(Collectors.toMap(Application::getAppId, app -> app));
-    }
-
-    private Map<String, String> getIdpIdsByUserIdList(Set<String> userIdList) throws DataAccessException {
-
-        if (userIdList == null || userIdList.isEmpty()) {
-            return null;
-        }
-        Map<String, String> userIdpMap = new HashMap<>();
-        List<String> userIds = new ArrayList<>(userIdList);
-        String placeholder = String.join(", ", Collections.nCopies(userIds.size(), "?"));
-        String sql = SQLQueries.SQL_GET_IDP_IDS_BY_USER_ID_LIST.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
-        List<UserSession> userIdpList = jdbcTemplate.executeQuery(sql,
-                ((resultSet, rowNumber) -> {
-                    UserSession tempSession = new UserSession();
-                    tempSession.setUserId(resultSet.getString("USER_ID"));
-                    tempSession.setIdpId(Integer.toString(resultSet.getInt("IDP_ID")));
-                    return tempSession;
-                }),
-                preparedStatement -> {
-                    for (int i = 0; i < userIds.size(); i++) {
-                        preparedStatement.setString(i + 1, userIds.get(i));
-                    }
-                });
-        for (UserSession userIdpSession : userIdpList) {
-            userIdpMap.put(userIdpSession.getUserId(), userIdpSession.getIdpId());
-        }
-
-        return userIdpMap;
     }
 
     /**
