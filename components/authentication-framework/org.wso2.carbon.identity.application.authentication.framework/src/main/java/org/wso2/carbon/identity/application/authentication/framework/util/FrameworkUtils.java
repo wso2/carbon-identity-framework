@@ -3858,7 +3858,8 @@ public class FrameworkUtils {
                 // in all users in the DB unless specified.
                 schemaPattern = metaData.getUserName();
             }
-            try (ResultSet resultSet = metaData.getColumns(null, schemaPattern, tableName, columnName)) {
+            try (ResultSet resultSet = metaData.getColumns(connection.getCatalog(), schemaPattern, tableName,
+                    columnName)) {
                 if (resultSet.next()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Column - " + columnName + " in table - " + tableName + " is available in the " +
