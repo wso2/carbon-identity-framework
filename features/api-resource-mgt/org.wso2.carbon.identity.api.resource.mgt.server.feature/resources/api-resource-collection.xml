@@ -871,6 +871,9 @@
             <Create>
                 <Scope name="internal_application_mgt_client_secret_create"/>
             </Create>
+            <Delete>
+                <Scope name="internal_application_mgt_client_secret_delete"/>
+            </Delete>
             <Read>
                 <Scope name="console:applications_view"/>
                 <Scope name="internal_application_mgt_client_secret_view"/>
@@ -2158,6 +2161,9 @@
             <Create>
                 <Scope name="internal_org_application_mgt_client_secret_create"/>
             </Create>
+            <Delete>
+                <Scope name="internal_org_application_mgt_client_secret_delete"/>
+            </Delete>
             <Read>
                 <Scope name="console:org:applications_view"/>
                 <Scope name="internal_org_application_mgt_client_secret_view"/>

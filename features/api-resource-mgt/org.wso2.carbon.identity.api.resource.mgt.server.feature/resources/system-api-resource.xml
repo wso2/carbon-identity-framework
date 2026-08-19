@@ -92,8 +92,8 @@
                    description="View applications"/>
             <Scope displayName="Delete Application" name="internal_application_mgt_delete"
                    description="Delete applications"/>
-            <Scope displayName="Regenerate Application Secret" name="internal_application_mgt_client_secret_create"
-                   description="Regenerate the client secret of an application"/>
+            <Scope displayName="Create Application Client Secret" name="internal_application_mgt_client_secret_create"
+                   description="Create client secrets of an application"/>
             <Scope displayName="Update authorized internal APIs of an Application"
                    name="internal_application_internal_api_update"
                    description="Allows updating authorized internal APIs of an application. Requires both this scope and
@@ -102,10 +102,13 @@
                    name="internal_application_business_api_update"
                    description="Allows updating authorized business APIs of an application. Requires both this scope and
                     the application update scope (internal_application_mgt_update) for fine-grained access control."/>
-            <Scope displayName="View application client secret"
+            <Scope displayName="View Application Client Secret"
                    name="internal_application_mgt_client_secret_view"
                    description="Allows viewing the client secret of an application. Requires both this scope and
                     the application view scope (internal_application_mgt_view) for fine-grained access control."/>
+            <Scope displayName="Delete Application Client Secret"
+                   name="internal_application_mgt_client_secret_delete"
+                   description="Delete client secrets of an application"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management API"
@@ -121,8 +124,8 @@
                    description="Update applications in the organization"/>
             <Scope displayName="Delete Application" name="internal_org_application_mgt_delete"
                    description="Delete applications in the organization"/>
-            <Scope displayName="Regenerate Application Secret" name="internal_org_application_mgt_client_secret_create"
-                   description="Regenerate the client secret of an application in the organization"/>
+            <Scope displayName="Create Application Client Secret" name="internal_org_application_mgt_client_secret_create"
+                   description="Create client secrets of an application in the organization"/>
             <Scope displayName="Update authorized internal APIs of an Application"
                    name="internal_org_application_internal_api_update"
                    description="Allows updating authorized internal APIs of an application. Requires both this scope and
@@ -131,10 +134,13 @@
                    name="internal_org_application_business_api_update"
                    description="Allows updating authorized business APIs of an application. Requires both this scope and
                     the application update scope (internal_org_application_mgt_update) for fine-grained access control."/>
-            <Scope displayName="View application client secret"
+            <Scope displayName="View Application Client Secret"
                    name="internal_org_application_mgt_client_secret_view"
                    description="Allows viewing the client secret of an application. Requires both this scope and
                     the application view scope (internal_org_application_mgt_view) for fine-grained access control."/>
+            <Scope displayName="Delete Application Client Secret"
+                   name="internal_org_application_mgt_client_secret_delete"
+                   description="Delete client secrets of an application in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators"

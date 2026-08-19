@@ -348,7 +348,8 @@
         "consoleSettings.useGranularConsolePermissions"
       ],
       "oauth.oidc.honor_multivalued_claim_metadata": false,
-      "token_exchange.limit_scopes_to_subject_token": false
+      "token_exchange.limit_scopes_to_subject_token": false,
+      "oauth.multiple_client_secrets.enable": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -425,7 +426,8 @@
         "consoleSettings.useGranularConsolePermissions"
       ],
       "oauth.oidc.honor_multivalued_claim_metadata": false,
-      "token_exchange.limit_scopes_to_subject_token": false
+      "token_exchange.limit_scopes_to_subject_token": false,
+      "oauth.multiple_client_secrets.enable": false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -459,7 +461,8 @@
       "oauth.dcrm.decode_redirect_uris_in_response": false,
       "oauth.oidc.honor_multivalued_claim_metadata": false,
       "ai_services.http_client_use_system_properties": false,
-      "token_exchange.limit_scopes_to_subject_token": false
+      "token_exchange.limit_scopes_to_subject_token": false,
+      "oauth.multiple_client_secrets.enable": false
     },
     "IS_7.3.0": {
       "oauth.dcrm.decode_redirect_uris_in_response": false,
@@ -478,7 +481,8 @@
       ],
       "oauth.oidc.honor_multivalued_claim_metadata": false,
       "ai_services.http_client_use_system_properties": false,
-      "token_exchange.limit_scopes_to_subject_token": false
+      "token_exchange.limit_scopes_to_subject_token": false,
+      "oauth.multiple_client_secrets.enable": false
     }
   }
 }
