@@ -2446,5 +2446,7 @@
 
   "saas_apps.return_roles_in_id_token": false,
 
-  "rules.device_policy.max_expressions_combined_with_and": 15
+  "rules.device_policy.max_expressions_combined_with_and": 15,
+
+  "legacy_claims.return_legacy_role_claim_in_application_response": true
 }
