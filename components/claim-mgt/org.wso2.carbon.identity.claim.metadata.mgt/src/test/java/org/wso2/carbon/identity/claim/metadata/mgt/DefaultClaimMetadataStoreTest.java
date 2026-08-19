@@ -74,6 +74,10 @@ public class DefaultClaimMetadataStoreTest {
 
     private ClaimConfigInitDAO claimConfigInitDAO;
 
+    /**
+     * Isolates the claim metadata store from the database and from the organization management service, so each
+     * test only has to declare the tenant type it exercises.
+     */
     @BeforeMethod
     public void setUp() {
 
@@ -105,6 +109,9 @@ public class DefaultClaimMetadataStoreTest {
                         .thenReturn(Collections.emptyList()));
     }
 
+    /**
+     * Closes the static and constructor mocks opened for the test.
+     */
     @AfterMethod
     public void tearDown() {
 
@@ -116,6 +123,12 @@ public class DefaultClaimMetadataStoreTest {
         dataHolderStaticMock.close();
     }
 
+    /**
+     * Provides the tenant types the claim configuration initialization has to distinguish between, together with
+     * whether the initialization is expected to run for each of them.
+     *
+     * @return Tenant id, tenant domain, organization status, inheritance status and the expected outcome.
+     */
     @DataProvider(name = "claimConfigInitializationDataProvider")
     public Object[][] claimConfigInitializationDataProvider() {
 
@@ -130,6 +143,17 @@ public class DefaultClaimMetadataStoreTest {
         };
     }
 
+    /**
+     * Asserts that the claim configuration is seeded for every tenant that owns its claim metadata and skipped only
+     * for sub-organizations that inherit it from the primary organization.
+     *
+     * @param tenantId             Tenant id the claim metadata store is initialized for.
+     * @param tenantDomain         Tenant domain of the given tenant.
+     * @param isOrganization       Whether the tenant belongs to an organization hierarchy.
+     * @param isInheritanceEnabled Whether claim and OIDC scope inheritance is enabled for the tenant.
+     * @param shouldInitialize     Whether the claim configuration initialization is expected to run.
+     * @throws Exception If the test setup or the assertion fails.
+     */
     @Test(dataProvider = "claimConfigInitializationDataProvider")
     public void testClaimConfigInitialization(int tenantId, String tenantDomain, boolean isOrganization,
                                               boolean isInheritanceEnabled, boolean shouldInitialize)
@@ -149,6 +173,12 @@ public class DefaultClaimMetadataStoreTest {
                 "The tenant id must be assigned regardless of whether the initialization ran.");
     }
 
+    /**
+     * Asserts that the initialization falls back to running when the tenant's organization status cannot be
+     * resolved, since leaving a primary organization without claim metadata is worse than writing redundant rows.
+     *
+     * @throws Exception If the test setup or the assertion fails.
+     */
     @Test
     public void testClaimConfigInitializationWhenOrganizationResolutionFails() throws Exception {
 
@@ -166,6 +196,12 @@ public class DefaultClaimMetadataStoreTest {
         assertEquals(getTenantId(claimMetadataStore), SUB_ORG_TENANT_ID);
     }
 
+    /**
+     * Asserts that the initialization falls back to running when the tenant is a sub-organization but its
+     * organization version, and hence whether it inherits claim metadata, cannot be resolved.
+     *
+     * @throws Exception If the test setup or the assertion fails.
+     */
     @Test
     public void testClaimConfigInitializationWhenOrganizationVersionResolutionFails() throws Exception {
 
@@ -181,6 +217,12 @@ public class DefaultClaimMetadataStoreTest {
         assertEquals(getTenantId(claimMetadataStore), SUB_ORG_TENANT_ID);
     }
 
+    /**
+     * Asserts that the organization version is not resolved for tenants that are not part of an organization
+     * hierarchy, keeping the unnecessary lookup off the tenant creation path.
+     *
+     * @throws Exception If the test setup or the assertion fails.
+     */
     @Test
     public void testOrganizationVersionIsNotResolvedForPrimaryOrganizations() throws Exception {
 
@@ -193,6 +235,11 @@ public class DefaultClaimMetadataStoreTest {
         utilsStaticMock.verify(() -> Utils.isClaimAndOIDCScopeInheritanceEnabled(PRIMARY_ORG_TENANT_DOMAIN), never());
     }
 
+    /**
+     * Asserts that the pre-existing SkipClaimMetadataPersistence guard still short-circuits the initialization.
+     *
+     * @throws Exception If the test setup or the assertion fails.
+     */
     @Test
     public void testClaimConfigInitializationSkippedWhenPersistenceIsSkipped() throws Exception {
 
@@ -206,6 +253,11 @@ public class DefaultClaimMetadataStoreTest {
         verify(claimConfigInitDAO, never()).initClaimConfig(any(ClaimConfig.class), anyInt());
     }
 
+    /**
+     * Asserts that a tenant whose claim dialects are already persisted is not seeded a second time.
+     *
+     * @throws Exception If the test setup or the assertion fails.
+     */
     @Test
     public void testClaimConfigInitializationSkippedWhenDialectsAlreadyExist() throws Exception {
 
@@ -221,6 +273,13 @@ public class DefaultClaimMetadataStoreTest {
         verify(claimConfigInitDAO, never()).initClaimConfig(any(ClaimConfig.class), anyInt());
     }
 
+    /**
+     * Reads the tenant id the given claim metadata store was initialized with.
+     *
+     * @param claimMetadataStore Claim metadata store to read the tenant id from.
+     * @return Tenant id assigned to the given claim metadata store.
+     * @throws Exception If the tenant id field cannot be read.
+     */
     private int getTenantId(DefaultClaimMetadataStore claimMetadataStore) throws Exception {
 
         Field tenantIdField = DefaultClaimMetadataStore.class.getDeclaredField("tenantId");

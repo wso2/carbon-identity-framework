@@ -63,6 +63,13 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         return new DefaultClaimMetadataStore(claimConfig, tenantId);
     }
 
+    /**
+     * Initializes the claim metadata store for the given tenant, seeding the tenant's claim configuration from the
+     * given {@link ClaimConfig} unless the tenant inherits its claim metadata or already has it persisted.
+     *
+     * @param claimConfig Claim configuration to seed the tenant with.
+     * @param tenantId    Tenant id of the tenant the store is initialized for.
+     */
     public DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
 
         try {
@@ -114,9 +121,10 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
              * The organization details of the tenant could not be resolved. Fall back to running the
              * initialization, which is the behaviour prior to this check: not initializing a primary organization
              * would leave it without any claim metadata at all, whereas initializing a v1 sub-organization only
-             * writes rows that are never read.
+             * writes rows that are never read. Since the claim metadata store remains functional, this is logged
+             * as a deviation rather than as a failure, with the stack trace available at debug level.
              */
-            log.error("Error while resolving the organization details of tenant: " + tenantId + " during claim " +
+            log.warn("Error while resolving the organization details of tenant: " + tenantId + " during claim " +
                     "metadata store initialization. Proceeding with the claim configuration initialization. Error: "
                     + e.getMessage());
             if (log.isDebugEnabled()) {
