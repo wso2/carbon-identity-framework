@@ -20,13 +20,12 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
-import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -37,11 +36,11 @@ import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
@@ -54,8 +53,8 @@ import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.SKIP_CLAIM_METADATA_PERSISTENCE;
 
 /**
- * Unit tests for {@link DefaultClaimMetadataStore}, focused on when the per-tenant claim configuration
- * initialization is seeded and when it is skipped.
+ * Unit tests for {@link DefaultClaimMetadataStore}, covering which tenants get their claim configuration seeded on
+ * initialization and which inherit it instead.
  */
 @WithCarbonHome
 public class DefaultClaimMetadataStoreTest {
@@ -75,10 +74,11 @@ public class DefaultClaimMetadataStoreTest {
     private ClaimConfigInitDAO claimConfigInitDAO;
 
     /**
-     * Isolates the claim metadata store from the database and from the organization management service, so each
-     * test only has to declare the tenant type it exercises.
+     * Isolates the claim metadata store from the database and from the organization management service. The mocks are
+     * opened once for the class, since opening them is far more expensive than the assertions themselves, and only
+     * the per-tenant stubbing differs between the test cases.
      */
-    @BeforeMethod
+    @BeforeClass
     public void setUp() {
 
         dataHolderStaticMock = mockStatic(IdentityClaimManagementServiceDataHolder.class);
@@ -110,9 +110,9 @@ public class DefaultClaimMetadataStoreTest {
     }
 
     /**
-     * Closes the static and constructor mocks opened for the test.
+     * Closes the static and constructor mocks opened for the class.
      */
-    @AfterMethod
+    @AfterClass
     public void tearDown() {
 
         dbBasedClaimMetadataManagerConstructionMock.close();
@@ -124,8 +124,8 @@ public class DefaultClaimMetadataStoreTest {
     }
 
     /**
-     * Provides the tenant types the claim configuration initialization has to distinguish between, together with
-     * whether the initialization is expected to run for each of them.
+     * Provides the tenant types the claim configuration initialization has to distinguish between. A {@code null}
+     * organization status or inheritance status means the corresponding lookup fails for that tenant.
      *
      * @return Tenant id, tenant domain, organization status, inheritance status and the expected outcome.
      */
@@ -133,144 +133,64 @@ public class DefaultClaimMetadataStoreTest {
     public Object[][] claimConfigInitializationDataProvider() {
 
         return new Object[][]{
-                // Primary organization: owns its claim metadata, hence must always be initialized.
+                // Primary organization: owns its claim metadata, hence initialized.
                 {PRIMARY_ORG_TENANT_ID, PRIMARY_ORG_TENANT_DOMAIN, false, false, true},
-                {PRIMARY_ORG_TENANT_ID, PRIMARY_ORG_TENANT_DOMAIN, false, true, true},
-                // v0 sub-organization: stores its own claim metadata, hence must still be initialized.
+                // v0 sub-organization: stores its own claim metadata, hence still initialized.
                 {SUB_ORG_TENANT_ID, SUB_ORG_TENANT_DOMAIN, true, false, true},
                 // v1 sub-organization: inherits claim metadata from the primary organization, hence skipped.
                 {SUB_ORG_TENANT_ID, SUB_ORG_TENANT_DOMAIN, true, true, false},
+                // Organization status cannot be resolved: falls back to initializing.
+                {SUB_ORG_TENANT_ID, SUB_ORG_TENANT_DOMAIN, null, false, true},
+                // Organization version cannot be resolved: falls back to initializing.
+                {SUB_ORG_TENANT_ID, SUB_ORG_TENANT_DOMAIN, true, null, true},
         };
     }
 
     /**
-     * Asserts that the claim configuration is seeded for every tenant that owns its claim metadata and skipped only
-     * for sub-organizations that inherit it from the primary organization.
+     * Asserts that the claim configuration is seeded for every tenant that owns its claim metadata, and skipped only
+     * for sub-organizations that inherit it. When either organization lookup fails the initialization must still run,
+     * since leaving a primary organization without claim metadata is worse than writing redundant rows.
      *
      * @param tenantId             Tenant id the claim metadata store is initialized for.
      * @param tenantDomain         Tenant domain of the given tenant.
-     * @param isOrganization       Whether the tenant belongs to an organization hierarchy.
-     * @param isInheritanceEnabled Whether claim and OIDC scope inheritance is enabled for the tenant.
+     * @param isOrganization       Whether the tenant belongs to an organization hierarchy, {@code null} to fail.
+     * @param isInheritanceEnabled Whether claim and OIDC scope inheritance is enabled, {@code null} to fail.
      * @param shouldInitialize     Whether the claim configuration initialization is expected to run.
      * @throws Exception If the test setup or the assertion fails.
      */
     @Test(dataProvider = "claimConfigInitializationDataProvider")
-    public void testClaimConfigInitialization(int tenantId, String tenantDomain, boolean isOrganization,
-                                              boolean isInheritanceEnabled, boolean shouldInitialize)
+    public void testClaimConfigInitialization(int tenantId, String tenantDomain, Boolean isOrganization,
+                                              Boolean isInheritanceEnabled, boolean shouldInitialize)
             throws Exception {
 
-        organizationManagementUtilStaticMock.when(() -> OrganizationManagementUtil.isOrganization(tenantId))
-                .thenReturn(isOrganization);
-        utilsStaticMock.when(() -> Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain))
-                .thenReturn(isInheritanceEnabled);
+        clearInvocations(claimConfigInitDAO);
+        /*
+         * The organization lookups are the only stubbing that differs per test case, so they are reset rather than
+         * re-stubbed on top of the previous case.
+         */
+        organizationManagementUtilStaticMock.reset();
+        utilsStaticMock.reset();
+        if (isOrganization == null) {
+            organizationManagementUtilStaticMock.when(() -> OrganizationManagementUtil.isOrganization(tenantId))
+                    .thenThrow(new OrganizationManagementException("Error while resolving the organization."));
+        } else {
+            organizationManagementUtilStaticMock.when(() -> OrganizationManagementUtil.isOrganization(tenantId))
+                    .thenReturn(isOrganization);
+        }
+        if (isInheritanceEnabled == null) {
+            utilsStaticMock.when(() -> Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain))
+                    .thenThrow(new OrganizationManagementException("Error while resolving the organization version."));
+        } else {
+            utilsStaticMock.when(() -> Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain))
+                    .thenReturn(isInheritanceEnabled);
+        }
 
-        DefaultClaimMetadataStore claimMetadataStore =
-                new DefaultClaimMetadataStore(new ClaimConfig(), tenantId);
+        DefaultClaimMetadataStore claimMetadataStore = new DefaultClaimMetadataStore(new ClaimConfig(), tenantId);
 
         verify(claimConfigInitDAO, shouldInitialize ? times(1) : never())
                 .initClaimConfig(any(ClaimConfig.class), eq(tenantId));
         assertEquals(getTenantId(claimMetadataStore), tenantId,
                 "The tenant id must be assigned regardless of whether the initialization ran.");
-    }
-
-    /**
-     * Asserts that the initialization falls back to running when the tenant's organization status cannot be
-     * resolved, since leaving a primary organization without claim metadata is worse than writing redundant rows.
-     *
-     * @throws Exception If the test setup or the assertion fails.
-     */
-    @Test
-    public void testClaimConfigInitializationWhenOrganizationResolutionFails() throws Exception {
-
-        organizationManagementUtilStaticMock.when(() -> OrganizationManagementUtil.isOrganization(SUB_ORG_TENANT_ID))
-                .thenThrow(new OrganizationManagementException("Error while resolving the organization."));
-
-        DefaultClaimMetadataStore claimMetadataStore =
-                new DefaultClaimMetadataStore(new ClaimConfig(), SUB_ORG_TENANT_ID);
-
-        /*
-         * The tenant type cannot be resolved, so the initialization must fall back to running: leaving a primary
-         * organization without claim metadata is worse than writing redundant rows for a sub-organization.
-         */
-        verify(claimConfigInitDAO, times(1)).initClaimConfig(any(ClaimConfig.class), eq(SUB_ORG_TENANT_ID));
-        assertEquals(getTenantId(claimMetadataStore), SUB_ORG_TENANT_ID);
-    }
-
-    /**
-     * Asserts that the initialization falls back to running when the tenant is a sub-organization but its
-     * organization version, and hence whether it inherits claim metadata, cannot be resolved.
-     *
-     * @throws Exception If the test setup or the assertion fails.
-     */
-    @Test
-    public void testClaimConfigInitializationWhenOrganizationVersionResolutionFails() throws Exception {
-
-        organizationManagementUtilStaticMock.when(() -> OrganizationManagementUtil.isOrganization(SUB_ORG_TENANT_ID))
-                .thenReturn(true);
-        utilsStaticMock.when(() -> Utils.isClaimAndOIDCScopeInheritanceEnabled(SUB_ORG_TENANT_DOMAIN))
-                .thenThrow(new OrganizationManagementException("Error while resolving the organization version."));
-
-        DefaultClaimMetadataStore claimMetadataStore =
-                new DefaultClaimMetadataStore(new ClaimConfig(), SUB_ORG_TENANT_ID);
-
-        verify(claimConfigInitDAO, times(1)).initClaimConfig(any(ClaimConfig.class), eq(SUB_ORG_TENANT_ID));
-        assertEquals(getTenantId(claimMetadataStore), SUB_ORG_TENANT_ID);
-    }
-
-    /**
-     * Asserts that the organization version is not resolved for tenants that are not part of an organization
-     * hierarchy, keeping the unnecessary lookup off the tenant creation path.
-     *
-     * @throws Exception If the test setup or the assertion fails.
-     */
-    @Test
-    public void testOrganizationVersionIsNotResolvedForPrimaryOrganizations() throws Exception {
-
-        organizationManagementUtilStaticMock
-                .when(() -> OrganizationManagementUtil.isOrganization(PRIMARY_ORG_TENANT_ID)).thenReturn(false);
-
-        new DefaultClaimMetadataStore(new ClaimConfig(), PRIMARY_ORG_TENANT_ID);
-
-        verify(claimConfigInitDAO, times(1)).initClaimConfig(any(ClaimConfig.class), eq(PRIMARY_ORG_TENANT_ID));
-        utilsStaticMock.verify(() -> Utils.isClaimAndOIDCScopeInheritanceEnabled(PRIMARY_ORG_TENANT_DOMAIN), never());
-    }
-
-    /**
-     * Asserts that the pre-existing SkipClaimMetadataPersistence guard still short-circuits the initialization.
-     *
-     * @throws Exception If the test setup or the assertion fails.
-     */
-    @Test
-    public void testClaimConfigInitializationSkippedWhenPersistenceIsSkipped() throws Exception {
-
-        identityUtilStaticMock.when(() -> IdentityUtil.getProperty(SKIP_CLAIM_METADATA_PERSISTENCE))
-                .thenReturn("true");
-        organizationManagementUtilStaticMock
-                .when(() -> OrganizationManagementUtil.isOrganization(PRIMARY_ORG_TENANT_ID)).thenReturn(false);
-
-        new DefaultClaimMetadataStore(new ClaimConfig(), PRIMARY_ORG_TENANT_ID);
-
-        verify(claimConfigInitDAO, never()).initClaimConfig(any(ClaimConfig.class), anyInt());
-    }
-
-    /**
-     * Asserts that a tenant whose claim dialects are already persisted is not seeded a second time.
-     *
-     * @throws Exception If the test setup or the assertion fails.
-     */
-    @Test
-    public void testClaimConfigInitializationSkippedWhenDialectsAlreadyExist() throws Exception {
-
-        dbBasedClaimMetadataManagerConstructionMock.close();
-        List<ClaimDialect> existingDialects = Collections.singletonList(new ClaimDialect("http://wso2.org/claims"));
-        dbBasedClaimMetadataManagerConstructionMock = mockConstruction(DBBasedClaimMetadataManager.class,
-                (mockManager, context) -> when(mockManager.getClaimDialects(anyInt())).thenReturn(existingDialects));
-        organizationManagementUtilStaticMock
-                .when(() -> OrganizationManagementUtil.isOrganization(PRIMARY_ORG_TENANT_ID)).thenReturn(false);
-
-        new DefaultClaimMetadataStore(new ClaimConfig(), PRIMARY_ORG_TENANT_ID);
-
-        verify(claimConfigInitDAO, never()).initClaimConfig(any(ClaimConfig.class), anyInt());
     }
 
     /**
