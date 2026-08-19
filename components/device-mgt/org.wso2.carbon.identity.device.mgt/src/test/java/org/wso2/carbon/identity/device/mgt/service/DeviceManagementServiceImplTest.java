@@ -91,6 +91,17 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
+    public void testGenerateDeviceIdReturnsUniqueNonBlankIds() {
+
+        String id1 = service.generateDeviceId();
+        String id2 = service.generateDeviceId();
+
+        Assert.assertNotNull(id1);
+        Assert.assertFalse(id1.isBlank());
+        Assert.assertNotEquals(id1, id2);
+    }
+
+    @Test
     public void testRegisterDeviceDelegatesToDao() throws Exception {
 
         Device device = buildDevice("d1");
@@ -103,7 +114,7 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
-    public void testRegisterDeviceGeneratesDeviceIdAndBindsToAssociation() throws Exception {
+    public void testRegisterDevicePreservesCallerSuppliedIdAndBindsToAssociation() throws Exception {
 
         Device device = buildDevice("d1");
         UserDeviceAssociation association = new UserDeviceAssociation("d2", "alice@example.com");
@@ -111,8 +122,14 @@ public class DeviceManagementServiceImplTest {
 
         Device registered = service.registerDevice(device, association, TENANT_DOMAIN);
 
-        Assert.assertNotNull(registered.getId());
+        Assert.assertEquals(registered.getId(), "d1");
         verify(dao).registerDevice(any(), any(), eq(TENANT_ID));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testBuildDeviceWithoutIdThrows() {
+
+        buildDevice(null);
     }
 
     @Test
