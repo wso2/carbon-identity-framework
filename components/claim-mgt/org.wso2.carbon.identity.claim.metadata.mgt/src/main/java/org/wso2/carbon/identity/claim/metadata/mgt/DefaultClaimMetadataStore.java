@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
@@ -27,9 +29,11 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
@@ -62,11 +66,11 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     public DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
 
         try {
-            /*
-             * Child organization tenants do not maintain their own claim metadata. Therefore, the per-tenant
-             * claim configuration initialization for the tenant must NOT run for child organization tenants.
-             */
-            if (isOrganization(tenantId)) {
+            if (skipClaimConfigInitialization(tenantId)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Skipping claim configuration initialization for the sub-organization tenant: "
+                            + tenantId + " since its claim metadata is inherited from the primary organization.");
+                }
                 this.tenantId = tenantId;
                 return;
             }
@@ -82,19 +86,42 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     }
 
     /**
-     * Checks whether the given tenant corresponds to a child organization under a root organization.
+     * Checks whether the per-tenant claim configuration initialization should be skipped for the given tenant.
+     * <p>
+     * Sub-organizations whose organization version is v1.0.0 or above do not maintain their own claim metadata.
+     * Their claim dialects, local claims and external claim mappings are resolved from the primary organization of
+     * the hierarchy by {@link UnifiedClaimMetadataManager}, hence seeding IDN_CLAIM_DIALECT / IDN_CLAIM /
+     * IDN_CLAIM_MAPPED_ATTRIBUTE for them is redundant. Sub-organizations below v1.0.0 keep their own copy of the
+     * claim metadata, so the initialization must still run for them.
      *
      * @param tenantId Tenant id to check.
-     * @return {@code true} if the tenant is a child organization, {@code false} otherwise.
+     * @return {@code true} if the claim configuration initialization should be skipped, {@code false} otherwise.
      */
-    private boolean isOrganization(int tenantId) {
+    private boolean skipClaimConfigInitialization(int tenantId) {
 
         try {
-            return OrganizationManagementUtil.isOrganization(tenantId);
+            if (!OrganizationManagementUtil.isOrganization(tenantId)) {
+                /*
+                 * Primary organizations and tenants that are not part of an organization hierarchy own their claim
+                 * metadata. The organization version is not evaluated for them since resolving it is unnecessary
+                 * work on the tenant creation path.
+                 */
+                return false;
+            }
+            return Utils.isClaimAndOIDCScopeInheritanceEnabled(IdentityTenantUtil.getTenantDomain(tenantId));
         } catch (OrganizationManagementException e) {
-            log.error("Error while checking whether tenant: " + tenantId +
-                    " is a child organization during claim metadata store initialization. " +
-                    "Proceeding with the default claim configuration initialization path.", e);
+            /*
+             * The organization details of the tenant could not be resolved. Fall back to running the
+             * initialization, which is the behaviour prior to this check: not initializing a primary organization
+             * would leave it without any claim metadata at all, whereas initializing a v1 sub-organization only
+             * writes rows that are never read.
+             */
+            log.error("Error while resolving the organization details of tenant: " + tenantId + " during claim " +
+                    "metadata store initialization. Proceeding with the claim configuration initialization. Error: "
+                    + e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("Error while resolving the organization details of tenant: " + tenantId, e);
+            }
             return false;
         }
     }
