@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY;
-import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS_PROPERTY;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS;
 
 /**
  * Unit tests for {@link FlowExtensionActionDTOModelResolver}: enforcement of the server-configured
@@ -75,7 +75,7 @@ public class FlowExtensionActionDTOModelResolverTest {
 
     private void withNonModifiablePaths(String... paths) {
 
-        identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY))
+        identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS))
                 .thenReturn(Arrays.asList(paths));
     }
 

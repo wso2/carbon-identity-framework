@@ -32,7 +32,7 @@ import java.util.Collections;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS_PROPERTY;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS;
 
 /**
  * Unit tests for the non-modifiable context path helpers in {@link FlowExtensionUtil}, shared by
@@ -62,7 +62,7 @@ public class FlowExtensionUtilTest {
 
     private void withNonModifiablePaths(String... paths) {
 
-        identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY))
+        identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS))
                 .thenReturn(Arrays.asList(paths));
     }
 

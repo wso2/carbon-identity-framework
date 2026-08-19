@@ -399,10 +399,13 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         List<String> restrictedPaths = new ArrayList<>();
 
         for (ContextPath modifyPath : modifyPaths) {
-            String rawPath = modifyPath == null ? null : modifyPath.getPath();
-            String cleanPath = rawPath == null ? null : PathTypeAnnotationUtil.stripAnnotation(rawPath)[0];
+            if (modifyPath == null || modifyPath.getPath() == null) {
+                effectivePaths.add(modifyPath);
+                continue;
+            }
 
-            if (cleanPath != null && isRestrictedModifyPath(cleanPath, flowType)) {
+            String cleanPath = PathTypeAnnotationUtil.stripAnnotation(modifyPath.getPath())[0];
+            if (isRestrictedModifyPath(cleanPath, flowType)) {
                 restrictedPaths.add(cleanPath);
             } else {
                 effectivePaths.add(modifyPath);

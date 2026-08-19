@@ -176,9 +176,8 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
     /**
      * Handle a REPLACE operation on a user claim by validating the claim URI and collecting the value
      * into the pending claims map. The claim URI must be in the WSO2 local dialect
-     * ({@code http://wso2.org/claims/}), must not be an identity-system claim
-     * ({@code http://wso2.org/claims/identity/}), and must resolve to a registered local claim in the
-     * tenant. A single-valued claim takes a {@code String} value and a multi-valued claim takes a list
+     * ({@code http://wso2.org/claims/}) and must resolve to a registered local claim in the tenant.
+     * A single-valued claim takes a {@code String} value and a multi-valued claim takes a list
      * joined with commas. Failing any of these validations drops the operation, while an unavailable
      * claim metadata service or a lookup error aborts the response.
      *

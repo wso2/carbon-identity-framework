@@ -33,7 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS_PROPERTY;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS;
 
 /**
  * Utilities for the Flow Extension module.
@@ -57,8 +57,7 @@ public final class FlowExtensionUtil {
      * @param modify The modify context paths declared in an action's access config.
      * @throws ActionDTOModelResolverClientException if any path is configured as non-modifiable.
      */
-    public static void validateModifyPaths(List<ContextPath> modify)
-            throws ActionDTOModelResolverClientException {
+    public static void validateModifyPaths(List<ContextPath> modify) throws ActionDTOModelResolverClientException {
 
         List<String> nonModifiablePaths = getNonModifiablePaths();
         if (nonModifiablePaths.isEmpty()) {
@@ -66,7 +65,10 @@ public final class FlowExtensionUtil {
         }
 
         for (ContextPath modifyPath : modify) {
-            String rawPath = modifyPath == null ? null : modifyPath.getPath();
+            if (modifyPath == null) {
+                continue;
+            }
+            String rawPath = modifyPath.getPath();
             if (rawPath == null) {
                 continue;
             }
@@ -92,7 +94,7 @@ public final class FlowExtensionUtil {
 
     private static List<String> getNonModifiablePaths() {
 
-        return IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY);
+        return IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS);
     }
 
     /**

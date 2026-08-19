@@ -54,7 +54,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS_PROPERTY;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS;
 
 /**
  * Unit tests for {@link FlowExtensionRequestBuilder}: expose-based filtering into the event model,
@@ -352,7 +352,7 @@ public class FlowExtensionRequestBuilderTest {
                                                                String... nonModifiablePaths) throws Exception {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
-            identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY))
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS))
                     .thenReturn(Arrays.asList(nonModifiablePaths));
 
             return builder.buildActionExecutionRequest(
@@ -388,7 +388,7 @@ public class FlowExtensionRequestBuilderTest {
                 flowContextWith(execContext());
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
-            identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS_PROPERTY))
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(NON_MODIFIABLE_PATHS))
                     .thenReturn(Collections.singletonList(USER_ID_CLAIM_PATH));
 
             builder.buildActionExecutionRequest(actionFlowContext, actionContext(accessConfig));

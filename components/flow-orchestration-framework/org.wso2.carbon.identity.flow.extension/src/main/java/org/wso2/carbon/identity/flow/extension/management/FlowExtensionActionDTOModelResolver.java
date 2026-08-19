@@ -194,8 +194,7 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
-            return validateAccessConfig(ACCESS_CONFIG_EXPOSE,
-                    updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE));
+            return validateAccessConfig(ACCESS_CONFIG_EXPOSE, updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
             return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         }
@@ -208,8 +207,7 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
-            return validateAccessConfig(ACCESS_CONFIG_MODIFY,
-                    updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
+            return validateAccessConfig(ACCESS_CONFIG_MODIFY, updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
             return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
         }
