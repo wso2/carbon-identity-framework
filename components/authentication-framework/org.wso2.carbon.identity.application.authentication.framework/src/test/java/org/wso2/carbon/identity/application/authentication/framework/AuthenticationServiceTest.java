@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.auth.s
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
@@ -89,11 +90,18 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
     private MockedStatic<FrameworkUtils> frameworkUtils;
 
     private MockedStatic<ApplicationManagementService> applicationManagementService;
+    private MockedStatic<LoggerUtils> loggerUtils;
 
     @BeforeMethod
     public void init() throws IOException {
 
         MockitoAnnotations.initMocks(this);
+
+        /* The service writes diagnostic logs on the flowId lifecycle. Diagnostic logging is mocked as enabled so
+         that the diagnostic log building code is exercised without requiring a carbon context to resolve the
+         tenant. */
+        loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
 
         removeAllSystemDefinedAuthenticators();
         configurationFacade = mockStatic(ConfigurationFacade.class);
@@ -115,6 +123,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         configurationFacade.close();
         frameworkUtils.close();
         applicationManagementService.close();
+        loggerUtils.close();
     }
 
     @DataProvider(name = "authProvider")
