@@ -2874,6 +2874,23 @@ public class FrameworkUtils {
     public static List<String> getAppAssociatedRolesOfLocalUser(AuthenticatedUser authenticatedUser,
                                                                 String applicationId) throws FrameworkException {
 
+        return getAppAssociatedRolesOfLocalUser(authenticatedUser, applicationId,
+                authenticatedUser.getTenantDomain());
+    }
+
+    /**
+     * Get app associated roles of local user.
+     *
+     * @param authenticatedUser Authenticated user.
+     * @param applicationId     Application ID.
+     * @param appTenantDomain   Tenant domain of the application.
+     * @return List of app associated roles of local user.
+     * @throws FrameworkException If an error occurred while getting app associated roles of local user.
+     */
+    public static List<String> getAppAssociatedRolesOfLocalUser(AuthenticatedUser authenticatedUser,
+                                                                String applicationId, String appTenantDomain)
+            throws FrameworkException {
+
         ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityApplicationRolesResolver();
         if (appRolesResolver == null) {
@@ -2884,7 +2901,7 @@ public class FrameworkUtils {
         String[] appAssociatedRolesOfUser;
         try {
             appAssociatedRolesOfUser = appRolesResolver.getAppAssociatedRolesOfLocalUser(authenticatedUser,
-                    applicationId);
+                    applicationId, appTenantDomain);
             if (appAssociatedRolesOfUser == null) {
                 return new ArrayList<>();
             }
