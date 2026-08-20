@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -324,7 +325,13 @@ public class InputValidationService {
             // Reachable when the value matches the claim's YYYY-MM-DD pattern but is not a real date. Ex: 2025-02-30.
             throw handleClientException(ERROR_CODE_CLAIM_INVALID_DATE, claimUri);
         }
-        if (date.isAfter(LocalDate.now())) {
+        /*
+         * The server's own notion of today, matching LocalDate.now() in the user store operation listener that
+         * enforces the same rule at user creation. The zone is stated explicitly rather than left implicit, but
+         * it is deliberately the system zone and not UTC: if the two layers disagreed on where the day boundary
+         * falls, a value one accepted the other would reject.
+         */
+        if (date.isAfter(LocalDate.now(ZoneId.systemDefault()))) {
             throw handleClientException(ERROR_CODE_CLAIM_FUTURE_DATE_NOT_ALLOWED, claimUri);
         }
     }

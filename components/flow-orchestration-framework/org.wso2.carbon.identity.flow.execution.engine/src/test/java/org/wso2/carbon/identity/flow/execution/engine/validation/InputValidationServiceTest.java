@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -1871,13 +1872,13 @@ public class InputValidationServiceTest {
                 // Future dates are rejected. A fixed far-future date is used so the fixture cannot flip to "today"
                 // if a midnight boundary is crossed between data provider evaluation and test execution.
                 {DOB_CLAIM_URI, "9999-12-31", STATUS_RETRY},
-                {DOB_CLAIM_URI, LocalDate.now().plusYears(2).toString(), STATUS_RETRY},
+                {DOB_CLAIM_URI, LocalDate.now(ZoneId.systemDefault()).plusYears(2).toString(), STATUS_RETRY},
                 // Values matching the YYYY-MM-DD pattern that are not existing calendar dates.
                 {DOB_CLAIM_URI, "2025-02-30", STATUS_RETRY},
                 {DOB_CLAIM_URI, "2023-02-29", STATUS_RETRY},
                 {DOB_CLAIM_URI, "2025-13-01", STATUS_RETRY},
                 // Today is not a future date.
-                {DOB_CLAIM_URI, LocalDate.now().toString(), STATUS_COMPLETE},
+                {DOB_CLAIM_URI, LocalDate.now(ZoneId.systemDefault()).toString(), STATUS_COMPLETE},
                 // Past dates, including a valid leap day.
                 {DOB_CLAIM_URI, "1990-05-15", STATUS_COMPLETE},
                 {DOB_CLAIM_URI, "2024-02-29", STATUS_COMPLETE},
