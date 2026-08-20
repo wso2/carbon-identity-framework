@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -228,24 +228,6 @@ public interface UserSessionDAO {
 
         throw new UnsupportedOperationException(
                 "storeAppSessionData is not supported by this user session DAO.");
-    }
-
-    /**
-     * Method to store app session data if the particular app session is not already exists in the database.
-     *
-     * @param sessionId   Id of the authenticated session.
-     * @param subject     Username in application.
-     * @param appID       Id of the application.
-     * @param inboundAuth Protocol used in the app.
-     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
-     * @deprecated Please use storeAppSessionData method instead.
-     */
-    @Deprecated
-    default void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
-            DataAccessException {
-
-        throw new UnsupportedOperationException(
-                "storeAppSessionDataIfNotExist is not supported by this user session DAO.");
     }
 
     /**

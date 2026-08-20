@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.internal.SessionStorageSelector;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtils;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -36,14 +36,15 @@ import java.util.concurrent.TimeUnit;
 /**
  * Class to store and retrieve authentication session data.
  * <p>
- * Implementations are pluggable. The relational {@link JDBCSessionDataStore} is used by default, and an
- * alternative store extends this class and registers itself as an OSGi {@code SessionDataStore} service
- * named by {@value SessionStorageSelector#STORE_IMPL_TYPE_PROPERTY}. Callers use {@link #getInstance()}
- * without knowing which store is active.
+ * Implementations are pluggable and selected by the {@code SessionStoreImplType} configuration, which
+ * defaults to the relational {@link JDBCSessionDataStore}. An alternative implementation extends this
+ * class and registers itself as an OSGi {@code SessionDataStore} service.
  */
 public abstract class SessionDataStore {
 
+    @Deprecated
     public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
+    @Deprecated
     public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
 
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
@@ -51,7 +52,7 @@ public abstract class SessionDataStore {
     private static volatile SessionDataStore selectedStore;
 
     /**
-     * Returns the configured session data store. The selection is resolved on first use and cached.
+     * Returns the configured session data store, resolved on first use and cached.
      *
      * @return the session data store to use.
      */
@@ -70,26 +71,16 @@ public abstract class SessionDataStore {
         return resolved;
     }
 
-    /**
-     * Clears the cached store selection, so that the next {@link #getInstance()} resolves it again. Called
-     * when a store service is registered or unregistered.
-     */
-    public static void invalidateSelectedStore() {
-
-        selectedStore = null;
-    }
-
     private static SessionDataStore resolveStore() {
 
-        String storeName = SessionStorageSelector.getConfiguredStoreName();
-        if (SessionStorageSelector.isDefaultStoreConfigured(storeName)) {
+        String storeName = SessionMgtUtils.getConfiguredSessionStoreName();
+        if (SessionMgtUtils.DEFAULT_SESSION_STORE_NAME.equals(storeName)) {
             return JDBCSessionDataStore.getInstance();
         }
 
         SessionDataStore sessionDataStore = FrameworkServiceDataHolder.getInstance().getSessionDataStore(storeName);
         if (sessionDataStore == null) {
-            throw IdentityRuntimeException.error("Configured session data store is not available: " + storeName
-                    + ". Its bundle may not be installed or its service may not have been registered yet.");
+            throw new IdentityRuntimeException("Configured session data store is not available: " + storeName + ".");
         }
         return sessionDataStore;
     }
@@ -102,18 +93,7 @@ public abstract class SessionDataStore {
     public abstract String getStoreName();
 
     /**
-     * Whether a live (non-expired, not cleared) record exists for the given key and type.
-     *
-     * @param key  the record key (e.g. a session or context identifier).
-     * @param type the logical record type (typically a cache name).
-     * @return {@code true} if a live record exists, {@code false} otherwise.
-     */
-    public abstract boolean isSessionLive(String key, String type);
-
-    /**
-     * Stores a record for the given key and type, scoped to a tenant. An existing record for the
-     * same key and type is replaced, and its validity/expiry is (re)set from the entry and the
-     * configured session timeouts.
+     * Stores a record for the given key and type, scoped to a tenant.
      *
      * @param key      the record key.
      * @param type     the logical record type.
@@ -123,8 +103,7 @@ public abstract class SessionDataStore {
     public abstract void storeSessionData(String key, String type, Object entry, int tenantId);
 
     /**
-     * Returns the stored value for the given key and type, or {@code null} if none exists or it has
-     * expired.
+     * Returns the stored value for the given key and type, or {@code null} if none exists or it has expired.
      *
      * @param key  the record key.
      * @param type the logical record type.
@@ -296,14 +275,8 @@ public abstract class SessionDataStore {
 
     }
 
-    // ---------------------------------------------------------------------
-    // Shared validity derivation (available to stores that manage their own expiry)
-    // ---------------------------------------------------------------------
-
     /**
-     * Remaining validity (nanoseconds) for a record: a {@link CacheEntry}'s own validity period if
-     * set, otherwise the configured cleanup timeout for the type/tenant. Shared so a store that
-     * manages its own expiry sizes it consistently with the configured session/cleanup timeouts.
+     * Returns the validity period of a record in nanoseconds.
      *
      * @param entry    the value being stored.
      * @param type     the logical record type.
@@ -322,7 +295,14 @@ public abstract class SessionDataStore {
         return validityPeriodNano;
     }
 
-    private long getCleanupTimeout(String type, int tenantId) {
+    /**
+     * Returns the configured cleanup timeout of a record in nanoseconds.
+     *
+     * @param type     the logical record type.
+     * @param tenantId the owning tenant, or {@link MultitenantConstants#INVALID_TENANT_ID} if none.
+     * @return the cleanup timeout in nanoseconds.
+     */
+    protected long getCleanupTimeout(String type, int tenantId) {
 
         if (isTempCache(type)) {
             return TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout());
@@ -339,7 +319,13 @@ public abstract class SessionDataStore {
         }
     }
 
-    private boolean isTempCache(String type) {
+    /**
+     * Returns whether the given record type is a temporary one.
+     *
+     * @param type the logical record type.
+     * @return true if the type is configured as temporary.
+     */
+    protected boolean isTempCache(String type) {
 
         IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, type);
         return identityCacheConfig != null && identityCacheConfig.isTemporary();

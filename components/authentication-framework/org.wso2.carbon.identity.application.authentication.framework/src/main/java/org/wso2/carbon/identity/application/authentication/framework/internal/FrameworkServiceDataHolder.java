@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2015-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -71,8 +71,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Authentication framework data holder.
@@ -120,12 +120,11 @@ public class FrameworkServiceDataHolder {
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
     private SessionSerializer sessionSerializer;
 
-    // Registry of the pluggable session data stores, keyed by store name. Concurrent because registration
-    // can happen while a store selection is being resolved.
-    private final Map<String, SessionDataStore> sessionDataStores = new ConcurrentHashMap<>();
+    // Registry of the pluggable session data stores, keyed by store name.
+    private final Map<String, SessionDataStore> sessionDataStores = new HashMap<>();
 
     // Registry of the pluggable user session DAOs, keyed by store name.
-    private final Map<String, UserSessionDAO> userSessionDAOs = new ConcurrentHashMap<>();
+    private final Map<String, UserSessionDAO> userSessionDAOs = new HashMap<>();
 
     private JSExecutionSupervisor jsExecutionSupervisor;
     private IdpManager identityProviderManager = null;
@@ -747,7 +746,7 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Register a session data store, keyed by {@link SessionDataStore#getStoreName()}.
+     * Register a session data store.
      *
      * @param store the store to register.
      */
@@ -772,15 +771,15 @@ public class FrameworkServiceDataHolder {
     public void removeSessionDataStore(SessionDataStore store) {
 
         if (store != null && store.getStoreName() != null) {
-            // Remove only if the mapping still points to this instance, so that unregistering an older
-            // service does not evict a newer one registered under the same name.
             sessionDataStores.remove(normalizeStoreName(store.getStoreName()), store);
         }
     }
 
     /**
-     * @param storeName the store name (e.g. "JDBC", "Redis"); matched case-insensitively.
-     * @return the registered store for the given name, or {@code null} if none.
+     * Returns the session data store registered under the given store name.
+     *
+     * @param storeName the store name, matched case-insensitively.
+     * @return the registered store, or null if none.
      */
     public SessionDataStore getSessionDataStore(String storeName) {
 
@@ -788,25 +787,18 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Normalises a store name so registration, removal and lookup share the same case-insensitive
-     * semantics as the configured store selection.
+     * Normalizes a store name so that registration and lookup are case-insensitive.
+     *
+     * @param storeName the store name.
+     * @return the normalized store name, or null if the given name is null.
      */
     private static String normalizeStoreName(String storeName) {
 
-        return SessionStorageSelector.normalizeStoreName(storeName);
+        return storeName == null ? null : storeName.trim().toLowerCase(Locale.ENGLISH);
     }
 
     /**
-     * @return the live registry of session data stores, keyed by store name.
-     */
-    public Map<String, SessionDataStore> getSessionDataStores() {
-
-        return sessionDataStores;
-    }
-
-    /**
-     * Register a user session DAO, keyed by {@link UserSessionDAO#getStoreName()}. A DAO without a store
-     * name is ignored.
+     * Register a user session DAO.
      *
      * @param userSessionDAO the DAO to register.
      */
@@ -831,27 +823,19 @@ public class FrameworkServiceDataHolder {
     public void removeUserSessionDAO(UserSessionDAO userSessionDAO) {
 
         if (userSessionDAO != null && userSessionDAO.getStoreName() != null) {
-            // Remove only if the mapping still points to this instance, so that unregistering an older
-            // service does not evict a newer one registered under the same name.
             userSessionDAOs.remove(normalizeStoreName(userSessionDAO.getStoreName()), userSessionDAO);
         }
     }
 
     /**
-     * @param storeName the store name (e.g. "JDBC", "Redis"); matched case-insensitively.
-     * @return the registered user session DAO for the given name, or {@code null} if none.
+     * Returns the user session DAO registered under the given store name.
+     *
+     * @param storeName the store name, matched case-insensitively.
+     * @return the registered user session DAO, or null if none.
      */
     public UserSessionDAO getUserSessionDAO(String storeName) {
 
         return storeName == null ? null : userSessionDAOs.get(normalizeStoreName(storeName));
-    }
-
-    /**
-     * @return the live registry of user session DAOs, keyed by store name.
-     */
-    public Map<String, UserSessionDAO> getUserSessionDAOs() {
-
-        return userSessionDAOs;
     }
 
     /**

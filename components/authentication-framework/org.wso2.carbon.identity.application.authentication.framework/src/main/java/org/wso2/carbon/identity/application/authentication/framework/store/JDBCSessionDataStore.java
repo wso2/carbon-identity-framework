@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,12 +28,8 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.cache.CacheEntry;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,28 +40,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Default, relational-database {@link SessionDataStore} implementation.
+ * Relational database implementation of the session data store.
  * <p>
- * This is the existing session-persistence implementation &mdash; async queues, worker threads
- * ({@link SessionDataPersistTask}), DB dialect handling, serialization, and both cleanup services
- * ({@link SessionCleanUpService}, {@link OperationCleanUpService}) against the unchanged append-only
- * schema &mdash; now as a concrete peer of any alternative store (e.g. Redis) under the
- * {@link SessionDataStore} supertype. It is the default and the fallback; {@code getInstance()} on
- * the supertype returns it unless another store is configured and registered.
- * <p>
- * Data will be persisted or stored date will be removed from the store. These two events are
- * considered as STORE operation and DELETE operations. And these events are stored with unique
- * sessionId, operation type and operation initiated timestamp. Expired DELETE operations and related
- * STORE operations will be deleted by a OperationCleanUpService task. All expired operations will be
- * deleted by SessionCleanUpService task.
+ * Data is persisted or removed as STORE and DELETE operations, stored with the session id, the
+ * operation type and the operation timestamp. Expired DELETE operations and their related STORE
+ * operations are removed by the {@link OperationCleanUpService} task, and all expired operations
+ * by the {@link SessionCleanUpService} task.
  */
 public class JDBCSessionDataStore extends SessionDataStore {
     
@@ -73,6 +59,9 @@ public class JDBCSessionDataStore extends SessionDataStore {
 
     private static final String OPERATION_DELETE = "DELETE";
     private static final String OPERATION_STORE = "STORE";
+    public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
+    public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
+
     private static final String SQL_INSERT_STORE_OPERATION =
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, " +
                     "EXPIRY_TIME, TENANT_ID) VALUES (?,?,?,?,?,?,?)";
@@ -190,12 +179,34 @@ public class JDBCSessionDataStore extends SessionDataStore {
 
     private static final int DEFAULT_DELETE_LIMIT = 50000;
     private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 250;
-    private static final String BATCH_INSERT_CHUNK_SIZE_PROPERTY =
-            "JDBCPersistenceManager.SessionDataPersist.BatchInsertChunkSize";
+    private static final String PROPERTY_PREFIX = "JDBCPersistenceManager.SessionDataPersist.";
+    private static final String BATCH_INSERT_CHUNK_SIZE_PROPERTY = PROPERTY_PREFIX + "BatchInsertChunkSize";
+    private static final String PERSIST_ENABLE_PROPERTY = PROPERTY_PREFIX + "Enable";
+    private static final String POOL_SIZE_PROPERTY = PROPERTY_PREFIX + "PoolSize";
+    private static final String TEMP_DATA_CLEANUP_ENABLE_PROPERTY = PROPERTY_PREFIX + "TempDataCleanup.Enable";
+    private static final String TEMP_DATA_CLEANUP_PERIODIC_ENABLE_PROPERTY =
+            PROPERTY_PREFIX + "TempDataCleanup.EnablePeriodicCleanup";
+    private static final String TEMP_DATA_CLEANUP_POOL_SIZE_PROPERTY = PROPERTY_PREFIX + "TempDataCleanup.PoolSize";
+    private static final String SESSION_AND_TEMP_DATA_SEPARATION_ENABLE_PROPERTY =
+            PROPERTY_PREFIX + "SessionAndTempDataSeparation.Enable";
+    private static final String SESSION_DATA_CLEANUP_ENABLE_PROPERTY =
+            PROPERTY_PREFIX + "SessionDataCleanUp.Enable";
+    private static final String OPERATION_DATA_CLEANUP_ENABLE_PROPERTY =
+            PROPERTY_PREFIX + "OperationDataCleanUp.Enable";
+    private static final String CHECK_EXISTING_ENTRY_FOR_DELETE_OPERATION_INSERT_PROPERTY =
+            PROPERTY_PREFIX + "CheckExistingEntryForDeleteOperationInsert";
+    private static final String DELETE_CHUNK_SIZE_PROPERTY = PROPERTY_PREFIX + "SessionDataCleanUp.DeleteChunkSize";
+    private static final String SQL_INSERT_STORE_PROPERTY = PROPERTY_PREFIX + "SQL.InsertSTORE";
+    private static final String SQL_INSERT_DELETE_PROPERTY = PROPERTY_PREFIX + "SQL.InsertDELETE";
+    private static final String SQL_DELETE_STORE_TASK_PROPERTY = PROPERTY_PREFIX + "SQL.DeleteSTORETask";
+    private static final String SQL_DELETE_TEMP_DATA_TASK_PROPERTY = PROPERTY_PREFIX + "SQL.DeleteTempDataTask";
+    private static final String SQL_DELETE_DELETE_TASK_PROPERTY = PROPERTY_PREFIX + "SQL.DeleteDELETETask";
+    private static final String SQL_SELECT_PROPERTY = PROPERTY_PREFIX + "SQL.Select";
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_PROPERTY =
+            PROPERTY_PREFIX + "SQL.DeleteExpiredDataTask";
     private static int batchInsertChunkSize = DEFAULT_BATCH_INSERT_CHUNK_SIZE;
     // Store name this relational implementation registers under and is selected by.
     public static final String STORE_NAME = "JDBC";
-    private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     private static int maxSessionDataPoolSize = 100;
     private static int maxTempDataPoolSize = 50;
     private static BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
@@ -221,7 +232,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
 
     static {
         try {
-            String maxPoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
+            String maxPoolSizeValue = IdentityUtil.getProperty(POOL_SIZE_PROPERTY);
             if (StringUtils.isNotBlank(maxPoolSizeValue)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Session data pool size config value: " + maxPoolSizeValue);
@@ -230,22 +241,22 @@ public class JDBCSessionDataStore extends SessionDataStore {
             }
 
             String isTempDataCleanupEnabledVal
-                    = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable");
+                    = IdentityUtil.getProperty(TEMP_DATA_CLEANUP_ENABLE_PROPERTY);
             if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
                 tempDataCleanupEnabled = Boolean.parseBoolean(isTempDataCleanupEnabledVal);
             }
 
-            String isPeriodicTempDataCleanupEnabledVal = IdentityUtil.getProperty
-                    ("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.EnablePeriodicCleanup");
+            String isPeriodicTempDataCleanupEnabledVal =
+                    IdentityUtil.getProperty(TEMP_DATA_CLEANUP_PERIODIC_ENABLE_PROPERTY);
             if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
                 periodicTempDataCleanupEnabled = Boolean.parseBoolean(isPeriodicTempDataCleanupEnabledVal);
             }
 
-            sessionAndTempDataSeparationEnabled = Boolean.parseBoolean(IdentityUtil
-                    .getProperty("JDBCPersistenceManager.SessionDataPersist.SessionAndTempDataSeparation.Enable"));
+            sessionAndTempDataSeparationEnabled = Boolean.parseBoolean(
+                    IdentityUtil.getProperty(SESSION_AND_TEMP_DATA_SEPARATION_ENABLE_PROPERTY));
 
             String maxTempDataPoolSizeValue
-                    = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize");
+                    = IdentityUtil.getProperty(TEMP_DATA_CLEANUP_POOL_SIZE_PROPERTY);
             if (StringUtils.isNotBlank(maxTempDataPoolSizeValue)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Temporary data pool size config value: " + maxTempDataPoolSizeValue);
@@ -277,25 +288,18 @@ public class JDBCSessionDataStore extends SessionDataStore {
 
     private JDBCSessionDataStore() {
 
-        String enablePersistVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Enable");
+        String enablePersistVal = IdentityUtil.getProperty(PERSIST_ENABLE_PROPERTY);
         enablePersist = true;
         if (enablePersistVal != null) {
             enablePersist = Boolean.parseBoolean(enablePersistVal);
         }
-        String insertSTORESQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.InsertSTORE");
-        String insertDELETESQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.InsertDELETE");
-        String deleteSTORETaskSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteSTORETask");
-        String deleteTempSTORETaskSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteTempDataTask");
-        String deleteDELETETaskSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteDELETETask");
-        String selectSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.Select");
-        String deleteExpiredDataTaskSQL = IdentityUtil
-                .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteExpiredDataTask");
+        String insertSTORESQL = IdentityUtil.getProperty(SQL_INSERT_STORE_PROPERTY);
+        String insertDELETESQL = IdentityUtil.getProperty(SQL_INSERT_DELETE_PROPERTY);
+        String deleteSTORETaskSQL = IdentityUtil.getProperty(SQL_DELETE_STORE_TASK_PROPERTY);
+        String deleteTempSTORETaskSQL = IdentityUtil.getProperty(SQL_DELETE_TEMP_DATA_TASK_PROPERTY);
+        String deleteDELETETaskSQL = IdentityUtil.getProperty(SQL_DELETE_DELETE_TASK_PROPERTY);
+        String selectSQL = IdentityUtil.getProperty(SQL_SELECT_PROPERTY);
+        String deleteExpiredDataTaskSQL = IdentityUtil.getProperty(SQL_DELETE_EXPIRED_DATA_TASK_PROPERTY);
         if (!StringUtils.isBlank(insertSTORESQL)) {
             sqlInsertSTORE = insertSTORESQL;
         } else {
@@ -324,8 +328,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
             sqlSelect = selectSQL;
         }
 
-        String deleteChunkSizeString = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist" +
-                ".SessionDataCleanUp.DeleteChunkSize");
+        String deleteChunkSizeString = IdentityUtil.getProperty(DELETE_CHUNK_SIZE_PROPERTY);
         if (StringUtils.isNotBlank(deleteChunkSizeString)) {
             deleteChunkSize = Integer.parseInt(deleteChunkSizeString);
         }
@@ -338,10 +341,10 @@ public class JDBCSessionDataStore extends SessionDataStore {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
         String isCleanUpEnabledVal
-                = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable");
+                = IdentityUtil.getProperty(SESSION_DATA_CLEANUP_ENABLE_PROPERTY);
 
         String isOperationCleanUpEnabledVal
-                = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
+                = IdentityUtil.getProperty(OPERATION_DATA_CLEANUP_ENABLE_PROPERTY);
 
         if (StringUtils.isNotBlank(isCleanUpEnabledVal)) {
             sessionDataCleanupEnabled = Boolean.parseBoolean(isCleanUpEnabledVal);
@@ -363,8 +366,8 @@ public class JDBCSessionDataStore extends SessionDataStore {
             sessionCleanUpService.activateCleanUp();
         }
 
-        String checkExistingEntryForDeleteOperationInsertProperty = IdentityUtil.getProperty(
-                "JDBCPersistenceManager.SessionDataPersist.CheckExistingEntryForDeleteOperationInsert");
+        String checkExistingEntryForDeleteOperationInsertProperty =
+                IdentityUtil.getProperty(CHECK_EXISTING_ENTRY_FOR_DELETE_OPERATION_INSERT_PROPERTY);
         if (StringUtils.isNotBlank(checkExistingEntryForDeleteOperationInsertProperty)) {
             checkExistingEntryForDeleteOperationInsert = Boolean.parseBoolean(
                     checkExistingEntryForDeleteOperationInsertProperty);
@@ -766,11 +769,10 @@ public class JDBCSessionDataStore extends SessionDataStore {
     }
 
     /**
-     * Gets the DB specific query for the session data removal, this may be overridden by the configuration
-     * "JDBCPersistenceManager.SessionDataPersist.SQL.DeleteExpiredDataTask"
+     * Returns the database specific query used to remove expired session data.
      *
-     * @return
-     * @throws IdentityApplicationManagementException
+     * @return the session data removal query.
+     * @throws IdentityApplicationManagementException if the database type cannot be resolved.
      */
     private String getDBSpecificSessionDataRemovalQuery() throws IdentityApplicationManagementException {
 
@@ -882,15 +884,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
             return;
         }
 
-        long validityPeriodNano = 0L;
-
-        if (entry instanceof CacheEntry) {
-            validityPeriodNano = ((CacheEntry) entry).getValidityPeriod();
-        }
-
-        if (validityPeriodNano == 0L) {
-            validityPeriodNano = getCleanupTimeout(type, tenantId);
-        }
+        long validityPeriodNano = getValidityPeriodNano(entry, type, tenantId);
 
         PreparedStatement preparedStatement = null;
         try {
@@ -1071,16 +1065,6 @@ public class JDBCSessionDataStore extends SessionDataStore {
 
     }
 
-    private boolean isTempCache(String type) {
-
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, type);
-
-        if (identityCacheConfig != null) {
-            return identityCacheConfig.isTemporary();
-        }
-        return false;
-    }
-
     private String getSessionStoreDBQuery(String query, String type) {
 
         if ((sessionAndTempDataSeparationEnabled || tempDataCleanupEnabled) && isTempCache(type)) {
@@ -1095,35 +1079,9 @@ public class JDBCSessionDataStore extends SessionDataStore {
         return query;
     }
 
-    private long getCleanupTimeout(String type, int tenantId) {
-
-        if (isTempCache(type)) {
-            return TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout());
-        } else if (tenantId != MultitenantConstants.INVALID_TENANT_ID) {
-            String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-            int timeout = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
-            Optional<Integer> maximumSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
-            if (maximumSessionTimeout.isPresent()) {
-                // Get the max value from remember me timeout and maximum session timeout to set the validity period.
-                timeout = Math.max(timeout, maximumSessionTimeout.get());
-            }
-            return TimeUnit.SECONDS.toNanos(timeout);
-        } else {
-            return TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
-        }
-    }
-
     @Override
     public String getStoreName() {
 
         return STORE_NAME;
-    }
-
-    @Override
-    public boolean isSessionLive(String key, String type) {
-
-        // Read-only existence check reusing the existing read path: getSessionContextData returns
-        // null when the latest operation is a DELETE or the record is expired/absent.
-        return getSessionContextData(key, type) != null;
     }
 }

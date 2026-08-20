@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -82,20 +82,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private static final String IDN_AUTH_SESSION_APP_INFO_TABLE = "IDN_AUTH_SESSION_APP_INFO_TABLE";
     private static final String IDN_AUTH_SESSION_META_DATA_TABLE = "IDN_AUTH_SESSION_META_DATA";
 
-    private int deleteChunkSize = 10000;
+    private static final int DEFAULT_DELETE_CHUNK_SIZE = 10000;
 
-    public UserSessionDAOImpl() {
-
-        String deleteChunkSizeString = IdentityUtil.getProperty(DELETE_CHUNK_SIZE_PROPERTY);
-        if (StringUtils.isNotBlank(deleteChunkSizeString)) {
-            try {
-                deleteChunkSize = Integer.parseInt(deleteChunkSizeString);
-            } catch (NumberFormatException e) {
-                log.error("Error while parsing the delete chunk size: " + deleteChunkSizeString + ". Proceeding with "
-                        + "the default value: " + deleteChunkSize + ".", e);
-            }
-        }
-    }
+    private static volatile Integer deleteChunkSize;
 
     @Override
     public UserSession getSession(String sessionId) throws SessionManagementServerException {
@@ -374,6 +363,29 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         return userSessionsList;
     }
 
+    /**
+     * Returns the configured number of session records removed per batch.
+     *
+     * @return the delete chunk size.
+     */
+    private static int getDeleteChunkSize() {
+
+        if (deleteChunkSize == null) {
+            int resolved = DEFAULT_DELETE_CHUNK_SIZE;
+            String deleteChunkSizeString = IdentityUtil.getProperty(DELETE_CHUNK_SIZE_PROPERTY);
+            if (StringUtils.isNotBlank(deleteChunkSizeString)) {
+                try {
+                    resolved = Integer.parseInt(deleteChunkSizeString);
+                } catch (NumberFormatException e) {
+                    log.error("Error while parsing the delete chunk size: " + deleteChunkSizeString
+                            + ". Proceeding with the default value: " + resolved + ".", e);
+                }
+            }
+            deleteChunkSize = resolved;
+        }
+        return deleteChunkSize;
+    }
+
     private List<Application> getApplicationsForSessionID(String sessionId) throws DataAccessException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
@@ -537,7 +549,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
                 if (log.isDebugEnabled()) {
                     log.debug(terminatedAuthSessionIds.size() + " number of sessions should be removed from the " +
-                            "database. Removing in " + deleteChunkSize + " size batches.");
+                            "database. Removing in " + getDeleteChunkSize() + " size batches.");
                 }
 
                 deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
@@ -638,43 +650,6 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                         preparedStatement.setInt(3, appID);
                         preparedStatement.setString(4, inboundAuth);
                     });
-                }
-                return null;
-            });
-        } catch (TransactionException e) {
-            throw new DataAccessException("Error while storing application data of session id: " +
-                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth + ".", e);
-        }
-    }
-
-    /**
-     * Method to store app session data if the particular app session is not already exists in the database.
-     *
-     * @param sessionId   Id of the authenticated session.
-     * @param subject     Username in application.
-     * @param appID       Id of the application.
-     * @param inboundAuth Protocol used in the app.
-     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
-     * @deprecated Please use storeAppSessionData method instead.
-     */
-    @Deprecated
-    @Override
-    public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
-            DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
-        try {
-            jdbcTemplate.withTransaction(template -> {
-                Integer recordCount = template.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
-                        (resultSet, rowNumber) -> resultSet.getInt(1),
-                        preparedStatement -> {
-                            preparedStatement.setString(1, sessionId);
-                            preparedStatement.setString(2, subject);
-                            preparedStatement.setInt(3, appID);
-                            preparedStatement.setString(4, inboundAuth);
-                        });
-                if (recordCount == null) {
-                    storeAppSessionData(sessionId, subject, appID, inboundAuth);
                 }
                 return null;
             });
@@ -1368,12 +1343,13 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private void deleteSessionDataFromTable(String[] sessionsToRemove, Connection connection, String tableName,
                                             String deleteQuery) throws SQLException {
 
+        int chunkSize = getDeleteChunkSize();
         int totalSessionsToRemove = sessionsToRemove.length;
-        int iterations = (totalSessionsToRemove / deleteChunkSize) + 1;
+        int iterations = (totalSessionsToRemove / chunkSize) + 1;
         int startCount = 0;
         for (int i = 0; i < iterations; i++) {
 
-            int endCount = (i + 1) * deleteChunkSize;
+            int endCount = (i + 1) * chunkSize;
             if (totalSessionsToRemove < endCount) {
                 endCount = totalSessionsToRemove;
             }

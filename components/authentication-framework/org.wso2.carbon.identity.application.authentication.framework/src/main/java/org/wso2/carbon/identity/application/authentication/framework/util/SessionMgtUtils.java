@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,6 +30,7 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
@@ -41,6 +43,22 @@ public class SessionMgtUtils {
 
     public static final String SQL_QUERY_APPLICATIONS_SPLIT_CHARACTER = "|";
     public static final String SQL_QUERY_APPLICATION_DETAILS_SPLIT_CHARACTER = ":";
+
+    public static final String DEFAULT_SESSION_STORE_NAME = "jdbc";
+
+    private static final String SESSION_STORE_IMPL_TYPE_PROPERTY = "SessionStoreImplType";
+
+    /**
+     * Returns the name of the configured session store, normalized to lower case.
+     *
+     * @return the configured store name, or the default store name if none is configured.
+     */
+    public static String getConfiguredSessionStoreName() {
+
+        String storeName = IdentityUtil.getProperty(SESSION_STORE_IMPL_TYPE_PROPERTY);
+        return StringUtils.isBlank(storeName) ? DEFAULT_SESSION_STORE_NAME
+                : storeName.trim().toLowerCase(Locale.ENGLISH);
+    }
 
     /**
      * Transform a list of filter expressions into SQL query strings.

@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.application.authentication.framework.dao;
 
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.internal.SessionStorageSelector;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtils;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 
 /**
- * Provides the {@link UserSessionDAO} of the configured session store.
+ * Provides the user session DAO of the configured session store.
  */
 public final class UserSessionDAOFactory {
 
@@ -34,23 +34,19 @@ public final class UserSessionDAOFactory {
 
     /**
      * Returns the user session DAO of the configured session store.
-     * <p>
-     * The relational {@link UserSessionDAOImpl} is used when no store is configured. A configured non-default
-     * store must register its own DAO as an OSGi {@code UserSessionDAO} service.
      *
      * @return the user session DAO to use.
      */
     public static UserSessionDAO getUserSessionDAO() {
 
-        String storeName = SessionStorageSelector.getConfiguredStoreName();
-        if (SessionStorageSelector.isDefaultStoreConfigured(storeName)) {
+        String storeName = SessionMgtUtils.getConfiguredSessionStoreName();
+        if (SessionMgtUtils.DEFAULT_SESSION_STORE_NAME.equals(storeName)) {
             return new UserSessionDAOImpl();
         }
 
         UserSessionDAO userSessionDAO = FrameworkServiceDataHolder.getInstance().getUserSessionDAO(storeName);
         if (userSessionDAO == null) {
-            throw IdentityRuntimeException.error("Configured user session DAO is not available: " + storeName
-                    + ". Its bundle may not be installed or its service may not have been registered yet.");
+            throw new IdentityRuntimeException("Configured user session DAO is not available: " + storeName + ".");
         }
         return userSessionDAO;
     }

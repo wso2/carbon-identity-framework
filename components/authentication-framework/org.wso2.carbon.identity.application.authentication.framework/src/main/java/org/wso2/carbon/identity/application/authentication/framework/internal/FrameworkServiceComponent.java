@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -98,6 +98,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -106,6 +107,7 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
@@ -281,7 +283,7 @@ public class FrameworkServiceComponent {
 
         // This is done to load the default SessionDataStore class and start its cleanup tasks. A configured
         // store is loaded on first use instead, since its service may not have been registered yet.
-        if (SessionStorageSelector.isDefaultStoreConfigured(SessionStorageSelector.getConfiguredStoreName())) {
+        if (SessionMgtUtils.DEFAULT_SESSION_STORE_NAME.equals(SessionMgtUtils.getConfiguredSessionStoreName())) {
             SessionDataStore.getInstance();
         }
 
@@ -429,7 +431,11 @@ public class FrameworkServiceComponent {
         }
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
-        SessionDataStore.getInstance().stopService();
+        try {
+            SessionDataStore.getInstance().stopService();
+        } catch (IdentityRuntimeException e) {
+            log.warn("Could not stop the session data store. " + e.getMessage());
+        }
         if (FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor() != null) {
             FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
         }
@@ -568,8 +574,6 @@ public class FrameworkServiceComponent {
     protected void setSessionDataStore(SessionDataStore sessionDataStore) {
 
         FrameworkServiceDataHolder.getInstance().addSessionDataStore(sessionDataStore);
-        // The new store may be the configured one, so drop the cached selection.
-        SessionDataStore.invalidateSelectedStore();
         if (log.isDebugEnabled()) {
             log.debug("Session data store registered: " + sessionDataStore.getStoreName());
         }
@@ -578,7 +582,6 @@ public class FrameworkServiceComponent {
     protected void unsetSessionDataStore(SessionDataStore sessionDataStore) {
 
         FrameworkServiceDataHolder.getInstance().removeSessionDataStore(sessionDataStore);
-        SessionDataStore.invalidateSelectedStore();
         if (log.isDebugEnabled()) {
             log.debug("Session data store unregistered: " + sessionDataStore.getStoreName());
         }

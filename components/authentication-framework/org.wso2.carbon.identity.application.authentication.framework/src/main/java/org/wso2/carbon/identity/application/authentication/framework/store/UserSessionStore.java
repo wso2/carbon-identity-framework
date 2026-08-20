@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAOFactory;
@@ -422,7 +423,26 @@ public class UserSessionStore {
     public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
             DataAccessException {
 
-        UserSessionDAOFactory.getUserSessionDAO().storeAppSessionDataIfNotExist(sessionId, subject, appID, inboundAuth);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                Integer recordCount = template.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
+                        (resultSet, rowNumber) -> resultSet.getInt(1),
+                        preparedStatement -> {
+                            preparedStatement.setString(1, sessionId);
+                            preparedStatement.setString(2, subject);
+                            preparedStatement.setInt(3, appID);
+                            preparedStatement.setString(4, inboundAuth);
+                        });
+                if (recordCount == null) {
+                    storeAppSessionData(sessionId, subject, appID, inboundAuth);
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new DataAccessException("Error while storing application data of session id: " +
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth + ".", e);
+        }
     }
 
     /**
