@@ -290,7 +290,6 @@ public class InputValidationService {
         boolean skipUniquenessValidation = isUserResolveExecutor(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
             if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
-                validateNoFutureDateClaim(userInput.getKey(), userInput.getValue());
                 validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
                         skipUniquenessValidation);
             } else if (userInput.getKey().equals(PASSWORD_KEY)) {
@@ -303,7 +302,7 @@ public class InputValidationService {
      * Validate a claim whose value can never be a future date.
      * <p>
      * Deliberately independent of claim metadata: the rule is fixed in {@link #NO_FUTURE_DATE_CLAIMS} rather than
-     * configured per tenant, so this must not sit behind the metadata lookup in
+     * configured per tenant, so it is applied before the metadata lookup in
      * {@link #validateUserClaims(String, String, String, boolean)}, which returns early when the claim or the
      * metadata service is unavailable. The same rule is enforced again at user creation by the user store
      * operation listeners; validating here lets the flow re-render the offending step with an inline error
@@ -331,18 +330,24 @@ public class InputValidationService {
     }
 
     /**
-     * Retrieve validation rules from claim metadata for the given claim URI.
-     * Validates claim uniqueness if configured and throws exception on failure.
+     * Validate a submitted claim value.
+     * <p>
+     * Applies the rules that are fixed in code first, then the rules configured in the claim's metadata
+     * (regex, and uniqueness where configured). The fixed rules run before the metadata lookup on purpose,
+     * because that lookup returns early when the claim or the metadata service is unavailable.
      *
      * @param tenantDomain             Tenant domain.
      * @param claimUri                 Claim URI.
      * @param claimValue               Claim value to validate.
      * @param skipUniquenessValidation Whether to skip claim uniqueness validation.
-     * @throws FlowEngineException If claim uniqueness validation fails.
+     * @throws FlowEngineException If the value fails a fixed rule, the configured regex, or uniqueness.
      */
     private void validateUserClaims(String tenantDomain, String claimUri, String claimValue,
                                    boolean skipUniquenessValidation)
             throws FlowEngineException {
+
+        // Must stay outside the try below: everything in it is skipped when claim metadata is unavailable.
+        validateNoFutureDateClaim(claimUri, claimValue);
 
         try {
             if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
