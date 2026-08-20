@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,6 +64,8 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DOB_CLAIM_URI;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_FUTURE_DATE_NOT_ALLOWED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_INVALID_DATE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
@@ -286,11 +290,43 @@ public class InputValidationService {
         boolean skipUniquenessValidation = isUserResolveExecutor(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
             if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+                validateNoFutureDateClaim(userInput.getKey(), userInput.getValue());
                 validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
                         skipUniquenessValidation);
             } else if (userInput.getKey().equals(PASSWORD_KEY)) {
                 validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
             }
+        }
+    }
+
+    /**
+     * Validate a claim whose value can never be a future date.
+     * <p>
+     * Deliberately independent of claim metadata: the rule is fixed in {@link #NO_FUTURE_DATE_CLAIMS} rather than
+     * configured per tenant, so this must not sit behind the metadata lookup in
+     * {@link #validateUserClaims(String, String, String, boolean)}, which returns early when the claim or the
+     * metadata service is unavailable. The same rule is enforced again at user creation by the user store
+     * operation listeners; validating here lets the flow re-render the offending step with an inline error
+     * instead of failing at the end of the flow.
+     *
+     * @param claimUri   Claim URI.
+     * @param claimValue Submitted claim value.
+     * @throws FlowEngineClientException If the value is not an existing calendar date, or is a future date.
+     */
+    private void validateNoFutureDateClaim(String claimUri, String claimValue) throws FlowEngineClientException {
+
+        if (!NO_FUTURE_DATE_CLAIMS.contains(claimUri) || StringUtils.isBlank(claimValue)) {
+            return;
+        }
+        LocalDate date;
+        try {
+            date = LocalDate.parse(claimValue);
+        } catch (DateTimeParseException e) {
+            // Reachable when the value matches the claim's YYYY-MM-DD pattern but is not a real date. Ex: 2025-02-30.
+            throw handleClientException(ERROR_CODE_CLAIM_INVALID_DATE, claimUri);
+        }
+        if (date.isAfter(LocalDate.now())) {
+            throw handleClientException(ERROR_CODE_CLAIM_FUTURE_DATE_NOT_ALLOWED, claimUri);
         }
     }
 

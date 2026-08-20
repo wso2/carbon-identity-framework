@@ -224,7 +224,13 @@ public class Constants {
                 "The provided password does not meet the configured format requirements."),
         ERROR_CODE_INFLOW_EXTENSION_FAILURE("60017",
                 "Flow extension execution failed.",
-                "Something went wrong while executing the flow extension. Please try again.")
+                "Something went wrong while executing the flow extension. Please try again."),
+        ERROR_CODE_CLAIM_FUTURE_DATE_NOT_ALLOWED("60018",
+                "Cannot be a future date.",
+                "The value provided for %s cannot be a future date."),
+        ERROR_CODE_CLAIM_INVALID_DATE("60019",
+                "Must be a valid date in the format YYYY-MM-DD.",
+                "The value provided for %s is not an existing calendar date.")
         ;
 
         private static final String ERROR_PREFIX = "FE";
