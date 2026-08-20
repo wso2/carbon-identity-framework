@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSContextMemberObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsClaimsUtil;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -158,7 +159,7 @@ public class JsNashornClaims extends AbstractJSContextMemberObject implements Ab
     @Override
     public Object getMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 return getFederatedClaim(claimUri);
             } else {
@@ -171,7 +172,7 @@ public class JsNashornClaims extends AbstractJSContextMemberObject implements Ab
     @Override
     public boolean hasMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 return hasFederatedClaim(claimUri);
             } else {
@@ -184,7 +185,7 @@ public class JsNashornClaims extends AbstractJSContextMemberObject implements Ab
     @Override
     public void setMember(String claimUri, Object claimValue) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 setFederatedClaim(claimUri, claimValue);
                 return;
@@ -444,5 +445,10 @@ public class JsNashornClaims extends AbstractJSContextMemberObject implements Ab
             LOG.error("User id is not available for the user: " + authenticatedUser.getLoggableUserId(), e);
         }
         return null;
+    }
+
+    protected boolean isAuthenticatedUserInCurrentTenant() {
+
+        return JsClaimsUtil.isAuthenticatedUserInCurrentTenant(authenticatedUser, getContext());
     }
 }
