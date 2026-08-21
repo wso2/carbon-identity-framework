@@ -593,6 +593,8 @@
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
   "identity_mgt.user_claim_update.restrict_immutable_local_claim_update": true,
 
+  "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": true,
+
   "identity_mgt.claims.hidden_claims": [
     "http://wso2.org/claims/identity/askPassword",
     "http://wso2.org/claims/identity/tenantAdminAskPassword",
