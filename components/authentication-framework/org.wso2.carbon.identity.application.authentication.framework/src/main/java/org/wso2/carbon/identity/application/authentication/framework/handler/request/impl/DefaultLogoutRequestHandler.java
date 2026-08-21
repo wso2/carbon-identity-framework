@@ -491,7 +491,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         String retainCache = System.getProperty("retainCache");
 
         if (retainCache == null) {
-            FrameworkUtils.removeAuthenticationContextFromCache(context.getContextIdentifier());
+            FrameworkUtils.removeAuthenticationContextFromCache(context.getContextIdentifier(),
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.LOGOUT_FLOW_CONCLUDED);
         }
 
         if (log.isDebugEnabled()) {

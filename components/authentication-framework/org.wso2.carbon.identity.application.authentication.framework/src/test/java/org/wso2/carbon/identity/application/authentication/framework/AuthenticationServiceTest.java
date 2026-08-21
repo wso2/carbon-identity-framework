@@ -44,7 +44,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.auth.s
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -58,10 +60,12 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 /**
@@ -89,11 +93,18 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
     private MockedStatic<FrameworkUtils> frameworkUtils;
 
     private MockedStatic<ApplicationManagementService> applicationManagementService;
+    private MockedStatic<LoggerUtils> loggerUtils;
 
     @BeforeMethod
     public void init() throws IOException {
 
         MockitoAnnotations.initMocks(this);
+
+        /* The service writes diagnostic logs on the flowId lifecycle. Diagnostic logging is mocked as enabled so
+         that the diagnostic log building code is exercised without requiring a carbon context to resolve the
+         tenant. */
+        loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
 
         removeAllSystemDefinedAuthenticators();
         configurationFacade = mockStatic(ConfigurationFacade.class);
@@ -115,6 +126,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         configurationFacade.close();
         frameworkUtils.close();
         applicationManagementService.close();
+        loggerUtils.close();
     }
 
     @DataProvider(name = "authProvider")
@@ -338,6 +350,39 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                 "Expected error code to match for retry status: " + retryStatus);
         Assert.assertEquals(errorInfo.get().getErrorMessage(), expectedError.message(),
                 "Expected error message to match for retry status: " + retryStatus);
+    }
+
+    /**
+     * Test that a request carrying a flowId which is no longer active is still reported with the invalid flow
+     * identifier error code, but no diagnostic log is triggered when diagnostic logging is disabled for the tenant.
+     */
+    @Test
+    public void testInvalidFlowIdIsNotLoggedWhenDiagnosticLogsAreDisabled() throws Exception {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+        AuthenticationService authenticationService = new AuthenticationService();
+        // No flowId parameter is supplied, so none can be resolved for the log.
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+
+        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                .thenReturn(AuthenticatorFlowStatus.FAIL_COMPLETED);
+        when(request.getAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED)).thenReturn(true);
+        when(request.getAttribute(FrameworkConstants.IS_SENT_TO_RETRY)).thenReturn(true);
+        when(request.getAttribute(FrameworkConstants.REQ_ATTR_RETRY_STATUS))
+                .thenReturn(FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL);
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
+        when(response.getHeader(LOCATION_HEADER)).thenReturn(getFinalRedirectUrl(SESSION_DATA_KEY));
+
+        AuthServiceResponse authServiceResponse = authenticationService.handleAuthentication(authServiceRequest);
+
+        Optional<AuthServiceErrorInfo> errorInfo = authServiceResponse.getErrorInfo();
+        Assert.assertTrue(errorInfo.isPresent(), "Expected error info to be present.");
+        Assert.assertEquals(errorInfo.get().getErrorCode(),
+                AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL.code(),
+                "An invalid flowId should be reported with the invalid flow identifier error code.");
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any(
+                DiagnosticLog.DiagnosticLogBuilder.class)), never());
     }
 
     @Test

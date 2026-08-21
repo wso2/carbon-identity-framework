@@ -43,8 +43,10 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -77,6 +79,8 @@ public class AuthenticationService {
         // Request validation is only required for the initial authentication request.
         if (isInitialAuthRequest(authRequest)) {
             validateRequest(authRequest);
+        } else {
+            logFlowIdUsage(authRequest);
         }
         AuthServiceRequestWrapper wrappedRequest = getWrappedRequest(authRequest.getRequest(),
                 authRequest.getParameters());
@@ -129,6 +133,7 @@ public class AuthenticationService {
 
         authServiceResponse.setSessionDataKey(request.getSessionDataKey());
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.INCOMPLETE);
+        logFlowIdIssuance(request.getSessionDataKey(), AuthServiceConstants.FlowStatus.INCOMPLETE);
         AuthServiceResponseData responseData = new AuthServiceResponseData();
         boolean isMultiOptionsResponse = request.isMultiOptionsResponse();
 
@@ -189,6 +194,10 @@ public class AuthenticationService {
             errorCode = mappedError.code();
             errorMessage = mappedError.message();
             errorDescription = mappedError.description();
+            if (AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL == mappedError
+                    || AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FLOW_TIMEOUT == mappedError) {
+                logInvalidFlowIdUsage(request.getSessionDataKey(), mappedError);
+            }
         } else {
             String builtErrorMessage = buildFailedConcludedErrorMessage(internalErrorCode, internalErrorMessage);
             if (StringUtils.isNotBlank(builtErrorMessage)) {
@@ -234,6 +243,7 @@ public class AuthenticationService {
 
         authServiceResponse.setSessionDataKey(request.getSessionDataKey());
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
+        logFlowIdIssuance(request.getSessionDataKey(), AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
         AuthServiceResponseData responseData = new AuthServiceResponseData();
         List<AuthenticatorData> authenticatorDataList;
         boolean isMultiOptionsResponse = request.isMultiOptionsResponse();
@@ -509,6 +519,88 @@ public class AuthenticationService {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Records the flowId received with a subsequent app native authentication request. This makes it possible to
+     * trace every usage of a given flowId, including usages of a flowId which is no longer active.
+     *
+     * @param authServiceRequest Authentication request received by the service.
+     */
+    private void logFlowIdUsage(AuthServiceRequest authServiceRequest) {
+
+        String flowId = getFlowId(authServiceRequest);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Received app native authentication request with the flowId: " + flowId);
+        }
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                FrameworkConstants.LogConstants.ActionIDs.VALIDATE_FLOW_ID)
+                .inputParam(FrameworkConstants.LogConstants.FLOW_ID, flowId)
+                .resultMessage("Received an app native authentication request with a flowId.")
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+    }
+
+    /**
+     * Records the flowId returned to the client so that the point at which a flowId was issued can be traced.
+     *
+     * @param flowId     flowId returned with the authentication response.
+     * @param flowStatus Flow status of the authentication response.
+     */
+    private void logFlowIdIssuance(String flowId, AuthServiceConstants.FlowStatus flowStatus) {
+
+        if (StringUtils.isBlank(flowId) || !LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                FrameworkConstants.LogConstants.ActionIDs.ISSUE_FLOW_ID)
+                .inputParam(FrameworkConstants.LogConstants.FLOW_ID, flowId)
+                .inputParam("flow status", flowStatus.name())
+                .resultMessage("flowId is issued for the incomplete authentication flow. The same flowId is " +
+                        "expected in the next authentication request of this flow.")
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+    }
+
+    /**
+     * Records that the authentication flow was concluded with a failure because the provided flowId is no longer
+     * usable. The framework invalidates the flowId once the authentication flow is concluded or once the flow has
+     * timed out, hence a flowId can be reported as invalid even if it was valid at the time it was issued.
+     *
+     * @param flowId      flowId received with the authentication request.
+     * @param mappedError Error which the authentication flow concluded with.
+     */
+    private void logInvalidFlowIdUsage(String flowId, AuthServiceConstants.ErrorMessage mappedError) {
+
+        LOG.warn("App native authentication request received with a flowId which is no longer active. flowId: "
+                + flowId + ". Error: " + mappedError.code() + " - " + mappedError.description());
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                FrameworkConstants.LogConstants.ActionIDs.VALIDATE_FLOW_ID)
+                .inputParam(FrameworkConstants.LogConstants.FLOW_ID, flowId)
+                .inputParam(AuthServiceConstants.ERROR_CODE_PARAM, mappedError.code())
+                .resultMessage("The provided flowId is no longer active. " + mappedError.description()
+                        + " A new authentication flow needs to be initiated.")
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+    }
+
+    private String getFlowId(AuthServiceRequest authServiceRequest) {
+
+        Map<String, String[]> parameters = authServiceRequest.getParameters();
+        if (parameters == null) {
+            return null;
+        }
+        String[] flowIdParam = parameters.get(AuthServiceConstants.FLOW_ID);
+        return flowIdParam != null && flowIdParam.length > 0 ? flowIdParam[0] : null;
     }
 
     private boolean includeMultiOptionsInResponse() {

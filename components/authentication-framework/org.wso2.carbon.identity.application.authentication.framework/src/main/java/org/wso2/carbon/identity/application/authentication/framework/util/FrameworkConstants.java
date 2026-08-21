@@ -847,6 +847,10 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATED_IDPS = "authenticated idps";
         public static final String IDP = "idp";
         public static final String SESSION_CONTEXT_KEY = "session context key";
+        public static final String FLOW_ID = "flow id";
+        public static final String INVALIDATION_REASON = "invalidation reason";
+        public static final String USER_AGENT = "user agent";
+        public static final String REFERER = "referer";
 
         /**
          * Define action IDs for diagnostic logs in the framework component.
@@ -866,6 +870,24 @@ public abstract class FrameworkConstants {
             public static final String EXECUTE_ADAPTIVE_SCRIPT = "execute-adaptive-script";
             public static final String JIT_PROVISIONING = "jit-provisioning";
             public static final String PROCESS_POLICY_CONSENT = "process-policy-consent";
+            public static final String INVALIDATE_AUTH_CONTEXT = "invalidate-authentication-context";
+            public static final String ISSUE_FLOW_ID = "issue-flow-id";
+            public static final String VALIDATE_FLOW_ID = "validate-flow-id";
+        }
+
+        /**
+         * Reasons for which an authentication context is invalidated. The context identifier is exposed as the
+         * flowId in app native authentication, therefore invalidating the context makes the corresponding
+         * flowId unusable.
+         */
+        public static class AuthContextInvalidationReasons {
+
+            public static final String AUTH_FLOW_CONCLUDED = "authentication flow concluded";
+            public static final String LOGOUT_FLOW_CONCLUDED = "logout flow concluded";
+            public static final String PROMPT_RESPONSE_PROCESSED = "prompt response processed";
+
+            private AuthContextInvalidationReasons() {
+            }
         }
     }
 

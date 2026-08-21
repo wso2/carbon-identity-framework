@@ -77,6 +77,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -100,6 +101,7 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -415,6 +417,105 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 .remove(FrameworkConstants.Config.QNAME_EXT_PROVISIONING_HANDLER);
         Object provisioningHandler = FrameworkUtils.getProvisioningHandler();
         assertEquals(provisioningHandler.getClass(), DefaultProvisioningHandler.class);
+    }
+
+    /**
+     * Test that invalidating an authentication context clears the cache entry and records the invalidation as a
+     * diagnostic log carrying the context identifier and the reason for the invalidation.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheRecordsInvalidation() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+            String contextId = "CONTEXT-ID";
+
+            FrameworkUtils.removeAuthenticationContextFromCache(contextId,
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.AUTH_FLOW_CONCLUDED);
+
+            ArgumentCaptor<AuthenticationContextCacheKey> captorKey =
+                    ArgumentCaptor.forClass(AuthenticationContextCacheKey.class);
+            verify(mockedAuthenticationContextCache).clearCacheEntry(captorKey.capture());
+            assertEquals(captorKey.getValue().getContextId(), contextId);
+
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captorLog =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captorLog.capture()));
+            DiagnosticLog diagnosticLog = captorLog.getValue().build();
+            assertEquals(diagnosticLog.getActionId(),
+                    FrameworkConstants.LogConstants.ActionIDs.INVALIDATE_AUTH_CONTEXT);
+            assertEquals(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.CONTEXT_ID), contextId);
+            assertEquals(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.INVALIDATION_REASON),
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.AUTH_FLOW_CONCLUDED);
+        }
+    }
+
+    /**
+     * Test that the single argument variant, which is retained for backward compatibility, still records the
+     * invalidation as a diagnostic log but without an invalidation reason.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheWithoutReason() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+            FrameworkUtils.removeAuthenticationContextFromCache("CONTEXT-ID");
+
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captorLog =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captorLog.capture()));
+            DiagnosticLog diagnosticLog = captorLog.getValue().build();
+            assertNull(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.INVALIDATION_REASON));
+        }
+    }
+
+    /**
+     * Test that the cache entry is still cleared but no diagnostic log is triggered when diagnostic logging is
+     * disabled for the tenant.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheSkipsDiagnosticLogWhenDisabled() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            FrameworkUtils.removeAuthenticationContextFromCache("CONTEXT-ID", "reason");
+
+            verify(mockedAuthenticationContextCache).clearCacheEntry(any(AuthenticationContextCacheKey.class));
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                    any(DiagnosticLog.DiagnosticLogBuilder.class)), never());
+        }
+    }
+
+    /**
+     * Test that a null context identifier is ignored without clearing any cache entry.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheWithNullContextId() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+
+            FrameworkUtils.removeAuthenticationContextFromCache(null, "reason");
+
+            verify(mockedAuthenticationContextCache, never())
+                    .clearCacheEntry(any(AuthenticationContextCacheKey.class));
+        }
     }
 
     @Test

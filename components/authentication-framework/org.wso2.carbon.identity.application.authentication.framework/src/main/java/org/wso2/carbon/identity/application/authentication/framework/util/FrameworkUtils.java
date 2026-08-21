@@ -429,7 +429,8 @@ public class FrameworkUtils {
             String promptId = request.getParameter("promptId");
             context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
             if (context != null) {
-                FrameworkUtils.removeAuthenticationContextFromCache(promptId);
+                FrameworkUtils.removeAuthenticationContextFromCache(promptId,
+                        FrameworkConstants.LogConstants.AuthContextInvalidationReasons.PROMPT_RESPONSE_PROCESSED);
                 return context;
             }
         }
@@ -1759,9 +1760,44 @@ public class FrameworkUtils {
      */
     public static void removeAuthenticationContextFromCache(String contextId) {
 
-        if (contextId != null) {
-            AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
-            AuthenticationContextCache.getInstance().clearCacheEntry(cacheKey);
+        removeAuthenticationContextFromCache(contextId, null);
+    }
+
+    /**
+     * Invalidates the authentication context held against the given context identifier. Since the context
+     * identifier is exposed to the client as the flowId in app native authentication, the flowId cannot be used
+     * to continue the authentication flow once this is invoked. The invalidation is recorded as a diagnostic log
+     * so that the complete lifecycle of a flowId can be traced.
+     *
+     * @param contextId Context identifier of the authentication context. This is the flowId in app native
+     *                  authentication.
+     * @param reason    Reason for the invalidation. Used only for logging purposes and can be null.
+     */
+    public static void removeAuthenticationContextFromCache(String contextId, String reason) {
+
+        if (contextId == null) {
+            return;
+        }
+        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
+        AuthenticationContextCache.getInstance().clearCacheEntry(cacheKey);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Authentication context with the identifier: " + contextId + " is invalidated."
+                    + (StringUtils.isNotBlank(reason) ? " Reason: " + reason + "." : ""));
+        }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.INVALIDATE_AUTH_CONTEXT)
+                    .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, contextId)
+                    .resultMessage("Authentication context is invalidated. The flow identifier can no longer be " +
+                            "used to continue the authentication flow.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+            if (StringUtils.isNotBlank(reason)) {
+                diagnosticLogBuilder.inputParam(FrameworkConstants.LogConstants.INVALIDATION_REASON, reason);
+            }
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
     }
 
