@@ -423,6 +423,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         assertEquals(provisioningHandler.getClass(), DefaultProvisioningHandler.class);
     }
 
+    /**
+     * Test that invalidating an authentication context clears the cache entry and records the invalidation as a
+     * diagnostic log carrying the context identifier and the reason for the invalidation.
+     */
     @Test
     public void testRemoveAuthenticationContextFromCacheRecordsInvalidation() {
 
@@ -454,6 +458,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         }
     }
 
+    /**
+     * Test that the single argument variant, which is retained for backward compatibility, still records the
+     * invalidation as a diagnostic log but without an invalidation reason.
+     */
     @Test
     public void testRemoveAuthenticationContextFromCacheWithoutReason() {
 
@@ -464,7 +472,6 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                     AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
             loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
 
-            // The single argument variant is retained for backward compatibility and records no reason.
             FrameworkUtils.removeAuthenticationContextFromCache("CONTEXT-ID");
 
             ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captorLog =
@@ -475,6 +482,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         }
     }
 
+    /**
+     * Test that the cache entry is still cleared but no diagnostic log is triggered when diagnostic logging is
+     * disabled for the tenant.
+     */
     @Test
     public void testRemoveAuthenticationContextFromCacheSkipsDiagnosticLogWhenDisabled() {
 
@@ -493,6 +504,9 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         }
     }
 
+    /**
+     * Test that a null context identifier is ignored without clearing any cache entry.
+     */
     @Test
     public void testRemoveAuthenticationContextFromCacheWithNullContextId() {
 

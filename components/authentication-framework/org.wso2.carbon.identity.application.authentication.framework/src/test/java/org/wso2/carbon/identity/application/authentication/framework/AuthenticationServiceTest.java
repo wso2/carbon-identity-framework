@@ -352,6 +352,10 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                 "Expected error message to match for retry status: " + retryStatus);
     }
 
+    /**
+     * Test that a request carrying a flowId which is no longer active is still reported with the invalid flow
+     * identifier error code, but no diagnostic log is triggered when diagnostic logging is disabled for the tenant.
+     */
     @Test
     public void testInvalidFlowIdIsNotLoggedWhenDiagnosticLogsAreDisabled() throws Exception {
 
