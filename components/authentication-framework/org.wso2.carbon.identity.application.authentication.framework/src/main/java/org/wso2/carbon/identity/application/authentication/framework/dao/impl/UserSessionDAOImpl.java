@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionFilterQueryBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtils;
-import org.wso2.carbon.identity.application.authentication.framework.util.SessionReferenceDataUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -94,7 +93,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
         try {
             List<Application> applicationList = getApplicationsForSessionID(sessionId);
-            SessionReferenceDataUtils.setApplicationDetails(applicationList);
+            SessionMgtUtils.setApplicationDetails(applicationList);
             String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
                     ? SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_H2
                     : SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA;
@@ -177,7 +176,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             });
 
             List<Application> applicationList = getApplicationsForSessionID(sessionId);
-            SessionReferenceDataUtils.setApplicationDetails(applicationList);
+            SessionMgtUtils.setApplicationDetails(applicationList);
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
@@ -212,7 +211,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
         try {
             if (StringUtils.isNotEmpty(filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.APPLICATION))) {
-                appDetails = SessionReferenceDataUtils.getApplicationsByFilter(filterBuilder, tenantId);
+                appDetails = SessionMgtUtils.getApplicationsByFilter(filterBuilder, tenantId);
                 if (appDetails.isEmpty()) {
                     return Collections.emptyList();
                 }
@@ -322,9 +321,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                                 .collect(Collectors.toList()));
                         userIdList.add(userSession.getUserId());
                     }
-                    Map<String, Application> applicationMap = SessionReferenceDataUtils
+                    Map<String, Application> applicationMap = SessionMgtUtils
                             .getApplicationsByIds(appIdList);
-                    Map<String, String> userIdpMap = SessionReferenceDataUtils.getIdpIdsByUserIds(userIdList);
+                    Map<String, String> userIdpMap = SessionMgtUtils.getIdpIdsByUserIds(userIdList);
 
                     for (UserSession userSession : userSessionsList) {
                         for (Application app : userSession.getApplications()) {
@@ -348,7 +347,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     for (UserSession userSession : userSessionsList) {
                         userIdList.add(userSession.getUserId());
                     }
-                    Map<String, String> userIdpMap = SessionReferenceDataUtils.getIdpIdsByUserIds(userIdList);
+                    Map<String, String> userIdpMap = SessionMgtUtils.getIdpIdsByUserIds(userIdList);
 
                     for (UserSession userSession : userSessionsList) {
                         userSession.setIdpId(userIdpMap.get(userSession.getUserId()));

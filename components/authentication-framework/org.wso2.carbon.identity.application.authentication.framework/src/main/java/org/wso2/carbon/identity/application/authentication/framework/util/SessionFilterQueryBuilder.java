@@ -33,6 +33,8 @@ public class SessionFilterQueryBuilder {
     private final Map<SessionMgtConstants.FilterType, String> filterQueries = new HashMap<>();
     private final Map<SessionMgtConstants.FilterType, List<Object>> filterParams = new HashMap<>();
 
+    private final List<String[]> applicationNameFilters = new ArrayList<>();
+
     /**
      * Sets the SQL fragment (containing {@code ?} placeholders) for a given filter type.
      */
@@ -65,5 +67,26 @@ public class SessionFilterQueryBuilder {
     public List<Object> getFilterParams(SessionMgtConstants.FilterType type) {
 
         return filterParams.getOrDefault(type, Collections.emptyList());
+    }
+
+    /**
+     * Adds an APPLICATION filter in its structured form, for resolving against the application store.
+     *
+     * @param operation Filter operation.
+     * @param value     Filter value, lowercased and without wildcards.
+     */
+    public void addApplicationNameFilter(String operation, String value) {
+
+        applicationNameFilters.add(new String[]{operation, value});
+    }
+
+    /**
+     * Returns the APPLICATION filters, each as an {@code {operation, value}} pair, in the order added.
+     *
+     * @return Structured application filters, empty if none was added.
+     */
+    public List<String[]> getApplicationNameFilters() {
+
+        return Collections.unmodifiableList(applicationNameFilters);
     }
 }
