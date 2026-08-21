@@ -27,9 +27,11 @@ import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -517,5 +519,34 @@ public interface ApplicationDAO {
     default void updateApplicationLocalAndOutboundAuthConfig(ServiceProvider applicationDTO, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+    }
+
+    /**
+     * Retrieve the basic information of the applications of the given identifiers, of any tenant.
+     *
+     * @param appIds Application identifiers.
+     * @return the basic information of the matching applications.
+     * @throws IdentityApplicationManagementException if the applications could not be retrieved.
+     */
+    default List<ApplicationBasicInfo> getApplicationBasicInfosByIds(int[] appIds)
+            throws IdentityApplicationManagementException {
+
+        return Collections.emptyList();
+    }
+
+    /**
+     * Retrieve the basic information of the applications of the given tenant, and of the SaaS applications,
+     * whose name matches the given filter.
+     *
+     * @param nameFilters Name filters combined with AND, values lowercased and without wildcards.
+     * @param tenantId    Tenant identifier.
+     * @return the basic information of the matching applications.
+     * @throws IdentityApplicationManagementException if the applications could not be retrieved.
+     */
+    default List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(List<ExpressionNode> nameFilters,
+                                                                            int tenantId)
+            throws IdentityApplicationManagementException {
+
+        return Collections.emptyList();
     }
 }

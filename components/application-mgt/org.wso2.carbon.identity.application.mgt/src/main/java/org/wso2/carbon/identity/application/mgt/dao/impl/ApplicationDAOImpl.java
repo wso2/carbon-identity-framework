@@ -133,6 +133,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -245,6 +246,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String FILTER_ENDS_WITH = "ew";
     private static final String FILTER_EQUALS = "eq";
     private static final String FILTER_CONTAINS = "co";
+    private static final String FILTER_LESS_OR_EQUAL = "le";
+    private static final String FILTER_LESS_THAN = "lt";
+    private static final String FILTER_GREATER_OR_EQUAL = "ge";
+    private static final String FILTER_GREATER_THAN = "gt";
+    private static final String LIKE_WITH_ESCAPE = "LIKE ? ESCAPE '\\'";
+    private static final String APP_NAME_LOWERCASED = "LOWER(APP_NAME)";
     private static final Map<String, String> SUPPORTED_SEARCH_ATTRIBUTE_MAP = new HashMap<>();
 
     static {
@@ -6535,6 +6542,133 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
                 "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+    }
+
+    @Override
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByIds(int[] appIds)
+            throws IdentityApplicationManagementException {
+
+        if (appIds == null || appIds.length == 0) {
+            return Collections.emptyList();
+        }
+        String placeholders = String.join(", ", Collections.nCopies(appIds.length, "?"));
+        String query = String.format(ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_IDS, placeholders);
+        List<ApplicationBasicInfo> result = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            for (int i = 0; i < appIds.length; i++) {
+                ps.setInt(i + 1, appIds[i]);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(buildMinimalApplicationInfo(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error retrieving application basic info for the given IDs.", e);
+        }
+        return result;
+    }
+
+    @Override
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(List<ExpressionNode> nameFilters,
+                                                                           int tenantId)
+            throws IdentityApplicationManagementException {
+
+        if (CollectionUtils.isEmpty(nameFilters)) {
+            throw new IdentityApplicationManagementException("No application name filter is provided.");
+        }
+        // The name filters are combined with AND, matching a single predicate list in one statement.
+        StringJoiner predicates = new StringJoiner(" AND ");
+        List<String> paramValues = new ArrayList<>(nameFilters.size());
+        for (ExpressionNode nameFilter : nameFilters) {
+            String operation = nameFilter.getOperation();
+            String value = nameFilter.getValue();
+            switch (operation) {
+                case FILTER_EQUALS:
+                    predicates.add(APP_NAME_LOWERCASED + " = ?");
+                    paramValues.add(value);
+                    break;
+                case FILTER_STARTS_WITH:
+                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
+                    paramValues.add(escapeLikeChars(value) + "%");
+                    break;
+                case FILTER_ENDS_WITH:
+                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
+                    paramValues.add("%" + escapeLikeChars(value));
+                    break;
+                case FILTER_CONTAINS:
+                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
+                    paramValues.add("%" + escapeLikeChars(value) + "%");
+                    break;
+                case FILTER_LESS_OR_EQUAL:
+                    predicates.add(APP_NAME_LOWERCASED + " <= ?");
+                    paramValues.add(value);
+                    break;
+                case FILTER_LESS_THAN:
+                    predicates.add(APP_NAME_LOWERCASED + " < ?");
+                    paramValues.add(value);
+                    break;
+                case FILTER_GREATER_OR_EQUAL:
+                    predicates.add(APP_NAME_LOWERCASED + " >= ?");
+                    paramValues.add(value);
+                    break;
+                case FILTER_GREATER_THAN:
+                    predicates.add(APP_NAME_LOWERCASED + " > ?");
+                    paramValues.add(value);
+                    break;
+                default:
+                    throw new IdentityApplicationManagementException(
+                            "Unsupported filter operation for application name: " + operation);
+            }
+        }
+        String query = String.format(ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_NAME_FILTER,
+                predicates.toString());
+        List<ApplicationBasicInfo> result = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, tenantId);
+            for (int index = 0; index < paramValues.size(); index++) {
+                ps.setString(index + 2, paramValues.get(index));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(buildMinimalApplicationInfo(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error retrieving application basic info for the given application name filters.", e);
+        }
+        return result;
+    }
+
+    /**
+     * Builds the basic information of an application from the identifier, name and UUID of the current row.
+     *
+     * @param resultSet Result set positioned on the row to read.
+     * @return the basic information of the application.
+     * @throws SQLException if a column could not be read.
+     */
+    private static ApplicationBasicInfo buildMinimalApplicationInfo(ResultSet resultSet) throws SQLException {
+
+        ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
+        basicInfo.setApplicationId(resultSet.getInt(ApplicationTableColumns.ID));
+        basicInfo.setApplicationName(resultSet.getString(ApplicationTableColumns.APP_NAME));
+        basicInfo.setApplicationResourceId(resultSet.getString(ApplicationTableColumns.UUID));
+        return basicInfo;
+    }
+
+    /**
+     * Escapes the LIKE wildcards of a filter value, for a LIKE predicate declaring {@code ESCAPE '\'}.
+     *
+     * @param value Filter value.
+     * @return the value with its backslashes and wildcards escaped.
+     */
+    private static String escapeLikeChars(String value) {
+
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private ApplicationBasicInfo buildApplicationBasicInfo(ResultSet appNameResultSet)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,18 +18,28 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.application.authentication.framework.dao.impl.AuthUserDAO;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -41,6 +51,22 @@ public class SessionMgtUtils {
 
     public static final String SQL_QUERY_APPLICATIONS_SPLIT_CHARACTER = "|";
     public static final String SQL_QUERY_APPLICATION_DETAILS_SPLIT_CHARACTER = ":";
+
+    public static final String DEFAULT_SESSION_STORE_NAME = "jdbc";
+
+    private static final String SESSION_STORE_IMPL_TYPE_PROPERTY = "SessionStoreImplType";
+
+    /**
+     * Returns the name of the configured session store, normalized to lower case.
+     *
+     * @return the configured store name, or the default store name if none is configured.
+     */
+    public static String getConfiguredSessionStoreName() {
+
+        String storeName = IdentityUtil.getProperty(SESSION_STORE_IMPL_TYPE_PROPERTY);
+        return StringUtils.isBlank(storeName) ? DEFAULT_SESSION_STORE_NAME
+                : storeName.trim().toLowerCase(Locale.ENGLISH);
+    }
 
     /**
      * Transform a list of filter expressions into SQL query strings.
@@ -312,6 +338,7 @@ public class SessionMgtUtils {
                     case APPLICATION:
                         appJoiner.add(filterSQL.toString());
                         builder.addFilterParam(SessionMgtConstants.FilterType.APPLICATION, paramValue);
+                        builder.addApplicationNameFilter(operation.toLowerCase(), value);
                         break;
                     case USER:
                         userJoiner.add(filterSQL.toString());
@@ -418,5 +445,119 @@ public class SessionMgtUtils {
     private static String escapeLikeChars(String value) {
 
         return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    /**
+     * Retrieves the applications of the given identifiers.
+     *
+     * @param appIds Application identifiers.
+     * @return the applications by identifier, without the identifiers that have no application record.
+     * @throws DataAccessException if the applications could not be retrieved.
+     */
+    public static Map<String, Application> getApplicationsByIds(Set<String> appIds) throws DataAccessException {
+
+        Map<String, Application> applications = new HashMap<>();
+        if (appIds == null || appIds.isEmpty()) {
+            return applications;
+        }
+        int[] parsedIds = new int[appIds.size()];
+        int index = 0;
+        try {
+            for (String appId : appIds) {
+                parsedIds[index++] = Integer.parseInt(appId);
+            }
+        } catch (NumberFormatException e) {
+            throw new DataAccessException("Invalid application ID found in session data: " + appIds, e);
+        }
+        try {
+            List<ApplicationBasicInfo> infos = FrameworkServiceDataHolder.getInstance()
+                    .getApplicationManagementService()
+                    .getApplicationBasicInfosByIds(parsedIds);
+            for (ApplicationBasicInfo info : infos) {
+                String appId = String.valueOf(info.getApplicationId());
+                applications.put(appId,
+                        new Application(null, info.getApplicationName(), appId, info.getApplicationResourceId()));
+            }
+        } catch (IdentityApplicationManagementException e) {
+            throw new DataAccessException("Error while retrieving application information by IDs.", e);
+        }
+        return applications;
+    }
+
+    /**
+     * Sets the name and the resource identifier of the given applications from their application records, and
+     * removes the ones that have no record.
+     *
+     * @param applications Applications to complete, modified in place.
+     * @throws DataAccessException if the application records could not be retrieved.
+     */
+    public static void setApplicationDetails(List<Application> applications) throws DataAccessException {
+
+        if (applications == null || applications.isEmpty()) {
+            return;
+        }
+        Set<String> appIds = new HashSet<>();
+        for (Application application : applications) {
+            appIds.add(application.getAppId());
+        }
+        Map<String, Application> records = getApplicationsByIds(appIds);
+        for (Application application : applications) {
+            Application record = records.get(application.getAppId());
+            if (record != null) {
+                application.setAppName(record.getAppName());
+                application.setResourceId(record.getResourceId());
+            }
+        }
+        applications.removeIf(application -> application.getAppName() == null);
+    }
+
+    /**
+     * Retrieves the applications matching the application filters held by the given filter builder, for the
+     * given tenant. Applications of the tenant and SaaS applications are both matched.
+     *
+     * @param filterBuilder Filter query builder holding the application filters.
+     * @param tenantId      Tenant identifier.
+     * @return the matching applications by their string encoded numeric identifier.
+     * @throws DataAccessException if the applications could not be retrieved.
+     */
+    public static Map<String, Application> getApplicationsByFilter(SessionFilterQueryBuilder filterBuilder,
+                                                                   int tenantId) throws DataAccessException {
+
+        List<ExpressionNode> nameFilters = filterBuilder.getApplicationNameFilters();
+        if (nameFilters.isEmpty()) {
+            throw new DataAccessException("No application filter is held by the given filter query builder.");
+        }
+        Map<String, Application> applications = new HashMap<>();
+        try {
+            for (ApplicationBasicInfo applicationInfo : FrameworkServiceDataHolder.getInstance()
+                    .getApplicationManagementService()
+                    .getApplicationBasicInfosByNameFilter(nameFilters, tenantId)) {
+                String appId = String.valueOf(applicationInfo.getApplicationId());
+                applications.put(appId, new Application(null, applicationInfo.getApplicationName(), appId,
+                        applicationInfo.getApplicationResourceId()));
+            }
+        } catch (IdentityApplicationManagementException e) {
+            throw new DataAccessException("Error while retrieving applications by the application filter.", e);
+        }
+        return applications;
+    }
+
+    /**
+     * Retrieves the identity provider of each of the given users.
+     *
+     * @param userIds User identifiers.
+     * @return the identity provider identifier by user identifier, without the users that have no record.
+     * @throws DataAccessException if the identity providers could not be retrieved.
+     */
+    public static Map<String, String> getIdpIdsByUserIds(Set<String> userIds) throws DataAccessException {
+
+        if (userIds == null || userIds.isEmpty()) {
+            return new HashMap<>();
+        }
+        try {
+            return AuthUserDAO.getInstance().getIdpIdsByUserIds(new ArrayList<>(userIds));
+        } catch (UserSessionException e) {
+            throw new DataAccessException("Error while retrieving IDP IDs for user IDs.", e);
+        }
     }
 }
