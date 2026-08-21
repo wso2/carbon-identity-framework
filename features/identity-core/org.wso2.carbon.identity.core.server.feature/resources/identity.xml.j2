@@ -2575,6 +2575,11 @@
                <Version>
                    <Latest>{{actions.types.flow_extension.version.latest}}</Latest>
                </Version>
+               <NonModifiablePaths>
+                   {% for path in actions.types.flow_extension.non_modifiable_paths %}
+                   <Path>{{path}}</Path>
+                   {% endfor %}
+               </NonModifiablePaths>
             </FlowExtension>
         </Types>
     </Actions>
