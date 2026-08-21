@@ -52,7 +52,7 @@ public class FlowExecutorMetadataResolver {
                 .name(executor.getName())
                 .metadata(getMetadata(executor))
                 .supportedFlowTypes(getSupportedFlowTypes(executor))
-                .idpRequired(executor instanceof AuthenticationExecutor)
+                .authenticationExecutor(executor instanceof AuthenticationExecutor)
                 .build();
     }
 

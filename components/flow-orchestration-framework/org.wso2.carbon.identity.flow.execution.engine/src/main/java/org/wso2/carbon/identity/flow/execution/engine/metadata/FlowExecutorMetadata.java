@@ -18,10 +18,6 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.metadata;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Display metadata declared by an executor. Describes how flow composer presents it as a selectable step.
  */
@@ -30,7 +26,6 @@ public class FlowExecutorMetadata {
     private final String displayName;
     private final String description;
     private final String icon;
-    private final List<String> behaviorFlags;
     private final String associatedAuthenticator;
     private final boolean connectionRequired;
 
@@ -39,9 +34,6 @@ public class FlowExecutorMetadata {
         this.displayName = builder.displayName;
         this.description = builder.description;
         this.icon = builder.icon;
-        this.behaviorFlags = builder.behaviorFlags == null
-                ? Collections.emptyList()
-                : Collections.unmodifiableList(new ArrayList<>(builder.behaviorFlags));
         this.associatedAuthenticator = builder.associatedAuthenticator;
         this.connectionRequired = builder.connectionRequired;
     }
@@ -77,16 +69,6 @@ public class FlowExecutorMetadata {
     }
 
     /**
-     * Behavior flags declared by this executor.
-     *
-     * @return Immutable list of behavior flags.
-     */
-    public List<String> getBehaviorFlags() {
-
-        return behaviorFlags;
-    }
-
-    /**
      * Name of the {@code ApplicationAuthenticator} that backs this executor.
      *
      * @return Authenticator name, or null if this executor is not backed by one.
@@ -119,7 +101,6 @@ public class FlowExecutorMetadata {
         private String displayName;
         private String description;
         private String icon;
-        private List<String> behaviorFlags;
         private String associatedAuthenticator;
         private boolean connectionRequired;
 
@@ -142,12 +123,6 @@ public class FlowExecutorMetadata {
         public Builder icon(String icon) {
 
             this.icon = icon;
-            return this;
-        }
-
-        public Builder behaviorFlags(List<String> behaviorFlags) {
-
-            this.behaviorFlags = behaviorFlags;
             return this;
         }
 

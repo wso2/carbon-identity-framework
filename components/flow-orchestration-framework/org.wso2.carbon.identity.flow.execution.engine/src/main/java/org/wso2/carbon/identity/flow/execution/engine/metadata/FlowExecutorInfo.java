@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -35,7 +34,7 @@ public class FlowExecutorInfo {
     private final String name;
     private final FlowExecutorMetadata declaredMetadata;
     private final Set<FlowTypes> supportedFlowTypes;
-    private final boolean idpRequired;
+    private final boolean authenticationExecutor;
     private final boolean metadataDeclared;
 
     private FlowExecutorInfo(Builder builder) {
@@ -50,7 +49,7 @@ public class FlowExecutorInfo {
             flowTypes.addAll(builder.supportedFlowTypes);
         }
         this.supportedFlowTypes = Collections.unmodifiableSet(flowTypes);
-        this.idpRequired = builder.idpRequired;
+        this.authenticationExecutor = builder.authenticationExecutor;
         this.metadataDeclared = builder.metadata != null || !this.supportedFlowTypes.isEmpty();
     }
 
@@ -92,16 +91,6 @@ public class FlowExecutorInfo {
     }
 
     /**
-     * Behavior flags declared by the executor.
-     *
-     * @return Immutable list of behavior flags.
-     */
-    public List<String> getBehaviorFlags() {
-
-        return declaredMetadata.getBehaviorFlags();
-    }
-
-    /**
      * Flow types this executor declared support for. Empty means the executor is not offered as a
      * step in any flow.
      *
@@ -129,13 +118,16 @@ public class FlowExecutorInfo {
     }
 
     /**
-     * Whether the executor resolves IDP configuration from its step metadata.
+     * Whether the executor authenticates the user, meaning it extends
+     * {@code AuthenticationExecutor}. Such an executor resolves IDP configuration from its step
+     * metadata, so an IDP must be bound to the step, and it qualifies as an authentication factor
+     * wherever a flow requires one.
      *
-     * @return True if an IDP must be bound to the step.
+     * @return True if the executor authenticates the user.
      */
-    public boolean isIdpRequired() {
+    public boolean isAuthenticationExecutor() {
 
-        return idpRequired;
+        return authenticationExecutor;
     }
 
     /**
@@ -172,7 +164,7 @@ public class FlowExecutorInfo {
         private String name;
         private FlowExecutorMetadata metadata;
         private Set<FlowTypes> supportedFlowTypes;
-        private boolean idpRequired;
+        private boolean authenticationExecutor;
 
         private Builder() {
 
@@ -201,9 +193,9 @@ public class FlowExecutorInfo {
             return this;
         }
 
-        public Builder idpRequired(boolean idpRequired) {
+        public Builder authenticationExecutor(boolean authenticationExecutor) {
 
-            this.idpRequired = idpRequired;
+            this.authenticationExecutor = authenticationExecutor;
             return this;
         }
 

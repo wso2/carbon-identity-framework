@@ -44,7 +44,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorBehaviorFlags.RECOVERY_FACTOR;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.INVITED_USER_REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.PASSWORD_RECOVERY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
@@ -124,10 +123,9 @@ public class FlowExecutorMetadataServiceTest {
         assertNull(info.getDescription());
         assertNull(info.getIcon());
         assertNull(info.getAssociatedAuthenticator());
-        assertTrue(info.getBehaviorFlags().isEmpty());
         assertTrue(info.getSupportedFlowTypes().isEmpty());
         assertFalse(info.isMetadataDeclared());
-        assertFalse(info.isIdpRequired());
+        assertFalse(info.isAuthenticationExecutor());
         assertFalse(info.isConnectionRequired());
     }
 
@@ -141,9 +139,10 @@ public class FlowExecutorMetadataServiceTest {
         assertEquals(info.getDisplayName(), "Custom Verification");
         assertEquals(info.getDescription(), "Verifies the user with an external verification service.");
         assertEquals(info.getIcon(), "assets/images/logos/custom-verification.svg");
-        assertEquals(info.getBehaviorFlags(),
-                Collections.singletonList(RECOVERY_FACTOR));
         assertEquals(info.getAssociatedAuthenticator(), "CustomVerificationAuthenticator");
+        assertFalse(info.isAuthenticationExecutor(),
+                "An executor that does not extend AuthenticationExecutor must not be reported as "
+                        + "authenticating the user.");
         assertTrue(info.isConnectionRequired());
         assertTrue(info.isMetadataDeclared());
         assertEquals(info.getSupportedFlowTypes(), EnumSet.of(REGISTRATION, PASSWORD_RECOVERY));
@@ -244,14 +243,14 @@ public class FlowExecutorMetadataServiceTest {
     }
 
     @Test
-    public void testAuthenticationExecutorRequiresAnIdentityProvider() {
+    public void testAuthenticationExecutorIsReportedAsAuthenticating() {
 
         register(new AuthExecutor());
 
         FlowExecutorInfo info = metadataService.getExecutor(AUTH_EXECUTOR).orElse(null);
         assertNotNull(info);
-        assertTrue(info.isIdpRequired(),
-                "An AuthenticationExecutor must be reported as needing an identity provider.");
+        assertTrue(info.isAuthenticationExecutor(),
+                "An AuthenticationExecutor must be reported as authenticating the user.");
         assertEquals(names(metadataService.getSupportedExtensionExecutors(REGISTRATION.name())),
                 Collections.singletonList(AUTH_EXECUTOR));
     }
@@ -432,7 +431,6 @@ public class FlowExecutorMetadataServiceTest {
                     .displayName("Custom Verification")
                     .description("Verifies the user with an external verification service.")
                     .icon("assets/images/logos/custom-verification.svg")
-                    .behaviorFlags(Collections.singletonList(RECOVERY_FACTOR))
                     .associatedAuthenticator("CustomVerificationAuthenticator")
                     .connectionRequired(true)
                     .build();
