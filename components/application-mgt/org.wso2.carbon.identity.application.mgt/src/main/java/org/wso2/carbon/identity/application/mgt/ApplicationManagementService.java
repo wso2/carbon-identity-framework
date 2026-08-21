@@ -663,5 +663,35 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
 
         throw new NotImplementedException();
     }
+
+    /**
+     * Retrieve the basic information of the applications of the given identifiers, of any tenant.
+     *
+     * @param appIds Application identifiers.
+     * @return the basic information of the matching applications.
+     * @throws IdentityApplicationManagementException if the applications could not be retrieved.
+     */
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByIds(int[] appIds)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Retrieve the basic information of the applications of the given tenant, and of the SaaS applications,
+     * whose name matches the given filter.
+     *
+     * @param operation Filter operation, one of the {@code FilterOperation} values.
+     * @param value     Filter value, lowercased and without wildcards.
+     * @param tenantId  Tenant identifier.
+     * @return the basic information of the matching applications.
+     * @throws IdentityApplicationManagementException if the applications could not be retrieved.
+     */
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(String operation, String value,
+                                                                           int tenantId)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
 }
 
