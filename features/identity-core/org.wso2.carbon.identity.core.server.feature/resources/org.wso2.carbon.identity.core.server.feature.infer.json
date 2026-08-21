@@ -279,6 +279,7 @@
   },
   "preserve_previous_product_behaviour.version": {
     "IS_7.0.0": {
+      "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
       "oauth.dcrm.return_null_fields_in_response": true,
       "oauth.oidc.user_info.return_only_app_associated_roles": false,
       "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
@@ -351,6 +352,7 @@
       "token_exchange.limit_scopes_to_subject_token": false
     },
     "IS_7.1.0": {
+      "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
       "oauth.dcrm.return_null_fields_in_response": true,
       "oauth.return_sp_id_to_apps": true,
       "oauth.jwt.return_only_app_associated_roles": false,
@@ -428,6 +430,7 @@
       "token_exchange.limit_scopes_to_subject_token": false
     },
     "IS_7.2.0": {
+      "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
@@ -462,6 +465,7 @@
       "token_exchange.limit_scopes_to_subject_token": false
     },
     "IS_7.3.0": {
+      "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
       "oauth.dcrm.decode_redirect_uris_in_response": false,
       "consent_mgt.enable_v2_api": false,
       "identity_mgt.events.schemes.ConsentEventHook.properties.enable": false,
