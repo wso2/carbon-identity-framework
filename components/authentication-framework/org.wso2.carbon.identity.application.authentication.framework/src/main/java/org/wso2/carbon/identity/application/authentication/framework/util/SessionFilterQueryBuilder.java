@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +35,7 @@ public class SessionFilterQueryBuilder {
     private final Map<SessionMgtConstants.FilterType, String> filterQueries = new HashMap<>();
     private final Map<SessionMgtConstants.FilterType, List<Object>> filterParams = new HashMap<>();
 
-    private final List<String[]> applicationNameFilters = new ArrayList<>();
+    private final List<ExpressionNode> applicationNameFilters = new ArrayList<>();
 
     /**
      * Sets the SQL fragment (containing {@code ?} placeholders) for a given filter type.
@@ -77,15 +79,19 @@ public class SessionFilterQueryBuilder {
      */
     public void addApplicationNameFilter(String operation, String value) {
 
-        applicationNameFilters.add(new String[]{operation, value});
+        ExpressionNode nameFilter = new ExpressionNode();
+        nameFilter.setAttributeValue(SessionMgtConstants.COL_APPLICATION);
+        nameFilter.setOperation(operation);
+        nameFilter.setValue(value);
+        applicationNameFilters.add(nameFilter);
     }
 
     /**
-     * Returns the APPLICATION filters, each as an {@code {operation, value}} pair, in the order added.
+     * Returns the APPLICATION filters, in the order they were added.
      *
      * @return Structured application filters, empty if none was added.
      */
-    public List<String[]> getApplicationNameFilters() {
+    public List<ExpressionNode> getApplicationNameFilters() {
 
         return Collections.unmodifiableList(applicationNameFilters);
     }

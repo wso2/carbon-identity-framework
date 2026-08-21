@@ -512,43 +512,29 @@ public class SessionMgtUtils {
     }
 
     /**
-     * Retrieves the applications matching the application filter of a session search. The applications of the
-     * given tenant and the SaaS applications are matched, as a session of either can be searched.
+     * Retrieves the applications matching the application filters held by the given filter builder, for the
+     * given tenant. Applications of the tenant and SaaS applications are both matched.
      *
-     * @param filterBuilder Filter query builder of the search, holding the application filters.
+     * @param filterBuilder Filter query builder holding the application filters.
      * @param tenantId      Tenant identifier.
-     * @return the matching applications by identifier.
+     * @return the matching applications by their string encoded numeric identifier.
      * @throws DataAccessException if the applications could not be retrieved.
      */
     public static Map<String, Application> getApplicationsByFilter(SessionFilterQueryBuilder filterBuilder,
                                                                    int tenantId) throws DataAccessException {
 
-        List<String[]> applicationFilters = filterBuilder.getApplicationNameFilters();
-        if (applicationFilters.isEmpty()) {
+        List<ExpressionNode> nameFilters = filterBuilder.getApplicationNameFilters();
+        if (nameFilters.isEmpty()) {
             throw new DataAccessException("No application filter is held by the given filter query builder.");
         }
         Map<String, Application> applications = new HashMap<>();
         try {
-            boolean isFirstFilter = true;
-            for (String[] applicationFilter : applicationFilters) {
-                Map<String, Application> matches = new HashMap<>();
-                for (ApplicationBasicInfo applicationInfo : FrameworkServiceDataHolder.getInstance()
-                        .getApplicationManagementService()
-                        .getApplicationBasicInfosByNameFilter(applicationFilter[0], applicationFilter[1], tenantId)) {
-                    String appId = String.valueOf(applicationInfo.getApplicationId());
-                    matches.put(appId, new Application(null, applicationInfo.getApplicationName(), appId,
-                            applicationInfo.getApplicationResourceId()));
-                }
-                // Application filters are combined with AND, which is the intersection of their matches.
-                if (isFirstFilter) {
-                    applications = matches;
-                    isFirstFilter = false;
-                } else {
-                    applications.keySet().retainAll(matches.keySet());
-                }
-                if (applications.isEmpty()) {
-                    break;
-                }
+            for (ApplicationBasicInfo applicationInfo : FrameworkServiceDataHolder.getInstance()
+                    .getApplicationManagementService()
+                    .getApplicationBasicInfosByNameFilter(nameFilters, tenantId)) {
+                String appId = String.valueOf(applicationInfo.getApplicationId());
+                applications.put(appId, new Application(null, applicationInfo.getApplicationName(), appId,
+                        applicationInfo.getApplicationResourceId()));
             }
         } catch (IdentityApplicationManagementException e) {
             throw new DataAccessException("Error while retrieving applications by the application filter.", e);

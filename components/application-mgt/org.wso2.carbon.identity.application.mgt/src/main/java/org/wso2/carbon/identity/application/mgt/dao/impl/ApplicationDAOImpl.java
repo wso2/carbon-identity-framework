@@ -133,6 +133,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -250,6 +251,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String FILTER_GREATER_OR_EQUAL = "ge";
     private static final String FILTER_GREATER_THAN = "gt";
     private static final String LIKE_WITH_ESCAPE = "LIKE ? ESCAPE '\\'";
+    private static final String APP_NAME_LOWERCASED = "LOWER(APP_NAME)";
     private static final Map<String, String> SUPPORTED_SEARCH_ATTRIBUTE_MAP = new HashMap<>();
 
     static {
@@ -6570,55 +6572,66 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(String operation, String value,
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(List<ExpressionNode> nameFilters,
                                                                            int tenantId)
             throws IdentityApplicationManagementException {
 
-        String sqlOp;
-        String paramValue;
-        switch (operation) {
-            case FILTER_EQUALS:
-                sqlOp = "= ?";
-                paramValue = value;
-                break;
-            case FILTER_STARTS_WITH:
-                sqlOp = LIKE_WITH_ESCAPE;
-                paramValue = escapeLikeChars(value) + "%";
-                break;
-            case FILTER_ENDS_WITH:
-                sqlOp = LIKE_WITH_ESCAPE;
-                paramValue = "%" + escapeLikeChars(value);
-                break;
-            case FILTER_CONTAINS:
-                sqlOp = LIKE_WITH_ESCAPE;
-                paramValue = "%" + escapeLikeChars(value) + "%";
-                break;
-            case FILTER_LESS_OR_EQUAL:
-                sqlOp = "<= ?";
-                paramValue = value;
-                break;
-            case FILTER_LESS_THAN:
-                sqlOp = "< ?";
-                paramValue = value;
-                break;
-            case FILTER_GREATER_OR_EQUAL:
-                sqlOp = ">= ?";
-                paramValue = value;
-                break;
-            case FILTER_GREATER_THAN:
-                sqlOp = "> ?";
-                paramValue = value;
-                break;
-            default:
-                throw new IdentityApplicationManagementException(
-                        "Unsupported filter operation for application name: " + operation);
+        if (CollectionUtils.isEmpty(nameFilters)) {
+            throw new IdentityApplicationManagementException("No application name filter is provided.");
         }
-        String query = String.format(ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_NAME_FILTER, sqlOp);
+        // The name filters are combined with AND, matching a single predicate list in one statement.
+        StringJoiner predicates = new StringJoiner(" AND ");
+        List<String> paramValues = new ArrayList<>(nameFilters.size());
+        for (ExpressionNode nameFilter : nameFilters) {
+            String operation = nameFilter.getOperation();
+            String value = nameFilter.getValue();
+            switch (operation) {
+                case FILTER_EQUALS:
+                    predicates.add(APP_NAME_LOWERCASED + " = ?");
+                    paramValues.add(value);
+                    break;
+                case FILTER_STARTS_WITH:
+                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
+                    paramValues.add(escapeLikeChars(value) + "%");
+                    break;
+                case FILTER_ENDS_WITH:
+                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
+                    paramValues.add("%" + escapeLikeChars(value));
+                    break;
+                case FILTER_CONTAINS:
+                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
+                    paramValues.add("%" + escapeLikeChars(value) + "%");
+                    break;
+                case FILTER_LESS_OR_EQUAL:
+                    predicates.add(APP_NAME_LOWERCASED + " <= ?");
+                    paramValues.add(value);
+                    break;
+                case FILTER_LESS_THAN:
+                    predicates.add(APP_NAME_LOWERCASED + " < ?");
+                    paramValues.add(value);
+                    break;
+                case FILTER_GREATER_OR_EQUAL:
+                    predicates.add(APP_NAME_LOWERCASED + " >= ?");
+                    paramValues.add(value);
+                    break;
+                case FILTER_GREATER_THAN:
+                    predicates.add(APP_NAME_LOWERCASED + " > ?");
+                    paramValues.add(value);
+                    break;
+                default:
+                    throw new IdentityApplicationManagementException(
+                            "Unsupported filter operation for application name: " + operation);
+            }
+        }
+        String query = String.format(ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_NAME_FILTER,
+                predicates.toString());
         List<ApplicationBasicInfo> result = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, tenantId);
-            ps.setString(2, paramValue);
+            for (int index = 0; index < paramValues.size(); index++) {
+                ps.setString(index + 2, paramValues.get(index));
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     result.add(buildBasicInfoOfApplication(rs));
@@ -6626,7 +6639,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException(
-                    "Error retrieving application basic info for name filter: " + operation + " " + value, e);
+                    "Error retrieving application basic info for the given application name filters.", e);
         }
         return result;
     }

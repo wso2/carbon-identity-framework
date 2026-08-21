@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -537,13 +538,12 @@ public interface ApplicationDAO {
      * Retrieve the basic information of the applications of the given tenant, and of the SaaS applications,
      * whose name matches the given filter.
      *
-     * @param operation Filter operation, one of the {@code FilterOperation} values.
-     * @param value     Filter value, lowercased and without wildcards.
-     * @param tenantId  Tenant identifier.
+     * @param nameFilters Name filters combined with AND, values lowercased and without wildcards.
+     * @param tenantId    Tenant identifier.
      * @return the basic information of the matching applications.
      * @throws IdentityApplicationManagementException if the applications could not be retrieved.
      */
-    default List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(String operation, String value,
+    default List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(List<ExpressionNode> nameFilters,
                                                                             int tenantId)
             throws IdentityApplicationManagementException {
 
