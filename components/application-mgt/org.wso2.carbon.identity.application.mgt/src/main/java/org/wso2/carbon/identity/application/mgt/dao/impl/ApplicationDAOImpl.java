@@ -6561,7 +6561,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    result.add(buildBasicInfoOfApplication(rs));
+                    result.add(buildMinimalApplicationInfo(rs));
                 }
             }
         } catch (SQLException e) {
@@ -6634,7 +6634,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    result.add(buildBasicInfoOfApplication(rs));
+                    result.add(buildMinimalApplicationInfo(rs));
                 }
             }
         } catch (SQLException e) {
@@ -6651,7 +6651,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return the basic information of the application.
      * @throws SQLException if a column could not be read.
      */
-    private static ApplicationBasicInfo buildBasicInfoOfApplication(ResultSet resultSet) throws SQLException {
+    private static ApplicationBasicInfo buildMinimalApplicationInfo(ResultSet resultSet) throws SQLException {
 
         ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
         basicInfo.setApplicationId(resultSet.getInt(ApplicationTableColumns.ID));
