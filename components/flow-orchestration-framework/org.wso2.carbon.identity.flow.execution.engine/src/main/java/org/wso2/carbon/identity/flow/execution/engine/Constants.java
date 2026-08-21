@@ -309,4 +309,5 @@ public class Constants {
         public static final String FLOW_TYPE_TTL_CONFIG_KEY = "FlowTypeTTL";
         public static final String FLOW_TYPE_ATTRIBUTE = "type";
     }
+
 }
