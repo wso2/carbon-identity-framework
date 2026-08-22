@@ -41,7 +41,7 @@
       },
       {
         "key": "timeout",
-        "value": "300"
+        "value": "120"
       }
     ]
   },
@@ -75,18 +75,10 @@
           {
             "index": 0,
             "name": "presentationDefinitionId",
-            "label": "Presentation Definition ID",
+            "label": "Presentation Definition",
             "type": "text",
             "required": true,
             "readOnly": true,
-            "width": "16"
-          },
-          {
-            "index": 1,
-            "name": "timeout",
-            "label": "Timeout (seconds)",
-            "type": "number",
-            "required": true,
             "width": "16"
           }
         ]

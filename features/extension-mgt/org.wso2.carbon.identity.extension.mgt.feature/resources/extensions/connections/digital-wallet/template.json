@@ -43,19 +43,19 @@
           "properties": [
             {
               "key": "presentationDefinitionId",
-              "displayName": "Presentation Definition ID",
-              "description": "Specify the presentation definition that determines the credentials and claims requested from the user's digital wallet.",
+              "displayName": "Presentation Definition",
+              "description": "Defines the credentials and claims to request from the user's digital wallet.",
               "type": "STRING",
               "displayOrder": 1,
               "isMandatory": true
             },
             {
               "key": "timeout",
-              "displayName": "Timeout (seconds)",
-              "description": "Specify how long to wait for the user to complete the digital wallet interaction before the request expires.",
+              "displayName": "Presentation Time Limit (seconds)",
+              "description": "Specifies how long to wait for the requested presentation from the user's digital wallet.",
               "type": "INTEGER",
               "displayOrder": 3,
-              "defaultValue": "300",
+              "defaultValue": "120",
               "isMandatory": true
             }
           ]
