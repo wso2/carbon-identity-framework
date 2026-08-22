@@ -1647,6 +1647,9 @@
             <Cache id="saml_cert_cache" name="SAMLCertCache" enable="true" timeout="900" capacity="5000" isDistributed="false"/>
             <Cache id="push_auth_context_cache" name="PushAuthContextCache" enable="true" timeout="300" capacity="5000" isDistributed="false" isTemporary="true"/>
             <Cache id="push_auth_status_cache" name="PushAuthStatusCache" enable="true" timeout="300" capacity="5000" isDistributed="false" isTemporary="true"/>
+            <Cache id="vp_session_cache" name="VPSessionCache" enable="true" timeout="300" capacity="1000" isDistributed="false"/>
+            <Cache id="openid4vp_tenant_config_cache" name="OpenID4VPTenantConfigCache" enable="true" timeout="900" capacity="1000" isDistributed="false"/>
+            <Cache id="openid4vp_presentation_definition_cache" name="OpenID4VPPresentationDefinitionCache" enable="true" timeout="900" capacity="5000" isDistributed="false"/>
         </CacheManager>
     </CacheConfig>
 
@@ -3123,4 +3126,8 @@
             <MaxExpressionsCombinedWithAnd>15</MaxExpressionsCombinedWithAnd>
         </DevicePolicy>
     </Rules>
+
+    <OpenID4VP>
+        <Enabled>false</Enabled>
+    </OpenID4VP>
 </Server>

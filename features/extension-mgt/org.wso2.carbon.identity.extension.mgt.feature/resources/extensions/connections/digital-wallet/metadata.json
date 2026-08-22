@@ -1,0 +1,88 @@
+{
+  "create": {
+    "image": "assets/images/logos/wallet.svg",
+    "header": "Digital Wallet",
+    "Subheading": "Enable Verifiable Credential-based identity interactions using OpenID for Verifiable Presentations (OpenID4VP).",
+    "documentation": "https://github.com/wso2-extensions/identity-inbound-auth-openid4vp",
+    "modal": {
+      "form": {
+        "fields": [
+          {
+            "index": 0,
+            "ariaLabel": "Digital Wallet Name",
+            "name": "name",
+            "label": "Name",
+            "type": "text",
+            "required": true,
+            "placeholder": "Enter a name for the connection.",
+            "initialValue": "Digital Wallet",
+            "maxLength": "50",
+            "minLength": "3",
+            "width": "13"
+          },
+          {
+            "index": 1,
+            "ariaLabel": "Digital Wallet Description",
+            "name": "description",
+            "label": "Description",
+            "type": "textarea",
+            "required": false,
+            "placeholder": "Enter a description for the connection.",
+            "maxLength": "300",
+            "width": "13"
+          }
+        ]
+      }
+    },
+    "properties": [
+      {
+        "key": "presentationDefinitionId",
+        "value": ""
+      },
+      {
+        "key": "timeout",
+        "value": "120"
+      }
+    ]
+  },
+  "edit": {
+    "tabs": {
+      "general": [
+        {
+          "index": 0,
+          "name": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "placeholder": "Digital Wallet",
+          "maxLength": "50",
+          "minLength": "3",
+          "width": "16"
+        },
+        {
+          "index": 1,
+          "name": "description",
+          "label": "Description",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "Enable Verifiable Credential-based identity interactions using OpenID for Verifiable Presentations (OpenID4VP).",
+          "maxLength": "300",
+          "width": "16"
+        }
+      ],
+      "settings": {
+        "fields": [
+          {
+            "index": 0,
+            "name": "presentationDefinitionId",
+            "label": "Presentation Definition",
+            "type": "text",
+            "required": true,
+            "readOnly": true,
+            "width": "16"
+          }
+        ]
+      }
+    }
+  }
+}

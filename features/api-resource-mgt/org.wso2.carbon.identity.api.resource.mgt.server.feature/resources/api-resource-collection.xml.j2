@@ -2733,4 +2733,69 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    {% if openid4vp.enabled %}
+    <APIResourceCollection name="presentationDefinitions" displayName="Presentation Definitions" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:presentation_definitions"/>
+                <Scope name="console:presentation_definitions_view"/>
+                <Scope name="console:presentation_definitions_edit"/>
+                <Scope name="console:presentation_definitions_create"/>
+                <Scope name="console:presentation_definitions_update"/>
+                <Scope name="console:presentation_definitions_delete"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_presentation_definition_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_presentation_definition_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_presentation_definition_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_presentation_definition_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_presentationDefinitions" displayName="Presentation Definitions" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:presentation_definitions"/>
+                <Scope name="console:org:presentation_definitions_view"/>
+                <Scope name="console:org:presentation_definitions_edit"/>
+                <Scope name="console:org:presentation_definitions_create"/>
+                <Scope name="console:org:presentation_definitions_update"/>
+                <Scope name="console:org:presentation_definitions_delete"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_presentation_definition_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_presentation_definition_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_presentation_definition_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_presentation_definition_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="verifiablePresentationSettings" displayName="Verifiable Presentation Settings" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:verifiablePresentationSettings"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_config_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_config_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    {% endif %}
 </APIResourceCollections>
