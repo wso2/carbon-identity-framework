@@ -796,13 +796,6 @@ public class DefaultClaimHandler implements ClaimHandler {
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager,
                 authenticatedUserId, userStore);
 
-        // AUTHDIAG (temporary) - which record the claims were actually read from. Note the claims are
-        // fetched by user id, while the subject carries a possibly different user store domain.
-        log.info("AUTHDIAG claims userId=" + authenticatedUserId
-                + " subjectDomain=" + authenticatedUser.getUserStoreDomain()
-                + " tenant=" + tenantDomain + " claimCount=" + allLocalClaims.size()
-                + " hasGroups=" + allLocalClaims.containsKey(IdentityUtil.getLocalGroupsClaimURI()));
-
         boolean useAppAssociatedRoles = isAppRoleResolverExists() || !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
         boolean isRoleClaimRequested = (requestedClaimMappings.get(FrameworkConstants.ROLES_CLAIM) != null);
         boolean isAppRoleClaimRequested = (requestedClaimMappings.get(FrameworkConstants.APP_ROLES_CLAIM) != null);
