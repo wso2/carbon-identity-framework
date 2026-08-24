@@ -5990,28 +5990,28 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Retrieve the identifiers of the identity providers of the given name, in the given tenant.
+     * Retrieve the identifier of the identity provider of the given name, in the given tenant. The name of an
+     * identity provider is unique within a tenant, so at most one identifier is held.
      *
      * @param connection Connection to the DB.
-     * @param tenantId   Tenant Id of the IdP.
      * @param idPName    Name of the IdP.
-     * @return the identifiers of the matching identity providers, in the order the database returns them.
+     * @param tenantId   Tenant Id of the IdP.
+     * @return the identifier of the identity provider, or -1 if the tenant has no identity provider of that name.
      * @throws SQLException Database Exception.
      */
-    private List<Integer> getIdPIdsByName(Connection connection, int tenantId, String idPName) throws SQLException {
+    private int getIdPIdByName(Connection connection, String idPName, int tenantId) throws SQLException {
 
-        List<Integer> idpIds = new ArrayList<>();
         String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME;
         try (PreparedStatement prepStmt = connection.prepareStatement(sqlStmt)) {
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, idPName);
             try (ResultSet resultSet = prepStmt.executeQuery()) {
-                while (resultSet.next()) {
-                    idpIds.add(resultSet.getInt(ID));
+                if (resultSet.next()) {
+                    return resultSet.getInt(ID);
                 }
             }
         }
-        return idpIds;
+        return -1;
     }
 
     /**
@@ -6025,8 +6025,7 @@ public class IdPManagementDAO {
     public int getIdPIdByName(String idPName, int tenantId) throws IdentityProviderManagementException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            List<Integer> idpIds = getIdPIdsByName(dbConnection, tenantId, idPName);
-            return idpIds.isEmpty() ? -1 : idpIds.get(0);
+            return getIdPIdByName(dbConnection, idPName, tenantId);
         } catch (SQLException e) {
             throw new IdentityProviderManagementException(
                     "Error while retrieving the IdP id of: " + idPName + " and tenant ID: " + tenantId, e);
@@ -6056,7 +6055,8 @@ public class IdPManagementDAO {
             PreparedStatement prepStmtIdpIdFromUUID = conn.prepareStatement(sqlStmtIdpIdFromUUID)) {
             if (StringUtils.isBlank(resourceId)) {
                 if (databaseProductName.contains(MySQL)) {
-                    for (int id : getIdPIdsByName(conn, tenantId, idPName)) {
+                    int id = getIdPIdByName(conn, idPName, tenantId);
+                    if (id != -1) {
                         deleteProvisioningConnectorConfigs(conn, id);
                     }
                 }
