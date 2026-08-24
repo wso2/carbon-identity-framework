@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -350,6 +351,32 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                 "Expected error code to match for retry status: " + retryStatus);
         Assert.assertEquals(errorInfo.get().getErrorMessage(), expectedError.message(),
                 "Expected error message to match for retry status: " + retryStatus);
+    }
+
+    /**
+     * Test that new line characters are removed and an oversized value is capped before a client supplied flowId is
+     * written to the server log, so that forged log records cannot be injected through the flowId.
+     */
+    @Test
+    public void testFlowIdIsSanitizedBeforeItIsLogged() throws Exception {
+
+        Method sanitizeMethod = AuthenticationService.class
+                .getDeclaredMethod("sanitizeFlowIdForLogging", String.class);
+        sanitizeMethod.setAccessible(true);
+        AuthenticationService authenticationService = new AuthenticationService();
+
+        String forgedFlowId = "valid-id\r\n2026-08-24 ERROR [forged] admin login succeeded";
+        String sanitized = (String) sanitizeMethod.invoke(authenticationService, forgedFlowId);
+        Assert.assertFalse(sanitized.contains("\r"), "Carriage returns should be removed from the logged flowId.");
+        Assert.assertFalse(sanitized.contains("\n"), "Line feeds should be removed from the logged flowId.");
+
+        String oversizedFlowId = StringUtils.repeat("a", 200);
+        String cappedFlowId = (String) sanitizeMethod.invoke(authenticationService, oversizedFlowId);
+        Assert.assertTrue(cappedFlowId.length() < oversizedFlowId.length(),
+                "An oversized flowId should be capped before it is logged.");
+
+        Assert.assertNull(sanitizeMethod.invoke(authenticationService, (Object) null),
+                "A null flowId should be returned as is.");
     }
 
     /**

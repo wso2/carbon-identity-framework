@@ -65,6 +65,7 @@ import javax.servlet.http.HttpServletResponse;
 public class AuthenticationService {
 
     private static final Log LOG = LogFactory.getLog(AuthenticationService.class);
+    private static final int MAX_LOGGABLE_FLOW_ID_LENGTH = 64;
     private final CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
 
     /**
@@ -531,7 +532,8 @@ public class AuthenticationService {
 
         String flowId = getFlowId(authServiceRequest);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Received app native authentication request with the flowId: " + flowId);
+            LOG.debug("Received app native authentication request with the flowId: "
+                    + sanitizeFlowIdForLogging(flowId));
         }
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
@@ -578,7 +580,8 @@ public class AuthenticationService {
     private void logInvalidFlowIdUsage(String flowId, AuthServiceConstants.ErrorMessage mappedError) {
 
         LOG.warn("App native authentication request received with a flowId which is no longer active. flowId: "
-                + flowId + ". Error: " + mappedError.code() + " - " + mappedError.description());
+                + sanitizeFlowIdForLogging(flowId) + ". Error: " + mappedError.code() + " - "
+                + mappedError.description());
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
@@ -591,6 +594,27 @@ public class AuthenticationService {
                         + " A new authentication flow needs to be initiated.")
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                 .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+    }
+
+    /**
+     * Removes new line characters from the flowId and caps its length before it is written to the server log. The
+     * flowId is fully controlled by the client, therefore writing it as received would allow forged log records to
+     * be injected into the server log through new line characters. Diagnostic log inputs are not sanitized here
+     * since they are recorded as structured data rather than as a log line.
+     *
+     * @param flowId flowId received with the authentication request. Can be null or blank.
+     * @return flowId which is safe to be written to the server log.
+     */
+    private String sanitizeFlowIdForLogging(String flowId) {
+
+        if (StringUtils.isBlank(flowId)) {
+            return flowId;
+        }
+        String sanitizedFlowId = flowId.replaceAll("[\\r\\n]", StringUtils.EMPTY);
+        if (sanitizedFlowId.length() > MAX_LOGGABLE_FLOW_ID_LENGTH) {
+            sanitizedFlowId = sanitizedFlowId.substring(0, MAX_LOGGABLE_FLOW_ID_LENGTH) + "...";
+        }
+        return sanitizedFlowId;
     }
 
     private String getFlowId(AuthServiceRequest authServiceRequest) {

@@ -522,6 +522,46 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         }
     }
 
+    /**
+     * Test that the context identifier is resolved from the sessionDataKey parameter when the request carries one.
+     */
+    @Test
+    public void testResolveContextIdentifierFromSessionDataKey() {
+
+        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+        lenient().when(httpServletRequest.getParameter(FrameworkConstants.SESSION_DATA_KEY))
+                .thenReturn("session-data-key");
+
+        assertEquals(FrameworkUtils.resolveContextIdentifier(httpServletRequest), "session-data-key");
+    }
+
+    /**
+     * Test that the promptId is resolved as the context identifier for a prompt response, since such requests do
+     * not carry the identifier in the sessionDataKey parameter.
+     */
+    @Test
+    public void testResolveContextIdentifierFromPromptId() {
+
+        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+        lenient().when(httpServletRequest.getParameter("promptResp")).thenReturn("true");
+        lenient().when(httpServletRequest.getParameter("promptId")).thenReturn("prompt-id");
+
+        assertEquals(FrameworkUtils.resolveContextIdentifier(httpServletRequest), "prompt-id");
+    }
+
+    /**
+     * Test that a blank sessionDataKey falls through to the authenticators, and that a null identifier is returned
+     * when none of them can resolve one from the request.
+     */
+    @Test
+    public void testResolveContextIdentifierWhenNoneCanBeResolved() {
+
+        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+        lenient().when(httpServletRequest.getParameter(FrameworkConstants.SESSION_DATA_KEY)).thenReturn("");
+
+        assertNull(FrameworkUtils.resolveContextIdentifier(httpServletRequest));
+    }
+
     @Test
     public void getAddAuthenticationContextToCache() {
 

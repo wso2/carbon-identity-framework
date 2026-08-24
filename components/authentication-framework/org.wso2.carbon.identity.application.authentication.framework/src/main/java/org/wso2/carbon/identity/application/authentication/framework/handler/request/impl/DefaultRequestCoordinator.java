@@ -502,12 +502,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     FrameworkUtils.getLogoutRequestHandler().handle(request, responseWrapper, context);
                 }
             } else {
-                String key = request.getParameter(FrameworkConstants.SESSION_DATA_KEY);
+                /* The identifier is resolved the same way the context itself was resolved above, since it is not
+                 necessarily carried in the sessionDataKey parameter. */
+                String key = FrameworkUtils.resolveContextIdentifier(request);
                 if (log.isDebugEnabled()) {
                     if (key == null) {
-                        log.debug("Session data key is null in the request");
+                        log.debug("No context identifier could be resolved from the request");
                     } else {
-                        log.debug("Session data key  :  " + key);
+                        log.debug("Context identifier  :  " + key);
                     }
                 }
 

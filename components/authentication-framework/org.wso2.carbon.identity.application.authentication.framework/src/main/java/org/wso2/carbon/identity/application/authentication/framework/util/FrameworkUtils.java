@@ -464,6 +464,51 @@ public class FrameworkUtils {
         return context;
     }
 
+    /**
+     * Resolves the identifier of the authentication context which the given request refers to, following the same
+     * resolution order as {@link #getContextData(HttpServletRequest)} uses to resolve the context itself. This is
+     * needed when the context could not be found, since the identifier is not necessarily carried in the
+     * sessionDataKey parameter. Federated authenticators, for an example, carry it within the state or the
+     * RelayState of the callback.
+     *
+     * @param request Request to resolve the context identifier from.
+     * @return Context identifier which the request refers to, or null if none could be resolved.
+     */
+    public static String resolveContextIdentifier(HttpServletRequest request) {
+
+        if (request.getParameter("promptResp") != null && StringUtils.isNotBlank(request.getParameter("promptId"))) {
+            return request.getParameter("promptId");
+        }
+        String sessionDataKey = request.getParameter(FrameworkConstants.SESSION_DATA_KEY);
+        if (StringUtils.isNotBlank(sessionDataKey)) {
+            return sessionDataKey;
+        }
+
+        List<ApplicationAuthenticator> authenticatorList;
+        try {
+            authenticatorList = ApplicationAuthenticatorManager.getInstance()
+                    .getAllAuthenticators(resolveTenantDomain(request));
+        } catch (FrameworkException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while getting the application authenticators to resolve the context identifier.", e);
+            }
+            return null;
+        }
+        for (ApplicationAuthenticator authenticator : authenticatorList) {
+            try {
+                String contextIdentifier = authenticator.getContextIdentifier(request);
+                if (StringUtils.isNotBlank(contextIdentifier)) {
+                    return contextIdentifier;
+                }
+            } catch (UnsupportedOperationException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Ignore UnsupportedOperationException.", e);
+                }
+            }
+        }
+        return null;
+    }
+
     public static RequestCoordinator getRequestCoordinator() {
 
         RequestCoordinator requestCoordinator = null;
