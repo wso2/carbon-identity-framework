@@ -364,6 +364,19 @@ public interface IdpManager {
     }
 
     /**
+     * Retrieve the identifier of the identity provider of the given name, in the given tenant.
+     *
+     * @param idPName  Identity provider name.
+     * @param tenantId Tenant identifier.
+     * @return the identifier of the identity provider, or -1 if the tenant has no identity provider of that name.
+     * @throws IdentityProviderManagementException if the identifier could not be retrieved.
+     */
+    default int getIdPIdByName(String idPName, int tenantId) throws IdentityProviderManagementException {
+
+        return -1;
+    }
+
+    /**
      * @param idPName
      * @param tenantDomain
      * @param ignoreFileBasedIdps

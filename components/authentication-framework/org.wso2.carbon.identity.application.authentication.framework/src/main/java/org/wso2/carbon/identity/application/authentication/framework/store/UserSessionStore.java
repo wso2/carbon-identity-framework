@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -25,10 +26,12 @@ import org.wso2.carbon.identity.application.authentication.framework.dao.UserSes
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAOFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.AuthUserDAO;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,6 +40,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LOCAL_IDP_NAME;
 
 /**
  * Class to store and retrieve user related data.
@@ -220,7 +225,21 @@ public class UserSessionStore {
      */
     public int getIdPId(String idpName, int tenantId) throws UserSessionException {
 
-        return AuthUserDAO.getInstance().getIdPId(idpName, tenantId);
+        int idPId = -1;
+        if (StringUtils.isBlank(idpName)) {
+            throw new UserSessionException("Blank IDP Name is provided to retrieve IdP id of tenant ID: " + tenantId);
+        }
+        if (StringUtils.equals(LOCAL_IDP_NAME, idpName)) {
+            return idPId;
+        }
+        try {
+            idPId = FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
+                    .getIdPIdByName(idpName, tenantId);
+        } catch (IdentityProviderManagementException e) {
+            throw new UserSessionException("Error while retrieving the IdP id of: " + idpName + " and tenant ID: " +
+                    tenantId, e);
+        }
+        return idPId;
     }
 
     /**

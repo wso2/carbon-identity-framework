@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LOCAL_IDP_NAME;
 
 /**
  * Reads and writes the authentication user records of {@code IDN_AUTH_USER}, which stay in the relational
@@ -135,40 +134,6 @@ public class AuthUserDAO {
                     ", User domain: " + userDomain + ", Identity provider id: " + idPId, e);
         }
         return userId;
-    }
-
-    /**
-     * Retrieve the identity provider identifier from the IDP table by IDP name and tenant.
-     *
-     * @param idpName  IDP name.
-     * @param tenantId Tenant identifier.
-     * @return the IDP identifier, or {@code -1} for the local IDP.
-     * @throws UserSessionException if the lookup fails.
-     */
-    public int getIdPId(String idpName, int tenantId) throws UserSessionException {
-
-        int idPId = -1;
-        if (StringUtils.isBlank(idpName)) {
-            throw new UserSessionException(
-                    "Blank IDP Name is provided to retrieve IdP id of tenant ID: " + tenantId);
-        }
-        if (StringUtils.equals(LOCAL_IDP_NAME, idpName)) {
-            return idPId;
-        }
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement ps = connection.prepareStatement(SQLQueries.SQL_SELECT_IDP_WITH_TENANT)) {
-            ps.setString(1, idpName);
-            ps.setInt(2, tenantId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    idPId = rs.getInt(1);
-                }
-            }
-        } catch (SQLException e) {
-            throw new UserSessionException(
-                    "Error while retrieving the IdP id of: " + idpName + " and tenant ID: " + tenantId, e);
-        }
-        return idPId;
     }
 
     /**
