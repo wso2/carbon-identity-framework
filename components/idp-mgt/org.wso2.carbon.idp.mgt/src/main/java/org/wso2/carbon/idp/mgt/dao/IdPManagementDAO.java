@@ -5993,30 +5993,6 @@ public class IdPManagementDAO {
      * Retrieve the identifier of the identity provider of the given name, in the given tenant. The name of an
      * identity provider is unique within a tenant, so at most one identifier is held.
      *
-     * @param connection Connection to the DB.
-     * @param idPName    Name of the IdP.
-     * @param tenantId   Tenant Id of the IdP.
-     * @return the identifier of the identity provider, or -1 if the tenant has no identity provider of that name.
-     * @throws SQLException Database Exception.
-     */
-    private int getIdPIdByName(Connection connection, String idPName, int tenantId) throws SQLException {
-
-        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME;
-        try (PreparedStatement prepStmt = connection.prepareStatement(sqlStmt)) {
-            prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, idPName);
-            try (ResultSet resultSet = prepStmt.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getInt(ID);
-                }
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Retrieve the identifier of the identity provider of the given name, in the given tenant.
-     *
      * @param idPName  Name of the IdP.
      * @param tenantId Tenant Id of the IdP.
      * @return the identifier of the identity provider, or -1 if the tenant has no identity provider of that name.
@@ -6024,12 +6000,21 @@ public class IdPManagementDAO {
      */
     public int getIdPIdByName(String idPName, int tenantId) throws IdentityProviderManagementException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            return getIdPIdByName(dbConnection, idPName, tenantId);
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME;
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, idPName);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(ID);
+                }
+            }
         } catch (SQLException e) {
             throw new IdentityProviderManagementException(
                     "Error while retrieving the IdP id of: " + idPName + " and tenant ID: " + tenantId, e);
         }
+        return -1;
     }
 
     /**
@@ -6045,6 +6030,7 @@ public class IdPManagementDAO {
 
         String databaseProductName = conn.getMetaData().getDatabaseProductName();
         String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_BY_RESOURCE_ID_SQL;
+        String sqlStmtGetIdpId = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME;
         String sqlStmtIdpIdFromUUID = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_UUID;
 
         if (StringUtils.isBlank(resourceId)) {
@@ -6052,11 +6038,16 @@ public class IdPManagementDAO {
         }
 
         try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt);
+        PreparedStatement prepStmtGetIdpId = conn.prepareStatement(sqlStmtGetIdpId);
             PreparedStatement prepStmtIdpIdFromUUID = conn.prepareStatement(sqlStmtIdpIdFromUUID)) {
             if (StringUtils.isBlank(resourceId)) {
                 if (databaseProductName.contains(MySQL)) {
-                    int id = getIdPIdByName(conn, idPName, tenantId);
-                    if (id != -1) {
+                    ResultSet resultSetGetIdpId = null;
+                    prepStmtGetIdpId.setInt(1, tenantId);
+                    prepStmtGetIdpId.setString(2, idPName);
+                    resultSetGetIdpId = prepStmtGetIdpId.executeQuery();
+                    while (resultSetGetIdpId.next()) {
+                        int id = resultSetGetIdpId.getInt(ID);
                         deleteProvisioningConnectorConfigs(conn, id);
                     }
                 }
