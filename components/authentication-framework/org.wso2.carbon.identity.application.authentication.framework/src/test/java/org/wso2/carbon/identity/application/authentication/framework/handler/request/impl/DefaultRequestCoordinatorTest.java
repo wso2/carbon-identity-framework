@@ -336,6 +336,9 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
+    /**
+     * Verifies that an inactive flow identifier is recorded in the diagnostic log.
+     */
     @Test(description = "Test that a request with an inactive flow identifier is flagged in the logs")
     public void testHandleRecordsUsageOfInactiveFlowIdentifier() throws FrameworkException, IOException {
 
