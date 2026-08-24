@@ -31,6 +31,7 @@ public class IdPManagementConstants {
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
     public static final String IDP_GROUP_LIST_PLACEHOLDER = "_IDP_GROUP_LIST_";
     public static final String IDP_METADATA_PROPERTY_LIST_PLACEHOLDER = "_IDP_METADATA_PROPERTY_LIST_";
+    public static final String IDP_METADATA_VALUE_COLUMN_PLACEHOLDER = "_IDP_METADATA_VALUE_COLUMN_";
     public static final String MULTI_VALUED_PROPERTY_CHARACTER = ".";
     public static final String IS_TRUE_VALUE = "1";
     public static final String IS_FALSE_VALUE = "0";
@@ -85,6 +86,13 @@ public class IdPManagementConstants {
     public static final String IDP_PROVISIONING = "provisioning";
     public static final String PROVISIONING =
             "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, DEFAULT_PRO_CONNECTOR_NAME";
+    public static final String IDP_TEMPLATE_ID = "templateId";
+
+    // 'VALUE' is a reserved word, hence the IDP_METADATA value column needs to be quoted differently per database.
+    public static final String METADATA_VALUE_COLUMN = "VALUE";
+    public static final String METADATA_VALUE_COLUMN_BACKTICK_QUOTED = "`VALUE`";
+    public static final String METADATA_VALUE_COLUMN_DOUBLE_QUOTED = "\"VALUE\"";
+    public static final String CLOSING_PARENTHESIS = ")";
 
     // Flag to indicate if an IdP is a system reserved IdP.
     public static final String IS_SYSTEM_RESERVED_IDP_FLAG = "isSystemReservedIdP";
@@ -439,6 +447,20 @@ public class IdPManagementConstants {
                 "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
 
         public static final String TRUSTED_TOKEN_ISSUER_FILTER_SQL = "IDP_METADATA.\"VALUE\" = 'true' AND ";
+
+        /*
+         * Template ids live in IDP_METADATA while the rest of the filterable attributes are IDP columns, hence the
+         * template id filter is applied as a sub query. The operator, the bind parameter and the closing parenthesis
+         * are appended by the caller. IDP_ID is a foreign key to the globally unique IDP.ID, so the sub query needs no
+         * tenant correlation, the outer query is already restricted to the tenant.
+         */
+        public static final String TEMPLATE_ID_FILTER_SQL = "ID IN (SELECT IDP_METADATA_FILTER.IDP_ID FROM "
+                + "IDP_METADATA IDP_METADATA_FILTER WHERE IDP_METADATA_FILTER.NAME = '"
+                + TEMPLATE_ID_IDP_PROPERTY_NAME + "' AND IDP_METADATA_FILTER."
+                + IDP_METADATA_VALUE_COLUMN_PLACEHOLDER;
+
+        // IDP_METADATA is already joined in the trusted token issuer query, so 'ID' has to be qualified there.
+        public static final String TEMPLATE_ID_FILTER_TRUSTED_TOKEN_ISSUER_SQL = "IDP." + TEMPLATE_ID_FILTER_SQL;
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE) VALUES " +
