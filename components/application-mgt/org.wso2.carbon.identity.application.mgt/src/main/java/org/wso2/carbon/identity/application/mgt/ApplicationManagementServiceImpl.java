@@ -3747,11 +3747,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(List<ExpressionNode> nameFilters,
-                                                                           int tenantId)
+    public List<ApplicationBasicInfo> getApplicationBasicInfos(String filterClause, List<Object> filterParams)
             throws IdentityApplicationManagementException {
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        return appDAO.getApplicationBasicInfosByNameFilter(nameFilters, tenantId);
+        return appDAO.getApplicationBasicInfos(filterClause, filterParams);
     }
 }

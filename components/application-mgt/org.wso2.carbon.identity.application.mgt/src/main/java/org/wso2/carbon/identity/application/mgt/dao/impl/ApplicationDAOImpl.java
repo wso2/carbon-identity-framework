@@ -133,7 +133,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -246,12 +245,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String FILTER_ENDS_WITH = "ew";
     private static final String FILTER_EQUALS = "eq";
     private static final String FILTER_CONTAINS = "co";
-    private static final String FILTER_LESS_OR_EQUAL = "le";
-    private static final String FILTER_LESS_THAN = "lt";
-    private static final String FILTER_GREATER_OR_EQUAL = "ge";
-    private static final String FILTER_GREATER_THAN = "gt";
-    private static final String LIKE_WITH_ESCAPE = "LIKE ? ESCAPE '\\'";
-    private static final String APP_NAME_LOWERCASED = "LOWER(APP_NAME)";
     private static final Map<String, String> SUPPORTED_SEARCH_ATTRIBUTE_MAP = new HashMap<>();
 
     static {
@@ -6572,66 +6565,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(List<ExpressionNode> nameFilters,
-                                                                           int tenantId)
+    public List<ApplicationBasicInfo> getApplicationBasicInfos(String filterClause, List<Object> filterParams)
             throws IdentityApplicationManagementException {
 
-        if (CollectionUtils.isEmpty(nameFilters)) {
-            throw new IdentityApplicationManagementException("No application name filter is provided.");
-        }
-        // The name filters are combined with AND, matching a single predicate list in one statement.
-        StringJoiner predicates = new StringJoiner(" AND ");
-        List<String> paramValues = new ArrayList<>(nameFilters.size());
-        for (ExpressionNode nameFilter : nameFilters) {
-            String operation = nameFilter.getOperation();
-            String value = nameFilter.getValue();
-            switch (operation) {
-                case FILTER_EQUALS:
-                    predicates.add(APP_NAME_LOWERCASED + " = ?");
-                    paramValues.add(value);
-                    break;
-                case FILTER_STARTS_WITH:
-                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
-                    paramValues.add(escapeLikeChars(value) + "%");
-                    break;
-                case FILTER_ENDS_WITH:
-                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
-                    paramValues.add("%" + escapeLikeChars(value));
-                    break;
-                case FILTER_CONTAINS:
-                    predicates.add(APP_NAME_LOWERCASED + " " + LIKE_WITH_ESCAPE);
-                    paramValues.add("%" + escapeLikeChars(value) + "%");
-                    break;
-                case FILTER_LESS_OR_EQUAL:
-                    predicates.add(APP_NAME_LOWERCASED + " <= ?");
-                    paramValues.add(value);
-                    break;
-                case FILTER_LESS_THAN:
-                    predicates.add(APP_NAME_LOWERCASED + " < ?");
-                    paramValues.add(value);
-                    break;
-                case FILTER_GREATER_OR_EQUAL:
-                    predicates.add(APP_NAME_LOWERCASED + " >= ?");
-                    paramValues.add(value);
-                    break;
-                case FILTER_GREATER_THAN:
-                    predicates.add(APP_NAME_LOWERCASED + " > ?");
-                    paramValues.add(value);
-                    break;
-                default:
-                    throw new IdentityApplicationManagementException(
-                            "Unsupported filter operation for application name: " + operation);
-            }
-        }
-        String query = String.format(ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_NAME_FILTER,
-                predicates.toString());
+        String query = String.format(ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_FILTER, filterClause);
         List<ApplicationBasicInfo> result = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, tenantId);
-            for (int index = 0; index < paramValues.size(); index++) {
-                ps.setString(index + 2, paramValues.get(index));
-            }
+            bindFilterParams(ps, filterParams);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     result.add(buildMinimalApplicationInfo(rs));
@@ -6639,9 +6580,33 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException(
-                    "Error retrieving application basic info for the given application name filters.", e);
+                    "Error retrieving application basic info for the given filter.", e);
         }
         return result;
+    }
+
+    /**
+     * Binds the given filter values to the statement, in the order they are held.
+     *
+     * @param ps           Statement to bind the values to.
+     * @param filterParams Filter values.
+     * @throws SQLException if a value could not be bound.
+     */
+    private static void bindFilterParams(PreparedStatement ps, List<Object> filterParams) throws SQLException {
+
+        if (filterParams == null) {
+            return;
+        }
+        int index = 1;
+        for (Object param : filterParams) {
+            if (param instanceof Long) {
+                ps.setLong(index++, (Long) param);
+            } else if (param instanceof Integer) {
+                ps.setInt(index++, (Integer) param);
+            } else {
+                ps.setString(index++, (String) param);
+            }
+        }
     }
 
     /**
@@ -6658,17 +6623,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationName(resultSet.getString(ApplicationTableColumns.APP_NAME));
         basicInfo.setApplicationResourceId(resultSet.getString(ApplicationTableColumns.UUID));
         return basicInfo;
-    }
-
-    /**
-     * Escapes the LIKE wildcards of a filter value, for a LIKE predicate declaring {@code ESCAPE '\'}.
-     *
-     * @param value Filter value.
-     * @return the value with its backslashes and wildcards escaped.
-     */
-    private static String escapeLikeChars(String value) {
-
-        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private ApplicationBasicInfo buildApplicationBasicInfo(ResultSet appNameResultSet)

@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
@@ -682,13 +681,12 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * Retrieve the basic information of the applications of the given tenant, and of the SaaS applications,
      * whose name matches the given filter.
      *
-     * @param nameFilters Name filters combined with AND, values lowercased and without wildcards.
-     * @param tenantId    Tenant identifier.
+     * @param filterClause Filter clause of the query, with {@code ?} placeholders for its values.
+     * @param filterParams Values of the filter clause, in the order of their placeholders.
      * @return the basic information of the matching applications.
      * @throws IdentityApplicationManagementException if the applications could not be retrieved.
      */
-    public List<ApplicationBasicInfo> getApplicationBasicInfosByNameFilter(List<ExpressionNode> nameFilters,
-                                                                           int tenantId)
+    public List<ApplicationBasicInfo> getApplicationBasicInfos(String filterClause, List<Object> filterParams)
             throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();

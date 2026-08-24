@@ -120,10 +120,9 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_BASIC_INFO_BY_IDS =
             "SELECT ID, APP_NAME, UUID FROM SP_APP WHERE ID IN (%s)";
 
-    // %s is replaced at runtime with the application name predicates, combined with AND.
-    public static final String LOAD_APP_BASIC_INFO_BY_NAME_FILTER =
-            "SELECT ID, APP_NAME, UUID FROM SP_APP " +
-            "WHERE (TENANT_ID = ? OR IS_SAAS_APP = '1') AND %s";
+    // %s is replaced at runtime with the filter clause of the caller.
+    public static final String LOAD_APP_BASIC_INFO_BY_FILTER =
+            "SELECT ID, APP_NAME, UUID FROM SP_APP %s";
 
     // Load application basic information for listing with pagination
     public static final String LOAD_APP_NAMES_BY_TENANT_MYSQL = "SELECT ID, APP_NAME, VERSION, DESCRIPTION, " +

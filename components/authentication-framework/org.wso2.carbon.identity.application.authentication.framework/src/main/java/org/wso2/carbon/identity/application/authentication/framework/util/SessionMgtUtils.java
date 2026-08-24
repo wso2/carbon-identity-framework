@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
  */
 public class SessionMgtUtils {
 
+    private static final String APP_FILTER_TENANT_CONDITION = " AND (TENANT_ID = ? OR IS_SAAS_APP = 1)";
+
     public static final String SQL_QUERY_APPLICATIONS_SPLIT_CHARACTER = "|";
     public static final String SQL_QUERY_APPLICATION_DETAILS_SPLIT_CHARACTER = ":";
 
@@ -338,7 +340,6 @@ public class SessionMgtUtils {
                     case APPLICATION:
                         appJoiner.add(filterSQL.toString());
                         builder.addFilterParam(SessionMgtConstants.FilterType.APPLICATION, paramValue);
-                        builder.addApplicationNameFilter(operation.toLowerCase(), value);
                         break;
                     case USER:
                         userJoiner.add(filterSQL.toString());
@@ -512,10 +513,10 @@ public class SessionMgtUtils {
     }
 
     /**
-     * Retrieves the applications matching the application filters held by the given filter builder, for the
-     * given tenant. Applications of the tenant and SaaS applications are both matched.
+     * Retrieves the applications matching the application filter of a session search. The applications of the
+     * given tenant and the SaaS applications are matched, as a session of either can be searched.
      *
-     * @param filterBuilder Filter query builder holding the application filters.
+     * @param filterBuilder Filter query builder of the search, holding the application filter and its values.
      * @param tenantId      Tenant identifier.
      * @return the matching applications by their string encoded numeric identifier.
      * @throws DataAccessException if the applications could not be retrieved.
@@ -523,15 +524,15 @@ public class SessionMgtUtils {
     public static Map<String, Application> getApplicationsByFilter(SessionFilterQueryBuilder filterBuilder,
                                                                    int tenantId) throws DataAccessException {
 
-        List<ExpressionNode> nameFilters = filterBuilder.getApplicationNameFilters();
-        if (nameFilters.isEmpty()) {
-            throw new DataAccessException("No application filter is held by the given filter query builder.");
-        }
+        String filterClause = filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.APPLICATION)
+                + APP_FILTER_TENANT_CONDITION;
+        List<Object> filterParams = new ArrayList<>(
+                filterBuilder.getFilterParams(SessionMgtConstants.FilterType.APPLICATION));
+        filterParams.add(tenantId);
         Map<String, Application> applications = new HashMap<>();
         try {
             for (ApplicationBasicInfo applicationInfo : FrameworkServiceDataHolder.getInstance()
-                    .getApplicationManagementService()
-                    .getApplicationBasicInfosByNameFilter(nameFilters, tenantId)) {
+                    .getApplicationManagementService().getApplicationBasicInfos(filterClause, filterParams)) {
                 String appId = String.valueOf(applicationInfo.getApplicationId());
                 applications.put(appId, new Application(null, applicationInfo.getApplicationName(), appId,
                         applicationInfo.getApplicationResourceId()));
