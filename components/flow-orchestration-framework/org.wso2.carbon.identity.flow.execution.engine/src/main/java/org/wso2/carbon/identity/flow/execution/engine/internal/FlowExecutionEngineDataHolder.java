@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -78,7 +79,7 @@ public class FlowExecutionEngineDataHolder {
     public void addExecutor(Executor executor) {
 
         String name = executor.getName();
-        if (name == null || name.trim().isEmpty()) {
+        if (StringUtils.isBlank(name)) {
             return;
         }
         FlowExecutorInfo info = FlowExecutorMetadataResolver.resolve(executor);
@@ -97,7 +98,7 @@ public class FlowExecutionEngineDataHolder {
     public void removeExecutor(Executor executor) {
 
         String name = executor.getName();
-        if (name == null || name.trim().isEmpty()) {
+        if (StringUtils.isBlank(name)) {
             return;
         }
         executors.remove(name, executor);

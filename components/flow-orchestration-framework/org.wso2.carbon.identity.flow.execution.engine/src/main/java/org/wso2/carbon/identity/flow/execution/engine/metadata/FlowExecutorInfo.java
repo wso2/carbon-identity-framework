@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.metadata;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 
 import java.util.Collections;
@@ -71,7 +72,7 @@ public class FlowExecutorInfo {
     public String getDisplayName() {
 
         String declaredDisplayName = declaredMetadata.getDisplayName();
-        return declaredDisplayName == null || declaredDisplayName.trim().isEmpty() ? name : declaredDisplayName;
+        return StringUtils.isBlank(declaredDisplayName) ? name : declaredDisplayName;
     }
 
     /**

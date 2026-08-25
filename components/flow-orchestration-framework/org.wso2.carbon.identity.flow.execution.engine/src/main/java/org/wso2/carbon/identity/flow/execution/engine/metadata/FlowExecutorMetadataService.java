@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.metadata;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutorMetadataResolver;
@@ -100,7 +101,7 @@ public final class FlowExecutorMetadataService {
      */
     public Optional<FlowExecutorInfo> getExecutor(String executorName) {
 
-        if (executorName == null || executorName.trim().isEmpty()) {
+        if (StringUtils.isBlank(executorName)) {
             return Optional.empty();
         }
         Executor executor = FlowExecutionEngineDataHolder.getInstance().getExecutors().get(executorName);
@@ -115,7 +116,7 @@ public final class FlowExecutorMetadataService {
      */
     public boolean isExecutorRegistered(String executorName) {
 
-        return executorName != null && !executorName.trim().isEmpty()
+        return StringUtils.isNotBlank(executorName)
                 && FlowExecutionEngineDataHolder.getInstance().getExecutors().containsKey(executorName);
     }
 
@@ -132,7 +133,7 @@ public final class FlowExecutorMetadataService {
 
     private FlowTypes toFlowType(String flowType) {
 
-        if (flowType == null || flowType.trim().isEmpty()) {
+        if (StringUtils.isBlank(flowType)) {
             return null;
         }
         for (FlowTypes type : FlowTypes.values()) {
