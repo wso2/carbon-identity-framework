@@ -492,7 +492,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
         if (retainCache == null) {
             FrameworkUtils.removeAuthenticationContextFromCache(context.getContextIdentifier(),
-                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.LOGOUT_FLOW_CONCLUDED);
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.LOGOUT_FLOW_CONCLUDED, context);
         }
 
         if (log.isDebugEnabled()) {

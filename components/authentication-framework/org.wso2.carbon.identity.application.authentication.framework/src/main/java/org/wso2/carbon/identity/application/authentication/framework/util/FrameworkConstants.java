@@ -849,10 +849,14 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATED_IDPS = "authenticated idps";
         public static final String IDP = "idp";
         public static final String SESSION_CONTEXT_KEY = "session context key";
-        public static final String FLOW_ID = "flow id";
+        /* The identifier of the authentication context is logged as the context id everywhere it appears, even
+         though app native authentication exposes it to the client as the flowId, so that the whole lifecycle of a
+         single identifier can be retrieved with one query. */
+        public static final String FLOW_STATUS = "flow status";
         public static final String INVALIDATION_REASON = "invalidation reason";
         public static final String USER_AGENT = "user agent";
         public static final String REFERER = "referer";
+        public static final String ERROR_CODE = "error code";
 
         /**
          * Define action IDs for diagnostic logs in the framework component.

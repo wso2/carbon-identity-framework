@@ -124,6 +124,7 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -430,7 +431,8 @@ public class FrameworkUtils {
             context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
             if (context != null) {
                 FrameworkUtils.removeAuthenticationContextFromCache(promptId,
-                        FrameworkConstants.LogConstants.AuthContextInvalidationReasons.PROMPT_RESPONSE_PROCESSED);
+                        FrameworkConstants.LogConstants.AuthContextInvalidationReasons.PROMPT_RESPONSE_PROCESSED,
+                        context);
                 return context;
             }
         }
@@ -1822,6 +1824,24 @@ public class FrameworkUtils {
      */
     public static void removeAuthenticationContextFromCache(String contextId, String reason) {
 
+        removeAuthenticationContextFromCache(contextId, reason, null);
+    }
+
+    /**
+     * Invalidates the authentication context held against the given context identifier and records the invalidation
+     * as a diagnostic log carrying the application the flow belonged to. The application is needed so that the
+     * logging framework can apply its own filtering, such as leaving out Console traffic, which it decides by
+     * inspecting the client id and the application name of the entry.
+     *
+     * @param contextId Context identifier of the authentication context. This is the flowId in app native
+     *                  authentication.
+     * @param reason    Reason for the invalidation. Used only for logging purposes and can be null.
+     * @param context   Authentication context being invalidated. Used only to resolve the application for logging
+     *                  purposes and can be null.
+     */
+    public static void removeAuthenticationContextFromCache(String contextId, String reason,
+                                                            AuthenticationContext context) {
+
         if (contextId == null) {
             return;
         }
@@ -1843,6 +1863,15 @@ public class FrameworkUtils {
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
             if (StringUtils.isNotBlank(reason)) {
                 diagnosticLogBuilder.inputParam(FrameworkConstants.LogConstants.INVALIDATION_REASON, reason);
+            }
+            if (context != null) {
+                if (StringUtils.isNotBlank(context.getRelyingParty())) {
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.CLIENT_ID, context.getRelyingParty());
+                }
+                if (StringUtils.isNotBlank(context.getServiceProviderName())) {
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                            context.getServiceProviderName());
+                }
             }
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }

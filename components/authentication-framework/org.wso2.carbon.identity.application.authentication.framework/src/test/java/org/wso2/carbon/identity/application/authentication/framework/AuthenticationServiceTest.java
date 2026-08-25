@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
@@ -63,6 +64,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -351,6 +353,35 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                 "Expected error code to match for retry status: " + retryStatus);
         Assert.assertEquals(errorInfo.get().getErrorMessage(), expectedError.message(),
                 "Expected error message to match for retry status: " + retryStatus);
+    }
+
+    /**
+     * Test that no flowId issuance is recorded for a request which is not the initial request of a flow. The
+     * identifier does not change between the steps of a flow, so recording an issuance for a continuation would
+     * make the point at which the identifier was actually issued impossible to find.
+     */
+    @Test
+    public void testFlowIdIssuanceIsNotRecordedForContinuationRequests() throws Exception {
+
+        AuthenticationService authenticationService = new AuthenticationService();
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+
+        // The initial request attribute is absent, which is what a continuation request of a flow looks like.
+        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
+        when(response.getHeader(LOCATION_HEADER)).thenReturn(getFinalRedirectUrl(SESSION_DATA_KEY));
+
+        authenticationService.handleAuthentication(authServiceRequest);
+
+        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()), atLeastOnce());
+        for (DiagnosticLog.DiagnosticLogBuilder builder : captor.getAllValues()) {
+            Assert.assertNotEquals(builder.build().getActionId(),
+                    FrameworkConstants.LogConstants.ActionIDs.ISSUE_FLOW_ID,
+                    "A continuation request should not be recorded as a flowId issuance.");
+        }
     }
 
     /**

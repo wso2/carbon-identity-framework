@@ -78,7 +78,8 @@ public class AuthenticationService {
     public AuthServiceResponse handleAuthentication(AuthServiceRequest authRequest) throws AuthServiceException {
 
         // Request validation is only required for the initial authentication request.
-        if (isInitialAuthRequest(authRequest)) {
+        boolean isInitialAuthRequest = isInitialAuthRequest(authRequest);
+        if (isInitialAuthRequest) {
             validateRequest(authRequest);
         } else {
             logFlowIdUsage(authRequest);
@@ -93,7 +94,14 @@ public class AuthenticationService {
                     AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_PROCEED.description(), e);
         }
 
-        return processCommonAuthResponse(wrappedRequest, wrappedResponse);
+        AuthServiceResponse authServiceResponse = processCommonAuthResponse(wrappedRequest, wrappedResponse);
+        /* The flow identifier is only issued for the initial request of a flow. The subsequent requests of the same
+         flow carry the identifier which was issued here, so recording an issuance for those would make the point at
+         which the identifier was actually issued impossible to find. */
+        if (isInitialAuthRequest) {
+            logFlowIdIssuance(authServiceResponse.getSessionDataKey(), authServiceResponse.getFlowStatus());
+        }
+        return authServiceResponse;
     }
 
     private AuthServiceRequestWrapper getWrappedRequest(HttpServletRequest request, Map<String, String[]> parameters) {
@@ -134,7 +142,6 @@ public class AuthenticationService {
 
         authServiceResponse.setSessionDataKey(request.getSessionDataKey());
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.INCOMPLETE);
-        logFlowIdIssuance(request.getSessionDataKey(), AuthServiceConstants.FlowStatus.INCOMPLETE);
         AuthServiceResponseData responseData = new AuthServiceResponseData();
         boolean isMultiOptionsResponse = request.isMultiOptionsResponse();
 
@@ -244,7 +251,6 @@ public class AuthenticationService {
 
         authServiceResponse.setSessionDataKey(request.getSessionDataKey());
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
-        logFlowIdIssuance(request.getSessionDataKey(), AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
         AuthServiceResponseData responseData = new AuthServiceResponseData();
         List<AuthenticatorData> authenticatorDataList;
         boolean isMultiOptionsResponse = request.isMultiOptionsResponse();
@@ -541,30 +547,34 @@ public class AuthenticationService {
         LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                 FrameworkConstants.LogConstants.ActionIDs.VALIDATE_FLOW_ID)
-                .inputParam(FrameworkConstants.LogConstants.FLOW_ID, flowId)
+                .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, flowId)
                 .resultMessage("Received an app native authentication request with a flowId.")
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                 .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
     }
 
     /**
-     * Records the flowId returned to the client so that the point at which a flowId was issued can be traced.
+     * Records the flowId returned to the client for the initial request of an authentication flow, so that the
+     * point at which a flowId was issued can be traced. This is only recorded once per flow. The identifier does
+     * not change between the steps of a flow, therefore recording it again for a subsequent step would make the
+     * actual point of issuance impossible to identify.
      *
-     * @param flowId     flowId returned with the authentication response.
-     * @param flowStatus Flow status of the authentication response.
+     * @param flowId     flowId returned with the authentication response. Can be null or blank if the flow was
+     *                   concluded without issuing one.
+     * @param flowStatus Flow status of the authentication response. Can be null.
      */
     private void logFlowIdIssuance(String flowId, AuthServiceConstants.FlowStatus flowStatus) {
 
-        if (StringUtils.isBlank(flowId) || !LoggerUtils.isDiagnosticLogsEnabled()) {
+        if (StringUtils.isBlank(flowId) || flowStatus == null || !LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
         LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                 FrameworkConstants.LogConstants.ActionIDs.ISSUE_FLOW_ID)
-                .inputParam(FrameworkConstants.LogConstants.FLOW_ID, flowId)
-                .inputParam("flow status", flowStatus.name())
-                .resultMessage("flowId is issued for the incomplete authentication flow. The same flowId is " +
-                        "expected in the next authentication request of this flow.")
+                .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, flowId)
+                .inputParam(FrameworkConstants.LogConstants.FLOW_STATUS, flowStatus.name())
+                .resultMessage("A flowId is issued for the authentication flow. The same flowId is expected in " +
+                        "every subsequent authentication request of this flow.")
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                 .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
     }
@@ -588,8 +598,8 @@ public class AuthenticationService {
         LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                 FrameworkConstants.LogConstants.ActionIDs.VALIDATE_FLOW_ID)
-                .inputParam(FrameworkConstants.LogConstants.FLOW_ID, flowId)
-                .inputParam(AuthServiceConstants.ERROR_CODE_PARAM, mappedError.code())
+                .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, flowId)
+                .inputParam(FrameworkConstants.LogConstants.ERROR_CODE, mappedError.code())
                 .resultMessage("The provided flowId is no longer active. " + mappedError.description()
                         + " A new authentication flow needs to be initiated.")
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)

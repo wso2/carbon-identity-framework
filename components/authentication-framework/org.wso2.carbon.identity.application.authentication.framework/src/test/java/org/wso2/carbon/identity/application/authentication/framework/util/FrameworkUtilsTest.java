@@ -78,6 +78,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -519,6 +520,38 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
             verify(mockedAuthenticationContextCache, never())
                     .clearCacheEntry(any(AuthenticationContextCacheKey.class));
+        }
+    }
+
+    /**
+     * Test that the application the flow belonged to is recorded with the invalidation, so that the logging
+     * framework can apply its own filtering, such as leaving out Console traffic.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheRecordsApplication() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+            AuthenticationContext authenticationContext = new AuthenticationContext();
+            authenticationContext.setServiceProviderName("My Application");
+            authenticationContext.setRelyingParty("my-client-id");
+
+            FrameworkUtils.removeAuthenticationContextFromCache("CONTEXT-ID",
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.AUTH_FLOW_CONCLUDED,
+                    authenticationContext);
+
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captorLog =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captorLog.capture()));
+            DiagnosticLog diagnosticLog = captorLog.getValue().build();
+            assertEquals(diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID), "my-client-id",
+                    "The client id is required for the logging framework to identify Console traffic.");
+            assertEquals(diagnosticLog.getInput().get(LogConstants.InputKeys.APPLICATION_NAME), "My Application");
         }
     }
 
