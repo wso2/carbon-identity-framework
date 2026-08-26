@@ -134,6 +134,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.action.management</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -195,7 +199,8 @@
                             org.json;version="${json.wso2.version.range}",
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.action.management.api.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.tenant.mgt.util.*;version="${carbon.multitenancy.imp.pkg.version.range}"
+                            org.wso2.carbon.tenant.mgt.util.*;version="${carbon.multitenancy.imp.pkg.version.range}",
+                            com.google.gson;version="${com.google.code.gson.osgi.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.idp.mgt.internal,

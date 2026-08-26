@@ -3197,15 +3197,26 @@ public class IdentityProviderManager implements IdpManager {
 
         IdentityProvider identityProvider = dao.getIdPByName(null, ORGANIZATION_LOGIN_IDP_NAME, tenantId, tenantDomain);
         if (identityProvider != null && StringUtils.isNotBlank(identityProvider.getId())) {
-            identityProvider.setIdpProperties(
-                    addJWKSUriProperty(identityProvider.getIdpProperties(), jwtIssuer));
+            /* The IdentityProvider instance returned above may be the same instance held by IdPCacheByName
+            (the DAO cache does not store by value). The per-request JWKS URI derived from the current
+            request's issuer must therefore be set only on a copy, never on the cached instance, otherwise
+            it permanently pins the cached SSO IdP's JWKS URI to whichever organization resolved it first,
+            causing every other organization's back-channel logout token to be validated against the wrong
+            organization's JWKS endpoint. */
+            IdentityProvider identityProviderCopy = IdPManagementUtil.cloneIdentityProvider(identityProvider);
+            identityProviderCopy.setIdpProperties(
+                    addJWKSUriProperty(identityProviderCopy.getIdpProperties(), jwtIssuer));
+            identityProvider = identityProviderCopy;
         }
         return identityProvider;
     }
 
     /**
      * Add JWKS URI property to the identity provider properties for SSO identity provider.
-     * The URI is constructed by replacing the token endpoint with JWKS endpoint.
+     * The URI is constructed by replacing the token endpoint with JWKS endpoint. Any existing jwksUri
+     * property is replaced rather than appended, since JWTSignatureValidationUtils#getJWKSUri returns the
+     * first jwksUri property it finds - an appended, stale value would otherwise be able to shadow the
+     * correct, freshly-resolved one.
      *
      * @param idpProperties Identity provider properties.
      * @param jwtIssuer     JWT issuer.
@@ -3215,7 +3226,11 @@ public class IdentityProviderManager implements IdpManager {
 
         List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
         if (ArrayUtils.isNotEmpty(idpProperties)) {
-            identityProviderProperties = new ArrayList<>(Arrays.asList(idpProperties));
+            for (IdentityProviderProperty idpProperty : idpProperties) {
+                if (!StringUtils.equals(idpProperty.getName(), JWKS_URI)) {
+                    identityProviderProperties.add(idpProperty);
+                }
+            }
         }
         String jwksUri = jwtIssuer.replace(OAUTH2_TOKEN_EP_URL, OAUTH2_JWKS_EP_URL);
         IdentityProviderProperty jwksEndpoint = new IdentityProviderProperty();
