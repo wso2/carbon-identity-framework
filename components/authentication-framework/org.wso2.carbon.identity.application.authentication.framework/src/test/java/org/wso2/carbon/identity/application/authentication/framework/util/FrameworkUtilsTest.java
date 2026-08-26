@@ -556,6 +556,27 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     }
 
     /**
+     * Test that new line characters are removed and an oversized value is capped before a client supplied value is
+     * written to the server log, so that forged log records cannot be injected through it.
+     */
+    @Test
+    public void testSanitizeForLogging() {
+
+        String forgedValue = "valid-id\r\n2026-08-25 ERROR [forged] admin login succeeded";
+        String sanitized = FrameworkUtils.sanitizeForLogging(forgedValue);
+        assertFalse(sanitized.contains("\r"), "Carriage returns should be removed from a logged value.");
+        assertFalse(sanitized.contains("\n"), "Line feeds should be removed from a logged value.");
+
+        String oversizedValue = new String(new char[200]).replace("\0", "a");
+        assertTrue(FrameworkUtils.sanitizeForLogging(oversizedValue).length() < oversizedValue.length(),
+                "An oversized value should be capped before it is logged.");
+
+        assertNull(FrameworkUtils.sanitizeForLogging(null), "A null value should be returned as is.");
+        assertEquals(FrameworkUtils.sanitizeForLogging("plain-flow-id"), "plain-flow-id",
+                "A value with nothing to sanitize should be returned unchanged.");
+    }
+
+    /**
      * Test that the context identifier is resolved from the sessionDataKey parameter when the request carries one.
      */
     @Test

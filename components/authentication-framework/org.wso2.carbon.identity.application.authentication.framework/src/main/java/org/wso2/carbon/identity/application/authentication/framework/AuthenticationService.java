@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.function.Supplier;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -65,7 +66,6 @@ import javax.servlet.http.HttpServletResponse;
 public class AuthenticationService {
 
     private static final Log LOG = LogFactory.getLog(AuthenticationService.class);
-    private static final int MAX_LOGGABLE_FLOW_ID_LENGTH = 64;
     private final CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
 
     /**
@@ -539,12 +539,14 @@ public class AuthenticationService {
         String flowId = getFlowId(authServiceRequest);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Received app native authentication request with the flowId: "
-                    + sanitizeFlowIdForLogging(flowId));
+                    + FrameworkUtils.sanitizeForLogging(flowId));
         }
-        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+        /* Without a flowId there is nothing to trace, and recording the entry regardless would claim that a flowId
+         was received when it was not. */
+        if (StringUtils.isBlank(flowId)) {
             return;
         }
-        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+        recordDiagnosticLog(() -> new DiagnosticLog.DiagnosticLogBuilder(
                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                 FrameworkConstants.LogConstants.ActionIDs.VALIDATE_FLOW_ID)
                 .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, flowId)
@@ -565,10 +567,10 @@ public class AuthenticationService {
      */
     private void logFlowIdIssuance(String flowId, AuthServiceConstants.FlowStatus flowStatus) {
 
-        if (StringUtils.isBlank(flowId) || flowStatus == null || !LoggerUtils.isDiagnosticLogsEnabled()) {
+        if (StringUtils.isBlank(flowId) || !isFlowIdIssuingStatus(flowStatus)) {
             return;
         }
-        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+        recordDiagnosticLog(() -> new DiagnosticLog.DiagnosticLogBuilder(
                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                 FrameworkConstants.LogConstants.ActionIDs.ISSUE_FLOW_ID)
                 .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, flowId)
@@ -590,12 +592,9 @@ public class AuthenticationService {
     private void logInvalidFlowIdUsage(String flowId, AuthServiceConstants.ErrorMessage mappedError) {
 
         LOG.warn("App native authentication request received with a flowId which is no longer active. flowId: "
-                + sanitizeFlowIdForLogging(flowId) + ". Error: " + mappedError.code() + " - "
+                + FrameworkUtils.sanitizeForLogging(flowId) + ". Error: " + mappedError.code() + " - "
                 + mappedError.description());
-        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
-            return;
-        }
-        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+        recordDiagnosticLog(() -> new DiagnosticLog.DiagnosticLogBuilder(
                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                 FrameworkConstants.LogConstants.ActionIDs.VALIDATE_FLOW_ID)
                 .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, flowId)
@@ -607,24 +606,38 @@ public class AuthenticationService {
     }
 
     /**
-     * Removes new line characters from the flowId and caps its length before it is written to the server log. The
-     * flowId is fully controlled by the client, therefore writing it as received would allow forged log records to
-     * be injected into the server log through new line characters. Diagnostic log inputs are not sanitized here
-     * since they are recorded as structured data rather than as a log line.
+     * Checks whether a flowId is issued to the client along with a response of the given flow status. A flowId is
+     * only issued while the flow is still awaiting a further request from the client. A concluded flow returns the
+     * session key of the inbound protocol instead, which belongs to a different identifier space and must not be
+     * recorded as a flowId issuance.
      *
-     * @param flowId flowId received with the authentication request. Can be null or blank.
-     * @return flowId which is safe to be written to the server log.
+     * @param flowStatus Flow status of the authentication response. Can be null.
+     * @return true if a flowId is issued for a response of the given flow status.
      */
-    private String sanitizeFlowIdForLogging(String flowId) {
+    private boolean isFlowIdIssuingStatus(AuthServiceConstants.FlowStatus flowStatus) {
 
-        if (StringUtils.isBlank(flowId)) {
-            return flowId;
+        return AuthServiceConstants.FlowStatus.INCOMPLETE == flowStatus
+                || AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE == flowStatus;
+    }
+
+    /**
+     * Records the diagnostic log produced by the given supplier, without allowing a failure of the logging
+     * framework itself to affect the authentication flow which is being recorded. Resolving whether diagnostic
+     * logging is enabled requires a resolvable tenant, which is not guaranteed on every path this is reached from.
+     *
+     * @param logBuilderSupplier Supplier of the diagnostic log to be recorded. Only invoked when diagnostic
+     *                           logging is enabled, so that no log is built needlessly.
+     */
+    private void recordDiagnosticLog(Supplier<DiagnosticLog.DiagnosticLogBuilder> logBuilderSupplier) {
+
+        try {
+            if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+                return;
+            }
+            LoggerUtils.triggerDiagnosticLogEvent(logBuilderSupplier.get());
+        } catch (Exception e) {
+            LOG.error("Error while recording a diagnostic log of the app native authentication flow.", e);
         }
-        String sanitizedFlowId = flowId.replaceAll("[\\r\\n]", StringUtils.EMPTY);
-        if (sanitizedFlowId.length() > MAX_LOGGABLE_FLOW_ID_LENGTH) {
-            sanitizedFlowId = sanitizedFlowId.substring(0, MAX_LOGGABLE_FLOW_ID_LENGTH) + "...";
-        }
-        return sanitizedFlowId;
     }
 
     private String getFlowId(AuthServiceRequest authServiceRequest) {

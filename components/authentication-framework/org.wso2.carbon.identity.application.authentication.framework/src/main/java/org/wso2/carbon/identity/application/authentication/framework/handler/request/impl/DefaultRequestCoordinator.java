@@ -522,8 +522,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 /* The context identifier is exposed to the client as the flowId in app native authentication.
                  Logging it here makes it possible to trace back to the point where the flow identifier was
                  issued and to the point where it was invalidated. */
-                log.warn("Context does not exist. Probably due to invalidated cache. Flow identifier: " + key
-                        + ". " + message);
+                log.warn("Context does not exist. Probably due to invalidated cache. Flow identifier: "
+                        + FrameworkUtils.sanitizeForLogging(key) + ". " + message);
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
                             new DiagnosticLog.DiagnosticLogBuilder(

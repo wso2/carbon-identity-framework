@@ -255,6 +255,7 @@ public class FrameworkUtils {
     public static final String TENANT_DOMAIN = "tenantDomain";
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
+    private static final int MAX_LOGGABLE_CLIENT_VALUE_LENGTH = 64;
     private static int maxInactiveInterval;
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
@@ -486,29 +487,52 @@ public class FrameworkUtils {
             return sessionDataKey;
         }
 
-        List<ApplicationAuthenticator> authenticatorList;
+        /* This is only used to enrich the logs of a request whose context could not be found, therefore it must
+         never fail the request it is trying to describe. An authenticator of the tenant is free to throw anything
+         from getContextIdentifier() for a request which was not meant for it. */
         try {
-            authenticatorList = ApplicationAuthenticatorManager.getInstance()
+            List<ApplicationAuthenticator> authenticatorList = ApplicationAuthenticatorManager.getInstance()
                     .getAllAuthenticators(resolveTenantDomain(request));
-        } catch (FrameworkException e) {
+            for (ApplicationAuthenticator authenticator : authenticatorList) {
+                try {
+                    String contextIdentifier = authenticator.getContextIdentifier(request);
+                    if (StringUtils.isNotBlank(contextIdentifier)) {
+                        return contextIdentifier;
+                    }
+                } catch (Exception e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Ignoring the failure of " + authenticator.getName()
+                                + " to resolve a context identifier from the request.", e);
+                    }
+                }
+            }
+        } catch (Exception e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while getting the application authenticators to resolve the context identifier.", e);
             }
-            return null;
-        }
-        for (ApplicationAuthenticator authenticator : authenticatorList) {
-            try {
-                String contextIdentifier = authenticator.getContextIdentifier(request);
-                if (StringUtils.isNotBlank(contextIdentifier)) {
-                    return contextIdentifier;
-                }
-            } catch (UnsupportedOperationException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Ignore UnsupportedOperationException.", e);
-                }
-            }
         }
         return null;
+    }
+
+    /**
+     * Removes new line characters from a client supplied value and caps its length, so that it can be written to
+     * the server log. A value which the client controls would otherwise allow forged log records to be injected
+     * into the server log through new line characters, and an oversized value to flood it. Diagnostic log inputs do
+     * not need this, since they are recorded as structured data rather than as a log line.
+     *
+     * @param value Value received from the client. Can be null or blank.
+     * @return Value which is safe to be written to the server log.
+     */
+    public static String sanitizeForLogging(String value) {
+
+        if (StringUtils.isBlank(value)) {
+            return value;
+        }
+        String sanitizedValue = value.replaceAll("[\\r\\n]", StringUtils.EMPTY);
+        if (sanitizedValue.length() > MAX_LOGGABLE_CLIENT_VALUE_LENGTH) {
+            sanitizedValue = sanitizedValue.substring(0, MAX_LOGGABLE_CLIENT_VALUE_LENGTH) + "...";
+        }
+        return sanitizedValue;
     }
 
     public static RequestCoordinator getRequestCoordinator() {
@@ -1852,7 +1876,13 @@ public class FrameworkUtils {
             log.debug("Authentication context with the identifier: " + contextId + " is invalidated."
                     + (StringUtils.isNotBlank(reason) ? " Reason: " + reason + "." : ""));
         }
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+        /* The cache entry is already cleared at this point. This method is invoked in the middle of concluding an
+         authentication and a logout flow, so a failure of the logging framework itself, such as a tenant which
+         cannot be resolved, must not be allowed to fail the flow which is being concluded. */
+        try {
+            if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+                return;
+            }
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.INVALIDATE_AUTH_CONTEXT)
@@ -1874,6 +1904,8 @@ public class FrameworkUtils {
                 }
             }
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        } catch (Exception e) {
+            log.error("Error while recording the invalidation of the authentication context.", e);
         }
     }
 

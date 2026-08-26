@@ -357,6 +357,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             // A null context is what the framework sees once the flow identifier is no longer active.
             frameworkUtils.when(() -> FrameworkUtils.getContextData(any())).thenReturn(null);
             frameworkUtils.when(() -> FrameworkUtils.resolveContextIdentifier(any())).thenReturn("stale-flow-id");
+            frameworkUtils.when(() -> FrameworkUtils.sanitizeForLogging(anyString()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
             frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any(), any(), any()))
                     .thenAnswer(invocation -> {
                         ((HttpServletResponse) invocation.getArgument(1)).sendRedirect("dummyUrl");

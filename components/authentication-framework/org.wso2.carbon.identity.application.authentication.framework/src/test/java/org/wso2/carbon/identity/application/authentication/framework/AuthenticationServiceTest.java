@@ -50,12 +50,13 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -64,7 +65,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -210,6 +211,76 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
             Assert.fail("Expected authServiceErrorInfo to be present as the flow is fail incomplete.");
         }
         Assert.assertEquals(authServiceErrorInfo.get().getErrorMessage(), PASSWORD_EXPIRED_MSG);
+    }
+
+    /**
+     * Test that an initial request which concludes the flow is not recorded as a flowId issuance. A concluded flow
+     * returns the session key of the inbound protocol rather than a flow identifier, so recording it would place an
+     * identifier of a different identifier space into the flowId lifecycle.
+     */
+    @Test
+    public void testFlowIdIssuanceIsNotRecordedWhenTheInitialRequestConcludesTheFlow() throws Exception {
+
+        setUpEnabledApplicationForInitialRequest();
+        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                .thenReturn(AuthenticatorFlowStatus.SUCCESS_COMPLETED);
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(FINAL_SESSION_DATA_KEY);
+        when(response.getHeader(LOCATION_HEADER)).thenReturn(getFinalRedirectUrl(FINAL_SESSION_DATA_KEY));
+
+        new AuthenticationService().handleAuthentication(new AuthServiceRequest(request, response));
+
+        Assert.assertFalse(isDiagnosticLogRecordedFor(FrameworkConstants.LogConstants.ActionIDs.ISSUE_FLOW_ID),
+                "A concluded flow should not be recorded as a flowId issuance.");
+    }
+
+    /**
+     * Test that an initial request which leaves the flow incomplete is recorded as a flowId issuance, since that is
+     * the point at which a flowId is handed to the client.
+     */
+    @Test
+    public void testFlowIdIssuanceIsRecordedWhenTheInitialRequestLeavesTheFlowIncomplete() throws Exception {
+
+        setUpEnabledApplicationForInitialRequest();
+        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
+        when(request.getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA))
+                .thenReturn(getAuthenticatorData(SINGLE_AUTHENTICATOR));
+        when(response.getHeader(LOCATION_HEADER))
+                .thenReturn(getIntermediateRedirectUrl(SESSION_DATA_KEY, SINGLE_AUTHENTICATOR));
+
+        new AuthenticationService().handleAuthentication(new AuthServiceRequest(request, response));
+
+        Assert.assertTrue(isDiagnosticLogRecordedFor(FrameworkConstants.LogConstants.ActionIDs.ISSUE_FLOW_ID),
+                "An incomplete flow should record the flowId which was issued to the client.");
+    }
+
+    private void setUpEnabledApplicationForInitialRequest() throws Exception {
+
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.isApplicationEnabled()).thenReturn(true);
+        when(serviceProvider.isAPIBasedAuthenticationEnabled()).thenReturn(true);
+        ApplicationManagementServiceImpl mockApplicationManagementService =
+                mock(ApplicationManagementServiceImpl.class);
+        applicationManagementService.when(ApplicationManagementService::getInstance)
+                .thenReturn(mockApplicationManagementService);
+        when(mockApplicationManagementService.getServiceProviderByClientId(anyString(), anyString(), anyString()))
+                .thenReturn(serviceProvider);
+        when(request.getAttribute(AuthServiceConstants.REQ_ATTR_IS_INITIAL_API_BASED_AUTH_REQUEST)).thenReturn(true);
+        when(request.getAttribute(AuthServiceConstants.REQ_ATTR_RELYING_PARTY)).thenReturn("dummyClientId");
+        when(request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN)).thenReturn("dummyTenantDomain");
+    }
+
+    /**
+     * Returns whether a diagnostic log of the given action id was recorded during the test.
+     */
+    private boolean isDiagnosticLogRecordedFor(String actionId) {
+
+        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()), atLeast(0));
+        return captor.getAllValues().stream()
+                .anyMatch(builder -> actionId.equals(builder.build().getActionId()));
     }
 
     @Test
@@ -364,9 +435,12 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
     public void testFlowIdIssuanceIsNotRecordedForContinuationRequests() throws Exception {
 
         AuthenticationService authenticationService = new AuthenticationService();
-        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+        /* The initial request attribute is absent and a flowId is supplied, which is what a continuation request
+         of an already started flow looks like. */
+        Map<String, String[]> parameters = new HashMap<>();
+        parameters.put(AuthServiceConstants.FLOW_ID, new String[]{SESSION_DATA_KEY});
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response, parameters);
 
-        // The initial request attribute is absent, which is what a continuation request of a flow looks like.
         when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
                 .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
         when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
@@ -374,41 +448,10 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
 
         authenticationService.handleAuthentication(authServiceRequest);
 
-        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
-                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
-        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()), atLeastOnce());
-        for (DiagnosticLog.DiagnosticLogBuilder builder : captor.getAllValues()) {
-            Assert.assertNotEquals(builder.build().getActionId(),
-                    FrameworkConstants.LogConstants.ActionIDs.ISSUE_FLOW_ID,
-                    "A continuation request should not be recorded as a flowId issuance.");
-        }
+        Assert.assertFalse(isDiagnosticLogRecordedFor(FrameworkConstants.LogConstants.ActionIDs.ISSUE_FLOW_ID),
+                "A continuation request should not be recorded as a flowId issuance.");
     }
 
-    /**
-     * Test that new line characters are removed and an oversized value is capped before a client supplied flowId is
-     * written to the server log, so that forged log records cannot be injected through the flowId.
-     */
-    @Test
-    public void testFlowIdIsSanitizedBeforeItIsLogged() throws Exception {
-
-        Method sanitizeMethod = AuthenticationService.class
-                .getDeclaredMethod("sanitizeFlowIdForLogging", String.class);
-        sanitizeMethod.setAccessible(true);
-        AuthenticationService authenticationService = new AuthenticationService();
-
-        String forgedFlowId = "valid-id\r\n2026-08-24 ERROR [forged] admin login succeeded";
-        String sanitized = (String) sanitizeMethod.invoke(authenticationService, forgedFlowId);
-        Assert.assertFalse(sanitized.contains("\r"), "Carriage returns should be removed from the logged flowId.");
-        Assert.assertFalse(sanitized.contains("\n"), "Line feeds should be removed from the logged flowId.");
-
-        String oversizedFlowId = StringUtils.repeat("a", 200);
-        String cappedFlowId = (String) sanitizeMethod.invoke(authenticationService, oversizedFlowId);
-        Assert.assertTrue(cappedFlowId.length() < oversizedFlowId.length(),
-                "An oversized flowId should be capped before it is logged.");
-
-        Assert.assertNull(sanitizeMethod.invoke(authenticationService, (Object) null),
-                "A null flowId should be returned as is.");
-    }
 
     /**
      * Test that a request carrying a flowId which is no longer active is still reported with the invalid flow
