@@ -3364,9 +3364,17 @@ public class RoleDAOImpl implements RoleDAO {
                     .isUseCaseSensitiveUsernameForCacheKeys(userStoreManager);
             // Only the tenant owner can remove groups from Administrator role.
             if (RoleConstants.ADMINISTRATOR.equalsIgnoreCase(roleName)) {
-                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
-                        !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
-                                .equalsIgnoreCase(username, adminUserName))) {
+                /*
+                adminUserName above comes from the node-local realm cache, which is not refreshed when the
+                tenant's admin user changes underneath a running node. Resolve the owner from the tenant
+                store before deciding, so that a stale entry cannot authorise the previous owner and reject
+                the current one. Only reached for the administrator role, so this is not a hot path.
+                 */
+                String tenantOwnerUserName = RoleManagementUtils.resolveTenantOwnerUsername(tenantDomain,
+                        adminUserName);
+                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, tenantOwnerUserName))
+                        || (!isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
+                                .equalsIgnoreCase(username, tenantOwnerUserName))) {
                     String errorMessage = "Invalid operation. Only the tenant owner can remove groups from the role: "
                             + "%s";
                     throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),

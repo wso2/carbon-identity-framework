@@ -1179,9 +1179,17 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                     && RoleConstants.ORGANIZATION.equals(role.getAudience()))
                     || (RoleConstants.ADMINISTRATOR.equals(role.getName()) &&
                             RoleConstants.CONSOLE_APP_AUDIENCE_NAME.equals(role.getAudienceName()))) {
-                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
-                        !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
-                                .equalsIgnoreCase(username, adminUserName))) {
+                /*
+                adminUserName above comes from the node-local realm cache, which is not refreshed when the
+                tenant's admin user changes underneath a running node. Resolve the owner from the tenant
+                store before deciding, so that a stale entry cannot authorise the previous owner and reject
+                the current one. Only reached for the administrator role, so this is not a hot path.
+                 */
+                String tenantOwnerUserName = RoleManagementUtils.resolveTenantOwnerUsername(tenantDomain,
+                        adminUserName);
+                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, tenantOwnerUserName))
+                        || (!isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
+                                .equalsIgnoreCase(username, tenantOwnerUserName))) {
                     Map<String, Object> threadLocalProps = IdentityUtil.threadLocalProperties.get();
                     boolean isJITProvisioningFlow = threadLocalProps != null &&
                             threadLocalProps.get(IS_JIT_PROVISIONING_FLOW) != null &&
@@ -1196,7 +1204,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 } else {
                     List<String> deletedUserNamesList = getUserNamesByIDs(deletedUserIDList, tenantDomain);
                     // Tenant owner cannot be removed from Administrator role.
-                    if (deletedUserNamesList.contains(adminUserName)) {
+                    if (deletedUserNamesList.contains(tenantOwnerUserName)) {
                         String errorMessage = "Invalid operation. Tenant owner cannot be removed from the role: %s";
                         throw new IdentityRoleManagementClientException(RoleConstants.Error.OPERATION_FORBIDDEN
                                 .getCode(),

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -36,9 +37,14 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantCache;
+import org.wso2.carbon.user.core.tenant.TenantIdKey;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.HashSet;
 import java.util.List;
@@ -267,5 +273,55 @@ public class RoleManagementUtils {
     public static void clearRoleBasicInfoCacheByTenant(String tenantDomain) {
 
         RoleBasicInfoCache.getInstance().clear(tenantDomain);
+    }
+
+    /**
+     * Resolve the username of the tenant owner, tolerating a stale tenant realm cache.
+     * <p>
+     * {@code RealmConfiguration#getAdminUserName()} is served from the node-local realm cache, which is
+     * populated once when the tenant realm is built and is only dropped when that realm is evicted or the
+     * node restarts. If the tenant's admin user changes underneath a running node — an ownership transfer
+     * that rewrites {@code UM_TENANT.UM_USER_CONFIG} directly, for instance — the cached value keeps naming
+     * the previous owner. An ownership check made against it then authorises the previous owner and rejects
+     * the current one, in both directions.
+     * <p>
+     * This re-reads the tenant's realm configuration from the tenant store, bypassing the tenant cache but
+     * leaving the realm itself untouched, so the cost is a single tenant row read rather than a realm
+     * rebuild. If the tenant store cannot answer, the cached value is returned unchanged so that callers
+     * behave exactly as they did before.
+     *
+     * @param tenantDomain          Tenant domain.
+     * @param cachedAdminUserName   Admin username as read from the (possibly stale) realm configuration.
+     * @return The tenant owner's username.
+     */
+    public static String resolveTenantOwnerUsername(String tenantDomain, String cachedAdminUserName) {
+
+        try {
+            RealmService realmService = RoleManagementServiceComponentHolder.getInstance().getRealmService();
+            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            /*
+            The super tenant realm is built from the bootstrap realm configuration rather than from UM_TENANT,
+            so there is nothing fresher to read and the cached value is already authoritative.
+             */
+            if (MultitenantConstants.SUPER_TENANT_ID == tenantId) {
+                return cachedAdminUserName;
+            }
+            TenantCache.getInstance().clearCacheEntry(new TenantIdKey(tenantId));
+            Tenant tenant = realmService.getTenantManager().getTenant(tenantId);
+            if (tenant == null || tenant.getRealmConfig() == null
+                    || StringUtils.isBlank(tenant.getRealmConfig().getAdminUserName())) {
+                return cachedAdminUserName;
+            }
+            String tenantOwnerUserName = tenant.getRealmConfig().getAdminUserName();
+            if (log.isDebugEnabled() && !StringUtils.equals(cachedAdminUserName, tenantOwnerUserName)) {
+                log.debug("Cached admin username of tenant: " + tenantDomain
+                        + " is stale. Using the tenant owner resolved from the tenant store.");
+            }
+            return tenantOwnerUserName;
+        } catch (UserStoreException e) {
+            log.warn("Error while resolving the tenant owner of tenant: " + tenantDomain
+                    + ". Falling back to the cached admin username.", e);
+            return cachedAdminUserName;
+        }
     }
 }
