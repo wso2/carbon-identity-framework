@@ -228,7 +228,7 @@ public class UserSessionManagementServiceImplTest {
 
         List<String> fedUserSessionIds = new ArrayList<>();
         fedUserSessionIds.add(sessionId);
-        when(userSessionStore.getSessionId(userId)).thenReturn(fedUserSessionIds);
+        when(userSessionStore.getActiveSessionIds(userId)).thenReturn(fedUserSessionIds);
     }
 
     private Method getAddAssociatedAssociatedLocalUserIdSessionsMethod() throws Exception {

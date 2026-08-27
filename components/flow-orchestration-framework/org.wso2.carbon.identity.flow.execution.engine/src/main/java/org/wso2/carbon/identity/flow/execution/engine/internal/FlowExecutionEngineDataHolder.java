@@ -18,11 +18,13 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -66,6 +68,40 @@ public class FlowExecutionEngineDataHolder {
     public Map<String, Executor> getExecutors() {
 
         return executors;
+    }
+
+    /**
+     * Add an executor to the executors map, keyed by {@link Executor#getName()}.
+     *
+     * @param executor Executor to register. Ignored if it reports a blank name.
+     * @throws IllegalStateException
+     */
+    public void addExecutor(Executor executor) {
+
+        String name = executor.getName();
+        if (StringUtils.isBlank(name)) {
+            return;
+        }
+        FlowExecutorInfo info = FlowExecutorMetadataResolver.resolve(executor);
+        if (info.isMetadataDeclared() && info.getSupportedFlowTypes().isEmpty()) {
+            throw new IllegalStateException("Executor " + name + " contributed by "
+                    + executor.getClass().getName() + " declares composer metadata but no supported flow type.");
+        }
+        executors.put(name, executor);
+    }
+
+    /**
+     * Remove an executor from the executors map.
+     *
+     * @param executor Executor to remove.
+     */
+    public void removeExecutor(Executor executor) {
+
+        String name = executor.getName();
+        if (StringUtils.isBlank(name)) {
+            return;
+        }
+        executors.remove(name, executor);
     }
 
     /**

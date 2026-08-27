@@ -81,6 +81,7 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_USERSTORE_DOMAIN_REMOVAL_FROM_LEGACY_ROLE_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ALLOW_AUTHENTICATED_SUB_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
@@ -1402,16 +1403,31 @@ public class DefaultClaimHandler implements ClaimHandler {
      */
     private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
 
-        if (mappedAttrs.containsKey(getLocalGroupsClaimURI())) {
-            String[] groups = mappedAttrs.get(getLocalGroupsClaimURI()).split(Pattern
-                    .quote(FrameworkUtils.getMultiAttributeSeparator()));
-            SequenceConfig sequenceConfig = context.getSequenceConfig();
-            // Execute only if it has allowed removing userstore domain from the sp level configurations.
-            if (isRemoveUserDomainInRole(sequenceConfig)) {
-                mappedAttrs.put(getLocalGroupsClaimURI(), FrameworkUtils
-                        .removeDomainFromNamesExcludeHybrid(Arrays.asList(groups)));
-            }
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        removeUserStoreDomainFromClaim(sequenceConfig, mappedAttrs, getLocalGroupsClaimURI());
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ALLOW_USERSTORE_DOMAIN_REMOVAL_FROM_LEGACY_ROLE_CLAIM))
+                && IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()
+                && IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled()) {
+            removeUserStoreDomainFromClaim(sequenceConfig, mappedAttrs, UserCoreConstants.ROLE_CLAIM);
         }
+    }
+
+    /**
+     * Remove the user store domain from the values of the given claim, keeping the hybrid domains intact.
+     *
+     * @param sequenceConfig Sequence configuration.
+     * @param mappedAttrs    Mapped claim attributes.
+     * @param claimURI       Claim URI of which the values should be domain free.
+     */
+    private void removeUserStoreDomainFromClaim(SequenceConfig sequenceConfig, Map<String, String> mappedAttrs,
+                                                String claimURI) {
+
+        String claimValue = mappedAttrs.get(claimURI);
+        if (StringUtils.isBlank(claimValue) || !isRemoveUserDomainInRole(sequenceConfig)) {
+            return;
+        }
+        String[] names = claimValue.split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
+        mappedAttrs.put(claimURI, FrameworkUtils.removeDomainFromNamesExcludeHybrid(Arrays.asList(names)));
     }
 
     /**

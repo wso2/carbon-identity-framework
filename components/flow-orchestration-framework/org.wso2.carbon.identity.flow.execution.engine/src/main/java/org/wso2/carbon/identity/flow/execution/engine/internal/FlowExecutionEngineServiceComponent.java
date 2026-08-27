@@ -141,14 +141,22 @@ public class FlowExecutionEngineServiceComponent {
             unbind = "unsetExecutors")
     protected void setExecutors(Executor executor) {
 
-        LOG.debug("Setting executor in the Flow Engine component.");
-        FlowExecutionEngineDataHolder.getInstance().getExecutors().put(executor.getName(), executor);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting executor in the Flow Engine component: " + executor.getName());
+        }
+        try {
+            FlowExecutionEngineDataHolder.getInstance().addExecutor(executor);
+        } catch (IllegalStateException e) {
+            LOG.error("Failed to register executor in the Flow Engine component. " + e.getMessage());
+        }
     }
 
     protected void unsetExecutors(Executor executor) {
 
-        LOG.debug("Unsetting executor in the Flow Engine component.");
-        FlowExecutionEngineDataHolder.getInstance().getExecutors().remove(executor.getName());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting executor in the Flow Engine component: " + executor.getName());
+        }
+        FlowExecutionEngineDataHolder.getInstance().removeExecutor(executor);
     }
 
     @Reference(

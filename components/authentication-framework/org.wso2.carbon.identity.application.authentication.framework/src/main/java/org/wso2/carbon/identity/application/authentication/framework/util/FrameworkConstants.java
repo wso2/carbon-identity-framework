@@ -90,6 +90,8 @@ public abstract class FrameworkConstants {
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
     public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
     public static final String ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM = "AddUserStoreDomainToGroupClaims";
+    public static final String ALLOW_USERSTORE_DOMAIN_REMOVAL_FROM_LEGACY_ROLE_CLAIM =
+            "AllowUserstoreDomainRemovalFromLegacyRoleClaim";
     public static final String IS_OTP_VERIFICATION_TRIGGERED = "isOtpVerificationTriggered";
     public static final String OTP_VERIFICATION_PENDING_CLAIM = "otpVerificationPendingClaim";
     public static final String CLAIM_FOR_PENDING_OTP_VERIFICATION = "claimForPendingOtpVerification";
@@ -295,6 +297,8 @@ public abstract class FrameworkConstants {
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
     public static final String IDP_MAPPED_USER_ROLES = "identityProviderMappedUserRoles";
     public static final String ALLOW_ASSOCIATING_TO_EXISTING_USER = "JITProvisioning.AllowAssociatingToExistingUser";
+    public static final String RESOLVE_EXISTING_USER_BEFORE_CONSENT_PROMPT =
+            "JITProvisioning.ResolveExistingUserBeforeConsentPrompt";
 
     // The constant to used as the attribute key or the property key of the federated tokens.
     public static final String FEDERATED_TOKENS = "federated_tokens";

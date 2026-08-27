@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.mgt.dao;
 
+import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.cache.FlowMgtCache;
 import org.wso2.carbon.identity.flow.mgt.cache.FlowMgtCacheKey;
 import org.wso2.carbon.identity.flow.mgt.cache.GraphConfigCache;
@@ -26,6 +27,12 @@ import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import static org.wso2.carbon.identity.flow.mgt.Constants.DEFAULT_FLOW_NAME;
 
@@ -87,10 +94,31 @@ public class CacheBackedFlowDAOImpl implements FlowDAO {
         FlowMgtCacheKey flowMgtCacheKey = new FlowMgtCacheKey(flowType, DEFAULT_FLOW_NAME);
         GraphConfig cachedGraphConfig = GraphConfigCache.getInstance().getValueFromCache(flowMgtCacheKey, tenantId);
         if (cachedGraphConfig != null) {
-            return cachedGraphConfig;
+            try {
+                return copyOf(cachedGraphConfig);
+            } catch (FlowMgtServerException e) {
+                GraphConfigCache.getInstance().clearCacheEntry(flowMgtCacheKey, tenantId);
+            }
         }
         GraphConfig graphConfig = FLOW_DAO.getGraphConfig(flowType, tenantId);
-        GraphConfigCache.getInstance().addToCache(flowMgtCacheKey, graphConfig, tenantId);
+        GraphConfigCache.getInstance().addToCache(flowMgtCacheKey, copyOf(graphConfig), tenantId);
         return graphConfig;
+    }
+
+    private GraphConfig copyOf(GraphConfig graphConfig) throws FlowMgtServerException {
+
+        if (graphConfig == null) {
+            return null;
+        }
+        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
+            try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
+                out.writeObject(graphConfig);
+            }
+            try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+                return (GraphConfig) in.readObject();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw FlowMgtUtils.handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_GRAPH_FAILED, e);
+        }
     }
 }

@@ -29,6 +29,7 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.dao.FlowContextStoreDAOImplTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListenerTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationServiceTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadataServiceTest"/>
         </classes>
     </test>
 </suite>

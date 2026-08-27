@@ -176,9 +176,8 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
     /**
      * Handle a REPLACE operation on a user claim by validating the claim URI and collecting the value
      * into the pending claims map. The claim URI must be in the WSO2 local dialect
-     * ({@code http://wso2.org/claims/}), must not be an identity-system claim
-     * ({@code http://wso2.org/claims/identity/}), and must resolve to a registered local claim in the
-     * tenant. A single-valued claim takes a {@code String} value and a multi-valued claim takes a list
+     * ({@code http://wso2.org/claims/}) and must resolve to a registered local claim in the tenant.
+     * A single-valued claim takes a {@code String} value and a multi-valued claim takes a list
      * joined with commas. Failing any of these validations drops the operation, while an unavailable
      * claim metadata service or a lookup error aborts the response.
      *
@@ -206,10 +205,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Claim URI must be in the local dialect (" +
                             PathTypeAnnotationUtil.LOCAL_CLAIM_DIALECT_PREFIX + "): " + claimUri);
-        }
-        if (claimUri.startsWith(PathTypeAnnotationUtil.IDENTITY_CLAIM_URI_PREFIX)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Identity-system claims cannot be modified by Flow Extensions: " + claimUri);
         }
 
         Optional<LocalClaim> optionalLocalClaim = getLocalClaim(claimUri, tenantDomain);

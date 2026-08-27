@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
@@ -35,6 +36,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.listener.AbstractIdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 
 /**
  * Internal implementation to listen to IdP CRUD events.
@@ -51,7 +54,8 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
         try {
             IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
 
-            IdentityProvider oldIdentityProvider = identityProviderManager.getIdPByName(oldIdPName, tenantDomain);
+            IdentityProvider oldIdentityProvider = identityProviderManager.getIdPByName(oldIdPName, tenantDomain,
+                    false, SharedIdPResolveType.RAW);
             String idpId = oldIdentityProvider.getResourceId();
             if (identityProvider.getResourceId() == null && idpId != null) {
                 identityProvider.setResourceId(idpId);
@@ -142,6 +146,15 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                     "Error in disabling identity provider as it is referred by service providers.");
         }
 
+        /*
+         * A shared (shadow) identity provider inherits its authenticator and provisioning connector enablement from
+         * the parent connection; a sub-organization is not allowed to update those on the shadow. Hence the
+         * authenticator/connector enablement validations below do not apply to a shared identity provider.
+         */
+        if (isSharedIdP(identityProvider)) {
+            return;
+        }
+
         // Verify if any of the referred authenticators is disabled.
         IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs =
@@ -174,6 +187,20 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                         " connector is already configured for outbound provisioning.");
             }
         }
+    }
+
+    private boolean isSharedIdP(IdentityProvider identityProvider) {
+
+        IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
+        if (idpProperties == null) {
+            return false;
+        }
+        for (IdentityProviderProperty idpProperty : idpProperties) {
+            if (idpProperty != null && IdPManagementConstants.IS_SHARED_IDP_PROPERTY.equals(idpProperty.getName())) {
+                return Boolean.parseBoolean(idpProperty.getValue());
+            }
+        }
+        return false;
     }
 
     @Override
