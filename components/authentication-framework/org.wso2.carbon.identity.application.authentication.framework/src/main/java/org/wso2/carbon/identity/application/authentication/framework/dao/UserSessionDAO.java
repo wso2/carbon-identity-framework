@@ -195,6 +195,20 @@ public interface UserSessionDAO {
     }
 
     /**
+     * Method to get the active session ID list of a given user ID. A session is active while the store holds a
+     * session context record for it that has not been deleted.
+     *
+     * @param userId ID of the user.
+     * @return the list of active session IDs
+     * @throws UserSessionException if an error occurs when retrieving the active session id list from the store
+     */
+    default List<String> getActiveSessionIds(String userId) throws UserSessionException {
+
+        throw new UnsupportedOperationException(
+                "getActiveSessionIds is not supported by this user session DAO.");
+    }
+
+    /**
      * Removes all the expired session records from relevant tables.
      */
     default void removeExpiredSessionRecords() {

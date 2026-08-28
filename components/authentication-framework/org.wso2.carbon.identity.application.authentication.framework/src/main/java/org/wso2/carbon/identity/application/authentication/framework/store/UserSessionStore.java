@@ -285,27 +285,11 @@ public class UserSessionStore {
      *
      * @param userId ID of the user.
      * @return The list of active session IDs.
-     * @throws UserSessionException If an error occurs when retrieving the active session ID list from the database.
+     * @throws UserSessionException If an error occurs when retrieving the active session ID list from the store.
      */
     public List<String> getActiveSessionIds(String userId) throws UserSessionException {
 
-        List<String> sessionIdList = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
-            try (PreparedStatement preparedStatement = connection
-                    .prepareStatement(SQLQueries.SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID)) {
-                preparedStatement.setString(1, userId);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    while (resultSet.next()) {
-                        sessionIdList.add(resultSet.getString(1));
-                    }
-                }
-            } catch (SQLException e1) {
-                throw new UserSessionException("Error while retrieving active session IDs for user ID: " + userId, e1);
-            }
-        } catch (SQLException e) {
-            throw new UserSessionException("Error while retrieving active session IDs for user ID: " + userId, e);
-        }
-        return sessionIdList;
+        return UserSessionDAOFactory.getUserSessionDAO().getActiveSessionIds(userId);
     }
 
     /**

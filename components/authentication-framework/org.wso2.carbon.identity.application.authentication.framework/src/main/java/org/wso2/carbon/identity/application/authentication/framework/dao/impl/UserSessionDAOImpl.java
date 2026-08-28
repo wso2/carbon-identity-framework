@@ -530,6 +530,36 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     }
 
     /**
+     * Method to get the active session ID list of a given user ID. A session is considered active while the session
+     * store holds a record for it and no DELETE marker has been written for it.
+     *
+     * @param userId ID of the user.
+     * @return the list of active session IDs
+     * @throws UserSessionException if an error occurs when retrieving the active session id list from the database
+     */
+    @Override
+    public List<String> getActiveSessionIds(String userId) throws UserSessionException {
+
+        List<String> sessionIdList = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID)) {
+                preparedStatement.setString(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        sessionIdList.add(resultSet.getString(1));
+                    }
+                }
+            } catch (SQLException e1) {
+                throw new UserSessionException("Error while retrieving active session IDs for user ID: " + userId, e1);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving active session IDs for user ID: " + userId, e);
+        }
+        return sessionIdList;
+    }
+
+    /**
      * Removes all the expired session records from relevant tables.
      */
     @Override
