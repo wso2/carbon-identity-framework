@@ -1444,6 +1444,7 @@
   "console.ui.routes.organizationEnabledRoutes.accountSecurity": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.actions": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.admin-forced-password-reset": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.agents": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.apiResources": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.applications": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
