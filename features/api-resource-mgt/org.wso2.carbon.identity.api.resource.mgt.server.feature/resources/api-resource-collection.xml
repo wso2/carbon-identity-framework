@@ -233,16 +233,13 @@
             </Update>
             <Delete>
                 <Scope name="internal_idp_delete"/>
-                <Scope name="internal_idp_unshare"/>
             </Delete>
             <Create>
                 <Scope name="internal_idp_create"/>
-                <Scope name="internal_idp_share"/>
             </Create>
             <Read>
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_idp_view"/>
-                <Scope name="internal_idp_shared_access_view"/>
                 <Scope name="internal_role_mgt_view"/>
                 <Scope name="internal_claim_meta_view"/>
                 <Scope name="internal_authenticator_view"/>
@@ -535,16 +532,13 @@
             </Update>
             <Delete>
                 <Scope name="internal_org_idp_delete"/>
-                <Scope name="internal_org_idp_unshare"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_idp_create"/>
-                <Scope name="internal_org_idp_share"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
-                <Scope name="internal_org_idp_shared_access_view"/>
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
                 <Scope name="internal_org_authenticator_view"/>
@@ -1184,16 +1178,13 @@
             </Update>
             <Delete>
                 <Scope name="internal_idp_delete"/>
-                <Scope name="internal_idp_unshare"/>
             </Delete>
             <Create>
                 <Scope name="internal_idp_create"/>
-                <Scope name="internal_idp_share"/>
             </Create>
             <Read>
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_idp_view"/>
-                <Scope name="internal_idp_shared_access_view"/>
                 <Scope name="internal_role_mgt_view"/>
                 <Scope name="internal_group_mgt_view"/>
                 <Scope name="internal_claim_meta_view"/>
@@ -1506,6 +1497,33 @@
             <Update>
                 <Scope name="internal_user_shared_access_update"/>
             </Update>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="connectionSharing" displayName="Shared Connection Management" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:connectionSharing"/>
+                <Scope name="console:connectionSharing_view"/>
+                <Scope name="console:connectionSharing_edit"/>
+                <Scope name="console:connectionSharing_create"/>
+                <Scope name="console:connectionSharing_update"/>
+                <Scope name="console:connectionSharing_delete"/>
+                <Scope name="console:idps"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_idp_share"/>
+                <Scope name="console:idps_edit"/>
+                <Scope name="console:idps_create"/>
+                <Scope name="console:idps_update"/>
+                <Scope name="console:idps_delete"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_idp_unshare"/>
+            </Delete>
+            <Read>
+                <Scope name="console:idps_view"/>
+                <Scope name="internal_idp_shared_access_view"/>
+            </Read>
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="users" displayName="Users" type="tenant">
@@ -1877,16 +1895,13 @@
             </Update>
             <Delete>
                 <Scope name="internal_org_idp_delete"/>
-                <Scope name="internal_org_idp_unshare"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_idp_create"/>
-                <Scope name="internal_org_idp_share"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
-                <Scope name="internal_org_idp_shared_access_view"/>
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_group_mgt_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
@@ -1929,6 +1944,33 @@
             <Update>
                 <Scope name="internal_org_user_shared_access_update"/>
             </Update>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_connectionSharing" displayName="Shared Connection Management" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:connectionSharing"/>
+                <Scope name="console:org:connectionSharing_view"/>
+                <Scope name="console:org:connectionSharing_edit"/>
+                <Scope name="console:org:connectionSharing_create"/>
+                <Scope name="console:org:connectionSharing_update"/>
+                <Scope name="console:org:connectionSharing_delete"/>
+                <Scope name="console:org:idps"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_org_idp_share"/>
+                <Scope name="console:org:idps_edit"/>
+                <Scope name="console:org:idps_create"/>
+                <Scope name="console:org:idps_update"/>
+                <Scope name="console:org:idps_delete"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_org_idp_unshare"/>
+            </Delete>
+            <Read>
+                <Scope name="console:org:idps_view"/>
+                <Scope name="internal_org_idp_shared_access_view"/>
+            </Read>
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="org_users" displayName="Users" type="organization">

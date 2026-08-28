@@ -2082,6 +2082,25 @@
                    description="Manage deletes of user sharing from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Connection Sharing Management Feature" identifier="console:connectionSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Connection Sharing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Connection Sharing Management Feature" name="console:connectionSharing"
+                   description="Manage connection sharing from the Console"/>
+            <Scope displayName="Connection Sharing Management View Feature" name="console:connectionSharing_view"
+                   description="View connection sharing status from the Console"/>
+            <Scope displayName="Connection Sharing Management Edit Feature" name="console:connectionSharing_edit"
+                   description="Update connection sharing status from the Console"/>
+            <Scope displayName="Connection Sharing Management Update Feature" name="console:connectionSharing_update"
+                   description="Update connection sharing status from the Console"/>
+            <Scope displayName="Connection Sharing Management Create Feature" name="console:connectionSharing_create"
+                   description="Create connection sharing from the Console"/>
+            <Scope displayName="Connection Sharing Management Delete Feature" name="console:connectionSharing_delete"
+                   description="Delete connection sharing from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Agent Management Feature" identifier="console:agents"
                  requiresAuthorization="true"
                  description="Resource representation of the Agent Management Feature"
@@ -2137,6 +2156,25 @@
                    description="Manage creates of user sharing in the organization from the Console"/>
             <Scope displayName="User Sharing Management Delete Feature" name="console:org:userSharing_delete"
                    description="Manage deletes of user sharing in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Connection Sharing Management Feature" identifier="console:org:connectionSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Connection Sharing Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Connection Sharing Management Feature" name="console:org:connectionSharing"
+                   description="Manage connection sharing in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management View Feature" name="console:org:connectionSharing_view"
+                   description="View the shared status of connections within the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Edit Feature" name="console:org:connectionSharing_edit"
+                   description="Manage edits of connection sharing status in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Update Feature" name="console:org:connectionSharing_update"
+                   description="Manage updates of connection sharing status in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Create Feature" name="console:org:connectionSharing_create"
+                   description="Manage creates of connection sharing status in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Delete Feature" name="console:org:connectionSharing_delete"
+                   description="Manage deletes of connection sharing status in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"
