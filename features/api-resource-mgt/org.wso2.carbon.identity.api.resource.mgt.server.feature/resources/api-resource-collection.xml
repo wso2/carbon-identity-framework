@@ -522,6 +522,72 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_agents" displayName="Agents" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:agents"/>
+                <Scope name="console:org:agents_view"/>
+                <Scope name="console:org:agents_edit"/>
+                <Scope name="console:org:agents_create"/>
+                <Scope name="console:org:agents_update"/>
+                <Scope name="console:org:agents_delete"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_agent_mgt_update"/>
+                <Scope name="internal_org_session_delete"/>
+                <Scope name="internal_org_group_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_agent_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_agent_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_governance_view"/>
+                <Scope name="internal_org_agent_mgt_view"/>
+                <Scope name="internal_org_agent_mgt_list"/>
+                <Scope name="internal_org_session_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_agentSharing" displayName="Shared Agent Management" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:agentSharing"/>
+                <Scope name="console:org:agentSharing_view"/>
+                <Scope name="console:org:agentSharing_edit"/>
+                <Scope name="console:org:agentSharing_create"/>
+                <Scope name="console:org:agentSharing_update"/>
+                <Scope name="console:org:agentSharing_delete"/>
+                <Scope name="console:org:agents"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_org_agent_share"/>
+                <Scope name="console:org:agents_edit"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_org_agent_unshare"/>
+            </Delete>
+            <Read>
+                <Scope name="console:org:agents_view"/>
+                <Scope name="internal_org_agent_shared_access_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_governance_view"/>
+                <Scope name="internal_org_agent_mgt_view"/>
+                <Scope name="internal_org_agent_mgt_list"/>
+                <Scope name="internal_org_organization_view"/>
+            </Read>
+            <Update>
+                <Scope name="internal_org_agent_shared_access_update"/>
+            </Update>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="org_connections" displayName="Connections" type="organization" version="v0">
         <Scopes>
             <Feature>
@@ -1577,6 +1643,39 @@
                 <Scope name="internal_session_view"/>
                 <Scope name="internal_claim_meta_view"/>
             </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="agentSharing" displayName="Shared Agent Management" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:agentSharing"/>
+                <Scope name="console:agentSharing_view"/>
+                <Scope name="console:agentSharing_edit"/>
+                <Scope name="console:agentSharing_create"/>
+                <Scope name="console:agentSharing_update"/>
+                <Scope name="console:agentSharing_delete"/>
+                <Scope name="console:agents"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_agent_share"/>
+                <Scope name="console:agents_edit"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_agent_unshare"/>
+            </Delete>
+            <Read>
+                <Scope name="console:agents_view"/>
+                <Scope name="internal_agent_shared_access_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_agent_mgt_view"/>
+                <Scope name="internal_agent_mgt_list"/>
+                <Scope name="internal_organization_view"/>
+            </Read>
+            <Update>
+                <Scope name="internal_agent_shared_access_update"/>
+            </Update>
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="userStores" displayName="User Stores" type="tenant">
