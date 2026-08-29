@@ -1242,18 +1242,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                     path = "/";
                 } else {
-                    path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+                    path = FrameworkUtils.prependProxyContextPath(
+                            FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/");
                 }
             } else if (FrameworkUtils.isOrganizationQualifiedRequest()) {
                 // Handling the cookie path for requests coming with the path `/o/<org-id>`.
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
+                path = FrameworkUtils.prependProxyContextPath(
+                        FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/");
             } else {
                 if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getLoginTenantDomain())) {
                     path = "/";
                 } else {
-                    path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+                    path = FrameworkUtils.prependProxyContextPath(
+                            FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/");
                 }
             }
         }
