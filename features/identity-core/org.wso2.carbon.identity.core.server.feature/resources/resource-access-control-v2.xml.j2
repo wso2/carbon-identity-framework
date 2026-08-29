@@ -129,6 +129,8 @@
         <Resource context="(.*)/accounts(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
         <Resource context="(.*)/oid4vci/.well-known/jwt-vc-issuer" secured="false" http-method="GET"/>
+        <Resource context="/.well-known/openid-credential-issuer/(.*)oid4vci" secured="false" http-method="GET"/>
+        <Resource context="/.well-known/jwt-vc-issuer/(.*)oid4vci" secured="false" http-method="GET"/>
         <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
         <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/oid4vci/nonce" secured="false" http-method="POST"/>
