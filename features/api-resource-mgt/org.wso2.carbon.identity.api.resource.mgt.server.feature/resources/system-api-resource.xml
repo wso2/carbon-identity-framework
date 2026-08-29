@@ -2890,4 +2890,106 @@
                    description="Manage deletes of VC templates from the Console"/>
         </Scopes>
     </APIResource>
+    <!-- [Organization] Presentation Definition Management API -->
+    <APIResource name="Presentation Definition Management API" identifier="/o/api/server/v1/openid4vp/presentation-definitions"
+                 requiresAuthorization="true"
+                 description="API representation of the Presentation Definition Management API for organizations" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Presentation Definitions" name="internal_org_presentation_definition_view"
+                   description="View Presentation Definitions in the organization"/>
+            <Scope displayName="Create Presentation Definition" name="internal_org_presentation_definition_create"
+                   description="Create new Presentation Definition in the organization"/>
+            <Scope displayName="Update Presentation Definition" name="internal_org_presentation_definition_update"
+                   description="Update Presentation Definition in the organization"/>
+            <Scope displayName="Delete Presentation Definition" name="internal_org_presentation_definition_delete"
+                   description="Delete Presentation Definition in the organization"/>
+        </Scopes>
+    </APIResource>
+    <!-- Presentation Definition Management API -->
+    <APIResource name="Presentation Definition Management API" identifier="/api/server/v1/openid4vp/presentation-definitions"
+                 requiresAuthorization="true"
+                 description="API representation of the Presentation Definition Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Presentation Definitions" name="internal_presentation_definition_view"
+                   description="View Presentation Definitions"/>
+            <Scope displayName="Create Presentation Definition" name="internal_presentation_definition_create"
+                   description="Create new Presentation Definition"/>
+            <Scope displayName="Update Presentation Definition" name="internal_presentation_definition_update"
+                   description="Update Presentation Definition"/>
+            <Scope displayName="Delete Presentation Definition" name="internal_presentation_definition_delete"
+                   description="Delete Presentation Definition"/>
+        </Scopes>
+    </APIResource>
+    <!-- [Organization] VC Verification API -->
+    <APIResource name="VC Verification API" identifier="/o/api/server/v1/openid4vp/vc-verifications"
+                 requiresAuthorization="true"
+                 description="API for standalone VC Verification" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Initiate VC Verification" name="internal_org_vc_verification_create"
+                   description="Initiate a new VC Verification session"/>
+            <Scope displayName="View VC Verification Status" name="internal_org_vc_verification_view"
+                   description="Poll the status of a VC Verification session"/>
+        </Scopes>
+    </APIResource>
+    <!-- VC Verification API -->
+    <APIResource name="VC Verification API" identifier="/api/server/v1/openid4vp/vc-verifications"
+                 requiresAuthorization="true"
+                 description="API for standalone VC Verification" type="TENANT">
+        <Scopes>
+            <Scope displayName="Initiate VC Verification" name="internal_vc_verification_create"
+                   description="Initiate a new VC Verification session"/>
+            <Scope displayName="View VC Verification Status" name="internal_vc_verification_view"
+                   description="Poll the status of a VC Verification session"/>
+        </Scopes>
+    </APIResource>
+    <!-- Presentation Definitions Console Feature -->
+    <APIResource name="Presentation Definitions Feature" identifier="console:presentation_definitions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Presentation Definitions Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Presentation Definitions Feature" name="console:presentation_definitions"
+                   description="Manage Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions View Feature" name="console:presentation_definitions_view"
+                   description="View Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Edit Feature" name="console:presentation_definitions_edit"
+                   description="Edit Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Create Feature" name="console:presentation_definitions_create"
+                   description="Create Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Update Feature" name="console:presentation_definitions_update"
+                   description="Update Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Delete Feature" name="console:presentation_definitions_delete"
+                   description="Delete Presentation Definitions from the Console"/>
+        </Scopes>
+    </APIResource>
+    <!-- [Organization] Presentation Definitions Console Feature -->
+    <APIResource name="Presentation Definitions Feature Organization" identifier="console:org:presentation_definitions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Presentation Definitions Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Presentation Definitions Feature" name="console:org:presentation_definitions"
+                   description="Manage Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions View Feature" name="console:org:presentation_definitions_view"
+                   description="View Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Edit Feature" name="console:org:presentation_definitions_edit"
+                   description="Edit Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Create Feature" name="console:org:presentation_definitions_create"
+                   description="Create Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Update Feature" name="console:org:presentation_definitions_update"
+                   description="Update Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Delete Feature" name="console:org:presentation_definitions_delete"
+                   description="Delete Presentation Definitions from the Console"/>
+        </Scopes>
+    </APIResource>
+    <!-- Verifiable Presentation Settings Console Feature -->
+    <APIResource name="Verifiable Presentation Settings Feature" identifier="console:verifiablePresentationSettings"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Verifiable Presentation Settings Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Verifiable Presentation Settings Feature" name="console:verifiablePresentationSettings"
+                   description="Manage Verifiable Presentation Settings from the Console"/>
+        </Scopes>
+    </APIResource>
 </APIResources>

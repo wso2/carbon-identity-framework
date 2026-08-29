@@ -1,0 +1,98 @@
+{
+  "create": {
+    "image": "assets/images/logos/wallet.svg",
+    "header": "Digital Wallet",
+    "Subheading": "Enable users to sign in or register using verifiable credentials.",
+    "documentation": "https://github.com/wso2-extensions/identity-inbound-auth-openid4vp",
+    "modal": {
+      "form": {
+        "fields": [
+          {
+            "index": 0,
+            "ariaLabel": "Digital Wallet Name",
+            "name": "name",
+            "label": "Name",
+            "type": "text",
+            "required": true,
+            "placeholder": "Enter a name for the connection.",
+            "initialValue": "Digital Wallet",
+            "maxLength": "120",
+            "minLength": "3",
+            "width": "13"
+          },
+          {
+            "index": 1,
+            "ariaLabel": "Presentation Definition",
+            "name": "presentationDefinitionId",
+            "label": "Presentation Definition",
+            "type": "dropdown",
+            "required": true,
+            "width": "13"
+          }
+        ]
+      }
+    },
+    "properties": [
+      {
+        "key": "presentationDefinitionId",
+        "value": ""
+      },
+      {
+        "key": "timeout",
+        "value": "120"
+      }
+    ]
+  },
+  "edit": {
+    "tabs": {
+      "general": [
+        {
+          "index": 0,
+          "name": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "placeholder": "Digital Wallet",
+          "maxLength": "50",
+          "minLength": "3",
+          "width": "16"
+        },
+        {
+          "index": 1,
+          "name": "description",
+          "label": "Description",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "Enable users to sign in or register using verifiable credentials.",
+          "maxLength": "50",
+          "width": "16"
+        }
+      ],
+      "settings": {
+        "fields": [
+          {
+            "index": 0,
+            "name": "presentationDefinitionId",
+            "label": "Presentation Definition",
+            "type": "dropdown",
+            "required": true,
+            "readOnly": false,
+            "width": "16"
+          },
+          {
+            "index": 1,
+            "name": "timeout",
+            "label": "Presentation Time Limit (seconds)",
+            "type": "number",
+            "required": true,
+            "readOnly": false,
+            "defaultValue": "120",
+            "minValue": "1",
+            "maxValue": "180",
+            "width": "16"
+          }
+        ]
+      }
+    }
+  }
+}
