@@ -18,11 +18,6 @@
 
 package org.wso2.carbon.identity.device.policy.internal.service.impl;
 
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Date;
-
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
@@ -31,6 +26,11 @@ import org.wso2.carbon.identity.device.policy.internal.dao.DeviceTokenJtiDAO;
 import org.wso2.carbon.identity.device.policy.internal.dao.impl.DeviceTokenJtiDAOImpl;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyDiagnosticLogger;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandler;
+
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Enforces single-use of device token jti claims against the replay store, and removes expired
