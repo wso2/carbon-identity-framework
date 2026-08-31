@@ -2452,5 +2452,5 @@
 
   "rules.device_policy.max_expressions_combined_with_and": 15,
 
-  "legacy_claims.return_legacy_role_claim_in_application_response": true
+  "legacy_claims.return_legacy_role_claim_in_application_response": false
 }
