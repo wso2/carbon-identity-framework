@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -61,6 +61,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -1308,6 +1309,13 @@ public class RoleDAOImpl implements RoleDAO {
 
         Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupIds, tenantDomain);
         List<String> groupNamesList = new ArrayList<>(groupIdsToNames.values());
+        return getRoleIdListOfGroupNames(groupNamesList, tenantDomain);
+    }
+
+    @Override
+    public List<String> getRoleIdListOfGroupNames(List<String> groupNames, String tenantDomain)
+            throws IdentityRoleManagementException {
+
         String primaryDomainName = IdentityUtil.getPrimaryDomainName();
         if (primaryDomainName != null) {
             primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
@@ -1316,7 +1324,7 @@ public class RoleDAOImpl implements RoleDAO {
         List<String> roleIds = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_ID_LIST_OF_GROUP_SQL)) {
-            for (String groupName : groupNamesList) {
+            for (String groupName : groupNames) {
                 // Add domain if not set.
                 groupName = UserCoreUtil.addDomainToName(groupName, primaryDomainName);
                 // Get domain from name.
@@ -1337,8 +1345,8 @@ public class RoleDAOImpl implements RoleDAO {
             }
         } catch (SQLException e) {
             String errorMessage =
-                    "Error while retrieving role list of groups by ids: " + String.join(", ", groupIds)
-                            + " and tenantDomain : " + tenantDomain;
+                    "Error while retrieving role ID list of groups by names: " + String.join(", ", groupNames)
+                            + " and tenantDomain: " + tenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
         return roleIds.stream().distinct().collect(Collectors.toList());
@@ -3413,7 +3421,8 @@ public class RoleDAOImpl implements RoleDAO {
         IdentityProvider identityProvider;
         try {
             identityProvider = RoleManagementServiceComponentHolder.getInstance()
-                    .getIdentityProviderManager().getIdPByResourceId(idpId, tenantDomain, true);
+                    .getIdentityProviderManager().getIdPByResourceId(idpId, tenantDomain, true,
+                            SharedIdPResolveType.RAW);
         } catch (IdentityProviderManagementException e) {
             throw new IdentityRoleManagementException("Error while retrieving idp", "Error while retrieving idp "
                     + "for idpId: " + idpId, e);
@@ -3690,73 +3699,64 @@ public class RoleDAOImpl implements RoleDAO {
     private void equalFilterBuilder(String value, String attributeName, StringBuilder filter,
                                     FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " =:" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" =:").append(parameterName).append("; AND ");
     }
 
     private void notEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
                                     FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " !=:" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" !=:").append(parameterName).append("; AND ");
     }
 
     private void startWithFilterBuilder(String value, String attributeName, StringBuilder filter,
                                         FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " LIKE :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value + "%");
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value + "%");
+        filter.append(attributeName).append(" LIKE :").append(parameterName).append("; AND ");
     }
 
     private void endWithFilterBuilder(String value, String attributeName, StringBuilder filter,
                                       FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " LIKE :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, "%" + value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, "%" + value);
+        filter.append(attributeName).append(" LIKE :").append(parameterName).append("; AND ");
     }
 
     private void containsFilterBuilder(String value, String attributeName, StringBuilder filter,
                                        FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " LIKE :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, "%" + value + "%");
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, "%" + value + "%");
+        filter.append(attributeName).append(" LIKE :").append(parameterName).append("; AND ");
     }
 
     private void greaterThanOrEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
                                                  FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " >= :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" >= :").append(parameterName).append("; AND ");
     }
 
     private void lessThanOrEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
                                               FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " <= :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" <= :").append(parameterName).append("; AND ");
     }
 
     private void greaterThanFilterBuilder(String value, String attributeName, StringBuilder filter,
                                           FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " > :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" > :").append(parameterName).append("; AND ");
     }
 
     private void lessThanFilterBuilder(String value, String attributeName, StringBuilder filter,
                                        FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " < :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" < :").append(parameterName).append("; AND ");
     }
 
     private IdpGroup convertToIdpGroup(IdPGroup idpGroup) {

@@ -35,6 +35,8 @@ import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
+import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
@@ -306,6 +308,56 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
         // No post delete role events should be published when no roles are associated with the application.
         verify(mockRoleMgtEventPublisherProxy, never())
                 .publishPostDeleteRole(any(RoleBasicInfo.class), eq(tenantDomain));
+    }
+
+    @Test
+    public void testGetRoleIdListOfGroupNames() throws IdentityRoleManagementException {
+
+        List<String> groupNames = Arrays.asList("group1", "group2");
+        List<String> expectedRoleIds = Arrays.asList("roleId1", "roleId2");
+        when(roleDAO.getRoleIdListOfGroupNames(groupNames, tenantDomain)).thenReturn(expectedRoleIds);
+
+        RoleManagementListener listener = mock(RoleManagementListener.class);
+        when(listener.isEnable()).thenReturn(true);
+        RoleManagementServiceComponentHolder holder = RoleManagementServiceComponentHolder.getInstance();
+        List<RoleManagementListener> originalListeners = holder.getRoleManagementListenerList();
+        holder.setRoleManagementListenerList(Collections.singletonList(listener));
+
+        try {
+            List<String> roleIds = roleManagementService.getRoleIdListOfGroupNames(groupNames, tenantDomain);
+
+            assertEquals(expectedRoleIds, roleIds);
+            verify(listener, times(1)).preGetRoleIdListOfGroupNames(groupNames, tenantDomain);
+            verify(listener, times(1)).postGetRoleIdListOfGroupNames(groupNames, tenantDomain);
+            verify(roleDAO, times(1)).getRoleIdListOfGroupNames(groupNames, tenantDomain);
+        } finally {
+            holder.setRoleManagementListenerList(originalListeners);
+        }
+    }
+
+    @Test
+    public void testGetRoleIdListOfGroupNamesWithDisabledListener() throws IdentityRoleManagementException {
+
+        List<String> groupNames = Arrays.asList("group1", "group2");
+        List<String> expectedRoleIds = Collections.singletonList("roleId1");
+        when(roleDAO.getRoleIdListOfGroupNames(groupNames, tenantDomain)).thenReturn(expectedRoleIds);
+
+        RoleManagementListener listener = mock(RoleManagementListener.class);
+        when(listener.isEnable()).thenReturn(false);
+        RoleManagementServiceComponentHolder holder = RoleManagementServiceComponentHolder.getInstance();
+        List<RoleManagementListener> originalListeners = holder.getRoleManagementListenerList();
+        holder.setRoleManagementListenerList(Collections.singletonList(listener));
+
+        try {
+            List<String> roleIds = roleManagementService.getRoleIdListOfGroupNames(groupNames, tenantDomain);
+
+            assertEquals(expectedRoleIds, roleIds);
+            verify(listener, never()).preGetRoleIdListOfGroupNames(anyList(), anyString());
+            verify(listener, never()).postGetRoleIdListOfGroupNames(anyList(), anyString());
+            verify(roleDAO, times(1)).getRoleIdListOfGroupNames(groupNames, tenantDomain);
+        } finally {
+            holder.setRoleManagementListenerList(originalListeners);
+        }
     }
 
     private void mockCarbonContextForTenant() {

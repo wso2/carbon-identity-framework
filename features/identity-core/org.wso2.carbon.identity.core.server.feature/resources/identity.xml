@@ -666,6 +666,7 @@
                 <EnableSecurityProfile>false</EnableSecurityProfile>
             </FAPI>
             <EnableClaimsSeparationForAccessToken>true</EnableClaimsSeparationForAccessToken>
+            <HonorMultivaluedClaimMetadata>true</HonorMultivaluedClaimMetadata>
         </OpenIDConnect>
 
         <!--
@@ -1648,6 +1649,8 @@
             <Cache name="IdPCacheByName"             enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="PrivateKeyJWT"              enable="true"  timeout="10" capacity="5000" isDistributed="false"/>
             <Cache id="saml_cert_cache" name="SAMLCertCache" enable="true" timeout="900" capacity="5000" isDistributed="false"/>
+            <Cache id="push_auth_context_cache" name="PushAuthContextCache" enable="true" timeout="300" capacity="5000" isDistributed="false" isTemporary="true"/>
+            <Cache id="push_auth_status_cache" name="PushAuthStatusCache" enable="true" timeout="300" capacity="5000" isDistributed="false" isTemporary="true"/>
         </CacheManager>
     </CacheConfig>
 
@@ -3077,6 +3080,15 @@
         <MaxApproverNotifications>15</MaxApproverNotifications>
     </WorkflowEngine>
     <UseResidentUserIdForAuthenticatedSharedUsers>true</UseResidentUserIdForAuthenticatedSharedUsers>
+
+    <ConnectionSharing>
+        <!-- The fallback provisioning user store applied when a shared (shadow) identity provider's inherited JIT
+             provisioning user store does not exist in the sub-organization. -->
+        <DefaultProvisioningUserStore>PRIMARY</DefaultProvisioningUserStore>
+        <IDP>
+            <Enable>true</Enable>
+        </IDP>
+    </ConnectionSharing>
 
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>true</HandleFailCompletedAuthenticatorStatus>
