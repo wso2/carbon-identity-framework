@@ -18,18 +18,22 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
+import com.google.gson.Gson;
 import java.util.Optional;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.processors.RandomPasswordProcessor;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -257,6 +261,29 @@ public class IdPManagementUtil {
             properties = RandomPasswordProcessor.getInstance().removeRandomPasswords(properties, withCacheClear);
             provisioningConnectorConfig.setProvisioningProperties(properties);
         }
+    }
+
+    /**
+     * Creates a deep clone of the given Identity Provider.
+     *
+     * @param identityProvider Identity Provider to be cloned.
+     * @return Cloned Identity Provider.
+     */
+    public static IdentityProvider cloneIdentityProvider(IdentityProvider identityProvider) {
+
+        Gson gson = new Gson();
+        IdentityProvider clonedIdentityProvider = gson.fromJson(gson.toJson(identityProvider),
+                IdentityProvider.class);
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs =
+                identityProvider.getFederatedAuthenticatorConfigs();
+        if (federatedAuthenticatorConfigs.length == 1 &&
+                federatedAuthenticatorConfigs[0].getDefinedByType() == DefinedByType.USER) {
+            UserDefinedFederatedAuthenticatorConfig clonedFederatedAuthenticatorConfig = gson.fromJson(
+                    gson.toJson(federatedAuthenticatorConfigs[0]), UserDefinedFederatedAuthenticatorConfig.class);
+            clonedIdentityProvider.setFederatedAuthenticatorConfigs(
+                    new FederatedAuthenticatorConfig[]{clonedFederatedAuthenticatorConfig});
+        }
+        return clonedIdentityProvider;
     }
 
     /**
