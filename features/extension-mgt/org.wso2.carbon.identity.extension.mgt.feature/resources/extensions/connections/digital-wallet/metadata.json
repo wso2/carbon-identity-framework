@@ -14,14 +14,25 @@
             "label": "Name",
             "type": "text",
             "required": true,
-            "placeholder": "Enter a name for the connection.",
+            "placeholder": "My Wallet",
             "initialValue": "Digital Wallet",
-            "maxLength": "120",
+            "maxLength": "50",
             "minLength": "3",
             "width": "13"
           },
           {
             "index": 1,
+            "name": "description",
+            "label": "Description",
+            "type": "textarea",
+            "required": false,
+            "placeholder": "Enter a description of the connection.",
+            "initialValue": "Enable users to sign in or register using verifiable credentials.",
+            "maxLength": "100",
+            "width": "13"
+          },
+          {
+            "index": 2,
             "ariaLabel": "Presentation Definition",
             "name": "presentationDefinitionId",
             "label": "Presentation Definition",
@@ -36,10 +47,6 @@
       {
         "key": "presentationDefinitionId",
         "value": ""
-      },
-      {
-        "key": "timeout",
-        "value": "120"
       }
     ]
   },
@@ -63,36 +70,19 @@
           "label": "Description",
           "type": "textarea",
           "required": false,
-          "placeholder": "Enable users to sign in or register using verifiable credentials.",
-          "maxLength": "50",
+          "placeholder": "Enter a description of the connection.",
+          "maxLength": "100",
+          "width": "16"
+        },
+        {
+          "index": 2,
+          "name": "presentationDefinitionId",
+          "label": "Presentation Definition",
+          "type": "dropdown",
+          "required": true,
           "width": "16"
         }
-      ],
-      "settings": {
-        "fields": [
-          {
-            "index": 0,
-            "name": "presentationDefinitionId",
-            "label": "Presentation Definition",
-            "type": "dropdown",
-            "required": true,
-            "readOnly": false,
-            "width": "16"
-          },
-          {
-            "index": 1,
-            "name": "timeout",
-            "label": "Presentation Time Limit (seconds)",
-            "type": "number",
-            "required": true,
-            "readOnly": false,
-            "defaultValue": "120",
-            "minValue": "1",
-            "maxValue": "180",
-            "width": "16"
-          }
-        ]
-      }
+      ]
     }
   }
 }
