@@ -22,6 +22,7 @@ import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -42,6 +43,7 @@ import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
@@ -50,6 +52,8 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -65,10 +69,14 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.DOB_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_FUTURE_DATE_NOT_ALLOWED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_INVALID_DATE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
@@ -1703,6 +1711,217 @@ public class InputValidationServiceTest {
         } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Test
+    public void testPrepareStepInputsAddsDateValidatorRuleForDateOfBirth() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        DataDTO dataDTO = buildDateFieldDataDTO(DOB_CLAIM_URI, "DATE", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedDateInput.getConfigs().get(VALIDATIONS);
+
+        Assert.assertNotNull(validations, "The date of birth field should carry a DateValidator rule");
+        List<?> validationsList = (List<?>) validations;
+        Assert.assertEquals(validationsList.size(), 1);
+        ValidationDTO dateValidator = (ValidationDTO) validationsList.get(0);
+        Assert.assertEquals(dateValidator.getName(), "DateValidator");
+        Assert.assertEquals(dateValidator.getType(), "RULE");
+        Assert.assertEquals(dateValidator.getConditions().size(), 1);
+        Assert.assertEquals(dateValidator.getConditions().get(0).getKey(), "disallow.future");
+        Assert.assertEquals(dateValidator.getConditions().get(0).getValue(), "true");
+    }
+
+    @Test
+    public void testPrepareStepInputsNoDateValidatorForOtherDateClaims() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        // Date claims other than date of birth may legitimately hold a future value
+        // (for example an expiry or renewal date), so they must not get the rule.
+        DataDTO dataDTO = buildDateFieldDataDTO(CLAIM_URI_PREFIX + "startdate", "DATE", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedDateInput.getConfigs().get(VALIDATIONS);
+        Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty(),
+                "Date claims other than date of birth should not disallow future dates");
+    }
+
+    @Test
+    public void testPrepareStepInputsNoDateValidatorForNonDateVariant() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        DataDTO dataDTO = buildDateFieldDataDTO(DOB_CLAIM_URI, "TEXT", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedInput.getConfigs().get(VALIDATIONS);
+        Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty(),
+                "Non-date field should not have a DateValidator rule added");
+    }
+
+    @Test
+    public void testPrepareStepInputsNoDateValidatorForUnmappedInput() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        // A date input that has not been mapped to a claim yet has no identifier.
+        DataDTO dataDTO = buildDateFieldDataDTO(null, "DATE", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedDateInput.getConfigs().get(VALIDATIONS);
+        Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty());
+    }
+
+    @Test
+    public void testPrepareStepInputsDateValidationDoesNotDependOnClaimMetadata() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        DataDTO dataDTO = buildDateFieldDataDTO(DOB_CLAIM_URI, "DATE", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        List<?> validationsList = (List<?>) processedDateInput.getConfigs().get(VALIDATIONS);
+        Assert.assertEquals(validationsList.size(), 1);
+        // The rule is fixed in code, so no claim metadata lookup should be needed to resolve it.
+        verify(mockClaimService, never()).getLocalClaim(anyString(), anyString());
+    }
+
+    @Test
+    public void testPrepareStepInputsAppendsDateValidatorToExistingValidations() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ValidationDTO existingRule = new ValidationDTO();
+        existingRule.setName("RequiredValidator");
+        existingRule.setType("RULE");
+        List<ValidationDTO> existingValidations = new ArrayList<>();
+        existingValidations.add(existingRule);
+
+        DataDTO dataDTO = buildDateFieldDataDTO(DOB_CLAIM_URI, "DATE", existingValidations);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        List<?> validationsList = (List<?>) processedDateInput.getConfigs().get(VALIDATIONS);
+
+        Assert.assertEquals(validationsList.size(), 2,
+                "The DateValidator rule should be appended, not replace existing rules");
+        Assert.assertEquals(((ValidationDTO) validationsList.get(0)).getName(), "RequiredValidator");
+        Assert.assertEquals(((ValidationDTO) validationsList.get(1)).getName(), "DateValidator");
+    }
+
+    /**
+     * Build a DataDTO with a single FORM containing one DATE (or other variant) INPUT component with the given
+     * identifier, plus a submit BUTTON so that the input is registered as a current step input.
+     */
+    private DataDTO buildDateFieldDataDTO(String identifier, String variant, List<ValidationDTO> existingValidations) {
+
+        Map<String, Object> dateConfig = new HashMap<>();
+        dateConfig.put(IDENTIFIER, identifier);
+        dateConfig.put("required", false);
+        if (existingValidations != null) {
+            dateConfig.put(VALIDATIONS, existingValidations);
+        }
+        ComponentDTO dateInput = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.INPUT)
+                .variant(variant)
+                .configs(dateConfig)
+                .build();
+
+        ComponentDTO button = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.BUTTON)
+                .id("submitButton")
+                .action(new ActionDTO.Builder().type(Constants.ActionTypes.EXECUTOR).nextId("action2").build())
+                .build();
+
+        List<ComponentDTO> formComponents = new ArrayList<>();
+        formComponents.add(dateInput);
+        formComponents.add(button);
+
+        ComponentDTO formDTO = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.FORM)
+                .components(formComponents)
+                .build();
+
+        List<ComponentDTO> components = new ArrayList<>();
+        components.add(formDTO);
+
+        return new DataDTO.Builder().components(components).build();
+    }
+
+    @DataProvider(name = "noFutureDateClaimData")
+    public Object[][] noFutureDateClaimData() {
+
+        return new Object[][]{
+                // Future dates are rejected. A fixed far-future date is used so the fixture cannot flip to "today"
+                // if a midnight boundary is crossed between data provider evaluation and test execution.
+                {DOB_CLAIM_URI, "9999-12-31", STATUS_RETRY},
+                {DOB_CLAIM_URI, LocalDate.now(ZoneId.systemDefault()).plusYears(2).toString(), STATUS_RETRY},
+                // Values matching the YYYY-MM-DD pattern that are not existing calendar dates.
+                {DOB_CLAIM_URI, "2025-02-30", STATUS_RETRY},
+                {DOB_CLAIM_URI, "2023-02-29", STATUS_RETRY},
+                {DOB_CLAIM_URI, "2025-13-01", STATUS_RETRY},
+                // Today is not a future date.
+                {DOB_CLAIM_URI, LocalDate.now(ZoneId.systemDefault()).toString(), STATUS_COMPLETE},
+                // Past dates, including a valid leap day.
+                {DOB_CLAIM_URI, "1990-05-15", STATUS_COMPLETE},
+                {DOB_CLAIM_URI, "2024-02-29", STATUS_COMPLETE},
+                // Blank values are skipped so an existing value can be cleared.
+                {DOB_CLAIM_URI, "", STATUS_COMPLETE},
+                // The rule is scoped to the claims in NO_FUTURE_DATE_CLAIMS. Other date claims, such as an expiry
+                // date, are legitimately in the future and must not be rejected.
+                {CLAIM_URI_PREFIX + "membershipExpiryDate", "9999-12-31", STATUS_COMPLETE},
+                {CLAIM_URI_PREFIX + "membershipExpiryDate", "2025-02-30", STATUS_COMPLETE}
+        };
+    }
+
+    @Test(dataProvider = "noFutureDateClaimData")
+    public void testValidateNoFutureDateClaim(String claimUri, String claimValue, String expectedStatus) {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.getUserInputData().put(claimUri, claimValue);
+
+        // No claim metadata service is registered, so validateUserClaims returns early. Only the fixed
+        // future-date rule can produce a result here, which is the point of validating it outside the
+        // metadata lookup.
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+        Assert.assertEquals(response.getResult(), expectedStatus);
+    }
+
+    @Test
+    public void testValidateNoFutureDateClaimReportsDistinctErrorCodes() {
+
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
+
+        FlowExecutionContext futureContext = initiateFlowContext();
+        futureContext.getUserInputData().put(DOB_CLAIM_URI, "9999-12-31");
+        ExecutorResponse futureResponse = inputValidationService.resolveInputValidationResponse(futureContext);
+        Assert.assertEquals(futureResponse.getErrorCode(), ERROR_CODE_CLAIM_FUTURE_DATE_NOT_ALLOWED.getCode());
+
+        FlowExecutionContext invalidContext = initiateFlowContext();
+        invalidContext.getUserInputData().put(DOB_CLAIM_URI, "2025-02-30");
+        ExecutorResponse invalidResponse = inputValidationService.resolveInputValidationResponse(invalidContext);
+        Assert.assertEquals(invalidResponse.getErrorCode(), ERROR_CODE_CLAIM_INVALID_DATE.getCode());
+
+        Assert.assertNotEquals(futureResponse.getErrorCode(), invalidResponse.getErrorCode());
     }
 
     private FlowExecutionContext initiateFlowContext() {

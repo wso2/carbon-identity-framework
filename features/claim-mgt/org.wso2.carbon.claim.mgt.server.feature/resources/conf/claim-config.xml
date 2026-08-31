@@ -140,6 +140,7 @@
 				<Description>Roles</Description>
 				<SupportedByDefault/>
 				<ReadOnly />
+				<multiValued>true</multiValued>
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -472,6 +473,7 @@
 				<Description>Groups</Description>
 				<SupportedByDefault />
 				<ReadOnly />
+				<multiValued>true</multiValued>
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>

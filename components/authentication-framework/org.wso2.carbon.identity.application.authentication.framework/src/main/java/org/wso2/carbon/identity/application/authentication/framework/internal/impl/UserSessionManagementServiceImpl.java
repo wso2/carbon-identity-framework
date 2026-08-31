@@ -290,15 +290,15 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
                 String fedAssociatedUserId = authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.USER_ID);
                 if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
-                    userSessions = getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
+                    userSessions = getActiveSessionList(getActiveSessionIdListByUserId(fedAssociatedUserId),
                             authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
                             authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME));
                     addAssociatedAssociatedLocalUserIdSessions(userSessions, userId);
                 } else {
-                    userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
+                    userSessions = getActiveSessionList(getActiveSessionIdListByUserId(userId), null, null);
                 }
             } else {
-                userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
+                userSessions = getActiveSessionList(getActiveSessionIdListByUserId(userId), null, null);
             }
         } catch (UserSessionException e) {
             String msg = "Error occurred while retrieving federated associations for the userId: " + userId;
@@ -604,6 +604,25 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Retrieving the list of sessions owned by the user: " + userId + ".");
             }
             return UserSessionStore.getInstance().getSessionId(userId);
+        } catch (UserSessionException e) {
+            throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, userId, e);
+        }
+    }
+
+    /**
+     * Returns the active session ID list for a given user ID.
+     *
+     * @param userId User ID for which the active sessions should be retrieved.
+     * @return The list of active session IDs.
+     * @throws SessionManagementServerException If active session IDs cannot be retrieved from the database.
+     */
+    private List<String> getActiveSessionIdListByUserId(String userId) throws SessionManagementServerException {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Retrieving the list of active sessions owned by the user: " + userId + ".");
+            }
+            return UserSessionStore.getInstance().getActiveSessionIds(userId);
         } catch (UserSessionException e) {
             throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, userId, e);
         }
@@ -979,12 +998,13 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
          entries with unique session IDs. If set to false, it will return duplicate entries with corresponding idpId and
          idpName for associated federated user. */
         if (!Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))) {
-            userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(associatedLocalUserId), null, null));
+            userSessions.addAll(
+                    getActiveSessionList(getActiveSessionIdListByUserId(associatedLocalUserId), null, null));
             return;
         }
 
         List<UserSession> associatedLocalUserIdSessions =
-                getActiveSessionList(getSessionIdListByUserId(associatedLocalUserId), null, null);
+                getActiveSessionList(getActiveSessionIdListByUserId(associatedLocalUserId), null, null);
         for (UserSession associatedLocalUserIdSession : associatedLocalUserIdSessions) {
             if (userSessions.stream().noneMatch(userSession ->
                     StringUtils.equals(userSession.getSessionId(), associatedLocalUserIdSession.getSessionId()))) {

@@ -5,6 +5,7 @@
   "authentication.enable_scope_based_claim_filtering": true,
   "authentication.include_auth_failure_reason_in_api_based_response": true,
   "authentication.include_multi_options_in_api_based_auth_response": true,
+  "authentication.include_auth_init_data_on_retry_in_api_based_auth_response": false,
   "authentication.allow_sp_requested_fed_claims_only": true,
   "authentication.endpoint.enable_custom_claim_mappings": true,
   "authentication.endpoint.enable_merging_custom_claim_mappings_with_default": true,
@@ -324,6 +325,7 @@
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
   "oauth.oidc.enable_claims_separation_for_access_tokens": true,
   "oauth.oidc.restrict_assertion_claims_to_configured_attributes": false,
+  "oauth.oidc.honor_multivalued_claim_metadata": true,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -363,6 +365,7 @@
   "oauth.listener.agent_application_creator.order": "99",
   "oauth.graceful_refresh_token_rotation.maximum_validity_period": "60",
   "oauth.graceful_refresh_token_rotation.maximum_reuse_limit": "5",
+  "oauth.multiple_client_secrets.max_secret_count": "2",
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -387,6 +390,7 @@
   "saml.metadata.assertion_encrypt_with_app_cert": true,
   "saml.enable_saml_sp_certificate_expiry_validation": true,
   "saml.enable_saml_idp_init_logout_response_signing": true,
+  "saml.send_saml_auth_failure_response_to_sp": false,
   "saml.return_valid_name_id_format": false,
   "saml.response.allow_nested_assertions": false,
 
@@ -588,6 +592,8 @@
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
   "identity_mgt.user_claim_update.restrict_immutable_local_claim_update": true,
+
+  "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": true,
 
   "identity_mgt.claims.hidden_claims": [
     "http://wso2.org/claims/identity/askPassword",
@@ -1608,6 +1614,9 @@
   "console.applications.sub_features.applicationClientSecretManagement.scopes.create": [
     "internal_application_mgt_client_secret_create"
   ],
+  "console.applications.sub_features.applicationClientSecretManagement.scopes.delete": [
+    "internal_application_mgt_client_secret_delete"
+  ],
   "console.applications.sub_features.applicationClientSecretManagement.scopes.read": [
     "internal_application_mgt_client_secret_view"
   ],
@@ -2206,6 +2215,7 @@
     "profile",
     "openid"
   ],
+  "myaccount.idp_configs.clockTolerance": 300,
   "myaccount.impersonation.allowed_resources": [
     "/api/server/v1/identity-governance/preferences",
     "/api/server/v1/branding-preference",
@@ -2316,6 +2326,9 @@
   "actions.types.pre_update_password.version.latest": "v2",
   "actions.types.flow_extension.enable": true,
   "actions.types.flow_extension.version.latest": "v1",
+  "actions.types.flow_extension.non_modifiable_paths": [
+  "/user/claims[uri=http://wso2.org/claims/userid]",
+  "/user/claims[uri=http://wso2.org/claims/created]"],
 
   "external_api_client.http_client.connection_timeout": "2000",
   "external_api_client.http_client.read_timeout": "3000",
@@ -2355,6 +2368,7 @@
   "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": true,
 
   "token_exchange.implicit_association.include_primary_when_secondary_present": true,
+  "token_exchange.limit_scopes_to_subject_token": true,
 
   "attribute.return_previous_additional_properties.enabled": false,
 
@@ -2406,6 +2420,9 @@
 
   "workflow_engine.max_approver_notifications": 15,
   "use_resident_user_id_for_authenticated_shared_users.enabled": true,
+  "connection_sharing.default_provisioning_user_store": "PRIMARY",
+  "connection_sharing.idp.enable": "false",
+  "connection_sharing.idp.disabled_authenticators": [],
   "app_native_authentication.handle_fail_completed_authenticator_status": true,
   "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
   "enhanced_organization_authentication.enabled_by_default_for_new_apps": true,
@@ -2431,5 +2448,7 @@
   "circuit_breaker.open_duration": 60000,
   "circuit_breaker.max_in_flight": 20,
 
-  "saas_apps.return_roles_in_id_token": false
+  "saas_apps.return_roles_in_id_token": false,
+
+  "rules.device_policy.max_expressions_combined_with_and": 15
 }

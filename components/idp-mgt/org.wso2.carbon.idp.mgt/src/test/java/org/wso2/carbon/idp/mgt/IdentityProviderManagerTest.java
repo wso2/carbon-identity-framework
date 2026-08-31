@@ -153,6 +153,48 @@ public class IdentityProviderManagerTest {
         }
     }
 
+    @Test(description = "Tests that resolving the SSO IDP's JWKS URI for one sub-organization's back-channel " +
+            "logout request does not mutate the shared/cached SSO IDP instance, so a subsequent request from a " +
+            "different sub-organization resolves its own JWKS URI instead of the previous one.")
+    public void testGetSSOIDPDoesNotMutateSharedIdPInstance() throws IdentityProviderManagementException {
+
+        String jwtIssuerOrgA = "https://localhost/o/org-a-id/oauth2/token";
+        String jwtIssuerOrgB = "https://localhost/o/org-b-id/oauth2/token";
+
+        IdentityProvider ssoIdP = new IdentityProvider();
+        ssoIdP.setId("ssoIdP");
+        ssoIdP.setIdpProperties(new IdentityProviderProperty[0]);
+
+        when(dao.getIdPByName(null, jwtIssuerOrgA, 1, TENANT_DOMAIN)).thenReturn(null);
+        when(dao.getIdPByName(null, jwtIssuerOrgB, 1, TENANT_DOMAIN)).thenReturn(null);
+        // Simulate the DAO cache: the same cached IdentityProvider instance is handed out on every lookup.
+        when(dao.getIdPByName(null, ORGANIZATION_LOGIN_IDP_NAME, 1, TENANT_DOMAIN)).thenReturn(ssoIdP);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            mockedIdentityUtil.when(IdentityUtil::getHostName).thenReturn("localhost");
+
+            // Organization B resolves and "claims" the JWKS URI first.
+            IdentityProvider resultOrgB = identityProviderManager.getIdPByName(jwtIssuerOrgB, TENANT_DOMAIN, true);
+            String jwksUriOrgB = jwtIssuerOrgB.replace(OAUTH2_TOKEN_EP_URL, OAUTH2_JWKS_EP_URL);
+            assertTrue(Arrays.stream(resultOrgB.getIdpProperties())
+                    .anyMatch(p -> JWKS_URI.equals(p.getName()) && p.getValue().equals(jwksUriOrgB)));
+
+            // The cached instance itself must remain untouched by resolving organization B's request.
+            assertEquals(0, ssoIdP.getIdpProperties().length);
+
+            // Organization A resolves next; it must get its own JWKS URI, not organization B's.
+            IdentityProvider resultOrgA = identityProviderManager.getIdPByName(jwtIssuerOrgA, TENANT_DOMAIN, true);
+            String jwksUriOrgA = jwtIssuerOrgA.replace(OAUTH2_TOKEN_EP_URL, OAUTH2_JWKS_EP_URL);
+            assertTrue(Arrays.stream(resultOrgA.getIdpProperties())
+                    .anyMatch(p -> JWKS_URI.equals(p.getName()) && p.getValue().equals(jwksUriOrgA)));
+            assertTrue(Arrays.stream(resultOrgA.getIdpProperties())
+                    .noneMatch(p -> JWKS_URI.equals(p.getName()) && p.getValue().equals(jwksUriOrgB)));
+        }
+    }
+
     @Test(description = "Test validation passes when provisioning role is blank.")
     public void testValidateOutboundProvisioningRolesWithBlankRole() throws Exception {
 

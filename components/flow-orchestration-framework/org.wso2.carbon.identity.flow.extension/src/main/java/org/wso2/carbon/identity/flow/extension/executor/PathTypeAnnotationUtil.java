@@ -30,7 +30,6 @@ public final class PathTypeAnnotationUtil {
 
     static final Pattern ANNOTATION_PATTERN = Pattern.compile("\\{([^}]*)}$");
     static final String LOCAL_CLAIM_DIALECT_PREFIX = "http://wso2.org/claims/";
-    static final String IDENTITY_CLAIM_URI_PREFIX = "http://wso2.org/claims/identity/";
     static final int MAX_ATTRIBUTES_PER_OBJECT = 10;
 
     private PathTypeAnnotationUtil() {

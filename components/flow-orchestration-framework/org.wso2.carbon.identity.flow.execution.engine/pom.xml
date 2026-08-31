@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.11.161-SNAPSHOT</version>
+        <version>7.11.194-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -192,6 +192,7 @@
                             org.wso2.carbon.identity.flow.execution.engine.listener,
                             org.wso2.carbon.identity.flow.execution.engine.validation,
                             org.wso2.carbon.identity.flow.execution.engine.exception,
+                            org.wso2.carbon.identity.flow.execution.engine.metadata,
                             org.wso2.carbon.identity.flow.execution.engine.graph;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>

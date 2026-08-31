@@ -48,6 +48,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
@@ -149,7 +151,8 @@ public class OptimizedAuthenticatedOrgDataTest {
 
         IdentityProvider resolvedIdp = new IdentityProvider();
         resolvedIdp.setResourceId(IDP_RESOURCE_ID);
-        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN))).thenReturn(resolvedIdp);
+        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN), anyBoolean(), any()))
+                .thenReturn(resolvedIdp);
 
         ServiceProvider resolvedSp = buildServiceProvider(APP_RESOURCE_ID, TENANT_DOMAIN);
         when(appMgtService.getApplicationByResourceId(eq(APP_RESOURCE_ID), eq(TENANT_DOMAIN)))
@@ -208,7 +211,8 @@ public class OptimizedAuthenticatedOrgDataTest {
 
         AuthenticatedOrgData orgData = buildAuthenticatedOrgData(false, "");
 
-        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN))).thenReturn(null);
+        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN), anyBoolean(), any()))
+                .thenReturn(null);
 
         new OptimizedAuthenticatedOrgData(orgData);
     }
@@ -219,7 +223,7 @@ public class OptimizedAuthenticatedOrgDataTest {
 
         AuthenticatedOrgData orgData = buildAuthenticatedOrgData(false, "");
 
-        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN)))
+        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN), anyBoolean(), any()))
                 .thenThrow(new IdentityProviderManagementClientException("Client error"));
 
         new OptimizedAuthenticatedOrgData(orgData);
@@ -231,7 +235,7 @@ public class OptimizedAuthenticatedOrgDataTest {
 
         AuthenticatedOrgData orgData = buildAuthenticatedOrgData(false, "");
 
-        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN)))
+        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN), anyBoolean(), any()))
                 .thenThrow(new IdentityProviderManagementServerException("Server error"));
 
         new OptimizedAuthenticatedOrgData(orgData);
@@ -243,7 +247,7 @@ public class OptimizedAuthenticatedOrgDataTest {
 
         AuthenticatedOrgData orgData = buildAuthenticatedOrgData(false, "");
 
-        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN)))
+        when(identityProviderManager.getIdPByName(eq(IDP_NAME), eq(TENANT_DOMAIN), anyBoolean(), any()))
                 .thenThrow(new IdentityProviderManagementException("Generic error"));
 
         new OptimizedAuthenticatedOrgData(orgData);

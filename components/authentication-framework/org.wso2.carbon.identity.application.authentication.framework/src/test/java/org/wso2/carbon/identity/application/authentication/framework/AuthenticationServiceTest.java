@@ -481,6 +481,46 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         }
     }
 
+    @Test
+    public void testHandleFailedIncompleteAuthWithAuthInitDataOnRetryEnabled() throws Exception {
+
+        AuthenticationService authenticationService = new AuthenticationService();
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+        MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+        try {
+            // Multi-options inclusion is disabled, but auth init data on retry is enabled. The widened
+            // condition should still treat the response as an authenticator selection.
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FrameworkConstants.INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE)).thenReturn("false");
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FrameworkConstants.INCLUDE_AUTH_INIT_DATA_ON_RETRY_IN_API_BASED_AUTH_RESPONSE)).thenReturn("true");
+            when(request.getAttribute(FrameworkConstants.IS_MULTI_OPS_RESPONSE)).thenReturn(true);
+            when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                    .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+            when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
+            List<AuthenticatorData> multiOpsData = getMultiOpsAuthenticatorData(MULTI_OPS_AUTHENTICATORS);
+            for (AuthenticatorData authenticatorData : multiOpsData) {
+                ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                        new MockApiBasedAuthenticator(authenticatorData.getName()));
+            }
+            when(response.getHeader(LOCATION_HEADER))
+                    .thenReturn(getFailureRedirectUrl(SESSION_DATA_KEY, MULTI_OPS_AUTHENTICATORS,
+                            ERROR_MSG_LOGIN_FAIL));
+
+            AuthServiceResponse authServiceResponse = authenticationService.handleAuthentication(authServiceRequest);
+
+            Assert.assertEquals(authServiceResponse.getFlowStatus(), AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
+            Optional<AuthServiceResponseData> responseData = authServiceResponse.getData();
+            Assert.assertTrue(responseData.isPresent(), "Expected response data to be present.");
+            Assert.assertTrue(responseData.get().isAuthenticatorSelectionRequired(),
+                    "Expected authenticatorSelectionRequired=true when the auth init data on retry flag is enabled.");
+            Assert.assertFalse(responseData.get().getAuthenticatorOptions().isEmpty(),
+                    "Expected authenticator options to be populated.");
+        } finally {
+            identityUtil.close();
+        }
+    }
+
     private void validateReturnedAuthenticators(List<AuthenticatorData> actual, List<AuthenticatorData> expected,
                                                 boolean isMultiOps) {
 

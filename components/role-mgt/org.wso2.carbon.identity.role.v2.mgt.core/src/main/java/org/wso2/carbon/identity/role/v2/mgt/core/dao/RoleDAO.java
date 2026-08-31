@@ -459,6 +459,20 @@ public interface RoleDAO {
             throws IdentityRoleManagementException;
 
     /**
+     * Get role id list of groups by group names.
+     *
+     * @param groupNames   Group Names.
+     * @param tenantDomain Tenant domain.
+     * @return The list of role id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<String> getRoleIdListOfGroupNames(List<String> groupNames, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getRoleIdListOfGroupNames method is not implemented");
+    }
+
+    /**
      * Get role id list of idp groups.
      *
      * @param groupIds     Idp Group IDs.

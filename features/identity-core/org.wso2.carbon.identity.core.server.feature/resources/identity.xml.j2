@@ -289,6 +289,24 @@
             <ValidityPeriodMax>{{oauth.graceful_refresh_token_rotation.maximum_validity_period}}</ValidityPeriodMax>
             <ReuseLimitMax>{{oauth.graceful_refresh_token_rotation.maximum_reuse_limit}}</ReuseLimitMax>
         </GracefulRefreshTokenRotation>
+          <!-- When enabled, the UserInfo endpoint recomputes the 'sub' claim from the current value of the
+             application's alternate subject identifier claim instead of the subject identifier persisted at
+             token issuance, aligning UserInfo 'sub' with the ID token 'sub' when the subject-source claim changes
+             and the same access token is reissued. Default: false. -->
+        {% if oauth.userinfo.recompute_subject_claim_for_alternate_subject_identifier is defined %}
+        <RecomputeSubjectClaimForAlternateSubjectIdentifier>{{oauth.userinfo.recompute_subject_claim_for_alternate_subject_identifier}}</RecomputeSubjectClaimForAlternateSubjectIdentifier>
+        {% else %}
+        <RecomputeSubjectClaimForAlternateSubjectIdentifier>false</RecomputeSubjectClaimForAlternateSubjectIdentifier>
+        {% endif %}
+        <!--
+            Configuration to support multiple client secrets per OAuth application,
+            facilitating zero-downtime client secret rotation.
+            MaxSecretCount defines the maximum number of client secrets an
+            application is allowed to hold at any given time.
+         -->
+        <MultipleClientSecrets>
+            <MaxSecretCount>{{oauth.multiple_client_secrets.max_secret_count}}</MaxSecretCount>
+        </MultipleClientSecrets>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -1173,6 +1191,7 @@
             <EnableHybridFlowAppLevelValidation>{{oauth.oidc.enable_hybrid_flow_app_level_validation}}</EnableHybridFlowAppLevelValidation>
             <EnableClaimsSeparationForAccessToken>{{oauth.oidc.enable_claims_separation_for_access_tokens}}</EnableClaimsSeparationForAccessToken>
             <RestrictAssertionClaimsToConfiguredAttributes>{{oauth.oidc.restrict_assertion_claims_to_configured_attributes}}</RestrictAssertionClaimsToConfiguredAttributes>
+            <HonorMultivaluedClaimMetadata>{{oauth.oidc.honor_multivalued_claim_metadata}}</HonorMultivaluedClaimMetadata>
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
@@ -1617,6 +1636,7 @@
         <SAMLIdpInitLogoutResponseSigningEnabled>{{saml.enable_saml_idp_init_logout_response_signing}}</SAMLIdpInitLogoutResponseSigningEnabled>
         <SAML2AuthnRequestsSigningEnabled>{{saml.metadata.enable_authentication_requests_signing}}</SAML2AuthnRequestsSigningEnabled>
         <SAMLAssertionEncyptWithAppCert>{{saml.metadata.assertion_encrypt_with_app_cert}}</SAMLAssertionEncyptWithAppCert>
+        <SendSAMLAuthFailureResponseToSP>{{saml.send_saml_auth_failure_response_to_sp}}</SendSAMLAuthFailureResponseToSP>
         {% if saml.metadata.define_name_id_policy_if_unspecified is defined %}
             <SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>{{saml.metadata.define_name_id_policy_if_unspecified}}</SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>
         {% endif %}
@@ -2352,6 +2372,7 @@
             <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
+        <ResolveExistingUserBeforeConsentPrompt>{{authentication.jit_provisioning.resolve_existing_user_before_consent_prompt}}</ResolveExistingUserBeforeConsentPrompt>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
         <AllowNonStandardClaimURI>{{authentication.jit_provisioning.allow_non_Standard_claim_uri}}</AllowNonStandardClaimURI>
         {% if authentication.jit_provisioning.show_failure_reason is defined %}
@@ -2554,6 +2575,11 @@
                <Version>
                    <Latest>{{actions.types.flow_extension.version.latest}}</Latest>
                </Version>
+               <NonModifiablePaths>
+                   {% for path in actions.types.flow_extension.non_modifiable_paths %}
+                   <Path>{{path}}</Path>
+                   {% endfor %}
+               </NonModifiablePaths>
             </FlowExtension>
         </Types>
     </Actions>
@@ -3124,12 +3150,14 @@
                    enable="{{cache.push_auth_context_cache.enable}}"
                    timeout="{{cache.push_auth_context_cache.timeout}}"
                    capacity="{{cache.push_auth_context_cache.capacity}}"
-                   isDistributed="false"/>
+                   isDistributed="false"
+                   isTemporary="true"/>
             <Cache id="push_auth_status_cache" name="PushAuthStatusCache"
                    enable="{{cache.push_auth_status_cache.enable}}"
-                   timeout="{{cache.push_auth_status_cache_cache.timeout}}"
-                   capacity="{{cache.push_auth_status_cache_cache.capacity}}"
-                   isDistributed="false"/>
+                   timeout="{{cache.push_auth_status_cache.timeout}}"
+                   capacity="{{cache.push_auth_status_cache.capacity}}"
+                   isDistributed="false"
+                   isTemporary="true"/>
             <Cache id="push_device_registration_request_cache" name="PushDeviceRegistrationRequestCache"
                    enable="{{cache.push_device_registration_request_cache.enable}}"
                    timeout="{{cache.push_device_registration_request_cache.timeout}}"
@@ -4980,6 +5008,7 @@
     <!-- Configuration options for controlling the inclusion of additional information in API-based authentication responses. -->
     <IncludeAuthFailureReasonInAPIBasedAuthResponse>{{authentication.include_auth_failure_reason_in_api_based_response}}</IncludeAuthFailureReasonInAPIBasedAuthResponse>
     <IncludeMultiOptionsInAPIBasedAuthResponse>{{authentication.include_multi_options_in_api_based_auth_response}}</IncludeMultiOptionsInAPIBasedAuthResponse>
+    <IncludeAuthInitDataOnRetryInAPIBasedAuthResponse>{{authentication.include_auth_init_data_on_retry_in_api_based_auth_response}}</IncludeAuthInitDataOnRetryInAPIBasedAuthResponse>
 
     <!-- Configuration to allow only SP requested claims during federated flow. -->
     <AllowSPRequestedFedClaimsOnly>{{authentication.allow_sp_requested_fed_claims_only}}</AllowSPRequestedFedClaimsOnly>
@@ -5125,6 +5154,13 @@
     <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
     {% endif %}
 
+    {% if legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim is defined %}
+    <!-- When enabled, protocols such as SAML and Passive STS apply the application-level Use user store domain
+         in roles configuration to the legacy role claim. OIDC applications, as well as deployments with
+         group-role separation disabled, already apply this configuration regardless of this setting. -->
+    <AllowUserstoreDomainRemovalFromLegacyRoleClaim>{{legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim}}</AllowUserstoreDomainRemovalFromLegacyRoleClaim>
+    {% endif %}
+
      {% if scim2.enable_legacy_enterprise_user is defined %}
      <!-- Config to allow legacy SCIM enterprise user behavior -->
      <EnableSCIMLegacyEnterpriseUser>{{scim2.enable_legacy_enterprise_user}}</EnableSCIMLegacyEnterpriseUser>
@@ -5206,6 +5242,7 @@
         <HTTPConnectionTimeout>{{ai_services.http_connection_timeout}}</HTTPConnectionTimeout>
         <HTTPConnectionRequestTimeout>{{ai_services.http_connection_request_timeout}}</HTTPConnectionRequestTimeout>
         <HTTPSocketTimeout>{{ai_services.http_socket_timeout}}</HTTPSocketTimeout>
+        <HTTPClientUseSystemProperties>{{ai_services.http_client_use_system_properties}}</HTTPClientUseSystemProperties>
         <LoginFlowAI>
             <LoginFlowAIEndpoint>{{ai_services.login_flow_ai.endpoint}}</LoginFlowAIEndpoint>
             <LoginFlowAIGenerateRequestPath>{{ai_services.login_flow_ai.generate_request_path}}</LoginFlowAIGenerateRequestPath>
@@ -5230,6 +5267,7 @@
         <ImplicitAssociation>
             <IncludePrimaryWhenSecondaryPresent>{{token_exchange.implicit_association.include_primary_when_secondary_present}}</IncludePrimaryWhenSecondaryPresent>
         </ImplicitAssociation>
+        <LimitScopesToSubjectToken>{{token_exchange.limit_scopes_to_subject_token}}</LimitScopesToSubjectToken>
     </TokenExchange>
 
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
@@ -5349,6 +5387,22 @@
         <SupportMultipleCertificateExport>{{identity_providers.support_multiple_certificate_export}}</SupportMultipleCertificateExport>
     </IdentityProviders>
 
+    <ConnectionSharing>
+        <!-- The fallback provisioning user store applied when a shared identity provider's inherited JIT
+             provisioning user store does not exist in the sub-organization. -->
+        <DefaultProvisioningUserStore>{{connection_sharing.default_provisioning_user_store}}</DefaultProvisioningUserStore>
+        <IDP>
+            <Enable>{{connection_sharing.idp.enable}}</Enable>
+            {% if connection_sharing.idp.disabled_authenticators is defined %}
+            <DisabledAuthenticators>
+                {% for authenticator in connection_sharing.idp.disabled_authenticators %}
+                <Authenticator>{{authenticator}}</Authenticator>
+                {% endfor %}
+            </DisabledAuthenticators>
+            {% endif %}
+        </IDP>
+    </ConnectionSharing>
+
     <TenantLevelAuthenticationConfigForAuthSequence>{{tenant_level_application_authentication_config.enabled_for_auth_sequence}}</TenantLevelAuthenticationConfigForAuthSequence>
     <EnhancedOrganizationAuthenticationFeatureEnabled>{{enhanced_organization_authentication_feature.enabled}}</EnhancedOrganizationAuthenticationFeatureEnabled>
     <WorkflowEngine>
@@ -5389,4 +5443,10 @@
              Excess calls are rejected with BULKHEAD_FULL before reaching the downstream service. -->
         <MaxInFlight>{{circuit_breaker.max_in_flight}}</MaxInFlight>
     </CircuitBreaker>
+
+    <Rules>
+        <DevicePolicy>
+            <MaxExpressionsCombinedWithAnd>{{rules.device_policy.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+        </DevicePolicy>
+    </Rules>
 </Server>

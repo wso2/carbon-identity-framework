@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.11.161-SNAPSHOT</version>
+    <version>7.11.194-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -73,6 +73,7 @@
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
         <module>components/device-mgt</module>
+        <module>components/policy-mgt</module>
         <module>components/webhook-mgt</module>
         <module>components/action-mgt</module>
         <module>components/ai-services-mgt</module>
@@ -123,6 +124,7 @@
         <module>features/rule-mgt</module>
         <module>features/webhook-mgt</module>
         <module>features/action-mgt</module>
+        <module>features/policy-mgt</module>
         <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
         <module>features/servlet-mgt</module>
@@ -374,6 +376,16 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.policy.evaluation</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -2072,8 +2084,8 @@
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <apache.httpcomponents.httpclient.version>4.3.5</apache.httpcomponents.httpclient.version>
-        <orbit.version.httpcore5>5.3.1.wso2v1</orbit.version.httpcore5>
-        <orbit.version.httpclient5>5.4.1.wso2v1</orbit.version.httpclient5>
+        <orbit.version.httpcore5>5.4.3.wso2v1</orbit.version.httpcore5>
+        <orbit.version.httpclient5>5.6.3.wso2v1</orbit.version.httpclient5>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
