@@ -298,6 +298,15 @@
         {% else %}
         <RecomputeSubjectClaimForAlternateSubjectIdentifier>false</RecomputeSubjectClaimForAlternateSubjectIdentifier>
         {% endif %}
+        <!--
+            Configuration to support multiple client secrets per OAuth application,
+            facilitating zero-downtime client secret rotation.
+            MaxSecretCount defines the maximum number of client secrets an
+            application is allowed to hold at any given time.
+         -->
+        <MultipleClientSecrets>
+            <MaxSecretCount>{{oauth.multiple_client_secrets.max_secret_count}}</MaxSecretCount>
+        </MultipleClientSecrets>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -1182,6 +1191,7 @@
             <EnableHybridFlowAppLevelValidation>{{oauth.oidc.enable_hybrid_flow_app_level_validation}}</EnableHybridFlowAppLevelValidation>
             <EnableClaimsSeparationForAccessToken>{{oauth.oidc.enable_claims_separation_for_access_tokens}}</EnableClaimsSeparationForAccessToken>
             <RestrictAssertionClaimsToConfiguredAttributes>{{oauth.oidc.restrict_assertion_claims_to_configured_attributes}}</RestrictAssertionClaimsToConfiguredAttributes>
+            <HonorMultivaluedClaimMetadata>{{oauth.oidc.honor_multivalued_claim_metadata}}</HonorMultivaluedClaimMetadata>
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
@@ -2362,6 +2372,7 @@
             <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
+        <ResolveExistingUserBeforeConsentPrompt>{{authentication.jit_provisioning.resolve_existing_user_before_consent_prompt}}</ResolveExistingUserBeforeConsentPrompt>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
         <AllowNonStandardClaimURI>{{authentication.jit_provisioning.allow_non_Standard_claim_uri}}</AllowNonStandardClaimURI>
         {% if authentication.jit_provisioning.show_failure_reason is defined %}
@@ -2564,6 +2575,11 @@
                <Version>
                    <Latest>{{actions.types.flow_extension.version.latest}}</Latest>
                </Version>
+               <NonModifiablePaths>
+                   {% for path in actions.types.flow_extension.non_modifiable_paths %}
+                   <Path>{{path}}</Path>
+                   {% endfor %}
+               </NonModifiablePaths>
             </FlowExtension>
         </Types>
     </Actions>
@@ -3134,12 +3150,14 @@
                    enable="{{cache.push_auth_context_cache.enable}}"
                    timeout="{{cache.push_auth_context_cache.timeout}}"
                    capacity="{{cache.push_auth_context_cache.capacity}}"
-                   isDistributed="false"/>
+                   isDistributed="false"
+                   isTemporary="true"/>
             <Cache id="push_auth_status_cache" name="PushAuthStatusCache"
                    enable="{{cache.push_auth_status_cache.enable}}"
-                   timeout="{{cache.push_auth_status_cache_cache.timeout}}"
-                   capacity="{{cache.push_auth_status_cache_cache.capacity}}"
-                   isDistributed="false"/>
+                   timeout="{{cache.push_auth_status_cache.timeout}}"
+                   capacity="{{cache.push_auth_status_cache.capacity}}"
+                   isDistributed="false"
+                   isTemporary="true"/>
             <Cache id="push_device_registration_request_cache" name="PushDeviceRegistrationRequestCache"
                    enable="{{cache.push_device_registration_request_cache.enable}}"
                    timeout="{{cache.push_device_registration_request_cache.timeout}}"
@@ -5142,6 +5160,13 @@
          returned instead, resolved based on the group and role separation configuration. -->
     <ReturnLegacyRoleClaimInApplicationResponse>{{legacy_claims.return_legacy_role_claim_in_application_response}}</ReturnLegacyRoleClaimInApplicationResponse>
     {% endif %}
+    
+    {% if legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim is defined %}
+    <!-- When enabled, protocols such as SAML and Passive STS apply the application-level Use user store domain
+         in roles configuration to the legacy role claim. OIDC applications, as well as deployments with
+         group-role separation disabled, already apply this configuration regardless of this setting. -->
+    <AllowUserstoreDomainRemovalFromLegacyRoleClaim>{{legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim}}</AllowUserstoreDomainRemovalFromLegacyRoleClaim>
+    {% endif %}
 
      {% if scim2.enable_legacy_enterprise_user is defined %}
      <!-- Config to allow legacy SCIM enterprise user behavior -->
@@ -5249,6 +5274,7 @@
         <ImplicitAssociation>
             <IncludePrimaryWhenSecondaryPresent>{{token_exchange.implicit_association.include_primary_when_secondary_present}}</IncludePrimaryWhenSecondaryPresent>
         </ImplicitAssociation>
+        <LimitScopesToSubjectToken>{{token_exchange.limit_scopes_to_subject_token}}</LimitScopesToSubjectToken>
     </TokenExchange>
 
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
@@ -5367,6 +5393,22 @@
     <IdentityProviders>
         <SupportMultipleCertificateExport>{{identity_providers.support_multiple_certificate_export}}</SupportMultipleCertificateExport>
     </IdentityProviders>
+
+    <ConnectionSharing>
+        <!-- The fallback provisioning user store applied when a shared identity provider's inherited JIT
+             provisioning user store does not exist in the sub-organization. -->
+        <DefaultProvisioningUserStore>{{connection_sharing.default_provisioning_user_store}}</DefaultProvisioningUserStore>
+        <IDP>
+            <Enable>{{connection_sharing.idp.enable}}</Enable>
+            {% if connection_sharing.idp.disabled_authenticators is defined %}
+            <DisabledAuthenticators>
+                {% for authenticator in connection_sharing.idp.disabled_authenticators %}
+                <Authenticator>{{authenticator}}</Authenticator>
+                {% endfor %}
+            </DisabledAuthenticators>
+            {% endif %}
+        </IDP>
+    </ConnectionSharing>
 
     <TenantLevelAuthenticationConfigForAuthSequence>{{tenant_level_application_authentication_config.enabled_for_auth_sequence}}</TenantLevelAuthenticationConfigForAuthSequence>
     <EnhancedOrganizationAuthenticationFeatureEnabled>{{enhanced_organization_authentication_feature.enabled}}</EnhancedOrganizationAuthenticationFeatureEnabled>

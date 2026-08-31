@@ -204,6 +204,20 @@
         <Scopes>internal_webhook_mgt_delete</Scopes>
     </Resource>
 
+    <!-- Policy Management API -->
+    <Resource context="(.*)/api/server/v1/policies(.*)" secured="true" http-method="POST">
+        <Scopes>internal_policy_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/policies(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_policy_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/policies(.*)" secured="true" http-method="GET">
+        <Scopes>internal_policy_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/policies(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_policy_mgt_delete</Scopes>
+    </Resource>
+
     <!-- [Organization] Secret Management API -->
     <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_secret_mgt_add</Scopes>
@@ -1274,6 +1288,15 @@
     <Resource context="(.*)/o/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
     </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets" secured="true" http-method="POST">
+        <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_application_mgt_client_secret_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/secrets(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_application_mgt_client_secret_view</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_create</Scopes>
         <Operations mandatory="true">
@@ -1331,6 +1354,15 @@
     <!-- Application Management API -->
     <Resource context="(.*)/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_client_secret_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/secrets" secured="true" http-method="POST">
+        <Scopes>internal_application_mgt_client_secret_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/secrets/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_application_mgt_client_secret_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/secrets(.*)" secured="true" http-method="GET">
+        <Scopes>internal_application_mgt_client_secret_view</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_create</Scopes>
@@ -1461,6 +1493,23 @@
         <Scopes>internal_session_delete</Scopes>
     </Resource>
 
+    <!-- [Organization] Identity Provider Sharing API -->
+    <Resource context="(.*)/o/api/server/v1/identity-providers/share" secured="true" http-method="POST">
+        <Scopes>internal_org_idp_share</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-providers/share-with-all" secured="true" http-method="POST">
+        <Scopes>internal_org_idp_share</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-providers/unshare" secured="true" http-method="POST">
+        <Scopes>internal_org_idp_unshare</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-providers/unshare-with-all" secured="true" http-method="POST">
+        <Scopes>internal_org_idp_unshare</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-providers/(.*)/share" secured="true" http-method="GET">
+        <Scopes>internal_org_idp_shared_access_view</Scopes>
+    </Resource>
+
     <!-- [Organization] Identity Provider Management API -->
     <Resource context="(.*)/o/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_idp_create</Scopes>
@@ -1473,6 +1522,23 @@
     </Resource>
     <Resource context="(.*)/o/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_idp_view</Scopes>
+    </Resource>
+
+    <!-- Identity Provider Sharing API -->
+    <Resource context="(.*)/api/server/v1/identity-providers/share" secured="true" http-method="POST">
+        <Scopes>internal_idp_share</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-providers/share-with-all" secured="true" http-method="POST">
+        <Scopes>internal_idp_share</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-providers/unshare" secured="true" http-method="POST">
+        <Scopes>internal_idp_unshare</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-providers/unshare-with-all" secured="true" http-method="POST">
+        <Scopes>internal_idp_unshare</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-providers/(.*)/share" secured="true" http-method="GET">
+        <Scopes>internal_idp_shared_access_view</Scopes>
     </Resource>
 
     <!-- Identity Provider Management API -->

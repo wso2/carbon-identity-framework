@@ -623,11 +623,35 @@ public interface RoleManagementListener {
     /**
      * Invoked after retrieving the list of role IDs associated with specific groups in the given tenant domain.
      *
-     * @param roleIds      A list of role IDs retrieved for the specified groups.
+     * @param groupNames  A list of names of the groups for which the role IDs list was retrieved.
      * @param tenantDomain The domain in which the operation was performed.
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
      */
-    void postGetRoleIdListOfGroups(List<String> roleIds, String tenantDomain) throws IdentityRoleManagementException;
+    default void preGetRoleIdListOfGroupNames(List<String> groupNames, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    /**
+     * Invoked after retrieving the list of role IDs associated with specific groups in the given tenant domain.
+     *
+     * @param groupIds     A list of unique identifiers for the groups for which the role IDs list was retrieved.
+     * @param tenantDomain The domain in which the operation was performed.
+     * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
+     */
+    void postGetRoleIdListOfGroups(List<String> groupIds, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Invoked after retrieving the list of role IDs associated with specific groups in the given tenant domain.
+     *
+     * @param groupNames  A list of names of the groups for which the role IDs list was retrieved.
+     * @param tenantDomain The domain in which the operation was performed.
+     * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
+     */
+    default void postGetRoleIdListOfGroupNames(List<String> groupNames, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
 
     /**
      * Invoked before retrieving the list of role IDs associated with specific Identity Provider (IdP) groups

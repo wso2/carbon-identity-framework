@@ -379,8 +379,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                             if (MapUtils.isNotEmpty(localClaimValues)) {
                                 mappedAttrs = localClaimValues;
-                            } else if (MapUtils.isNotEmpty(idpClaimValues)) {
-                                mappedAttrs = idpClaimValues;
+                            }
+                            if (MapUtils.isNotEmpty(idpClaimValues)) {
+                                mappedAttrs.putAll(idpClaimValues);
                             }
                         }
                         authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);

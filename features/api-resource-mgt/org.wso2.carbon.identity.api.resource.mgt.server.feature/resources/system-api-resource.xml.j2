@@ -101,8 +101,8 @@
                    description="View applications"/>
             <Scope displayName="Delete Application" name="internal_application_mgt_delete"
                    description="Delete applications"/>
-            <Scope displayName="Regenerate Application Secret" name="internal_application_mgt_client_secret_create"
-                   description="Regenerate the client secret of an application"/>
+            <Scope displayName="Create Application Client Secret" name="internal_application_mgt_client_secret_create"
+                   description="Create client secrets of an application"/>
             <Scope displayName="Update authorized internal APIs of an Application"
                    name="internal_application_internal_api_update"
                    description="Allows updating authorized internal APIs of an application. Requires both this scope and
@@ -111,10 +111,13 @@
                    name="internal_application_business_api_update"
                    description="Allows updating authorized business APIs of an application. Requires both this scope and
                     the application update scope (internal_application_mgt_update) for fine-grained access control."/>
-            <Scope displayName="View application client secret"
+            <Scope displayName="View Application Client Secret"
                    name="internal_application_mgt_client_secret_view"
                    description="Allows viewing the client secret of an application. Requires both this scope and
                     the application view scope (internal_application_mgt_view) for fine-grained access control."/>
+            <Scope displayName="Delete Application Client Secret"
+                   name="internal_application_mgt_client_secret_delete"
+                   description="Delete client secrets of an application"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management API"
@@ -130,8 +133,8 @@
                    description="Update applications in the organization"/>
             <Scope displayName="Delete Application" name="internal_org_application_mgt_delete"
                    description="Delete applications in the organization"/>
-            <Scope displayName="Regenerate Application Secret" name="internal_org_application_mgt_client_secret_create"
-                   description="Regenerate the client secret of an application in the organization"/>
+            <Scope displayName="Create Application Client Secret" name="internal_org_application_mgt_client_secret_create"
+                   description="Create client secrets of an application in the organization"/>
             <Scope displayName="Update authorized internal APIs of an Application"
                    name="internal_org_application_internal_api_update"
                    description="Allows updating authorized internal APIs of an application. Requires both this scope and
@@ -140,10 +143,13 @@
                    name="internal_org_application_business_api_update"
                    description="Allows updating authorized business APIs of an application. Requires both this scope and
                     the application update scope (internal_org_application_mgt_update) for fine-grained access control."/>
-            <Scope displayName="View application client secret"
+            <Scope displayName="View Application Client Secret"
                    name="internal_org_application_mgt_client_secret_view"
                    description="Allows viewing the client secret of an application. Requires both this scope and
                     the application view scope (internal_org_application_mgt_view) for fine-grained access control."/>
+            <Scope displayName="Delete Application Client Secret"
+                   name="internal_org_application_mgt_client_secret_delete"
+                   description="Delete client secrets of an application in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators"
@@ -406,8 +412,32 @@
                    description="Add new identity provider connectors in the organization"/>
             <Scope displayName="Update Identity Provider" name="internal_org_idp_update" 
                     description="Update identity provider connectors in the organization"/>
-            <Scope displayName="Delete Identity Provider" name="internal_org_idp_delete" 
+            <Scope displayName="Delete Identity Provider" name="internal_org_idp_delete"
                     description="Delete identity provider connectors in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Provider Sharing API" identifier="/api/server/v1/identity-providers/share"
+                 requiresAuthorization="true"
+                 description="API representation of the identity provider share API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Share Identity Providers" name="internal_idp_share"
+                   description="Share identity providers with organizations"/>
+            <Scope displayName="Unshare Identity Providers" name="internal_idp_unshare"
+                   description="Unshare identity providers from organizations"/>
+            <Scope displayName="View Shared Identity Providers" name="internal_idp_shared_access_view"
+                   description="View shared organizations of the identity provider"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Provider Sharing API" identifier="/o/api/server/v1/identity-providers/share"
+                 requiresAuthorization="true"
+                 description="API representation of the identity provider share API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Share Identity Providers" name="internal_org_idp_share"
+                   description="Share identity providers with organizations"/>
+            <Scope displayName="Unshare Identity Providers" name="internal_org_idp_unshare"
+                   description="Unshare identity providers from organizations"/>
+            <Scope displayName="View Shared Identity Providers" name="internal_org_idp_shared_access_view"
+                   description="View shared organizations of the identity provider"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Verification Provider Management API"
@@ -1201,6 +1231,20 @@
         <Scopes>
             <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
                    description="View webhook metadata in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Policy Management API" identifier="/api/server/v1/policies"
+                 requiresAuthorization="true"
+                 description="API representation of the Policy Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Policies" name="internal_policy_mgt_view"
+                   description="View policies in the organization (root)"/>
+            <Scope displayName="Create Policies" name="internal_policy_mgt_create"
+                   description="Create policies in the organization (root)"/>
+            <Scope displayName="Update Policies" name="internal_policy_mgt_update"
+                   description="Update policies in the organization (root)"/>
+            <Scope displayName="Delete Policies" name="internal_policy_mgt_delete"
+                   description="Delete policies in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management API v1/v2"
@@ -2073,6 +2117,25 @@
                    description="Update user sharing status from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Connection Sharing Management Feature" identifier="console:connectionSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Connection Sharing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Connection Sharing Management Feature" name="console:connectionSharing"
+                   description="Manage connection sharing from the Console"/>
+            <Scope displayName="Connection Sharing Management View Feature" name="console:connectionSharing_view"
+                   description="View connection sharing status from the Console"/>
+            <Scope displayName="Connection Sharing Management Edit Feature" name="console:connectionSharing_edit"
+                   description="Update connection sharing status from the Console"/>
+            <Scope displayName="Connection Sharing Management Update Feature" name="console:connectionSharing_update"
+                   description="Update connection sharing status from the Console"/>
+            <Scope displayName="Connection Sharing Management Create Feature" name="console:connectionSharing_create"
+                   description="Create connection sharing from the Console"/>
+            <Scope displayName="Connection Sharing Management Delete Feature" name="console:connectionSharing_delete"
+                   description="Delete connection sharing from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Management Feature" identifier="console:org:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
@@ -2109,6 +2172,25 @@
                    description="Manage creates of user sharing status in the organization from the Console"/>
             <Scope displayName="User Sharing Management Delete Feature" name="console:org:userSharing_delete"
                    description="Manage deletes of user sharing status in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Connection Sharing Management Feature" identifier="console:org:connectionSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Connection Sharing Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Connection Sharing Management Feature" name="console:org:connectionSharing"
+                   description="Manage connection sharing in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management View Feature" name="console:org:connectionSharing_view"
+                   description="View the shared status of connections within the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Edit Feature" name="console:org:connectionSharing_edit"
+                   description="Manage edits of connection sharing status in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Update Feature" name="console:org:connectionSharing_update"
+                   description="Manage updates of connection sharing status in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Create Feature" name="console:org:connectionSharing_create"
+                   description="Manage creates of connection sharing status in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Delete Feature" name="console:org:connectionSharing_delete"
+                   description="Manage deletes of connection sharing status in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Agent Management Feature" identifier="console:agents"

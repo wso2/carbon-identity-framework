@@ -68,6 +68,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
@@ -776,7 +777,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         try {
                             if (FrameworkUtils.isIdpIdColumnAvailableInFedAuthTable()) {
                                 int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
-                                        .getIdPByName(authHistory.getIdpName(), context.getTenantDomain()).getId());
+                                        .getIdPByName(authHistory.getIdpName(), context.getTenantDomain(), false,
+                                                SharedIdPResolveType.FULL_RESOLVED).getId());
                                 if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
                                     storeFedAuthSessionWithTenantIdAndIdpId(context.getTenantDomain(),
                                             sessionContextKey, authHistory, idpId);
@@ -943,7 +945,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         UserSessionStore userSessionStore = UserSessionStore.getInstance();
         int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
-                .getIdPByName(authHistory.getIdpName(), tenantDomain).getId());
+                .getIdPByName(authHistory.getIdpName(), tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED)
+                .getId());
         if (!userSessionStore.hasExistingFederatedAuthSessionWithIdpId(authHistory.getIdpSessionIndex(), idpId)) {
             userSessionStore.storeFederatedAuthSessionInfoWithIdpId(sessionContextKey, authHistory, idpId);
         } else {
@@ -1239,18 +1242,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                     path = "/";
                 } else {
-                    path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+                    path = FrameworkUtils.prependProxyContextPath(
+                            FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/");
                 }
             } else if (FrameworkUtils.isOrganizationQualifiedRequest()) {
                 // Handling the cookie path for requests coming with the path `/o/<org-id>`.
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
+                path = FrameworkUtils.prependProxyContextPath(
+                        FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/");
             } else {
                 if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getLoginTenantDomain())) {
                     path = "/";
                 } else {
-                    path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+                    path = FrameworkUtils.prependProxyContextPath(
+                            FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/");
                 }
             }
         }

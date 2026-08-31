@@ -149,6 +149,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -871,7 +872,7 @@ public class FrameworkUtils {
         IdentityProvider idp;
         try {
             idp = FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
-                    .getIdPByName(federatedIdpName, tenantDomain);
+                    .getIdPByName(federatedIdpName, tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED);
         } catch (IdentityProviderManagementException e) {
             throw new PostAuthenticationFailedException(
                     ERROR_WHILE_GETTING_IDP_BY_NAME.getCode(),
@@ -1029,13 +1030,15 @@ public class FrameworkUtils {
         if (isOrganizationQualifiedRequest()) {
             // Handling the cookie path for requests coming with the path `/o/<org-id>`.
             String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
+            path = prependProxyContextPath(
+                    FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/");
         } else {
             if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 path = "/";
             } else {
-                path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+                path = prependProxyContextPath(
+                        FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/");
             }
         }
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
@@ -4690,8 +4693,47 @@ public class FrameworkUtils {
                         .setTenant(context.getLoginTenantDomain()).setOrganization(callerOrgId)
                         .build().getAbsolutePublicURL();
             }
+        } else {
+            return prependProxyContextPath(callerPath);
         }
         return callerPath;
+    }
+
+    /**
+     * Prepend the configured proxy context path to a server relative path.
+     * <p>
+     * Used for both redirect URLs and cookie paths: when the server is fronted by a proxy that
+     * exposes it under a context path, the externally visible path carries that prefix, so a path
+     * built from internal context alone (for example {@code /t/<tenant-domain>/}) would not match
+     * the URL the browser actually requests.
+     *
+     * @param path Server relative path, or an absolute URL.
+     * @return Path with the proxy context path applied when applicable.
+     */
+    public static String prependProxyContextPath(String path) {
+
+        if (StringUtils.isBlank(path) || !path.startsWith("/")) {
+            return path;
+        }
+        String proxyContextPath = ServerConfiguration.getInstance()
+                .getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH);
+        if (StringUtils.isBlank(proxyContextPath)) {
+            return path;
+        }
+        String normalizedProxyContextPath = "/" + StringUtils.strip(proxyContextPath.trim(), "/");
+        if (ROOT_DOMAIN.equals(normalizedProxyContextPath)) {
+            // The proxy context path resolved to the root path, nothing to prepend.
+            return path;
+        }
+        if (path.equals(normalizedProxyContextPath)
+                || path.startsWith(normalizedProxyContextPath + "/")
+                || path.startsWith(normalizedProxyContextPath + "?")
+                || path.startsWith(normalizedProxyContextPath + "#")) {
+            // Already prefixed: the prefix is either the whole path, or is delimited by a path
+            // separator, a query string or a fragment.
+            return path;
+        }
+        return normalizedProxyContextPath + path;
     }
 
     /**
