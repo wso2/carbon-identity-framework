@@ -5154,6 +5154,13 @@
     <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
     {% endif %}
 
+    {% if legacy_claims.return_legacy_role_claim_in_application_response is defined %}
+    <!-- Config to return the legacy role claim (http://wso2.org/claims/role) for applications with no role
+         claim set. Enabled by default. When set to false, the roles claim (http://wso2.org/claims/roles) is
+         returned instead, resolved based on the group and role separation configuration. -->
+    <ReturnLegacyRoleClaimInApplicationResponse>{{legacy_claims.return_legacy_role_claim_in_application_response}}</ReturnLegacyRoleClaimInApplicationResponse>
+    {% endif %}
+    
     {% if legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim is defined %}
     <!-- When enabled, protocols such as SAML and Passive STS apply the application-level Use user store domain
          in roles configuration to the legacy role claim. OIDC applications, as well as deployments with

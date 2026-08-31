@@ -349,7 +349,8 @@
         "consoleSettings.useGranularConsolePermissions"
       ],
       "oauth.oidc.honor_multivalued_claim_metadata": false,
-      "token_exchange.limit_scopes_to_subject_token": false
+      "token_exchange.limit_scopes_to_subject_token": false,
+      "legacy_claims.return_legacy_role_claim_in_application_response": true
     },
     "IS_7.1.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -427,7 +428,8 @@
         "consoleSettings.useGranularConsolePermissions"
       ],
       "oauth.oidc.honor_multivalued_claim_metadata": false,
-      "token_exchange.limit_scopes_to_subject_token": false
+      "token_exchange.limit_scopes_to_subject_token": false,
+      "legacy_claims.return_legacy_role_claim_in_application_response": true
     },
     "IS_7.2.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -462,7 +464,8 @@
       "oauth.dcrm.decode_redirect_uris_in_response": false,
       "oauth.oidc.honor_multivalued_claim_metadata": false,
       "ai_services.http_client_use_system_properties": false,
-      "token_exchange.limit_scopes_to_subject_token": false
+      "token_exchange.limit_scopes_to_subject_token": false,
+      "legacy_claims.return_legacy_role_claim_in_application_response": true
     },
     "IS_7.3.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -482,7 +485,8 @@
       ],
       "oauth.oidc.honor_multivalued_claim_metadata": false,
       "ai_services.http_client_use_system_properties": false,
-      "token_exchange.limit_scopes_to_subject_token": false
+      "token_exchange.limit_scopes_to_subject_token": false,
+      "legacy_claims.return_legacy_role_claim_in_application_response": true
     }
   }
 }
