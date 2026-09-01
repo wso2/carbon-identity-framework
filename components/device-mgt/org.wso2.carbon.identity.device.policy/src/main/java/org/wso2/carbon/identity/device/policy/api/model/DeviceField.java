@@ -31,35 +31,41 @@ import java.util.Set;
  */
 public enum DeviceField {
 
+    // Platform identity.
     PLATFORM("platform", EnumSet.allOf(Platform.class)),
-    LOCK_SCREEN("lockScreen", EnumSet.allOf(Platform.class)),
 
+    // OS version.
     ANDROID_OS_VERSION("androidOsVersion", EnumSet.of(Platform.ANDROID)),
-    IS_ROOTED("isRooted", EnumSet.of(Platform.ANDROID)),
-    USB_DEBUGGING("usbDebugging", EnumSet.of(Platform.ANDROID)),
-    HARDWARE_KEYSTORE("hardwareKeystore", EnumSet.of(Platform.ANDROID)),
-    BIOMETRIC("biometric", EnumSet.of(Platform.ANDROID)),
-    SCREEN_LOCK_COMPLEXITY("screenLockComplexity", EnumSet.of(Platform.ANDROID)),
-
     IOS_OS_VERSION("iosOsVersion", EnumSet.of(Platform.IOS)),
-    IOS_INTEGRITY("iosIntegrity", EnumSet.of(Platform.IOS)),
-    PASSCODE("passcode", EnumSet.of(Platform.IOS)),
-    TOUCH_ID_OR_FACE_ID("touchIdOrFaceId", EnumSet.of(Platform.IOS)),
-    JAILBREAK("jailbreak", EnumSet.of(Platform.IOS)),
-
     MACOS_OS_VERSION("macosOsVersion", EnumSet.of(Platform.MACOS)),
     WINDOWS_OS_VERSION("windowsOsVersion", EnumSet.of(Platform.WINDOWS)),
 
+    // Device integrity and tamper detection.
+    ANDROID_INTEGRITY("androidIntegrity", EnumSet.of(Platform.ANDROID)),
+    IOS_INTEGRITY("iosIntegrity", EnumSet.of(Platform.IOS)),
+    IS_ROOTED("isRooted", EnumSet.of(Platform.ANDROID)),
+    JAILBREAK("jailbreak", EnumSet.of(Platform.IOS)),
+    USB_DEBUGGING("usbDebugging", EnumSet.of(Platform.ANDROID)),
+
+    // Screen lock and user authentication.
+    LOCK_SCREEN("lockScreen", EnumSet.allOf(Platform.class)),
+    SCREEN_LOCK_COMPLEXITY("screenLockComplexity", EnumSet.of(Platform.ANDROID)),
+    PASSCODE("passcode", EnumSet.of(Platform.IOS)),
+    BIOMETRIC("biometric", EnumSet.of(Platform.ANDROID)),
+    TOUCH_ID_OR_FACE_ID("touchIdOrFaceId", EnumSet.of(Platform.IOS)),
+    WINDOWS_HELLO("windowsHello", EnumSet.of(Platform.WINDOWS)),
+
+    // Hardware-backed key storage.
+    HARDWARE_KEYSTORE("hardwareKeystore", EnumSet.of(Platform.ANDROID)),
+    SECURE_ENCLAVE("secureEnclave", EnumSet.of(Platform.MACOS)),
+    TRUSTED_PLATFORM_MODULE("trustedPlatformModule", EnumSet.of(Platform.WINDOWS)),
+
+    // Encryption.
     DISK_ENCRYPTION("diskEncryption", EnumSet.of(Platform.ANDROID, Platform.MACOS, Platform.WINDOWS)),
 
+    // Network.
     NETWORK_PROXIES("networkProxies", EnumSet.of(Platform.ANDROID)),
-    WIFI_NETWORK_SECURITY("wifiNetworkSecurity", EnumSet.of(Platform.ANDROID)),
-    ANDROID_INTEGRITY("androidIntegrity", EnumSet.of(Platform.ANDROID)),
-
-    SECURE_ENCLAVE("secureEnclave", EnumSet.of(Platform.MACOS)),
-
-    WINDOWS_HELLO("windowsHello", EnumSet.of(Platform.WINDOWS)),
-    TRUSTED_PLATFORM_MODULE("trustedPlatformModule", EnumSet.of(Platform.WINDOWS));
+    WIFI_NETWORK_SECURITY("wifiNetworkSecurity", EnumSet.of(Platform.ANDROID));
 
     /**
      * Reverse index of platform to the wire names of fields applicable to it, precomputed

@@ -90,9 +90,9 @@ public class DeviceFieldTest {
     public void testGetFieldNamesForAndroid() {
 
         List<String> expected = Arrays.asList(
-                "platform", "lockScreen", "androidOsVersion", "isRooted", "usbDebugging",
-                "hardwareKeystore", "biometric", "screenLockComplexity", "diskEncryption",
-                "networkProxies", "wifiNetworkSecurity", "androidIntegrity"
+                "platform", "androidOsVersion", "androidIntegrity", "isRooted", "usbDebugging",
+                "lockScreen", "screenLockComplexity", "biometric", "hardwareKeystore",
+                "diskEncryption", "networkProxies", "wifiNetworkSecurity"
         );
         Assert.assertEquals(DeviceField.getFieldNamesForPlatform(Platform.ANDROID), expected);
     }
@@ -101,8 +101,8 @@ public class DeviceFieldTest {
     public void testGetFieldNamesForIos() {
 
         List<String> expected = Arrays.asList(
-                "platform", "lockScreen", "iosOsVersion", "iosIntegrity",
-                "passcode", "touchIdOrFaceId", "jailbreak"
+                "platform", "iosOsVersion", "iosIntegrity", "jailbreak",
+                "lockScreen", "passcode", "touchIdOrFaceId"
         );
         Assert.assertEquals(DeviceField.getFieldNamesForPlatform(Platform.IOS), expected);
     }
@@ -111,7 +111,7 @@ public class DeviceFieldTest {
     public void testGetFieldNamesForMacos() {
 
         List<String> expected = Arrays.asList(
-                "platform", "lockScreen", "macosOsVersion", "diskEncryption", "secureEnclave"
+                "platform", "macosOsVersion", "lockScreen", "secureEnclave", "diskEncryption"
         );
         Assert.assertEquals(DeviceField.getFieldNamesForPlatform(Platform.MACOS), expected);
     }
@@ -120,8 +120,8 @@ public class DeviceFieldTest {
     public void testGetFieldNamesForWindows() {
 
         List<String> expected = Arrays.asList(
-                "platform", "lockScreen", "windowsOsVersion", "diskEncryption",
-                "windowsHello", "trustedPlatformModule"
+                "platform", "windowsOsVersion", "lockScreen", "windowsHello",
+                "trustedPlatformModule", "diskEncryption"
         );
         Assert.assertEquals(DeviceField.getFieldNamesForPlatform(Platform.WINDOWS), expected);
     }
