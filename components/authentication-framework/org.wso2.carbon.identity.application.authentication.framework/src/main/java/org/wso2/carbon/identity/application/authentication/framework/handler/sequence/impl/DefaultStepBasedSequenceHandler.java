@@ -247,6 +247,12 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         StringBuilder jsonBuilder = new StringBuilder();
 
+        /* The shared user details resolved by the SharedUserIdentifierHandler are carried on the authenticated user
+           of that step alone. Subsequent steps build their own authenticated user, so the details have to be copied
+           over before claim handling runs, otherwise claims and app associated roles are resolved against the user's
+           resident organization instead of the organization being accessed. */
+        enrichSharedUserDetailsOfSteps(context);
+
         boolean subjectFoundInStep = false;
         boolean subjectAttributesFoundInStep = false;
         int stepCount = 1;
@@ -467,6 +473,33 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         enrichAuthenticatedUserForLocalIdp(context);
     }
 
+    /**
+     * Copy the shared user details resolved by the SharedUserIdentifierHandler onto the authenticated user of every
+     * other step of the sequence.
+     *
+     * @param context Authentication context.
+     */
+    private void enrichSharedUserDetailsOfSteps(AuthenticationContext context) {
+
+        Optional<AuthenticatedUser> sharedUserIdentifiedInSequence =
+                FrameworkUtils.getSharedUserIdentifiedInSequence(context);
+        if (!sharedUserIdentifiedInSequence.isPresent()) {
+            return;
+        }
+        AuthenticatedUser sharedUser = sharedUserIdentifiedInSequence.get();
+        for (StepConfig stepConfig : context.getSequenceConfig().getStepMap().values()) {
+            AuthenticatedUser stepUser = stepConfig.getAuthenticatedUser();
+            if (stepUser == null || stepUser.isSharedUser()) {
+                continue;
+            }
+            stepUser.setSharedUser(true);
+            stepUser.setUserResidentOrganization(sharedUser.getUserResidentOrganization());
+            stepUser.setAccessingOrganization(sharedUser.getAccessingOrganization());
+            stepUser.setUserSharedOrganizationId(sharedUser.getAccessingOrganization());
+            stepUser.setSharedUserId(sharedUser.getSharedUserId());
+        }
+    }
+
     private void enrichSequenceConfig(AuthenticationContext context) {
 
         if (context.getSequenceConfig().getAuthenticatedUser() == null ||
@@ -491,6 +524,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         authenticatedUser.setUserResidentOrganization(sharedUserIdentifiedInSequence
                 .getUserResidentOrganization());
         authenticatedUser.setAccessingOrganization(sharedUserIdentifiedInSequence.getAccessingOrganization());
+        authenticatedUser.setUserSharedOrganizationId(sharedUserIdentifiedInSequence.getAccessingOrganization());
         authenticatedUser.setSharedUserId(sharedUserIdentifiedInSequence.getSharedUserId());
         return authenticatedUser;
     }
