@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
@@ -50,8 +52,8 @@ public class DevicePolicyEvaluationDataProviderTest {
     public void setUp() {
 
         dataProvider = new DevicePolicyEvaluationDataProvider();
-        ruleEvaluationContext = Mockito.mock(RuleEvaluationContext.class);
-        flowContext = Mockito.mock(FlowContext.class);
+        ruleEvaluationContext = mock(RuleEvaluationContext.class);
+        flowContext = mock(FlowContext.class);
     }
 
     @Test
@@ -67,7 +69,7 @@ public class DevicePolicyEvaluationDataProviderTest {
         deviceData.put("os", "macOS");
         deviceData.put("version", "15.0");
         
-        Mockito.when(flowContext.getContextData()).thenReturn(deviceData);
+        when(flowContext.getContextData()).thenReturn(deviceData);
         
         List<Field> fields = new ArrayList<>();
         Field osField = new Field("os", ValueType.STRING);
@@ -78,7 +80,7 @@ public class DevicePolicyEvaluationDataProviderTest {
         fields.add(versionField);
         fields.add(unknownField);
         
-        Mockito.when(ruleEvaluationContext.getFields()).thenReturn(fields);
+        when(ruleEvaluationContext.getFields()).thenReturn(fields);
         
         List<FieldValue> evaluationData = dataProvider.getEvaluationData(ruleEvaluationContext, flowContext,
                 "carbon.super");
@@ -97,13 +99,13 @@ public class DevicePolicyEvaluationDataProviderTest {
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("version", "invalid");
         
-        Mockito.when(flowContext.getContextData()).thenReturn(deviceData);
+        when(flowContext.getContextData()).thenReturn(deviceData);
         
         List<Field> fields = new ArrayList<>();
         Field versionField = new Field("version", ValueType.NUMBER);
         fields.add(versionField);
         
-        Mockito.when(ruleEvaluationContext.getFields()).thenReturn(fields);
+        when(ruleEvaluationContext.getFields()).thenReturn(fields);
         
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "carbon.super");
     }

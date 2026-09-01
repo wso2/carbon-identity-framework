@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 
 public class DevicePolicyDiagnosticLoggerTest {
 
@@ -44,7 +46,7 @@ public class DevicePolicyDiagnosticLoggerTest {
             logger.logTokenValidationFailure("testDeviceId", "expired");
             logger.logTokenValidationFailure(null, "expired");
 
-            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), org.mockito.Mockito.times(2));
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), times(2));
         }
     }
 
@@ -55,7 +57,7 @@ public class DevicePolicyDiagnosticLoggerTest {
 
             logger.logTokenValidationFailure("testDeviceId", "expired");
 
-            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), org.mockito.Mockito.never());
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), never());
         }
     }
 
@@ -68,7 +70,7 @@ public class DevicePolicyDiagnosticLoggerTest {
             logger.logTokenValidationSuccess("testDeviceId");
             logger.logTokenValidationSuccess(null);
 
-            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), org.mockito.Mockito.times(2));
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), times(2));
         }
     }
 
@@ -81,7 +83,7 @@ public class DevicePolicyDiagnosticLoggerTest {
             logger.logIntegrityEnrichmentFailure("testAppId", "reason");
             logger.logIntegrityEnrichmentFailure(null, "reason");
 
-            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), org.mockito.Mockito.times(2));
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), times(2));
         }
     }
 
@@ -94,7 +96,7 @@ public class DevicePolicyDiagnosticLoggerTest {
             logger.logMissingDeviceData("testPolicy");
             logger.logMissingDeviceData(null);
 
-            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), org.mockito.Mockito.times(2));
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), times(2));
         }
     }
 }

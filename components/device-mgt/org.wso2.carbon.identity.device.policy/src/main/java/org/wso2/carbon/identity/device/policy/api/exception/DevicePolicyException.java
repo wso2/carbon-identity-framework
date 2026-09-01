@@ -23,8 +23,8 @@ package org.wso2.carbon.identity.device.policy.api.exception;
  */
 public class DevicePolicyException extends Exception {
 
-    private String errorCode;
-    private String description;
+    private final String errorCode;
+    private final String description;
 
     /**
      * Constructs a new DevicePolicyException with the specified detail message.
@@ -33,7 +33,7 @@ public class DevicePolicyException extends Exception {
      */
     public DevicePolicyException(String message) {
 
-        super(message);
+        this(message, null, null);
     }
 
     /**
@@ -44,7 +44,7 @@ public class DevicePolicyException extends Exception {
      */
     public DevicePolicyException(String message, Throwable cause) {
 
-        super(message, cause);
+        this(message, null, null, cause);
     }
 
     /**

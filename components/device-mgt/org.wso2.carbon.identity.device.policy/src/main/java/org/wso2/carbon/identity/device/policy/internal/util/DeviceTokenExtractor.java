@@ -84,7 +84,7 @@ public class DeviceTokenExtractor {
             }
             String deviceId = (String) deviceIdParam;
             // Strip any stray leading/trailing quotes or backslashes introduced by JWT serialisation bugs.
-            deviceId = deviceId.replaceAll("[\"\\\\]+$", "").replaceAll("^[\"\\\\]+", "").trim();
+            deviceId = StringUtils.strip(deviceId.trim(), "\"\\");
 
             Device device = DevicePolicyComponentServiceHolder.getInstance()
                     .getDeviceManagementService()

@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link DevicePolicyEvaluator}.
@@ -95,7 +94,7 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                     .filter(resourceResult -> resourceResult instanceof RuleResourceEvaluationResult)
                     .flatMap(resourceResult ->
                             ((RuleResourceEvaluationResult) resourceResult).getFailedFields().stream())
-                    .collect(Collectors.toList());
+                    .toList();
             return DevicePolicyEvaluationResult.nonCompliant(policyName, failedFields);
         }
         return DevicePolicyEvaluationResult.compliant(policyName);
@@ -154,6 +153,6 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                     Object value = deviceData.get(field);
                     return value == null || String.valueOf(value).trim().isEmpty();
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 }
