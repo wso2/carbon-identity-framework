@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ *  Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -168,9 +168,12 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
     }
 
     /**
-     * Validates the overall integrity of the response by checking various components including
-     * request details, device integrity, account details, and application integrity.
-     * Also extracts Google-verified device recognition verdicts into the context.
+     * Validates the integrity response and records its outcome on the context.
+     *
+     * <p>Marks the context as attested when both the request details and the application integrity
+     * checks pass, and stores the device recognition verdicts reported by Google. The verdicts are
+     * recorded regardless of the attestation outcome, since a device that fails attestation is
+     * exactly the case a device policy needs the verdicts for.
      *
      * @param decodeIntegrityTokenResponse The response containing the integrity token and various integrity details.
      * @param clientAttestationContext  The context to store the validation results and updated information.
@@ -178,13 +181,13 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
     private void validateIntegrityResponse(DecodeIntegrityTokenResponse decodeIntegrityTokenResponse,
                                            ClientAttestationContext clientAttestationContext) {
 
-        // Existing — controls isAttested for the token endpoint. Unchanged.
+        // Mark the client as attested only when both checks pass; nothing is returned to the caller.
         if (validateRequestDetails(decodeIntegrityTokenResponse, clientAttestationContext) &&
                 validateAppIntegrity(decodeIntegrityTokenResponse, clientAttestationContext)) {
             clientAttestationContext.setAttested(true);
         }
 
-        // Extract device recognition verdicts from the Google response.
+        // Record the verdicts Google reported, falling back to an empty list when it reported none.
         DeviceIntegrity deviceIntegrity =
                 decodeIntegrityTokenResponse.getTokenPayloadExternal().getDeviceIntegrity();
         if (deviceIntegrity != null && deviceIntegrity.getDeviceRecognitionVerdict() != null) {
