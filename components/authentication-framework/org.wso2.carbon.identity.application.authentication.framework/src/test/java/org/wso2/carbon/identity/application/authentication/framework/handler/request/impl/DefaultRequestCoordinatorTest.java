@@ -1458,5 +1458,40 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
 
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
+        // The failure must remain distinguishable from an absent device token.
+        assertEquals(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED), Boolean.TRUE);
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataDoesNotFlagFailureWhenTokenIsAbsent() throws Exception {
+
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.empty());
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        // No device token presented is not a server error, so the failure flag must stay unset.
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED));
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataDoesNotFlagFailureOnSuccess() throws Exception {
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("platform", "ANDROID");
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.of(payload));
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED));
     }
 }
