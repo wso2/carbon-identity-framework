@@ -2548,40 +2548,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="vcVerification" displayName="VC Verification" type="tenant">
-        <Scopes>
-            <Feature>
-                <Scope name="console:vc_verification"/>
-                <Scope name="console:vc_verification_view"/>
-                <Scope name="console:vc_verification_create"/>
-            </Feature>
-            <Update/>
-            <Delete/>
-            <Create>
-                <Scope name="internal_vc_verification_create"/>
-            </Create>
-            <Read>
-                <Scope name="internal_vc_verification_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
-    <APIResourceCollection name="org_vcVerification" displayName="VC Verification" type="organization">
-        <Scopes>
-            <Feature>
-                <Scope name="console:org:vc_verification"/>
-                <Scope name="console:org:vc_verification_view"/>
-                <Scope name="console:org:vc_verification_create"/>
-            </Feature>
-            <Update/>
-            <Delete/>
-            <Create>
-                <Scope name="internal_org_vc_verification_create"/>
-            </Create>
-            <Read>
-                <Scope name="internal_org_vc_verification_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
     <APIResourceCollection name="verifiablePresentationSettings" displayName="Verifiable Presentation Settings" type="tenant">
         <Scopes>
             <Feature>
