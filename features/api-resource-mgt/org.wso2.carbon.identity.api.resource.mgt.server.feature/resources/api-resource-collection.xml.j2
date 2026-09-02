@@ -2825,5 +2825,20 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_verifiablePresentationSettings" displayName="Verifiable Presentation Settings" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:verifiablePresentationSettings"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_config_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_org_config_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     {% endif %}
 </APIResourceCollections>
