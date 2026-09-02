@@ -1698,6 +1698,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('4478bfe9-0f1f-4b96-be54-206cd76d3bbc', 'AGENT_CONFIGURATION', 'A resource type to keep the tenant agent configurations.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('4fed2813-cfa8-40b1-83e6-4ab85d7fcb16', 'DEVICE_MANAGEMENT', 'A resource type to keep tenant level configurations for user device management.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('c8a5f23d-7e94-4b2a-8f16-9d3e0c7b1a4e', 'OPENID4VP_CONFIG', 'A resource type to keep the OpenID4VP configuration.')
 SELECT 1 FROM dual
 /
 CREATE TABLE IDN_CONFIG_RESOURCE (

@@ -85,7 +85,8 @@ public class ConfigurationConstants {
         // Resource Type for compatibility settings managed through /compatibility-settings endpoint.
         COMPATIBILITY_SETTINGS_V2("compatibility-settings-v2", true),
         // Resource Type for push device management settings management through /push-device-mgt endpoint
-        DEVICE_MANAGEMENT("DEVICE_MANAGEMENT", true);
+        DEVICE_MANAGEMENT("DEVICE_MANAGEMENT", true),
+        OPENID4VP_CONFIG("OPENID4VP_CONFIG", true);
 
         private final String resourceTypeName;
         private final boolean checkOrgVersionWhenInheriting;
