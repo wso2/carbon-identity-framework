@@ -831,11 +831,6 @@
                 <artifactId>org.wso2.carbon.identity.role.v2.mgt.core</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.device.policy</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>

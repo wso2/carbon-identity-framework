@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.M
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -83,7 +84,6 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.device.policy.api.service.DeviceDataResolver;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -865,9 +865,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     /**
-     * Invokes the device policy component's device data resolver on the initiation request and
-     * stores any resolved device data payload on the authentication context. A no-op when the
-     * device.policy bundle is not installed.
+     * Invokes the registered {@link DeviceDataResolver} on the initiation request and stores
+     * any resolved device data payload on the authentication context. A no-op when no resolver
+     * implementation is registered.
      *
      * @param request The initiation request carrying the device token.
      * @param context The authentication context being initialized.
