@@ -868,6 +868,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * Invokes the registered {@link DeviceDataResolver} on the initiation request and stores
      * any resolved device data payload on the authentication context. A no-op when no resolver
      * implementation is registered.
+     * <p>
+     * A resolver failure is a server error, not a client error. Since resolution is best effort and
+     * must not break the authentication flow, the failure is flagged on the context under
+     * {@link FrameworkConstants#DEVICE_DATA_RESOLUTION_FAILED} so downstream policy evaluation can
+     * report a server error rather than treating the device data as missing or invalid.
      *
      * @param request The initiation request carrying the device token.
      * @param context The authentication context being initialized.
@@ -888,8 +893,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
             }
         } catch (RuntimeException e) {
-            // Device data resolution is best effort and must never break the authentication flow.
-            log.error("Error while resolving device data at initiation. Error: " + e.getMessage());
+            // Device data resolution is best effort and must never break the authentication flow,
+            // but the failure must stay distinguishable from an absent device token so that it is
+            // not later reported as a client error at policy evaluation.
+            context.setProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED, Boolean.TRUE);
+            log.error("Error while resolving device data at initiation.", e);
         }
     }
 
