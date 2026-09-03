@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2015-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
@@ -47,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Se
 import org.wso2.carbon.identity.application.authentication.framework.services.ConsentAppMappingService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -69,6 +71,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -116,6 +119,12 @@ public class FrameworkServiceDataHolder {
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
     private SessionSerializer sessionSerializer;
+
+    // Registry of the pluggable session data stores, keyed by store name.
+    private final Map<String, SessionDataStore> sessionDataStores = new HashMap<>();
+
+    // Registry of the pluggable user session DAOs, keyed by store name.
+    private final Map<String, UserSessionDAO> userSessionDAOs = new HashMap<>();
 
     private JSExecutionSupervisor jsExecutionSupervisor;
     private IdpManager identityProviderManager = null;
@@ -734,6 +743,99 @@ public class FrameworkServiceDataHolder {
 
     public void setSessionSerializer(SessionSerializer sessionSerializer) {
         this.sessionSerializer = sessionSerializer;
+    }
+
+    /**
+     * Register a session data store.
+     *
+     * @param store the store to register.
+     */
+    public void addSessionDataStore(SessionDataStore store) {
+
+        if (store == null) {
+            return;
+        }
+        if (store.getStoreName() == null) {
+            log.warn("Ignoring the session data store since it does not define a store name: "
+                    + store.getClass().getName() + ".");
+            return;
+        }
+        sessionDataStores.put(normalizeStoreName(store.getStoreName()), store);
+    }
+
+    /**
+     * Deregister a previously registered session data store.
+     *
+     * @param store the store to remove.
+     */
+    public void removeSessionDataStore(SessionDataStore store) {
+
+        if (store != null && store.getStoreName() != null) {
+            sessionDataStores.remove(normalizeStoreName(store.getStoreName()), store);
+        }
+    }
+
+    /**
+     * Returns the session data store registered under the given store name.
+     *
+     * @param storeName the store name, matched case-insensitively.
+     * @return the registered store, or null if none.
+     */
+    public SessionDataStore getSessionDataStore(String storeName) {
+
+        return storeName == null ? null : sessionDataStores.get(normalizeStoreName(storeName));
+    }
+
+    /**
+     * Normalizes a store name so that registration and lookup are case-insensitive.
+     *
+     * @param storeName the store name.
+     * @return the normalized store name, or null if the given name is null.
+     */
+    private static String normalizeStoreName(String storeName) {
+
+        return storeName == null ? null : storeName.trim().toLowerCase(Locale.ENGLISH);
+    }
+
+    /**
+     * Register a user session DAO.
+     *
+     * @param userSessionDAO the DAO to register.
+     */
+    public void addUserSessionDAO(UserSessionDAO userSessionDAO) {
+
+        if (userSessionDAO == null) {
+            return;
+        }
+        if (userSessionDAO.getStoreName() == null) {
+            log.warn("Ignoring the user session DAO since it does not define a store name: "
+                    + userSessionDAO.getClass().getName() + ".");
+            return;
+        }
+        userSessionDAOs.put(normalizeStoreName(userSessionDAO.getStoreName()), userSessionDAO);
+    }
+
+    /**
+     * Deregister a previously registered user session DAO.
+     *
+     * @param userSessionDAO the DAO to remove.
+     */
+    public void removeUserSessionDAO(UserSessionDAO userSessionDAO) {
+
+        if (userSessionDAO != null && userSessionDAO.getStoreName() != null) {
+            userSessionDAOs.remove(normalizeStoreName(userSessionDAO.getStoreName()), userSessionDAO);
+        }
+    }
+
+    /**
+     * Returns the user session DAO registered under the given store name.
+     *
+     * @param storeName the store name, matched case-insensitively.
+     * @return the registered user session DAO, or null if none.
+     */
+    public UserSessionDAO getUserSessionDAO(String storeName) {
+
+        return storeName == null ? null : userSessionDAOs.get(normalizeStoreName(storeName));
     }
 
     /**
