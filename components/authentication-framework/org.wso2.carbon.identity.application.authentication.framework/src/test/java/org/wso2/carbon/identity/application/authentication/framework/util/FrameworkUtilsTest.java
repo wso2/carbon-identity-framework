@@ -537,13 +537,13 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                     AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
             loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
 
-            AuthenticationContext authenticationContext = new AuthenticationContext();
-            authenticationContext.setServiceProviderName("My Application");
-            authenticationContext.setRelyingParty("my-client-id");
+            AuthenticationContext contextOfApplication = new AuthenticationContext();
+            contextOfApplication.setServiceProviderName("My Application");
+            contextOfApplication.setRelyingParty("my-client-id");
 
             FrameworkUtils.removeAuthenticationContextFromCache("CONTEXT-ID",
                     FrameworkConstants.LogConstants.AuthContextInvalidationReasons.AUTH_FLOW_CONCLUDED,
-                    authenticationContext);
+                    contextOfApplication);
 
             ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captorLog =
                     ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
@@ -574,6 +574,26 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         assertNull(FrameworkUtils.sanitizeForLogging(null), "A null value should be returned as is.");
         assertEquals(FrameworkUtils.sanitizeForLogging("plain-flow-id"), "plain-flow-id",
                 "A value with nothing to sanitize should be returned unchanged.");
+    }
+
+    /**
+     * Test that a caller which logs a value longer than an identifier, such as a request header, can keep more of it
+     * while new line characters are still removed and the length is still capped.
+     */
+    @Test
+    public void testSanitizeForLoggingWithAnExplicitLengthLimit() {
+
+        String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+                + "Chrome/120.0.0.0 Safari/537.36";
+        assertEquals(FrameworkUtils.sanitizeForLogging(userAgent, 256), userAgent,
+                "A user agent should not be truncated by the limit which applies to headers.");
+        assertTrue(FrameworkUtils.sanitizeForLogging(userAgent).length() < userAgent.length(),
+                "The default limit is meant for identifiers, so it should still truncate a user agent.");
+
+        assertFalse(FrameworkUtils.sanitizeForLogging("agent\r\nforged record", 256).contains("\n"),
+                "New line characters should be removed regardless of the length limit.");
+        assertEquals(FrameworkUtils.sanitizeForLogging("abcdef", 3), "abc...",
+                "A value longer than the given limit should be capped at it.");
     }
 
     /**

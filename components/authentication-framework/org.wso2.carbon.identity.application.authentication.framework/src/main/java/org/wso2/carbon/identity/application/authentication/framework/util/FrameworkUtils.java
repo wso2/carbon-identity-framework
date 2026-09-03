@@ -256,6 +256,8 @@ public class FrameworkUtils {
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
     private static final int MAX_LOGGABLE_CLIENT_VALUE_LENGTH = 64;
+    private static final String PROMPT_ID_PARAM = "promptId";
+    private static final String PROMPT_RESP_PARAM = "promptResp";
     private static int maxInactiveInterval;
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
@@ -427,8 +429,8 @@ public class FrameworkUtils {
     public static AuthenticationContext getContextData(HttpServletRequest request) throws FrameworkRuntimeException {
 
         AuthenticationContext context = null;
-        if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
-            String promptId = request.getParameter("promptId");
+        if (request.getParameter(PROMPT_RESP_PARAM) != null && request.getParameter(PROMPT_ID_PARAM) != null) {
+            String promptId = request.getParameter(PROMPT_ID_PARAM);
             context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
             if (context != null) {
                 FrameworkUtils.removeAuthenticationContextFromCache(promptId,
@@ -479,8 +481,9 @@ public class FrameworkUtils {
      */
     public static String resolveContextIdentifier(HttpServletRequest request) {
 
-        if (request.getParameter("promptResp") != null && StringUtils.isNotBlank(request.getParameter("promptId"))) {
-            return request.getParameter("promptId");
+        if (request.getParameter(PROMPT_RESP_PARAM) != null
+                && StringUtils.isNotBlank(request.getParameter(PROMPT_ID_PARAM))) {
+            return request.getParameter(PROMPT_ID_PARAM);
         }
         String sessionDataKey = request.getParameter(FrameworkConstants.SESSION_DATA_KEY);
         if (StringUtils.isNotBlank(sessionDataKey)) {
@@ -488,22 +491,14 @@ public class FrameworkUtils {
         }
 
         /* This is only used to enrich the logs of a request whose context could not be found, therefore it must
-         never fail the request it is trying to describe. An authenticator of the tenant is free to throw anything
-         from getContextIdentifier() for a request which was not meant for it. */
+         never fail the request it is trying to describe. */
         try {
             List<ApplicationAuthenticator> authenticatorList = ApplicationAuthenticatorManager.getInstance()
                     .getAllAuthenticators(resolveTenantDomain(request));
             for (ApplicationAuthenticator authenticator : authenticatorList) {
-                try {
-                    String contextIdentifier = authenticator.getContextIdentifier(request);
-                    if (StringUtils.isNotBlank(contextIdentifier)) {
-                        return contextIdentifier;
-                    }
-                } catch (Exception e) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Ignoring the failure of " + authenticator.getName()
-                                + " to resolve a context identifier from the request.", e);
-                    }
+                String contextIdentifier = resolveContextIdentifier(authenticator, request);
+                if (StringUtils.isNotBlank(contextIdentifier)) {
+                    return contextIdentifier;
                 }
             }
         } catch (Exception e) {
@@ -512,6 +507,29 @@ public class FrameworkUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Resolves the identifier of the authentication context which the given request refers to, using the given
+     * authenticator. An authenticator of the tenant is free to throw anything from getContextIdentifier() for a
+     * request which was not meant for it, so a failure of a single authenticator is ignored rather than propagated.
+     *
+     * @param authenticator Authenticator to resolve the context identifier with.
+     * @param request       Request to resolve the context identifier from.
+     * @return Context identifier which the request refers to, or null if this authenticator could not resolve one.
+     */
+    private static String resolveContextIdentifier(ApplicationAuthenticator authenticator,
+                                                   HttpServletRequest request) {
+
+        try {
+            return authenticator.getContextIdentifier(request);
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Ignoring the failure of " + authenticator.getName()
+                        + " to resolve a context identifier from the request.", e);
+            }
+            return null;
+        }
     }
 
     /**
@@ -525,12 +543,26 @@ public class FrameworkUtils {
      */
     public static String sanitizeForLogging(String value) {
 
+        return sanitizeForLogging(value, MAX_LOGGABLE_CLIENT_VALUE_LENGTH);
+    }
+
+    /**
+     * Removes new line characters from a client supplied value and caps its length at the given maximum, so that it
+     * can be written to the server log. This overload is for values such as request headers, which are legitimately
+     * longer than an identifier is and would lose their diagnostic value if they were capped as tightly.
+     *
+     * @param value     Value received from the client. Can be null or blank.
+     * @param maxLength Maximum number of characters to keep from the value.
+     * @return Value which is safe to be written to the server log.
+     */
+    public static String sanitizeForLogging(String value, int maxLength) {
+
         if (StringUtils.isBlank(value)) {
             return value;
         }
         String sanitizedValue = value.replaceAll("[\\r\\n]", StringUtils.EMPTY);
-        if (sanitizedValue.length() > MAX_LOGGABLE_CLIENT_VALUE_LENGTH) {
-            sanitizedValue = sanitizedValue.substring(0, MAX_LOGGABLE_CLIENT_VALUE_LENGTH) + "...";
+        if (sanitizedValue.length() > maxLength) {
+            sanitizedValue = sanitizedValue.substring(0, maxLength) + "...";
         }
         return sanitizedValue;
     }

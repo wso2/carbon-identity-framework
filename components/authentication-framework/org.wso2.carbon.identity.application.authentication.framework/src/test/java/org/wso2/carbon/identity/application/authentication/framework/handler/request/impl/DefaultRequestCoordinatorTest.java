@@ -84,6 +84,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -340,7 +341,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
      * Verifies that an inactive flow identifier is recorded in the diagnostic log.
      */
     @Test(description = "Test that a request with an inactive flow identifier is flagged in the logs")
-    public void testHandleRecordsUsageOfInactiveFlowIdentifier() throws FrameworkException, IOException {
+    public void testHandleRecordsUsageOfInactiveFlowIdentifier() throws IOException {
 
         try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
              MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
@@ -358,6 +359,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             frameworkUtils.when(() -> FrameworkUtils.getContextData(any())).thenReturn(null);
             frameworkUtils.when(() -> FrameworkUtils.resolveContextIdentifier(any())).thenReturn("stale-flow-id");
             frameworkUtils.when(() -> FrameworkUtils.sanitizeForLogging(anyString()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            frameworkUtils.when(() -> FrameworkUtils.sanitizeForLogging(anyString(), anyInt()))
                     .thenAnswer(invocation -> invocation.getArgument(0));
             frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any(), any(), any()))
                     .thenAnswer(invocation -> {
