@@ -956,6 +956,21 @@
                    description="Delete agent accounts in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="SCIM2 Agents API" identifier="/o/scim2/Agents" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Agents API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Agent" name="internal_org_agent_mgt_view"
+                   description="View agent accounts in the organization"/>
+            <Scope displayName="List Agents" name="internal_org_agent_mgt_list"
+                   description="Search agent accounts in the organization"/>
+            <Scope displayName="Create Agent" name="internal_org_agent_mgt_create"
+                   description="Create new agent accounts in the organization"/>
+            <Scope displayName="Update Agent" name="internal_org_agent_mgt_update"
+                   description="Update agent accounts in the organization"/>
+            <Scope displayName="Delete Agent" name="internal_org_agent_mgt_delete"
+                   description="Delete agent accounts in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
                  requiresAuthorization="true" description="API representation of the User Related Code Management API" type="TENANT">
         <Scopes>
@@ -2118,6 +2133,63 @@
                    description="Manage creates of agents from the Console"/>
             <Scope displayName="User Delete Feature" name="console:agents_delete"
                    description="Manage deletes of agents from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Agent Management Feature Organization" identifier="console:org:agents"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Agent Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Agent Feature" name="console:org:agents"
+                   description="Manage agents in the organization from the Console"/>
+            <Scope displayName="Agent View Feature" name="console:org:agents_view"
+                   description="Manage views of agents in the organization from the Console"/>
+            <Scope displayName="Agent Edit Feature" name="console:org:agents_edit"
+                   description="Manage edits of agents in the organization from the Console"/>
+            <Scope displayName="Agent Update Feature" name="console:org:agents_update"
+                   description="Manage updates of agents in the organization from the Console"/>
+            <Scope displayName="Agent Create Feature" name="console:org:agents_create"
+                   description="Manage creates of agents in the organization from the Console"/>
+            <Scope displayName="Agent Delete Feature" name="console:org:agents_delete"
+                   description="Manage deletes of agents in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Agent Sharing Management Feature" identifier="console:agentSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Agent Sharing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Agent Sharing Management Feature" name="console:agentSharing"
+                   description="Manage agent sharing from the Console"/>
+            <Scope displayName="Agent Sharing Management View Feature" name="console:agentSharing_view"
+                   description="View agent sharing status from the Console"/>
+            <Scope displayName="Agent Sharing Management Edit Feature" name="console:agentSharing_edit"
+                   description="Update agent sharing status from the Console"/>
+            <Scope displayName="Agent Sharing Management Update Feature" name="console:agentSharing_update"
+                   description="Update agent sharing status from the Console"/>
+            <Scope displayName="Agent Sharing Management Create Feature" name="console:agentSharing_create"
+                   description="Update agent sharing status from the Console"/>
+            <Scope displayName="Agent Sharing Management Delete Feature" name="console:agentSharing_delete"
+                   description="Update agent sharing status from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Agent Sharing Management Feature Organization" identifier="console:org:agentSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Agent Sharing Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Agent Sharing Management Feature" name="console:org:agentSharing"
+                   description="Manage agent sharing in the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management View Feature" name="console:org:agentSharing_view"
+                   description="View the shared status of agents within the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management Edit Feature" name="console:org:agentSharing_edit"
+                   description="Manage edits of agent sharing status in the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management Update Feature" name="console:org:agentSharing_update"
+                   description="Manage updates of agent sharing status in the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management Create Feature" name="console:org:agentSharing_create"
+                   description="Manage creates of agent sharing status in the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management Delete Feature" name="console:org:agentSharing_delete"
+                   description="Manage deletes of agent sharing status in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management Feature" identifier="console:org:users"
