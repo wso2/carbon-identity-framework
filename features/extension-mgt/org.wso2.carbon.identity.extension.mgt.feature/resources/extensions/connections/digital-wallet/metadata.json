@@ -1,0 +1,88 @@
+{
+  "create": {
+    "image": "assets/images/logos/wallet.svg",
+    "header": "Digital Wallet",
+    "Subheading": "Enable users to sign in or register using verifiable credentials.",
+    "documentation": "https://github.com/wso2-extensions/identity-inbound-auth-openid4vp",
+    "modal": {
+      "form": {
+        "fields": [
+          {
+            "index": 0,
+            "ariaLabel": "Digital Wallet Name",
+            "name": "name",
+            "label": "Name",
+            "type": "text",
+            "required": true,
+            "placeholder": "My Wallet",
+            "initialValue": "Digital Wallet",
+            "maxLength": "50",
+            "minLength": "3",
+            "width": "13"
+          },
+          {
+            "index": 1,
+            "name": "description",
+            "label": "Description",
+            "type": "textarea",
+            "required": false,
+            "placeholder": "Enter a description of the connection.",
+            "initialValue": "Enable users to sign in or register using verifiable credentials.",
+            "maxLength": "100",
+            "width": "13"
+          },
+          {
+            "index": 2,
+            "ariaLabel": "Presentation Definition",
+            "name": "presentationDefinitionId",
+            "label": "Presentation Definition",
+            "type": "dropdown",
+            "required": true,
+            "width": "13"
+          }
+        ]
+      }
+    },
+    "properties": [
+      {
+        "key": "presentationDefinitionId",
+        "value": ""
+      }
+    ]
+  },
+  "edit": {
+    "tabs": {
+      "general": [
+        {
+          "index": 0,
+          "name": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "placeholder": "Digital Wallet",
+          "maxLength": "50",
+          "minLength": "3",
+          "width": "16"
+        },
+        {
+          "index": 1,
+          "name": "description",
+          "label": "Description",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "Enter a description of the connection.",
+          "maxLength": "100",
+          "width": "16"
+        },
+        {
+          "index": 2,
+          "name": "presentationDefinitionId",
+          "label": "Presentation Definition",
+          "type": "dropdown",
+          "required": true,
+          "width": "16"
+        }
+      ]
+    }
+  }
+}
