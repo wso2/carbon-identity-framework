@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.device.policy.internal.rule;
 
-import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationDataProviderException;
