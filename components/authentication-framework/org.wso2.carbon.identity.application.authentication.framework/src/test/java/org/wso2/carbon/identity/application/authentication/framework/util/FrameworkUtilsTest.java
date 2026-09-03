@@ -574,6 +574,11 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         assertNull(FrameworkUtils.sanitizeForLogging(null), "A null value should be returned as is.");
         assertEquals(FrameworkUtils.sanitizeForLogging("plain-flow-id"), "plain-flow-id",
                 "A value with nothing to sanitize should be returned unchanged.");
+
+        /* New line characters count as whitespace, so a value made up of them is blank. Such a value still has to
+         be sanitized, since returning it as it is would break the log record it is written to. */
+        assertEquals(FrameworkUtils.sanitizeForLogging("\r\n \r\n"), " ",
+                "A blank value should be sanitized rather than returned as it is.");
     }
 
     /**

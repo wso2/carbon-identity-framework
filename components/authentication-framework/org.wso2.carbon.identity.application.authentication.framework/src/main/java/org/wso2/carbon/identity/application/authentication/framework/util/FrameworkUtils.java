@@ -557,10 +557,13 @@ public class FrameworkUtils {
      */
     public static String sanitizeForLogging(String value, int maxLength) {
 
-        if (StringUtils.isBlank(value)) {
-            return value;
+        /* Every value which is returned from here is passed through the replacement below, rather than a blank one
+         being returned as it is. A value which reaches the log without being replaced would keep this method from
+         counting as a sanitizer, both for a reader and for static analysis. */
+        if (value == null) {
+            return null;
         }
-        String sanitizedValue = value.replaceAll("[\\r\\n]", StringUtils.EMPTY);
+        String sanitizedValue = value.replaceAll("[\r\n]", "");
         if (sanitizedValue.length() > maxLength) {
             sanitizedValue = sanitizedValue.substring(0, maxLength) + "...";
         }
