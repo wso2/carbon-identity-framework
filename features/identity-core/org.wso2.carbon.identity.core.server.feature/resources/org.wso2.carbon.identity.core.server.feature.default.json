@@ -52,6 +52,8 @@
   "session.timeout.maximum_session_timeout": "30d",
   "par.cleanup.enable_expired_requests_cleanup": true,
   "par.cleanup.clean_expired_requests_every": "1d",
+  "device_token.cleanup.enable_expired_jti_cleanup": true,
+  "device_token.cleanup.clean_expired_jti_every": 15,
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
   "key_mgt.key_manager_type": "SunX509",
   "key_mgt.trust_manager_type": "SunX509",

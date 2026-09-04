@@ -31,11 +31,12 @@
     <packaging>pom</packaging>
     <name>WSO2 Carbon - Device Management Aggregator Module</name>
     <description>
-        Aggregates device management modules for generic device registration.
+        Aggregates device management modules for device policy evaluation.
     </description>
     <url>http://wso2.org</url>
 
     <modules>
+        <module>org.wso2.carbon.identity.device.policy</module>
         <module>org.wso2.carbon.identity.device.mgt</module>
     </modules>
 
@@ -43,11 +44,25 @@
         <dependencies>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.device.policy</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.device.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.policy.evaluation</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
 </project>
-
