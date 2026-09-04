@@ -1670,6 +1670,19 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
+  "console.connection_sharing.enabled": "$ref{connection_sharing.idp.enable}",
+  "console.connection_sharing.scopes.feature": ["console:connectionSharing"],
+  "console.connection_sharing.disabled_features": [],
+  "console.connection_sharing.scopes.create": ["internal_idp_share"],
+  "console.connection_sharing.scopes.read": [
+    "internal_idp_shared_access_view",
+    "internal_organization_view"
+  ],
+  "console.connection_sharing.scopes.update": [
+    "internal_idp_share",
+    "internal_idp_unshare"
+  ],
+  "console.connection_sharing.scopes.delete": ["internal_idp_unshare"],
   "console.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
   "console.consents.scopes.feature": ["console:consents"],
   "console.consents.disabled_features": [],
