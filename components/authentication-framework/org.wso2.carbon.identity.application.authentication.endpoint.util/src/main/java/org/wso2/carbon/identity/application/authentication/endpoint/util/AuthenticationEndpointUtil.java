@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -402,7 +402,7 @@ public class AuthenticationEndpointUtil {
              * that resolves nothing.
              */
             if (log.isDebugEnabled()) {
-                log.debug("Skipping " + HTTP_METHOD_GET + " request: " + backendURL + " is not a valid URL.", e);
+                log.debug("Skipping " + HTTP_METHOD_GET + " request: the backend URL is not valid.");
             }
         } catch (IOException e) {
             log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + backendURL + ", failed.", e);
@@ -431,20 +431,24 @@ public class AuthenticationEndpointUtil {
                     responseString.append(inputLine);
                 }
             }
-        } else if (response.getCode() < HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+        } else if (response.getCode() >= HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+            log.error("Response received from the backendURL " + backendURL + " failed with status " +
+                    response.getCode() + ".");
+        } else if (response.getCode() >= HttpStatus.SC_BAD_REQUEST) {
             /*
-             * The request did not identify anything to read - for example the key it carried is
-             * unknown or malformed. That is decided by the incoming request rather than by a server
-             * side failure, so logging it at error level turns malformed requests into server log
-             * noise. SC_NOT_FOUND was already treated this way.
+             * A client error means the request did not identify anything to read - for example the
+             * key it carried is unknown or malformed. That is decided by the incoming request rather
+             * than by a server side failure, so it is not logged at error level. SC_NOT_FOUND was
+             * already handled here.
              */
             if (log.isDebugEnabled()) {
                 log.debug("Response received from the backendURL " + backendURL + " with status " +
                         response.getCode() + ".");
             }
         } else {
-            log.error("Response received from the backendURL " + backendURL + " failed with status " +
-                    response.getCode() + ".");
+            // Informational and redirection responses are not expected from this API.
+            log.error("Unexpected response with status " + response.getCode() +
+                    " received from the backendURL " + backendURL + ".");
         }
 
         return responseString.toString();
