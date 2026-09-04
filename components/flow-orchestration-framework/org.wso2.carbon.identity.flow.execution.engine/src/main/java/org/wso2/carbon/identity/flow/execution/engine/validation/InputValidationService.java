@@ -298,11 +298,16 @@ public class InputValidationService {
         boolean skipUniquenessValidation = isUserResolveExecutor(context);
         Map<String, String> identifierTypes = resolveIdentifierTypes(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
-            if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+            // The identifier type is declared by the flow, so it decides before the claim URI prefix,
+            // which is only an inference from the shape of the identifier. Checking the prefix first
+            // would let an organization input whose identifier happens to look like a claim URI be
+            // routed to the user claims instead, and a flow authored through the management API is not
+            // bound by the console's restrictions on organization attribute keys.
+            if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(userInput.getKey()))) {
+                setOrganizationInput(context.getFlowOrganization(), userInput.getKey(), userInput.getValue());
+            } else if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
                 validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
                         skipUniquenessValidation);
-            } else if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(userInput.getKey()))) {
-                setOrganizationInput(context.getFlowOrganization(), userInput.getKey(), userInput.getValue());
             } else if (userInput.getKey().equals(PASSWORD_KEY)) {
                 validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
             }

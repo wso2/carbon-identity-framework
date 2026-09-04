@@ -1992,6 +1992,21 @@ public class InputValidationServiceTest {
                 "An input named like an organization field must not be routed without identifierType.");
     }
 
+    @Test(description = "A declared organization identifier type wins over a claim URI shaped identifier.")
+    public void testOrganizationIdentifierTypeWinsOverClaimUriPrefix() throws Exception {
+
+        String claimShapedIdentifier = CLAIM_URI_PREFIX + "organization";
+        FlowExecutionContext context = organizationFlowContext(claimShapedIdentifier);
+        context.getUserInputData().put(claimShapedIdentifier, "Acme Corporation");
+
+        invokeValidateUserInputs(context);
+
+        Assert.assertEquals(context.getFlowOrganization().getAttribute(claimShapedIdentifier),
+                "Acme Corporation",
+                "An input declared as organization data must not be routed to the user claims because "
+                        + "its identifier happens to start with the claim URI prefix.");
+    }
+
     @Test(description = "Organization fields nested inside a form component are still resolved.")
     public void testNestedComponentIdentifierTypesAreResolved() throws Exception {
 
