@@ -393,6 +393,17 @@ public class AuthenticationEndpointUtil {
                 return handleHttpResponse(response, backendURL);
             });
 
+        } catch (IllegalArgumentException e) {
+            /*
+             * The URL was built from a request parameter, so a malformed request makes it unparsable.
+             * URI.create() reports that with an unchecked exception, which no caller of this method
+             * catches, so it used to unwind out of the servlet and be logged with its stack trace.
+             * There are no properties to read for such a URL, which is the same outcome as a lookup
+             * that resolves nothing.
+             */
+            if (log.isDebugEnabled()) {
+                log.debug("Skipping " + HTTP_METHOD_GET + " request: " + backendURL + " is not a valid URL.", e);
+            }
         } catch (IOException e) {
             log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + backendURL + ", failed.", e);
         }
@@ -420,7 +431,13 @@ public class AuthenticationEndpointUtil {
                     responseString.append(inputLine);
                 }
             }
-        } else if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
+        } else if (response.getCode() < HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+            /*
+             * The request did not identify anything to read - for example the key it carried is
+             * unknown or malformed. That is decided by the incoming request rather than by a server
+             * side failure, so logging it at error level turns malformed requests into server log
+             * noise. SC_NOT_FOUND was already treated this way.
+             */
             if (log.isDebugEnabled()) {
                 log.debug("Response received from the backendURL " + backendURL + " with status " +
                         response.getCode() + ".");
