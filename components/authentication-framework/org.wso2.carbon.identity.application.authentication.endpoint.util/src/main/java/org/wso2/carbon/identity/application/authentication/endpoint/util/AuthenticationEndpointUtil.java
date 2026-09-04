@@ -431,24 +431,14 @@ public class AuthenticationEndpointUtil {
                     responseString.append(inputLine);
                 }
             }
-        } else if (response.getCode() >= HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-            log.error("Response received from the backendURL " + backendURL + " failed with status " +
-                    response.getCode() + ".");
-        } else if (response.getCode() >= HttpStatus.SC_BAD_REQUEST) {
-            /*
-             * A client error means the request did not identify anything to read - for example the
-             * key it carried is unknown or malformed. That is decided by the incoming request rather
-             * than by a server side failure, so it is not logged at error level. SC_NOT_FOUND was
-             * already handled here.
-             */
+        } else if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
             if (log.isDebugEnabled()) {
                 log.debug("Response received from the backendURL " + backendURL + " with status " +
                         response.getCode() + ".");
             }
         } else {
-            // Informational and redirection responses are not expected from this API.
-            log.error("Unexpected response with status " + response.getCode() +
-                    " received from the backendURL " + backendURL + ".");
+            log.error("Response received from the backendURL " + backendURL + " failed with status " +
+                    response.getCode() + ".");
         }
 
         return responseString.toString();
