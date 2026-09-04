@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedOrgData;
@@ -76,6 +77,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -141,6 +143,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
         IdentityContext.destroyCurrentContext();
         IdentityUtil.threadLocalProperties.remove();
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
     }
 
     @AfterClass
@@ -1385,5 +1388,110 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
                 AuthenticationContext.class, SequenceConfig.class, SessionContext.class);
         method.setAccessible(true);
         method.invoke(requestCoordinator, accessingOrgId, context, effectiveSequence, loadedSessionContext);
+    }
+
+    private void invokeResolveAndStoreDeviceData(HttpServletRequest request, AuthenticationContext context)
+            throws Exception {
+
+        Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
+                "resolveAndStoreDeviceData", HttpServletRequest.class, AuthenticationContext.class);
+        method.setAccessible(true);
+        method.invoke(requestCoordinator, request, context);
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataWithoutRegisteredResolver() throws Exception {
+
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataStoresResolvedPayload() throws Exception {
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("platform", "IOS");
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.of(payload));
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        assertEquals(context.getProperty(FrameworkConstants.DEVICE_DATA), payload);
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataWhenResolverReturnsEmpty() throws Exception {
+
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.empty());
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataDoesNotBreakFlowOnResolverFailure() throws Exception {
+
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString()))
+                .thenThrow(new IllegalStateException("Device token verification blew up."));
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        // Resolution is best effort: the runtime exception must be swallowed, not propagated.
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
+        // The failure must remain distinguishable from an absent device token.
+        assertEquals(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED), Boolean.TRUE);
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataDoesNotFlagFailureWhenTokenIsAbsent() throws Exception {
+
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.empty());
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        // No device token presented is not a server error, so the failure flag must stay unset.
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED));
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataDoesNotFlagFailureOnSuccess() throws Exception {
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("platform", "ANDROID");
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.of(payload));
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED));
     }
 }
