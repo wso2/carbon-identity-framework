@@ -33,12 +33,14 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
@@ -81,6 +83,11 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER_TYPE_CONFIG;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORGANIZATION_IDENTIFIER_TYPE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_DESCRIPTION_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_HANDLE_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_NAME_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.LENGTH_CONFIG;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_LENGTH;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_VARIANT;
@@ -289,13 +296,98 @@ public class InputValidationService {
         // The proper fix is to introduce an attribute collector executor for the flow, which would allow this
         // to be handled in the graph building phase itself.
         boolean skipUniquenessValidation = isUserResolveExecutor(context);
+        Map<String, String> identifierTypes = resolveIdentifierTypes(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
-            if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+            // The identifier type is declared by the flow, so it decides before the claim URI prefix,
+            // which is only an inference from the shape of the identifier. Checking the prefix first
+            // would let an organization input whose identifier happens to look like a claim URI be
+            // routed to the user claims instead, and a flow authored through the management API is not
+            // bound by the console's restrictions on organization attribute keys.
+            if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(userInput.getKey()))) {
+                setOrganizationInput(context.getFlowOrganization(), userInput.getKey(), userInput.getValue());
+            } else if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
                 validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
                         skipUniquenessValidation);
             } else if (userInput.getKey().equals(PASSWORD_KEY)) {
                 validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
             }
+        }
+    }
+
+    /**
+     * Routes an organization input onto the flow organization. The fields the engine and its executors
+     * reference directly are set as first class fields; anything else the flow collects is kept as a
+     * custom attribute.
+     *
+     * @param organization Organization details collected by the flow.
+     * @param identifier   Identifier of the input field.
+     * @param value        Value submitted for the field.
+     */
+    private void setOrganizationInput(FlowOrganization organization, String identifier, String value) {
+
+        switch (identifier) {
+            case ORG_NAME_KEY:
+                organization.setOrganizationName(value);
+                break;
+            case ORG_HANDLE_KEY:
+                organization.setOrganizationHandle(value);
+                break;
+            case ORG_DESCRIPTION_KEY:
+                organization.setOrganizationDescription(value);
+                break;
+            default:
+                organization.setAttribute(identifier, value);
+        }
+    }
+
+    /**
+     * Builds a map of input identifier to its configured {@code identifierType}, by walking every step
+     * of the flow graph and the components nested within each step.
+     * <p>
+     * All steps are scanned rather than only the current node: input validation runs before the node
+     * executes, so the step an input belongs to is ambiguous at this point, and identifiers are unique
+     * within a flow.
+     *
+     * @param context Flow execution context.
+     * @return Identifier to identifier type; empty when the graph declares none.
+     */
+    private Map<String, String> resolveIdentifierTypes(FlowExecutionContext context) {
+
+        Map<String, String> identifierTypes = new HashMap<>();
+        if (context.getGraphConfig() == null || context.getGraphConfig().getNodePageMappings() == null) {
+            return identifierTypes;
+        }
+        for (StepDTO step : context.getGraphConfig().getNodePageMappings().values()) {
+            if (step != null && step.getData() != null) {
+                collectIdentifierTypes(step.getData().getComponents(), identifierTypes);
+            }
+        }
+        return identifierTypes;
+    }
+
+    /**
+     * Collects the {@code identifierType} of each component, recursing into nested components.
+     *
+     * @param components      Components to walk.
+     * @param identifierTypes Map collecting identifier to identifier type.
+     */
+    private void collectIdentifierTypes(List<ComponentDTO> components, Map<String, String> identifierTypes) {
+
+        if (components == null) {
+            return;
+        }
+        for (ComponentDTO component : components) {
+            if (component == null) {
+                continue;
+            }
+            if (MapUtils.isNotEmpty(component.getConfigs())) {
+                Object identifier = component.getConfigs().get(IDENTIFIER);
+                Object identifierType = component.getConfigs().get(IDENTIFIER_TYPE_CONFIG);
+                if (identifier != null && identifierType != null) {
+                    identifierTypes.put(String.valueOf(identifier), String.valueOf(identifierType));
+                }
+            }
+            collectIdentifierTypes(component.getComponents(), identifierTypes);
         }
     }
 

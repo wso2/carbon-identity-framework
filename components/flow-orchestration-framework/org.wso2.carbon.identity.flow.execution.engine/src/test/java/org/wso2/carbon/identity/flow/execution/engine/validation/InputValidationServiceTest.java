@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
@@ -43,6 +44,7 @@ import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
@@ -88,6 +90,11 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER_TYPE_CONFIG;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORGANIZATION_IDENTIFIER_TYPE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_DESCRIPTION_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_HANDLE_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_NAME_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.VALIDATIONS;
 
@@ -1922,6 +1929,178 @@ public class InputValidationServiceTest {
         Assert.assertEquals(invalidResponse.getErrorCode(), ERROR_CODE_CLAIM_INVALID_DATE.getCode());
 
         Assert.assertNotEquals(futureResponse.getErrorCode(), invalidResponse.getErrorCode());
+    }
+
+    @Test(dataProvider = "organizationFieldProvider",
+            description = "Core organization fields are routed onto their own field on the flow organization.")
+    public void testCoreOrganizationFieldsAreRouted(String identifier, String value) throws Exception {
+
+        FlowExecutionContext context = organizationFlowContext(identifier);
+        context.getUserInputData().put(identifier, value);
+
+        invokeValidateUserInputs(context);
+
+        FlowOrganization organization = context.getFlowOrganization();
+        if (ORG_NAME_KEY.equals(identifier)) {
+            Assert.assertEquals(organization.getOrganizationName(), value);
+        } else if (ORG_HANDLE_KEY.equals(identifier)) {
+            Assert.assertEquals(organization.getOrganizationHandle(), value);
+        } else {
+            Assert.assertEquals(organization.getOrganizationDescription(), value);
+        }
+        Assert.assertTrue(organization.getAttributes().isEmpty(),
+                "A core field must not also be stored as a custom attribute.");
+    }
+
+    @DataProvider(name = "organizationFieldProvider")
+    public Object[][] organizationFieldProvider() {
+
+        return new Object[][]{
+                {ORG_NAME_KEY, "Acme Corporation"},
+                {ORG_HANDLE_KEY, "acmecorporation"},
+                {ORG_DESCRIPTION_KEY, "A real business"}
+        };
+    }
+
+    @Test(description = "An organization input that is not a core field is kept as a custom attribute.")
+    public void testCustomOrganizationAttributeIsRouted() throws Exception {
+
+        FlowExecutionContext context = organizationFlowContext("industry");
+        context.getUserInputData().put("industry", "software");
+
+        invokeValidateUserInputs(context);
+
+        Assert.assertEquals(context.getFlowOrganization().getAttribute("industry"), "software");
+        Assert.assertNull(context.getFlowOrganization().getOrganizationName());
+    }
+
+    @Test(description = "Routing is driven by identifierType, not by the identifier name.")
+    public void testInputWithoutOrganizationIdentifierTypeIsNotRouted() throws Exception {
+
+        FlowExecutionContext context = initiateFlowContext();
+        GraphConfig graphConfig = new GraphConfig();
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(IDENTIFIER, ORG_NAME_KEY);
+        graphConfig.addNodePageMapping("step1", stepWithComponents(
+                Collections.singletonList(inputComponent(configs))));
+        context.setGraphConfig(graphConfig);
+        context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
+
+        invokeValidateUserInputs(context);
+
+        Assert.assertNull(context.getFlowOrganization().getOrganizationName(),
+                "An input named like an organization field must not be routed without identifierType.");
+    }
+
+    @Test(description = "A declared organization identifier type wins over a claim URI shaped identifier.")
+    public void testOrganizationIdentifierTypeWinsOverClaimUriPrefix() throws Exception {
+
+        String claimShapedIdentifier = CLAIM_URI_PREFIX + "organization";
+        FlowExecutionContext context = organizationFlowContext(claimShapedIdentifier);
+        context.getUserInputData().put(claimShapedIdentifier, "Acme Corporation");
+
+        invokeValidateUserInputs(context);
+
+        Assert.assertEquals(context.getFlowOrganization().getAttribute(claimShapedIdentifier),
+                "Acme Corporation",
+                "An input declared as organization data must not be routed to the user claims because "
+                        + "its identifier happens to start with the claim URI prefix.");
+    }
+
+    @Test(description = "Organization fields nested inside a form component are still resolved.")
+    public void testNestedComponentIdentifierTypesAreResolved() throws Exception {
+
+        FlowExecutionContext context = initiateFlowContext();
+        GraphConfig graphConfig = new GraphConfig();
+        ComponentDTO form = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.FORM)
+                .components(Collections.singletonList(
+                        inputComponent(organizationFieldConfigs(ORG_NAME_KEY))))
+                .build();
+        graphConfig.addNodePageMapping("step1", stepWithComponents(Collections.singletonList(form)));
+        context.setGraphConfig(graphConfig);
+        context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
+
+        invokeValidateUserInputs(context);
+
+        Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
+    }
+
+    @Test(description = "Identifiers are resolved across every step, not only the step being executed.")
+    public void testIdentifierTypesAreResolvedAcrossAllSteps() throws Exception {
+
+        FlowExecutionContext context = initiateFlowContext();
+        GraphConfig graphConfig = new GraphConfig();
+        Map<String, Object> usernameConfigs = new HashMap<>();
+        usernameConfigs.put(IDENTIFIER, USERNAME_CLAIM_URI);
+        graphConfig.addNodePageMapping("step1", stepWithComponents(
+                Collections.singletonList(inputComponent(usernameConfigs))));
+        graphConfig.addNodePageMapping("step2", stepWithComponents(
+                Collections.singletonList(inputComponent(organizationFieldConfigs(ORG_NAME_KEY)))));
+        context.setGraphConfig(graphConfig);
+        context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
+
+        invokeValidateUserInputs(context);
+
+        Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
+    }
+
+    @Test(description = "A flow with no graph config must not fail input validation.")
+    public void testMissingGraphConfigIsTolerated() throws Exception {
+
+        FlowExecutionContext context = initiateFlowContext();
+        context.getUserInputData().put("industry", "software");
+
+        invokeValidateUserInputs(context);
+
+        Assert.assertTrue(context.getFlowOrganization().getAttributes().isEmpty());
+    }
+
+    /**
+     * Builds a context whose graph declares a single organization typed input with the given identifier.
+     *
+     * @param identifier Identifier of the organization input.
+     * @return The flow execution context.
+     */
+    private FlowExecutionContext organizationFlowContext(String identifier) {
+
+        FlowExecutionContext context = initiateFlowContext();
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("step1", stepWithComponents(
+                Collections.singletonList(inputComponent(organizationFieldConfigs(identifier)))));
+        context.setGraphConfig(graphConfig);
+        return context;
+    }
+
+    private Map<String, Object> organizationFieldConfigs(String identifier) {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(IDENTIFIER, identifier);
+        configs.put(IDENTIFIER_TYPE_CONFIG, ORGANIZATION_IDENTIFIER_TYPE);
+        return configs;
+    }
+
+    private ComponentDTO inputComponent(Map<String, Object> configs) {
+
+        return new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.INPUT)
+                .configs(configs)
+                .build();
+    }
+
+    private StepDTO stepWithComponents(List<ComponentDTO> components) {
+
+        return new StepDTO.Builder()
+                .data(new DataDTO.Builder().components(components).build())
+                .build();
+    }
+
+    private void invokeValidateUserInputs(FlowExecutionContext context) throws Exception {
+
+        Method method = InputValidationService.class.getDeclaredMethod(
+                "validateUserInputs", FlowExecutionContext.class);
+        method.setAccessible(true);
+        method.invoke(inputValidationService, context);
     }
 
     private FlowExecutionContext initiateFlowContext() {

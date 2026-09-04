@@ -29,6 +29,12 @@ public class Constants {
     public static final String STATUS_PROMPT_ONLY = "PROMPT_ONLY";
     // Constants for user attributes.
     public static final String CLAIM_URI_PREFIX = "http://wso2.org/claims/";
+    // Constants for organization details collected during a flow.
+    public static final String IDENTIFIER_TYPE_CONFIG = "identifierType";
+    public static final String ORGANIZATION_IDENTIFIER_TYPE = "ORGANIZATION";
+    public static final String ORG_NAME_KEY = "organizationName";
+    public static final String ORG_HANDLE_KEY = "organizationHandle";
+    public static final String ORG_DESCRIPTION_KEY = "organizationDescription";
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
     public static final String DOB_CLAIM_URI = "http://wso2.org/claims/dob";
     public static final String PASSWORD_KEY = "password";
