@@ -78,6 +78,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.URLBuilderException;
@@ -102,6 +104,7 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -419,6 +422,223 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 .remove(FrameworkConstants.Config.QNAME_EXT_PROVISIONING_HANDLER);
         Object provisioningHandler = FrameworkUtils.getProvisioningHandler();
         assertEquals(provisioningHandler.getClass(), DefaultProvisioningHandler.class);
+    }
+
+    /**
+     * Test that invalidating an authentication context clears the cache entry and records the invalidation as a
+     * diagnostic log carrying the context identifier and the reason for the invalidation.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheRecordsInvalidation() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+            String contextId = "CONTEXT-ID";
+
+            FrameworkUtils.removeAuthenticationContextFromCache(contextId,
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.AUTH_FLOW_CONCLUDED);
+
+            ArgumentCaptor<AuthenticationContextCacheKey> captorKey =
+                    ArgumentCaptor.forClass(AuthenticationContextCacheKey.class);
+            verify(mockedAuthenticationContextCache).clearCacheEntry(captorKey.capture());
+            assertEquals(captorKey.getValue().getContextId(), contextId);
+
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captorLog =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captorLog.capture()));
+            DiagnosticLog diagnosticLog = captorLog.getValue().build();
+            assertEquals(diagnosticLog.getActionId(),
+                    FrameworkConstants.LogConstants.ActionIDs.INVALIDATE_AUTH_CONTEXT);
+            assertEquals(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.CONTEXT_ID), contextId);
+            assertEquals(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.INVALIDATION_REASON),
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.AUTH_FLOW_CONCLUDED);
+        }
+    }
+
+    /**
+     * Test that the single argument variant, which is retained for backward compatibility, still records the
+     * invalidation as a diagnostic log but without an invalidation reason.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheWithoutReason() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+            FrameworkUtils.removeAuthenticationContextFromCache("CONTEXT-ID");
+
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captorLog =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captorLog.capture()));
+            DiagnosticLog diagnosticLog = captorLog.getValue().build();
+            assertNull(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.INVALIDATION_REASON));
+        }
+    }
+
+    /**
+     * Test that the cache entry is still cleared but no diagnostic log is triggered when diagnostic logging is
+     * disabled for the tenant.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheSkipsDiagnosticLogWhenDisabled() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            FrameworkUtils.removeAuthenticationContextFromCache("CONTEXT-ID", "reason");
+
+            verify(mockedAuthenticationContextCache).clearCacheEntry(any(AuthenticationContextCacheKey.class));
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                    any(DiagnosticLog.DiagnosticLogBuilder.class)), never());
+        }
+    }
+
+    /**
+     * Test that a null context identifier is ignored without clearing any cache entry.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheWithNullContextId() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+
+            FrameworkUtils.removeAuthenticationContextFromCache(null, "reason");
+
+            verify(mockedAuthenticationContextCache, never())
+                    .clearCacheEntry(any(AuthenticationContextCacheKey.class));
+        }
+    }
+
+    /**
+     * Test that the application the flow belonged to is recorded with the invalidation, so that the logging
+     * framework can apply its own filtering, such as leaving out Console traffic.
+     */
+    @Test
+    public void testRemoveAuthenticationContextFromCacheRecordsApplication() {
+
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+            AuthenticationContext contextOfApplication = new AuthenticationContext();
+            contextOfApplication.setServiceProviderName("My Application");
+            contextOfApplication.setRelyingParty("my-client-id");
+
+            FrameworkUtils.removeAuthenticationContextFromCache("CONTEXT-ID",
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.AUTH_FLOW_CONCLUDED,
+                    contextOfApplication);
+
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captorLog =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captorLog.capture()));
+            DiagnosticLog diagnosticLog = captorLog.getValue().build();
+            assertEquals(diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID), "my-client-id",
+                    "The client id is required for the logging framework to identify Console traffic.");
+            assertEquals(diagnosticLog.getInput().get(LogConstants.InputKeys.APPLICATION_NAME), "My Application");
+        }
+    }
+
+    /**
+     * Test that new line characters are removed and an oversized value is capped before a client supplied value is
+     * written to the server log, so that forged log records cannot be injected through it.
+     */
+    @Test
+    public void testSanitizeForLogging() {
+
+        String forgedValue = "valid-id\r\n2026-08-25 ERROR [forged] admin login succeeded";
+        String sanitized = FrameworkUtils.sanitizeForLogging(forgedValue);
+        assertFalse(sanitized.contains("\r"), "Carriage returns should be removed from a logged value.");
+        assertFalse(sanitized.contains("\n"), "Line feeds should be removed from a logged value.");
+
+        String oversizedValue = new String(new char[200]).replace("\0", "a");
+        assertTrue(FrameworkUtils.sanitizeForLogging(oversizedValue).length() < oversizedValue.length(),
+                "An oversized value should be capped before it is logged.");
+
+        assertNull(FrameworkUtils.sanitizeForLogging(null), "A null value should be returned as is.");
+        assertEquals(FrameworkUtils.sanitizeForLogging("plain-flow-id"), "plain-flow-id",
+                "A value with nothing to sanitize should be returned unchanged.");
+
+        /* New line characters count as whitespace, so a value made up of them is blank. Such a value still has to
+         be sanitized, since returning it as it is would break the log record it is written to. */
+        assertEquals(FrameworkUtils.sanitizeForLogging("\r\n \r\n"), " ",
+                "A blank value should be sanitized rather than returned as it is.");
+    }
+
+    /**
+     * Test that a caller which logs a value longer than an identifier, such as a request header, can keep more of it
+     * while new line characters are still removed and the length is still capped.
+     */
+    @Test
+    public void testSanitizeForLoggingWithAnExplicitLengthLimit() {
+
+        String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+                + "Chrome/120.0.0.0 Safari/537.36";
+        assertEquals(FrameworkUtils.sanitizeForLogging(userAgent, 256), userAgent,
+                "A user agent should not be truncated by the limit which applies to headers.");
+        assertTrue(FrameworkUtils.sanitizeForLogging(userAgent).length() < userAgent.length(),
+                "The default limit is meant for identifiers, so it should still truncate a user agent.");
+
+        assertFalse(FrameworkUtils.sanitizeForLogging("agent\r\nforged record", 256).contains("\n"),
+                "New line characters should be removed regardless of the length limit.");
+        assertEquals(FrameworkUtils.sanitizeForLogging("abcdef", 3), "abc...",
+                "A value longer than the given limit should be capped at it.");
+    }
+
+    /**
+     * Test that the context identifier is resolved from the sessionDataKey parameter when the request carries one.
+     */
+    @Test
+    public void testResolveContextIdentifierFromSessionDataKey() {
+
+        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+        lenient().when(httpServletRequest.getParameter(FrameworkConstants.SESSION_DATA_KEY))
+                .thenReturn("session-data-key");
+
+        assertEquals(FrameworkUtils.resolveContextIdentifier(httpServletRequest), "session-data-key");
+    }
+
+    /**
+     * Test that the promptId is resolved as the context identifier for a prompt response, since such requests do
+     * not carry the identifier in the sessionDataKey parameter.
+     */
+    @Test
+    public void testResolveContextIdentifierFromPromptId() {
+
+        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+        lenient().when(httpServletRequest.getParameter("promptResp")).thenReturn("true");
+        lenient().when(httpServletRequest.getParameter("promptId")).thenReturn("prompt-id");
+
+        assertEquals(FrameworkUtils.resolveContextIdentifier(httpServletRequest), "prompt-id");
+    }
+
+    /**
+     * Test that a blank sessionDataKey falls through to the authenticators, and that a null identifier is returned
+     * when none of them can resolve one from the request.
+     */
+    @Test
+    public void testResolveContextIdentifierWhenNoneCanBeResolved() {
+
+        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+        lenient().when(httpServletRequest.getParameter(FrameworkConstants.SESSION_DATA_KEY)).thenReturn("");
+
+        assertNull(FrameworkUtils.resolveContextIdentifier(httpServletRequest));
     }
 
     @Test

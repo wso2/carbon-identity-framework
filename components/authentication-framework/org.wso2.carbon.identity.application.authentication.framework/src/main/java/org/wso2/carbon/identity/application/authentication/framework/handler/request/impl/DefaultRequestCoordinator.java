@@ -163,6 +163,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final String PROMPT_ID_PARAM = "promptId";
     private static final String PROMPT_RESP_PARAM = "promptResp";
     private static final String SESSION_LIMIT_HANDLER_PARAM = "terminateActiveSessionsAction";
+    /* A header carries more characters than an identifier does. A user agent string of a current browser is around
+     120 characters long, so a tighter cap would remove the part which identifies the browser. */
+    private static final int MAX_LOGGABLE_HEADER_LENGTH = 256;
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -502,22 +505,53 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     FrameworkUtils.getLogoutRequestHandler().handle(request, responseWrapper, context);
                 }
             } else {
+                /* The identifier is resolved the same way the context itself was resolved above, since it is not
+                 necessarily carried in the sessionDataKey parameter. */
+                String key = FrameworkUtils.resolveContextIdentifier(request);
                 if (log.isDebugEnabled()) {
-                    String key = request.getParameter("sessionDataKey");
                     if (key == null) {
-                        log.debug("Session data key is null in the request");
+                        log.debug("No context identifier could be resolved from the request");
                     } else {
-                        log.debug("Session data key  :  " + key);
+                        log.debug("Context identifier  :  " + key);
                     }
                 }
 
                 String userAgent = request.getHeader("User-Agent");
                 String referer = request.getHeader("Referer");
 
-                String message = "Requested client: " + request.getRemoteAddr() + ", URI :" + request.getMethod() +
-                        ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
+                /* Every part of this message is taken from the request, so all of them are sanitized before they
+                 are written to the server log. A client controlled value would otherwise allow forged log records
+                 to be injected through new line characters, and an oversized one to flood the log. */
+                String message = "Requested client: "
+                        + FrameworkUtils.sanitizeForLogging(request.getRemoteAddr()) + ", URI :"
+                        + FrameworkUtils.sanitizeForLogging(request.getMethod()) + ":"
+                        + FrameworkUtils.sanitizeForLogging(request.getRequestURI(), MAX_LOGGABLE_HEADER_LENGTH)
+                        + ", User-Agent: "
+                        + FrameworkUtils.sanitizeForLogging(userAgent, MAX_LOGGABLE_HEADER_LENGTH) + " , Referer: "
+                        + FrameworkUtils.sanitizeForLogging(referer, MAX_LOGGABLE_HEADER_LENGTH);
 
-                log.warn("Context does not exist. Probably due to invalidated cache. " + message);
+                /* The context identifier is exposed to the client as the flowId in app native authentication.
+                 Logging it here makes it possible to trace back to the point where the flow identifier was
+                 issued and to the point where it was invalidated. */
+                log.warn("Context does not exist. Probably due to invalidated cache. Flow identifier: "
+                        + FrameworkUtils.sanitizeForLogging(key) + ". " + message);
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                            new DiagnosticLog.DiagnosticLogBuilder(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST)
+                                    .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, key)
+                                    .inputParam(FrameworkConstants.LogConstants.ORIGINATING_ADDRESS,
+                                            request.getRemoteAddr())
+                                    .inputParam(FrameworkConstants.LogConstants.USER_AGENT, userAgent)
+                                    .inputParam(FrameworkConstants.LogConstants.REFERER, referer)
+                                    .resultMessage("The authentication flow identified by the provided flow " +
+                                            "identifier is no longer active. The flow identifier is either " +
+                                            "invalid, already used to conclude the flow or expired.")
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
                         FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL,
                         FrameworkConstants.ERROR_DESCRIPTION_AUTH_CONTEXT_NULL);

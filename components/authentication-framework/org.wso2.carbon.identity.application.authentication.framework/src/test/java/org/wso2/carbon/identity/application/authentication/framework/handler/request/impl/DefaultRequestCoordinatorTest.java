@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.junit.Assert;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -65,6 +66,7 @@ import org.wso2.carbon.identity.organization.management.organization.user.sharin
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -82,6 +84,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -331,6 +334,53 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             } catch (FrameworkException e) {
                 assertEquals(e.getErrorCode(), NONCE_ERROR_CODE);
             }
+        }
+    }
+
+    /**
+     * Verifies that an inactive flow identifier is recorded in the diagnostic log.
+     */
+    @Test(description = "Test that a request with an inactive flow identifier is flagged in the logs")
+    public void testHandleRecordsUsageOfInactiveFlowIdentifier() throws IOException {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getParameter(FrameworkConstants.SESSION_DATA_KEY)).thenReturn("stale-flow-id");
+            when(request.getRemoteAddr()).thenReturn("10.0.0.1");
+            when(request.getMethod()).thenReturn("POST");
+            when(request.getRequestURI()).thenReturn("/commonauth");
+            when(request.getHeader("User-Agent")).thenReturn("test-agent");
+            when(request.getHeader("Referer")).thenReturn("https://localhost/app");
+            HttpServletResponse response = mock(HttpServletResponse.class);
+
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+            // A null context is what the framework sees once the flow identifier is no longer active.
+            frameworkUtils.when(() -> FrameworkUtils.getContextData(any())).thenReturn(null);
+            frameworkUtils.when(() -> FrameworkUtils.resolveContextIdentifier(any())).thenReturn("stale-flow-id");
+            frameworkUtils.when(() -> FrameworkUtils.sanitizeForLogging(anyString()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            frameworkUtils.when(() -> FrameworkUtils.sanitizeForLogging(anyString(), anyInt()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> {
+                        ((HttpServletResponse) invocation.getArgument(1)).sendRedirect("dummyUrl");
+                        return null;
+                    });
+
+            DefaultRequestCoordinator coordinator = new DefaultRequestCoordinator();
+            coordinator.handle(request, response);
+
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()), atLeastOnce());
+            DiagnosticLog diagnosticLog = captor.getValue().build();
+            assertEquals(diagnosticLog.getResultStatus(), DiagnosticLog.ResultStatus.FAILED.name());
+            assertEquals(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.CONTEXT_ID), "stale-flow-id",
+                    "The flow identifier of the rejected request should be logged.");
+            assertEquals(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.USER_AGENT), "test-agent");
+            assertEquals(diagnosticLog.getInput().get(FrameworkConstants.LogConstants.REFERER),
+                    "https://localhost/app");
         }
     }
 
