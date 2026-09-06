@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.certificate.management.dao.ApplicationCertificat
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 
+import java.sql.Connection;
+
 /**
  * This class represents the caching layer of Application Certificate Management.
  * This supports using auto-incremented IDs for certificate management operations in application-mgt.
@@ -105,9 +107,28 @@ public class CacheBackedApplicationCertificateMgtDAO implements ApplicationCerti
 
     @Override
     @Deprecated
+    public void updateCertificateContent(int certificateId, String certificateContent, int tenantId,
+                                         Connection connection) throws CertificateMgtException {
+
+        certificateCacheById.clearCacheEntry(new CertificateIdCacheKey(String.valueOf(certificateId)), tenantId);
+        applicationCertificateMgtDAO.updateCertificateContent(certificateId, certificateContent, tenantId,
+                connection);
+    }
+
+    @Override
+    @Deprecated
     public void deleteCertificate(int certificateId, int tenantId) throws CertificateMgtException {
 
         certificateCacheById.clearCacheEntry(new CertificateIdCacheKey(String.valueOf(certificateId)), tenantId);
         applicationCertificateMgtDAO.deleteCertificate(certificateId, tenantId);
+    }
+
+    @Override
+    @Deprecated
+    public void deleteCertificate(int certificateId, int tenantId, Connection connection)
+            throws CertificateMgtException {
+
+        certificateCacheById.clearCacheEntry(new CertificateIdCacheKey(String.valueOf(certificateId)), tenantId);
+        applicationCertificateMgtDAO.deleteCertificate(certificateId, tenantId, connection);
     }
 }

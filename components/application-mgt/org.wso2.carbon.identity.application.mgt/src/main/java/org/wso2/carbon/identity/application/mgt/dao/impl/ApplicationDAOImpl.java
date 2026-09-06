@@ -629,7 +629,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         // you can change application name, description, isSasApp...
         updateBasicApplicationData(serviceProvider, connection);
 
-        updateApplicationCertificate(serviceProvider, tenantID);
+        updateApplicationCertificate(serviceProvider, tenantID, connection);
 
         updateInboundProvisioningConfiguration(applicationId, serviceProvider.getInboundProvisioningConfig(),
                 connection);
@@ -670,10 +670,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         updateConfigurationsAsServiceProperties(serviceProvider);
-        if (ArrayUtils.isNotEmpty(serviceProvider.getSpProperties())) {
-            ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
-            updateServiceProviderProperties(connection, applicationId, Arrays.asList(spProperties), tenantID);
-        }
+        ServiceProviderProperty[] spPropertiesArr = serviceProvider.getSpProperties();
+        List<ServiceProviderProperty> spProperties = spPropertiesArr == null
+                ? Collections.emptyList() : Arrays.asList(spPropertiesArr);
+        updateServiceProviderProperties(connection, applicationId, spProperties, tenantID);
 
         // Will be supported with 'Advance Consent Management Feature'.
             /*
@@ -798,19 +798,21 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      *
      * @param serviceProvider Service provider object.
      * @param tenantID        Tenant ID.
+     * @param connection      The connection used for the enclosing application-update transaction.
      * @throws IdentityApplicationManagementException If an error occurs while updating the certificate.
      */
-    private void updateApplicationCertificate(ServiceProvider serviceProvider, int tenantID)
+    private void updateApplicationCertificate(ServiceProvider serviceProvider, int tenantID, Connection connection)
             throws IdentityApplicationManagementException {
 
         if (StringUtils.isBlank(serviceProvider.getCertificateContent())) {
             // Remove the certificate reference property if exists and remove the certificate.
-            removeCertificateReferenceAndDelete(serviceProvider, tenantID);
+            removeCertificateReferenceAndDelete(serviceProvider, tenantID, connection);
         } else {
             String certificateReferenceIdString = getCertificateReferenceID(serviceProvider.getSpProperties());
             if (certificateReferenceIdString != null) {
                 // If there is a reference, update the relevant existing certificate record.
-                updateCertificate(certificateReferenceIdString, serviceProvider.getCertificateContent(), tenantID);
+                updateCertificate(certificateReferenceIdString, serviceProvider.getCertificateContent(), tenantID,
+                        connection);
             } else {
                 // There is no existing reference. Persisting the certificate as a new record.
                 persistApplicationCertificate(serviceProvider, tenantID);
@@ -820,13 +822,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     /**
      * Removes the certificate reference property from the given service provider object and deletes the certificate
-     * record from the database.
+     * record from the database, on the given connection so the delete becomes part of the caller's transaction.
      *
      * @param serviceProvider Service provider object.
      * @param tenantID        Tenant ID.
+     * @param connection      Connection of the enclosing application-update transaction.
      * @throws IdentityApplicationManagementException If an error occurs while removing the certificate reference.
      */
-    private void removeCertificateReferenceAndDelete(ServiceProvider serviceProvider, int tenantID)
+    private void removeCertificateReferenceAndDelete(ServiceProvider serviceProvider, int tenantID,
+                                                      Connection connection)
             throws IdentityApplicationManagementException {
 
         ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
@@ -844,7 +848,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             int certificateID = Integer.parseInt(spProperties[certificateReferenceIndex].getValue());
 
             serviceProvider.setSpProperties(getFilteredSpProperties(spProperties, certificateReferenceIndex));
-            deleteCertificate(certificateID, IdentityTenantUtil.getTenantDomain(tenantID));
+            deleteCertificate(certificateID, IdentityTenantUtil.getTenantDomain(tenantID), connection);
         }
     }
 
@@ -868,20 +872,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Update the existing certificate record with the given certificate ID.
+     * Update the existing certificate record with the given certificate ID, on the given connection so the update
+     * becomes part of the caller's transaction.
      *
      * @param certificateId      Certificate ID.
      * @param certificateContent Certificate content to be updated.
      * @param tenantID           Tenant ID.
+     * @param connection         Connection of the enclosing application-update transaction.
      * @throws IdentityApplicationManagementException If an error occurs while updating the certificate.
      */
-    private void updateCertificate(String certificateId, String certificateContent, int tenantID)
+    private void updateCertificate(String certificateId, String certificateContent, int tenantID,
+                                   Connection connection)
             throws IdentityApplicationManagementException {
 
         try {
             ApplicationManagementServiceComponentHolder.getInstance().getApplicationCertificateMgtService()
                     .updateCertificateContent(Integer.parseInt(certificateId), certificateContent,
-                            IdentityTenantUtil.getTenantDomain(tenantID));
+                            IdentityTenantUtil.getTenantDomain(tenantID), connection);
         } catch (CertificateMgtClientException e) {
             throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
         } catch (CertificateMgtException e) {
@@ -4345,7 +4352,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
 
             // Delete the application certificate if there is any.
-            deleteCertificate(appName, tenantID);
+            deleteCertificate(appName, tenantID, connection);
 
             // First, delete all the clients of the application
             int applicationID = getApplicationIDByName(appName, tenantID, connection);
@@ -4716,7 +4723,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @throws IdentityApplicationManagementException If an error occurred while retrieving the application or
      *                                                deleting the certificate.
      */
-    private void deleteCertificate(String appName, int tenantID) throws UserStoreException,
+    private void deleteCertificate(String appName, int tenantID, Connection connection) throws UserStoreException,
             IdentityApplicationManagementException {
 
         String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -4731,7 +4738,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String certificateReferenceID = getCertificateReferenceID(application.getSpProperties());
 
         if (certificateReferenceID != null) {
-            deleteCertificate(Integer.parseInt(certificateReferenceID), IdentityTenantUtil.getTenantDomain(tenantID));
+            deleteCertificate(Integer.parseInt(certificateReferenceID), IdentityTenantUtil.getTenantDomain(tenantID),
+                    connection);
         }
     }
 
@@ -4747,6 +4755,26 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             ApplicationManagementServiceComponentHolder.getInstance().getApplicationCertificateMgtService()
                     .deleteCertificate(id, tenantDomain);
+        } catch (CertificateMgtException e) {
+            throw new IdentityApplicationManagementException("Error while deleting certificate", e);
+        }
+    }
+
+    /**
+     * Deletes the certificate for given ID from the database, on the given connection, so that the delete
+     * commits or rolls back together with the enclosing application transaction instead of independently.
+     *
+     * @param id           Certificate ID.
+     * @param tenantDomain Tenant domain.
+     * @param connection   Connection of the enclosing application transaction.
+     * @throws IdentityApplicationManagementException If an error occurred while deleting the certificate.
+     */
+    private void deleteCertificate(int id, String tenantDomain, Connection connection)
+            throws IdentityApplicationManagementException {
+
+        try {
+            ApplicationManagementServiceComponentHolder.getInstance().getApplicationCertificateMgtService()
+                    .deleteCertificate(id, tenantDomain, connection);
         } catch (CertificateMgtException e) {
             throw new IdentityApplicationManagementException("Error while deleting certificate", e);
         }
@@ -5932,7 +5960,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             if (application != null) {
                 // Delete the application certificate if there is any
-                deleteApplicationCertificate(application, tenantDomain);
+                deleteApplicationCertificate(application, tenantDomain, connection);
                 // Delete android attestation service credentials if there is any
                 deleteAndroidAttestationCredentials(application);
 
@@ -6736,6 +6764,24 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String certificateReferenceID = getCertificateReferenceID(application.getSpProperties());
         if (certificateReferenceID != null) {
             deleteCertificate(Integer.parseInt(certificateReferenceID), tenantDomain);
+        }
+    }
+
+    /**
+     * Deletes the application's certificate, if any, on the given connection so the delete commits or rolls
+     * back together with the enclosing application-delete transaction.
+     *
+     * @param application  Service provider object of the application being deleted.
+     * @param tenantDomain Tenant domain.
+     * @param connection   Connection of the enclosing application-delete transaction.
+     * @throws IdentityApplicationManagementException If an error occurred while deleting the certificate.
+     */
+    private void deleteApplicationCertificate(ServiceProvider application, String tenantDomain, Connection connection)
+            throws IdentityApplicationManagementException {
+
+        String certificateReferenceID = getCertificateReferenceID(application.getSpProperties());
+        if (certificateReferenceID != null) {
+            deleteCertificate(Integer.parseInt(certificateReferenceID), tenantDomain, connection);
         }
     }
 
