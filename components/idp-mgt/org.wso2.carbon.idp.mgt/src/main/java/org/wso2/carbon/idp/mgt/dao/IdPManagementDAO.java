@@ -5990,6 +5990,34 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Retrieve the identifier of the identity provider of the given name, in the given tenant. The name of an
+     * identity provider is unique within a tenant, so at most one identifier is held.
+     *
+     * @param idPName  Name of the IdP.
+     * @param tenantId Tenant Id of the IdP.
+     * @return the identifier of the identity provider, or -1 if the tenant has no identity provider of that name.
+     * @throws IdentityProviderManagementException if the identifier could not be retrieved.
+     */
+    public int getIdPIdByName(String idPName, int tenantId) throws IdentityProviderManagementException {
+
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME;
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, idPName);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(ID);
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException(
+                    "Error while retrieving the IdP id of: " + idPName + " and tenant ID: " + tenantId, e);
+        }
+        return -1;
+    }
+
+    /**
      * Delete Identity provider in the given tenant.
      *
      * @param conn              Connection to the DB.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -97,6 +98,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -105,6 +107,7 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
@@ -275,9 +278,14 @@ public class FrameworkServiceComponent {
                 jitProvisioningIDPMgtListener, null);
         bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
 
-        // This is done to load SessionDataStore and PushedAuthDataStore classes and start the cleanup tasks.
-        SessionDataStore.getInstance();
+        // This is done to load the PushedAuthDataStore class and start its cleanup tasks.
         PushedAuthDataStore.getInstance();
+
+        // This is done to load the default SessionDataStore class and start its cleanup tasks. A configured
+        // store is loaded on first use instead, since its service may not have been registered yet.
+        if (SessionMgtUtils.DEFAULT_SESSION_STORE_NAME.equals(SessionMgtUtils.getConfiguredSessionStoreName())) {
+            SessionDataStore.getInstance();
+        }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();
@@ -423,7 +431,11 @@ public class FrameworkServiceComponent {
         }
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
-        SessionDataStore.getInstance().stopService();
+        try {
+            SessionDataStore.getInstance().stopService();
+        } catch (IdentityRuntimeException e) {
+            log.warn("Could not stop the session data store. " + e.getMessage());
+        }
         if (FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor() != null) {
             FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
         }
@@ -550,6 +562,53 @@ public class FrameworkServiceComponent {
             log.debug("Removed session serializer.");
         }
 
+    }
+
+    @Reference(
+            name = "session.data.store",
+            service = SessionDataStore.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionDataStore"
+    )
+    protected void setSessionDataStore(SessionDataStore sessionDataStore) {
+
+        FrameworkServiceDataHolder.getInstance().addSessionDataStore(sessionDataStore);
+        if (log.isDebugEnabled()) {
+            log.debug("Session data store registered: " + sessionDataStore.getStoreName());
+        }
+    }
+
+    protected void unsetSessionDataStore(SessionDataStore sessionDataStore) {
+
+        FrameworkServiceDataHolder.getInstance().removeSessionDataStore(sessionDataStore);
+        if (log.isDebugEnabled()) {
+            log.debug("Session data store unregistered: " + sessionDataStore.getStoreName());
+        }
+    }
+
+    @Reference(
+            name = "user.session.dao",
+            service = UserSessionDAO.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserSessionDAO"
+    )
+    protected void setUserSessionDAO(UserSessionDAO userSessionDAO) {
+
+        // The DAO is resolved per call, so there is no cached selection to drop here.
+        FrameworkServiceDataHolder.getInstance().addUserSessionDAO(userSessionDAO);
+        if (log.isDebugEnabled()) {
+            log.debug("User session DAO registered: " + userSessionDAO.getStoreName());
+        }
+    }
+
+    protected void unsetUserSessionDAO(UserSessionDAO userSessionDAO) {
+
+        FrameworkServiceDataHolder.getInstance().removeUserSessionDAO(userSessionDAO);
+        if (log.isDebugEnabled()) {
+            log.debug("User session DAO unregistered: " + userSessionDAO.getStoreName());
+        }
     }
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
