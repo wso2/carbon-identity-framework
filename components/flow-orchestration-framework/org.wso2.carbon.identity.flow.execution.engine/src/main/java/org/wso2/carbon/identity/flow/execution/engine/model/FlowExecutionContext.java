@@ -48,6 +48,7 @@ public class FlowExecutionContext implements Serializable {
     private NodeConfig currentNode;
     private GraphConfig graphConfig;
     private FlowUser flowUser = new FlowUser();
+    private FlowOrganization flowOrganization = new FlowOrganization();
     private String tenantDomain;
     private String contextIdentifier;
     private String currentActionId;
@@ -122,6 +123,16 @@ public class FlowExecutionContext implements Serializable {
     public void setFlowUser(FlowUser flowUser) {
 
         this.flowUser = flowUser;
+    }
+
+    public FlowOrganization getFlowOrganization() {
+
+        return flowOrganization;
+    }
+
+    public void setFlowOrganization(FlowOrganization flowOrganization) {
+
+        this.flowOrganization = flowOrganization;
     }
 
     public Map<String, Object> getProperties() {
