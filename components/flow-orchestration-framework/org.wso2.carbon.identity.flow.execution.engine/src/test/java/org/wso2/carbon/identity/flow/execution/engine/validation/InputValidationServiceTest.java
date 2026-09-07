@@ -1938,7 +1938,7 @@ public class InputValidationServiceTest {
         FlowExecutionContext context = organizationFlowContext(identifier);
         context.getUserInputData().put(identifier, value);
 
-        invokeValidateUserInputs(context);
+        inputValidationService.handleUserInputs(context);
 
         FlowOrganization organization = context.getFlowOrganization();
         if (ORG_NAME_KEY.equals(identifier)) {
@@ -1968,7 +1968,7 @@ public class InputValidationServiceTest {
         FlowExecutionContext context = organizationFlowContext("industry");
         context.getUserInputData().put("industry", "software");
 
-        invokeValidateUserInputs(context);
+        inputValidationService.handleUserInputs(context);
 
         Assert.assertEquals(context.getFlowOrganization().getAttribute("industry"), "software");
         Assert.assertNull(context.getFlowOrganization().getOrganizationName());
@@ -1986,7 +1986,7 @@ public class InputValidationServiceTest {
         context.setGraphConfig(graphConfig);
         context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
 
-        invokeValidateUserInputs(context);
+        inputValidationService.handleUserInputs(context);
 
         Assert.assertNull(context.getFlowOrganization().getOrganizationName(),
                 "An input named like an organization field must not be routed without identifierType.");
@@ -1999,12 +1999,16 @@ public class InputValidationServiceTest {
         FlowExecutionContext context = organizationFlowContext(claimShapedIdentifier);
         context.getUserInputData().put(claimShapedIdentifier, "Acme Corporation");
 
-        invokeValidateUserInputs(context);
+        inputValidationService.handleUserInputs(context);
 
         Assert.assertEquals(context.getFlowOrganization().getAttribute(claimShapedIdentifier),
                 "Acme Corporation",
                 "An input declared as organization data must not be routed to the user claims because "
                         + "its identifier happens to start with the claim URI prefix.");
+        Assert.assertFalse(context.getFlowUser().getClaims().containsKey(claimShapedIdentifier),
+                "Organization data stored on the user would be persisted to their profile.");
+        Assert.assertFalse(context.getFlowUser().getUpdatedClaimUris().contains(claimShapedIdentifier),
+                "Organization data stored on the user would be persisted to their profile.");
     }
 
     @Test(description = "Organization fields nested inside a form component are still resolved.")
@@ -2021,7 +2025,7 @@ public class InputValidationServiceTest {
         context.setGraphConfig(graphConfig);
         context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
 
-        invokeValidateUserInputs(context);
+        inputValidationService.handleUserInputs(context);
 
         Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
     }
@@ -2040,7 +2044,7 @@ public class InputValidationServiceTest {
         context.setGraphConfig(graphConfig);
         context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
 
-        invokeValidateUserInputs(context);
+        inputValidationService.handleUserInputs(context);
 
         Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
     }
@@ -2051,7 +2055,7 @@ public class InputValidationServiceTest {
         FlowExecutionContext context = initiateFlowContext();
         context.getUserInputData().put("industry", "software");
 
-        invokeValidateUserInputs(context);
+        inputValidationService.handleUserInputs(context);
 
         Assert.assertTrue(context.getFlowOrganization().getAttributes().isEmpty());
     }
@@ -2093,14 +2097,6 @@ public class InputValidationServiceTest {
         return new StepDTO.Builder()
                 .data(new DataDTO.Builder().components(components).build())
                 .build();
-    }
-
-    private void invokeValidateUserInputs(FlowExecutionContext context) throws Exception {
-
-        Method method = InputValidationService.class.getDeclaredMethod(
-                "validateUserInputs", FlowExecutionContext.class);
-        method.setAccessible(true);
-        method.invoke(inputValidationService, context);
     }
 
     private FlowExecutionContext initiateFlowContext() {
