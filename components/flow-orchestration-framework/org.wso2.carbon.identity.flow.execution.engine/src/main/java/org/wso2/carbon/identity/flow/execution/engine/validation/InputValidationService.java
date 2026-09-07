@@ -213,9 +213,7 @@ public class InputValidationService {
         Map<String, String> identifierTypes = resolveIdentifierTypes(context);
         context.getUserInputData().forEach(
                 (key, value) -> {
-                    // The identifier type is declared by the flow, so it decides before the claim URI
-                    // prefix, which is only an inference from the shape of the identifier. Without it an
-                    // organization identifier shaped like a claim URI would also be stored on the user.
+                    // A flow organization input takes priority over the claim URI prefix.
                     if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(key))) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Routing organization input: " + key);
@@ -307,10 +305,7 @@ public class InputValidationService {
         boolean skipUniquenessValidation = isUserResolveExecutor(context);
         Map<String, String> identifierTypes = resolveIdentifierTypes(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
-            // An organization input is not a user claim, so the claim validations do not apply to it.
-            // The identifier type is declared by the flow and decides before the claim URI prefix,
-            // which is only an inference from the shape of the identifier: a flow authored through the
-            // management API is not bound by the console's restrictions on organization attribute keys.
+            // Organization inputs are not user claims, so the claim validations do not apply.
             if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(userInput.getKey()))) {
                 continue;
             }
