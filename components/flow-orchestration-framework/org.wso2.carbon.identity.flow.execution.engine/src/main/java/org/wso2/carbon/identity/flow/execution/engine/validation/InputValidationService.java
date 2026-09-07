@@ -217,6 +217,9 @@ public class InputValidationService {
                     // prefix, which is only an inference from the shape of the identifier. Without it an
                     // organization identifier shaped like a claim URI would also be stored on the user.
                     if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(key))) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Routing organization input: " + key);
+                        }
                         setOrganizationInput(context.getFlowOrganization(), key, value);
                     } else if (key.startsWith(CLAIM_URI_PREFIX)) {
                         context.getFlowUser().addUpdatedClaim(key, value);

@@ -1990,6 +1990,8 @@ public class InputValidationServiceTest {
 
         Assert.assertNull(context.getFlowOrganization().getOrganizationName(),
                 "An input named like an organization field must not be routed without identifierType.");
+        Assert.assertTrue(context.getFlowOrganization().getAttributes().isEmpty(),
+                "An untyped organization-like input must not be stored as a custom attribute either.");
     }
 
     @Test(description = "A declared organization identifier type wins over a claim URI shaped identifier.")
