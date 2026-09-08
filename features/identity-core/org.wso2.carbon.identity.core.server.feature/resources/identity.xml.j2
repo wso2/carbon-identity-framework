@@ -73,6 +73,10 @@
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
             <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
         </PushedAuthReqCleanUp>
+        <DeviceTokenJtiCleanUp>
+            <Enable>{{device_token.cleanup.enable_expired_jti_cleanup}}</Enable>
+            <CleanUpPeriod>{{device_token.cleanup.clean_expired_jti_every}}</CleanUpPeriod>
+        </DeviceTokenJtiCleanUp>
         <SkipClaimMetadataPersistence>{{identity_data_source.skip_claim_metadata_persistence}}</SkipClaimMetadataPersistence>
     </JDBCPersistenceManager>
 

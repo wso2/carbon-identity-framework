@@ -122,6 +122,7 @@
         <module>features/client-attestation-mgt</module>
         <module>features/trusted-app-mgt</module>
         <module>features/rule-mgt</module>
+        <module>features/device-mgt</module>
         <module>features/webhook-mgt</module>
         <module>features/action-mgt</module>
         <module>features/policy-mgt</module>
