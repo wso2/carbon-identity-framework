@@ -458,6 +458,7 @@ public class IdPManagementDAO {
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         int filterAttributeValueSize = filterAttributeValue.entrySet().size();
         String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+        resolveMetadataValueColumn(filterQueryBuilder, databaseProductName);
         if (databaseProductName.contains("Microsoft") || databaseProductName.contains("H2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL;
             sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
@@ -508,6 +509,7 @@ public class IdPManagementDAO {
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         int filterAttributeValueSize = filterAttributeValue.entrySet().size();
         String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+        resolveMetadataValueColumn(filterQueryBuilder, databaseProductName);
         if (databaseProductName.contains("MySQL")
                 || databaseProductName.contains("MariaDB")
                 || databaseProductName.contains("H2")) {
@@ -664,6 +666,9 @@ public class IdPManagementDAO {
                     case IdPManagementConstants.IDP_GROUPS:
                         // Skip since the IDP groups are resolved and added to the IDP object separately.
                         break;
+                    case IdPManagementConstants.IDP_TEMPLATE_ID:
+                        // Skip since the template id is resolved from the IDP metadata properties separately.
+                        break;
                     default:
                         throw IdPManagementUtil.handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_IDP_ATTRIBUTE_INVALID, attribute);
@@ -717,6 +722,14 @@ public class IdPManagementDAO {
             List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
                     Integer.parseInt(resultSet.getString("ID")), tenantId);
             identityProvider.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
+            if (requiredAttributes != null
+                    && requiredAttributes.contains(IdPManagementConstants.IDP_TEMPLATE_ID)) {
+                String templateId = getTemplateId(propertyList);
+                // Left unset for IdPs created without a template, matching the single IdP retrieval.
+                if (StringUtils.isNotEmpty(templateId)) {
+                    identityProvider.setTemplateId(templateId);
+                }
+            }
         }
         return identityProviderList;
     }
@@ -864,11 +877,12 @@ public class IdPManagementDAO {
         int countOfFilteredIdp = 0;
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
         appendFilterQuery(expressionNode, filterQueryBuilder);
-        String filterClause = filterQueryBuilder.getFilterQuery();
         Map<Integer, String> filterValues = filterQueryBuilder.getFilterAttributeValue();
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
             String dbName = dbConnection.getMetaData().getDatabaseProductName();
+            resolveMetadataValueColumn(filterQueryBuilder, dbName);
+            String filterClause = filterQueryBuilder.getFilterQuery();
 
             String sqlTail;
             if (dbName.contains("MySQL") || dbName.contains("MariaDB") || dbName.contains("H2")) {
@@ -928,17 +942,19 @@ public class IdPManagementDAO {
         String filter = IdPManagementConstants.SQLQueries.TRUSTED_TOKEN_ISSUER_FILTER_SQL;
         filterQueryBuilder.setFilterQuery(filterQueryBuilder.getFilterQuery() + filter);
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
-        sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() +
-                IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL_TAIL;
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
-            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
-                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
-            }
-            prepStmt.setInt(filterAttributeValue.entrySet().size() + 1, tenantId);
-            try (ResultSet rs = prepStmt.executeQuery()) {
-                if (rs.next()) {
-                    countOfFilteredIdp = Integer.parseInt(rs.getString(1));
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+            resolveMetadataValueColumn(filterQueryBuilder, dbConnection.getMetaData().getDatabaseProductName());
+            sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() +
+                    IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL_TAIL;
+            try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
+                for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                    prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+                }
+                prepStmt.setInt(filterAttributeValue.entrySet().size() + 1, tenantId);
+                try (ResultSet rs = prepStmt.executeQuery()) {
+                    if (rs.next()) {
+                        countOfFilteredIdp = Integer.parseInt(rs.getString(1));
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -982,6 +998,8 @@ public class IdPManagementDAO {
                 String operation = expressionNode.getOperation();
                 String value = expressionNode.getValue();
                 String attributeName = expressionNode.getAttributeValue();
+                // Set for attributes that are matched through a sub query and therefore have to be closed.
+                String attributeSuffix = IdPManagementConstants.EMPTY_STRING;
                 if (StringUtils.isNotBlank(attributeName) && StringUtils.isNotBlank(value) && StringUtils
                         .isNotBlank(operation)) {
                     switch (attributeName) {
@@ -1001,25 +1019,32 @@ public class IdPManagementDAO {
                         case IdPManagementConstants.IDP_UUID:
                             attributeName = IdPManagementConstants.UUID;
                             break;
+                        case IdPManagementConstants.IDP_TEMPLATE_ID:
+                            attributeName = isTrustedTokenIssuer
+                                    ? IdPManagementConstants.SQLQueries
+                                            .TEMPLATE_ID_FILTER_TRUSTED_TOKEN_ISSUER_SQL
+                                    : IdPManagementConstants.SQLQueries.TEMPLATE_ID_FILTER_SQL;
+                            attributeSuffix = IdPManagementConstants.CLOSING_PARENTHESIS;
+                            break;
                         default:
                             String message = "Invalid filter attribute name. Filter attribute : " + attributeName;
                             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                                     .ERROR_CODE_RETRIEVE_IDP, message);
                     }
                     if (IdPManagementConstants.EQ.equals(operation)) {
-                        filter.append(attributeName).append(" = ? AND ");
+                        filter.append(attributeName).append(" = ?").append(attributeSuffix).append(" AND ");
                         filterQueryBuilder.setFilterAttributeValue(value);
                     } else if (IdPManagementConstants.SW.equals(operation)) {
                         value = IdentityUtil.processSingleCharWildcard(value);
-                        filter.append(attributeName).append(" like ? AND ");
+                        filter.append(attributeName).append(" like ?").append(attributeSuffix).append(" AND ");
                         filterQueryBuilder.setFilterAttributeValue(value + "%");
                     } else if (IdPManagementConstants.EW.equals(operation)) {
                         value = IdentityUtil.processSingleCharWildcard(value);
-                        filter.append(attributeName).append(" like ? AND ");
+                        filter.append(attributeName).append(" like ?").append(attributeSuffix).append(" AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value);
                     } else if (IdPManagementConstants.CO.equals(operation)) {
                         value = IdentityUtil.processSingleCharWildcard(value);
-                        filter.append(attributeName).append(" like ? AND ");
+                        filter.append(attributeName).append(" like ?").append(attributeSuffix).append(" AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
                     } else {
                         String message = "Invalid filter value. filter: " + operation;
@@ -1034,6 +1059,44 @@ public class IdPManagementDAO {
                 filterQueryBuilder.setFilterQuery(filter.toString());
             }
         }
+    }
+
+    /**
+     * Resolve the placeholder of the IDP_METADATA 'VALUE' column in the built filter query to the quoting the given
+     * database expects. The filter query is built before a connection is acquired, hence the placeholder.
+     *
+     * @param filterQueryBuilder  SQL builder object holding the filter query.
+     * @param databaseProductName Database product name of the connection the query will run on.
+     */
+    private void resolveMetadataValueColumn(FilterQueryBuilder filterQueryBuilder, String databaseProductName) {
+
+        String filterQuery = filterQueryBuilder.getFilterQuery();
+        if (StringUtils.isBlank(filterQuery)
+                || !filterQuery.contains(IdPManagementConstants.IDP_METADATA_VALUE_COLUMN_PLACEHOLDER)) {
+            return;
+        }
+        filterQueryBuilder.setFilterQuery(filterQuery.replace(
+                IdPManagementConstants.IDP_METADATA_VALUE_COLUMN_PLACEHOLDER,
+                getMetadataValueColumn(databaseProductName)));
+    }
+
+    /**
+     * Get the IDP_METADATA 'VALUE' column reference quoted the way the given database expects it.
+     *
+     * @param databaseProductName Database product name.
+     * @return Quoted 'VALUE' column reference.
+     */
+    private String getMetadataValueColumn(String databaseProductName) {
+
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
+            return IdPManagementConstants.METADATA_VALUE_COLUMN_BACKTICK_QUOTED;
+        }
+        if (databaseProductName.contains("Microsoft") || databaseProductName.contains("PostgreSQL")) {
+            return IdPManagementConstants.METADATA_VALUE_COLUMN;
+        }
+        return IdPManagementConstants.METADATA_VALUE_COLUMN_DOUBLE_QUOTED;
     }
 
     /**
@@ -1486,8 +1549,8 @@ public class IdPManagementDAO {
         }
 
         if (isReadIDP) {
-            /* 
-            If the operation is read IDP configs, read value of onlyNumericCharactersForOtp and 
+            /*
+            If the operation is read IDP configs, read value of onlyNumericCharactersForOtp and
             set the value of alphaNumericCharactersForOtp accordingly.
             */
             if (StringUtils.isNotBlank(onlyNumericCharactersForOtp.getValue())) {
@@ -6714,7 +6777,7 @@ public class IdPManagementDAO {
             maximumSessionTimeOut.setValue(configuredMaximumSessionTimeout);
             propertiesFromConnectors.put(MAXIMUM_SESSION_TIME_OUT, maximumSessionTimeOut);
         }
-      
+
         if (propertiesFromConnectors.get(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE) == null) {
             String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(
                     IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);
