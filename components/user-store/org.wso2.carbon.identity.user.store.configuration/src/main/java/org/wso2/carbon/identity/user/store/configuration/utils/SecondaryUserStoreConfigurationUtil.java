@@ -964,17 +964,72 @@ public class SecondaryUserStoreConfigurationUtil {
     public static void validateConnectionUrlForInitExpressions(String connectionUrl)
             throws IdentityUserStoreMgtException {
 
-        if (StringUtils.isNotEmpty(connectionUrl)) {
-            String validationConnectionString = connectionUrl.toLowerCase().replace("\\\\", "");
-            Matcher matcher = InitPattern.matcher(validationConnectionString);
-            if (matcher.find()) {
-                String errorMessage = "INIT expressions are not allowed in the connection URL due to security reasons.";
+        //   (1) reject H2 INIT expressions — they execute SQL at connect time (CSVWRITE / RUNSCRIPT /
+        //       CREATE ALIAS -> RCE), even for mem/server URLs;
+        //   (2) reject embedded / file-mode JDBC URLs — file-create-anywhere primitive
+        if (StringUtils.isBlank(connectionUrl)) {
+            return;
+        }
+        String normalizedUrl = connectionUrl.toLowerCase(java.util.Locale.ROOT).trim();
+
+        // INIT guard. Match on a copy with ALL backslashes and whitespace stripped, so obfuscated
+        //     forms such as ";init\=" (single backslash — H2 still parses it as the INIT key) and
+        //     ";init =" cannot evade the pattern. Applies to any jdbc:h2: URL (mem/server/file alike).
+        if (normalizedUrl.startsWith("jdbc:h2:")) {
+            String initCheck = connectionUrl.toLowerCase(java.util.Locale.ROOT).replace("\\", "")
+                            .replaceAll("\\s+", "");
+            if (InitPattern.matcher(initCheck).find()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Connection URL validation failed. Found INIT expression in the connection URL: " +
-                              connectionUrl);
+                            connectionUrl);
                 }
-                throw new IdentityUserStoreMgtException(errorMessage);
+                throw new IdentityUserStoreMgtException("H2 INIT expressions are not allowed for connection testing.");
             }
         }
+
+        // Embedded / file-mode guard via an allow-list of the known-safe remote / in-memory forms.
+        if (isUnsafeEmbeddedDatabaseUrl(normalizedUrl)) {
+            throw new IdentityUserStoreMgtException(
+                    "File-mode JDBC connection URLs are not allowed for connection testing.");
+        }
+    }
+
+    /**
+     * Returns true if the (lower-cased, trimmed) JDBC URL is an embedded / file-backed database that
+     * must not be reachable from a remote-RDBMS connection test. Known-safe remote / in-memory forms
+     * are allow-listed; any other form of a recognised embedded driver is treated as unsafe.
+     *
+     * @param url lower-cased, trimmed JDBC connection URL.
+     * @return true if the URL is an embedded / file-mode database URL.
+     */
+    private static boolean isUnsafeEmbeddedDatabaseUrl(String url) {
+        if (url.startsWith("jdbc:h2:")) {
+            // Any embedded H2 URL other than mem: / server (tcp/ssl) is file-based.
+            return !(url.startsWith("jdbc:h2:mem:")
+                    || url.startsWith("jdbc:h2:tcp://")
+                    || url.startsWith("jdbc:h2:ssl://"));
+        }
+        if (url.startsWith("jdbc:sqlite:")) {
+            return !url.equals("jdbc:sqlite::memory:");
+        }
+        if (url.startsWith("jdbc:hsqldb:")) {
+            // Allow only in-memory and network (server) forms. HSQLDB treats a bare path or "."
+            // as a file-backed DB, so deny-by-default (like the H2 branch); ".", "file:" and bare
+            // paths all fall through to unsafe.
+            return !(url.startsWith("jdbc:hsqldb:mem:")
+                    || url.startsWith("jdbc:hsqldb:hsql://")
+                    || url.startsWith("jdbc:hsqldb:hsqls://")
+                    || url.startsWith("jdbc:hsqldb:http://")
+                    || url.startsWith("jdbc:hsqldb:https://"));
+        }
+        if (url.startsWith("jdbc:derby:")) {
+            return !(url.startsWith("jdbc:derby:memory:")
+                    || url.startsWith("jdbc:derby://"));
+        }
+        if (url.startsWith("jdbc:duckdb:")) {
+            // An empty suffix means in-memory; any path means persistent storage.
+            return !url.equals("jdbc:duckdb:");
+        }
+        return false;
     }
 }
