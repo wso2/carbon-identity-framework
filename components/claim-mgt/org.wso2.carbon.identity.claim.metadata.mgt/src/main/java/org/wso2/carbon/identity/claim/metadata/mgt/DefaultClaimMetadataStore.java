@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,11 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
@@ -57,9 +61,24 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         return new DefaultClaimMetadataStore(claimConfig, tenantId);
     }
 
+    /**
+     * Initializes the claim metadata store for the given tenant, seeding the tenant's claim configuration from the
+     * given {@link ClaimConfig} unless the tenant inherits its claim metadata or already has it persisted.
+     *
+     * @param claimConfig Claim configuration to seed the tenant with.
+     * @param tenantId    Tenant id of the tenant the store is initialized for.
+     */
     public DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
 
         try {
+            if (skipClaimConfigInitialization(tenantId)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Skipping claim configuration initialization for the sub-organization tenant: "
+                            + tenantId + " since its claim metadata is inherited from the primary organization.");
+                }
+                this.tenantId = tenantId;
+                return;
+            }
             ReadWriteClaimMetadataManager dbBasedClaimMetadataManager = new DBBasedClaimMetadataManager();
             if (!skipClaimMetadataPersistence() && dbBasedClaimMetadataManager.getClaimDialects(tenantId).isEmpty()) {
                 IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfigInitDAO()
@@ -68,8 +87,49 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         } catch (ClaimMetadataException e) {
             log.error("Error while retrieving claim dialects", e);
         }
-
         this.tenantId = tenantId;
+    }
+
+    /**
+     * Checks whether the per-tenant claim configuration initialization should be skipped for the given tenant.
+     * <p>
+     * Sub-organizations whose organization version is v1.0.0 or above do not maintain their own claim metadata.
+     * Their claim dialects, local claims and external claim mappings are resolved from the primary organization of
+     * the hierarchy by {@link UnifiedClaimMetadataManager}, hence seeding IDN_CLAIM_DIALECT / IDN_CLAIM /
+     * IDN_CLAIM_MAPPED_ATTRIBUTE for them is redundant. Sub-organizations below v1.0.0 keep their own copy of the
+     * claim metadata, so the initialization must still run for them.
+     *
+     * @param tenantId Tenant id to check.
+     * @return {@code true} if the claim configuration initialization should be skipped, {@code false} otherwise.
+     */
+    private boolean skipClaimConfigInitialization(int tenantId) {
+
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantId)) {
+                /*
+                 * Primary organizations and tenants that are not part of an organization hierarchy own their claim
+                 * metadata. The organization version is not evaluated for them since resolving it is unnecessary
+                 * work on the tenant creation path.
+                 */
+                return false;
+            }
+            return Utils.isClaimAndOIDCScopeInheritanceEnabled(IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (OrganizationManagementException e) {
+            /*
+             * The organization details of the tenant could not be resolved. Fall back to running the
+             * initialization, which is the behaviour prior to this check: not initializing a primary organization
+             * would leave it without any claim metadata at all, whereas initializing a v1 sub-organization only
+             * writes rows that are never read. Since the claim metadata store remains functional, this is logged
+             * as a deviation rather than as a failure, with the stack trace available at debug level.
+             */
+            log.warn("Error while resolving the organization details of tenant: " + tenantId + " during claim " +
+                    "metadata store initialization. Proceeding with the claim configuration initialization. Error: "
+                    + e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("Error while resolving the organization details of tenant: " + tenantId, e);
+            }
+            return false;
+        }
     }
 
     @Override
