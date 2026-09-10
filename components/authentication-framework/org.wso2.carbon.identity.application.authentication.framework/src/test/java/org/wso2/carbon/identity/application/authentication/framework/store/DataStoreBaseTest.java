@@ -67,6 +67,14 @@ public class DataStoreBaseTest extends IdentityBaseTest {
         dataSource.setUsername("username");
         dataSource.setPassword("password");
         dataSource.setUrl("jdbc:h2:mem:test" + databaseName);
+        /*
+        Tests that stub IdentityDatabaseUtil suppress close() on the connection they hand to the code under test, so
+        each such test permanently consumes one connection of this pool. With DBCP's defaults (eight connections, and
+        an indefinite wait once they are gone) a suite that crosses that count stops making progress instead of
+        failing, which is hard to attribute. Allow more connections, and fail rather than block when they run out.
+         */
+        dataSource.setMaxActive(50);
+        dataSource.setMaxWait(30000);
         try (Connection connection = dataSource.getConnection()) {
             connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
         }
