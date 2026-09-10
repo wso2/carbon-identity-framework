@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,7 +24,9 @@ import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementClientException;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
@@ -257,6 +259,62 @@ public class UserSessionManagementServiceImplTest {
 
         assertTrue(userSessions.isEmpty(), "No session should be resolved when none of the candidates hydrates.");
         verify(userSessionStore).getActiveSessionIds(userId);
+    }
+
+    /**
+     * The bounded lookup is a default method, so an implementation that does not override it must still honour the
+     * "at most limit" contract rather than returning the unbounded result unchanged.
+     */
+    @Test
+    public void testDefaultBoundedLookupTruncatesToLimit() throws Exception {
+
+        List<UserSession> allSessions = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            allSessions.add(createTestUserSession("default-session-" + i, TEST_USER_ID));
+        }
+        UserSessionManagementService serviceWithoutOverride = new UserSessionManagementService() {
+
+            @Override
+            public void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) {
+
+            }
+
+            @Override
+            public List<UserSession> getSessionsByUserId(String userId, String tenantDomain) {
+
+                return allSessions;
+            }
+        };
+
+        List<UserSession> bounded =
+                serviceWithoutOverride.getSessionsByUserId(TEST_USER_ID, TEST_TENANT_DOMAIN, 2);
+
+        assertEquals(bounded.size(), 2, "The default implementation should truncate to the given limit.");
+        assertEquals(allSessions.size(), 5, "The default implementation should not modify the resolved list.");
+        assertEquals(serviceWithoutOverride.getSessionsByUserId(TEST_USER_ID, TEST_TENANT_DOMAIN, 10).size(), 5,
+                "A limit above the number of sessions should return all of them.");
+    }
+
+    /**
+     * The bounded lookup cannot bound anything for a limit of zero or less, so it must be rejected rather than
+     * silently treated as unbounded.
+     */
+    @Test(expectedExceptions = SessionManagementClientException.class)
+    public void testBoundedLookupRejectsInvalidLimit() throws Exception {
+
+        new UserSessionManagementService() {
+
+            @Override
+            public void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) {
+
+            }
+
+            @Override
+            public List<UserSession> getSessionsByUserId(String userId, String tenantDomain) {
+
+                return new ArrayList<>();
+            }
+        }.getSessionsByUserId(TEST_USER_ID, TEST_TENANT_DOMAIN, 0);
     }
 
     /**

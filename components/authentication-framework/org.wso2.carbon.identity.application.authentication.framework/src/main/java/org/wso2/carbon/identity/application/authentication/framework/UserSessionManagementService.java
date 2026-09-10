@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *   Copyright (c) 2018-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *   WSO2 Inc. licenses this file to you under the Apache License,
  *   Version 2.0 (the "License"); you may not use this file except
@@ -19,11 +19,14 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +75,9 @@ public interface UserSessionManagementService {
      * than {@link #getSessionsByUserId(String, String)}: resolving every session of a user reads the session store
      * once per session, so its cost grows without bound for accounts that accumulate sessions. The returned list is
      * complete whenever it holds fewer than {@code limit} sessions.
+     * <p>
+     * The default implementation resolves every session and truncates, so an implementation that does not override
+     * it honours the contract but keeps the unbounded cost.
      *
      * @param userId       Unique ID of the user.
      * @param tenantDomain Tenant domain of the user.
@@ -82,7 +88,22 @@ public interface UserSessionManagementService {
     default List<UserSession> getSessionsByUserId(String userId, String tenantDomain, int limit)
             throws SessionManagementException {
 
-        return getSessionsByUserId(userId, tenantDomain);
+        if (limit <= 0) {
+            throw new SessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_DATA,
+                    String.format(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_DATA.getDescription(),
+                            "the session limit must be greater than zero"));
+        }
+        /*
+        This default keeps the contract without the bound: it resolves every session and truncates. Truncating is
+        enough for the contract, since a caller that receives `limit` sessions knows only that at least that many
+        exist, which is what an unbounded result of that size would have told it as well. Implementations should
+        override this to avoid resolving sessions that the caller will not see.
+         */
+        List<UserSession> userSessions = getSessionsByUserId(userId, tenantDomain);
+        if (userSessions == null || userSessions.size() <= limit) {
+            return userSessions;
+        }
+        return new ArrayList<>(userSessions.subList(0, limit));
     }
 
     /**

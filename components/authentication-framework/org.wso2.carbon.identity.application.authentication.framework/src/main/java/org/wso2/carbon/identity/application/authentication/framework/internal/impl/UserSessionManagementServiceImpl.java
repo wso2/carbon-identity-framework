@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -1128,8 +1128,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     private List<UserSession> getBoundedActiveSessionList(String userId, String idpId, String idpName, int limit)
             throws SessionManagementServerException {
 
-        int candidateLimit = Math.max(limit * CANDIDATE_SESSION_ID_FETCH_MULTIPLIER,
-                MIN_CANDIDATE_SESSION_ID_FETCH_COUNT);
+        // Long arithmetic, so that a large limit widens the candidate window instead of overflowing it.
+        int candidateLimit = (int) Math.min(Integer.MAX_VALUE,
+                Math.max((long) limit * CANDIDATE_SESSION_ID_FETCH_MULTIPLIER,
+                        MIN_CANDIDATE_SESSION_ID_FETCH_COUNT));
         List<String> candidateSessionIds = getActiveSessionIdListByUserId(userId, candidateLimit);
         List<UserSession> userSessions = getActiveSessionList(candidateSessionIds, idpId, idpName, limit);
         if (userSessions.size() >= limit || candidateSessionIds.size() < candidateLimit) {
