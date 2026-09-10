@@ -67,6 +67,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -754,32 +755,49 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throws SessionManagementServerException {
 
         List<UserSession> sessionsList = new ArrayList<>();
-        for (String sessionId : sessionIdList) {
-            if (sessionsList.size() >= limit) {
-                break;
-            }
-            if (sessionId != null) {
-                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
-                        FrameworkUtils.getLoginTenantDomainFromContext());
-                if (sessionContext != null) {
-                    UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
-                    UserSession userSession = userSessionDAO.getSession(sessionId);
-                    if (userSession != null) {
-                        if (!isEffectiveSession(sessionContext, userSession)) {
-                            continue;
-                        }
-                        if (StringUtils.isNotBlank(idpId)) {
-                            userSession.setIdpId(idpId);
-                        }
-                        if (StringUtils.isNotBlank(idpName)) {
-                            userSession.setIdpName(idpName);
-                        }
-                        sessionsList.add(userSession);
-                    }
-                }
+        Iterator<String> sessionIds = sessionIdList.iterator();
+        while (sessionIds.hasNext() && sessionsList.size() < limit) {
+            UserSession userSession = resolveActiveSession(sessionIds.next(), idpId, idpName);
+            if (userSession != null) {
+                sessionsList.add(userSession);
             }
         }
         return sessionsList;
+    }
+
+    /**
+     * Resolves a session ID into a user session, or null when the ID does not belong in a session list: it may have
+     * no session context, no session record, or the session may not be the effective one for the login tenant.
+     *
+     * @param sessionId Session ID to resolve.
+     * @param idpId     ID of the authenticated IdP.
+     * @param idpName   Name of the authenticated IdP.
+     * @return The user session, or null.
+     * @throws SessionManagementServerException If an error occurs when retrieving the UserSession.
+     */
+    private UserSession resolveActiveSession(String sessionId, String idpId, String idpName)
+            throws SessionManagementServerException {
+
+        if (sessionId == null) {
+            return null;
+        }
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                FrameworkUtils.getLoginTenantDomainFromContext());
+        if (sessionContext == null) {
+            return null;
+        }
+        UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+        UserSession userSession = userSessionDAO.getSession(sessionId);
+        if (userSession == null || !isEffectiveSession(sessionContext, userSession)) {
+            return null;
+        }
+        if (StringUtils.isNotBlank(idpId)) {
+            userSession.setIdpId(idpId);
+        }
+        if (StringUtils.isNotBlank(idpName)) {
+            userSession.setIdpName(idpName);
+        }
+        return userSession;
     }
 
     private boolean isEffectiveSession(SessionContext sessionContext, UserSession userSession) {
@@ -1129,9 +1147,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throws SessionManagementServerException {
 
         // Long arithmetic, so that a large limit widens the candidate window instead of overflowing it.
-        int candidateLimit = (int) Math.min(Integer.MAX_VALUE,
-                Math.max((long) limit * CANDIDATE_SESSION_ID_FETCH_MULTIPLIER,
-                        MIN_CANDIDATE_SESSION_ID_FETCH_COUNT));
+        int candidateLimit = Math.clamp((long) limit * CANDIDATE_SESSION_ID_FETCH_MULTIPLIER,
+                MIN_CANDIDATE_SESSION_ID_FETCH_COUNT, Integer.MAX_VALUE);
         List<String> candidateSessionIds = getActiveSessionIdListByUserId(userId, candidateLimit);
         List<UserSession> userSessions = getActiveSessionList(candidateSessionIds, idpId, idpName, limit);
         if (userSessions.size() >= limit || candidateSessionIds.size() < candidateLimit) {
@@ -1150,9 +1167,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     candidateLimit + " candidate session IDs of user: " + userId +
                     ". Falling back to the unbounded session lookup.");
         }
-        List<UserSession> allUserSessions = getActiveSessionList(getActiveSessionIdListByUserId(userId), idpId,
-                idpName, limit);
-        return allUserSessions;
+        return getActiveSessionList(getActiveSessionIdListByUserId(userId), idpId, idpName, limit);
     }
 
     /**

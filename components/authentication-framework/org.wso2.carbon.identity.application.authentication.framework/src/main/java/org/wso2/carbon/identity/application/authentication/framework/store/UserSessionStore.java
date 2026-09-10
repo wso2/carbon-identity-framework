@@ -475,21 +475,30 @@ public class UserSessionStore {
             throw new UserSessionException("Limit must be greater than zero when retrieving active session IDs for " +
                     "user ID: " + userId + ". Provided limit: " + limit);
         }
-        List<String> sessionIdList = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
-            try (PreparedStatement preparedStatement = connection
-                    .prepareStatement(getRowLimitedActiveSessionIdsQuery(limit))) {
-                preparedStatement.setString(1, userId);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    while (resultSet.next()) {
-                        sessionIdList.add(resultSet.getString(1));
-                    }
-                }
-            } catch (SQLException e1) {
-                throw new UserSessionException("Error while retrieving active session IDs for user ID: " + userId, e1);
-            }
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
+             PreparedStatement preparedStatement = connection
+                     .prepareStatement(getRowLimitedActiveSessionIdsQuery(limit))) {
+            preparedStatement.setString(1, userId);
+            return readSessionIds(preparedStatement);
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving active session IDs for user ID: " + userId, e);
+        }
+    }
+
+    /**
+     * Reads the session IDs returned by the given statement.
+     *
+     * @param preparedStatement Statement to execute.
+     * @return The list of session IDs.
+     * @throws SQLException If the statement could not be executed or its result read.
+     */
+    private List<String> readSessionIds(PreparedStatement preparedStatement) throws SQLException {
+
+        List<String> sessionIdList = new ArrayList<>();
+        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            while (resultSet.next()) {
+                sessionIdList.add(resultSet.getString(1));
+            }
         }
         return sessionIdList;
     }

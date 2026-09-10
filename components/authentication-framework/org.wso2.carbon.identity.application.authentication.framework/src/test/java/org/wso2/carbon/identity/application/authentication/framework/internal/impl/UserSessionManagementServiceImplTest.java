@@ -478,6 +478,7 @@ public class UserSessionManagementServiceImplTest {
             @Override
             public void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) {
 
+                // Not exercised by this test; only the bounded lookup's default implementation is under test.
             }
 
             @Override
@@ -508,6 +509,7 @@ public class UserSessionManagementServiceImplTest {
             @Override
             public void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) {
 
+                // Not exercised by this test; only the bounded lookup's default implementation is under test.
             }
 
             @Override
