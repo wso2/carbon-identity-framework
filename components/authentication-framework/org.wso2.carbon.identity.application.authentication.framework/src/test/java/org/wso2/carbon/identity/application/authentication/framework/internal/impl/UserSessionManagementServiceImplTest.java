@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.UserSession
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementClientException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
@@ -37,16 +38,23 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
@@ -259,6 +267,199 @@ public class UserSessionManagementServiceImplTest {
 
         assertTrue(userSessions.isEmpty(), "No session should be resolved when none of the candidates hydrates.");
         verify(userSessionStore).getActiveSessionIds(userId);
+    }
+
+    /**
+     * The bounded entry point is what the concurrent session limit check calls, so it must read only a bounded
+     * number of session IDs and must not fall back to the unbounded query when it can answer from the bounded read.
+     */
+    @Test
+    public void testGetSessionsByUserIdWithLimitForLocalUser() throws Exception {
+
+        String userId = "bounded-local-user";
+        List<String> candidateSessionIds = new ArrayList<>();
+        for (int i = 1; i <= 3; i++) {
+            candidateSessionIds.add("local-session-" + i);
+        }
+        when(userSessionStore.getActiveSessionIds(userId, 10)).thenReturn(candidateSessionIds);
+        when(userSessionStore.isExistingUser(userId)).thenReturn(true);
+
+        List<UserSession> userSessions = invokeWithoutFederatedAssociation(
+                () -> userSessionManagementService.getSessionsByUserId(userId, TEST_TENANT_DOMAIN, 2),
+                userId, candidateSessionIds);
+
+        assertEquals(userSessions.size(), 2, "No more sessions than the given limit should be returned.");
+        verify(userSessionStore, never()).getActiveSessionIds(userId);
+    }
+
+    /**
+     * A federated user is recorded under two identifiers, and both are read. Once the federated identifier alone
+     * reaches the limit there is nothing left to decide, so the associated local identifier must not be read at all.
+     */
+    @Test
+    public void testGetSessionsByUserIdWithLimitStopsAtTheFederatedIdentifier() throws Exception {
+
+        String localUserId = "fed-local-user";
+        String fedUserId = "fed-auth-session-user";
+        List<String> fedSessionIds = new ArrayList<>();
+        for (int i = 1; i <= 3; i++) {
+            fedSessionIds.add("fed-session-" + i);
+        }
+        when(userSessionStore.getActiveSessionIds(fedUserId, 10)).thenReturn(fedSessionIds);
+
+        List<UserSession> userSessions = invokeWithFederatedAssociation(
+                () -> userSessionManagementService.getSessionsByUserId(localUserId, TEST_TENANT_DOMAIN, 2),
+                localUserId, fedUserId, fedSessionIds);
+
+        assertEquals(userSessions.size(), 2, "No more sessions than the given limit should be returned.");
+        verify(userSessionStore, never()).getActiveSessionIds(localUserId, 10);
+        verify(userSessionStore, never()).getActiveSessionIds(fedUserId);
+    }
+
+    /**
+     * When the federated identifier alone does not reach the limit, the sessions of the associated local identifier
+     * are merged in until it does, and no further.
+     */
+    @Test
+    public void testGetSessionsByUserIdWithLimitMergesTheAssociatedLocalIdentifier() throws Exception {
+
+        identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))
+                .thenReturn("false");
+        String localUserId = "merge-local-user";
+        String fedUserId = "merge-fed-user";
+        when(userSessionStore.getActiveSessionIds(fedUserId, 12))
+                .thenReturn(Collections.singletonList("merge-fed-session"));
+        when(userSessionStore.getActiveSessionIds(localUserId, 10))
+                .thenReturn(Arrays.asList("merge-local-session-1", "merge-local-session-2"));
+
+        List<UserSession> userSessions = invokeWithFederatedAssociation(
+                () -> userSessionManagementService.getSessionsByUserId(localUserId, TEST_TENANT_DOMAIN, 3),
+                localUserId, fedUserId,
+                Arrays.asList("merge-fed-session", "merge-local-session-1", "merge-local-session-2"));
+
+        assertEquals(userSessions.size(), 3,
+                "Sessions of the associated local identifier should be merged in up to the limit.");
+    }
+
+    /**
+     * A federated user's two identifiers can map to the same sessions. With `FilterByUniqueSessionIdForUser` set, a
+     * session already resolved for the federated identifier must not be counted again for the local one.
+     */
+    @Test
+    public void testGetSessionsByUserIdWithLimitSkipsDuplicateSessionsWhenFiltering() throws Exception {
+
+        identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))
+                .thenReturn("true");
+        String localUserId = "dedup-local-user";
+        String fedUserId = "dedup-fed-user";
+        when(userSessionStore.getActiveSessionIds(fedUserId, 10))
+                .thenReturn(Collections.singletonList("shared-session"));
+        when(userSessionStore.getActiveSessionIds(localUserId, 10))
+                .thenReturn(Arrays.asList("shared-session", "local-only-session"));
+
+        List<UserSession> userSessions = invokeWithFederatedAssociation(
+                () -> userSessionManagementService.getSessionsByUserId(localUserId, TEST_TENANT_DOMAIN, 2),
+                localUserId, fedUserId, Arrays.asList("shared-session", "local-only-session"));
+
+        assertEquals(userSessions.size(), 2, "The duplicate session should be skipped, not counted twice.");
+        assertEquals(userSessions.stream().map(UserSession::getSessionId).distinct().count(), 2L,
+                "The returned sessions should be distinct.");
+    }
+
+    /**
+     * The bounded entry point must reject a limit it cannot bound anything with.
+     */
+    @Test(expectedExceptions = SessionManagementClientException.class)
+    public void testGetSessionsByUserIdRejectsInvalidLimit() throws Exception {
+
+        userSessionManagementService.getSessionsByUserId(TEST_USER_ID, TEST_TENANT_DOMAIN, 0);
+    }
+
+    /**
+     * Runs the given call with no federated association resolvable for the user, so that the lookup takes the local
+     * identifier path, and with the given session IDs resolvable.
+     */
+    private List<UserSession> invokeWithoutFederatedAssociation(SessionLookup lookup, String userId,
+                                                                List<String> resolvableSessionIds) throws Exception {
+
+        AbstractUserStoreManager userStoreManager = mock(AbstractUserStoreManager.class);
+        when(userStoreManager.getUserNameFromUserID(userId)).thenReturn(null);
+        UserRealm userRealm = mock(UserRealm.class);
+        when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+        RealmService componentRealmService = mock(RealmService.class);
+        when(componentRealmService.getTenantUserRealm(TEST_TENANT_ID)).thenReturn(userRealm);
+
+        try (MockedStatic<FrameworkServiceComponent> frameworkServiceComponent =
+                     mockStatic(FrameworkServiceComponent.class)) {
+            frameworkServiceComponent.when(FrameworkServiceComponent::getRealmService)
+                    .thenReturn(componentRealmService);
+            return resolveWithSessionsAvailable(lookup, userId, resolvableSessionIds);
+        }
+    }
+
+    /**
+     * Runs the given call with a federated association resolving the local identifier to the given federated
+     * identifier, and with the given session IDs resolvable.
+     */
+    private List<UserSession> invokeWithFederatedAssociation(SessionLookup lookup, String localUserId,
+                                                             String fedUserId, List<String> resolvableSessionIds)
+            throws Exception {
+
+        String username = "fed-user";
+        AbstractUserStoreManager userStoreManager = mock(AbstractUserStoreManager.class);
+        when(userStoreManager.getUserNameFromUserID(localUserId)).thenReturn(username);
+        UserRealm userRealm = mock(UserRealm.class);
+        when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+        RealmService componentRealmService = mock(RealmService.class);
+        when(componentRealmService.getTenantUserRealm(TEST_TENANT_ID)).thenReturn(userRealm);
+
+        AssociatedAccountDTO association = new AssociatedAccountDTO("association-id",
+                Integer.parseInt(TEST_IDP_ID), TEST_IDP_NAME, username);
+        /* The user store domain is resolved from the username by the code under test, so it is matched loosely
+         rather than asserted here. */
+        when(federatedAssociationManager.getFederatedAssociationsOfUser(eq(TEST_TENANT_ID), any(), eq(username)))
+                .thenReturn(Collections.singletonList(association));
+        when(userSessionStore.getUserId(eq(username), eq(TEST_TENANT_ID), any(),
+                eq(Integer.parseInt(TEST_IDP_ID)))).thenReturn(fedUserId);
+
+        try (MockedStatic<FrameworkServiceComponent> frameworkServiceComponent =
+                     mockStatic(FrameworkServiceComponent.class)) {
+            frameworkServiceComponent.when(FrameworkServiceComponent::getRealmService)
+                    .thenReturn(componentRealmService);
+            return resolveWithSessionsAvailable(lookup, fedUserId, resolvableSessionIds);
+        }
+    }
+
+    private List<UserSession> resolveWithSessionsAvailable(SessionLookup lookup, String userId,
+                                                           List<String> resolvableSessionIds) throws Exception {
+
+        SessionContext mockedSessionContext = mock(SessionContext.class);
+        when(mockedSessionContext.getProperties()).thenReturn(new HashMap<>());
+
+        try (MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class);
+             MockedConstruction<UserSessionDAOImpl> userSessionDAOConstruction =
+                     mockConstruction(UserSessionDAOImpl.class, (mock, context) -> {
+                         for (String sessionId : resolvableSessionIds) {
+                             when(mock.getSession(sessionId))
+                                     .thenReturn(createTestUserSession(sessionId, userId));
+                         }
+                     })) {
+
+            frameworkUtilsMockedStatic.when(FrameworkUtils::getLoginTenantDomainFromContext).thenReturn("carbon.super");
+            for (String sessionId : resolvableSessionIds) {
+                frameworkUtilsMockedStatic.when(() -> FrameworkUtils.getSessionContextFromCache(sessionId,
+                        "carbon.super")).thenReturn(mockedSessionContext);
+            }
+            return lookup.get();
+        }
+    }
+
+    /**
+     * A session lookup call, so that the mocking around it can be shared between tests.
+     */
+    private interface SessionLookup {
+
+        List<UserSession> get() throws Exception;
     }
 
     /**

@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -559,6 +560,37 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testGetActiveSessionIdsWithInvalidLimit() throws Exception {
 
         UserSessionStore.getInstance().getActiveSessionIds("limitedUser", 0);
+    }
+
+    /**
+     * Test the row limited lookup applies the row limit syntax of the session database in use. The limit clause is
+     * not portable, and an unsupported one would either fail or, worse, be ignored and read the whole list.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionIdsWithInvalidLimit"})
+    public void testRowLimitedQueryPerDatabaseType() throws Exception {
+
+        Method method = UserSessionStore.class.getDeclaredMethod("getRowLimitedActiveSessionIdsQuery", int.class);
+        method.setAccessible(true);
+
+        mockedJdbcUtils.when(() -> JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION)).thenReturn(true);
+        Assert.assertTrue(((String) method.invoke(UserSessionStore.getInstance(), 5)).startsWith("SELECT TOP (5)"),
+                "MSSQL should use a TOP clause, which precedes the projection.");
+
+        mockedJdbcUtils.when(() -> JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION)).thenReturn(false);
+        mockedJdbcUtils.when(() -> JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)).thenReturn(true);
+        Assert.assertTrue(((String) method.invoke(UserSessionStore.getInstance(), 5))
+                        .endsWith("FETCH FIRST 5 ROWS ONLY"),
+                "Oracle should use a FETCH FIRST clause.");
+
+        mockedJdbcUtils.when(() -> JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)).thenReturn(false);
+        mockedJdbcUtils.when(() -> JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)).thenReturn(true);
+        Assert.assertTrue(((String) method.invoke(UserSessionStore.getInstance(), 5))
+                        .endsWith("FETCH FIRST 5 ROWS ONLY"),
+                "DB2 should use a FETCH FIRST clause.");
+
+        mockedJdbcUtils.when(() -> JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)).thenReturn(false);
+        Assert.assertTrue(((String) method.invoke(UserSessionStore.getInstance(), 5)).endsWith("LIMIT 5"),
+                "H2, MySQL, MariaDB and PostgreSQL should use a LIMIT clause.");
     }
 
     /**
