@@ -75,6 +75,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_DATA;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_AUTHORIZE_USER;
@@ -95,6 +96,16 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_F
 public class UserSessionManagementServiceImpl implements UserSessionManagementService {
 
     private static final Log log = LogFactory.getLog(UserSessionManagementServiceImpl.class);
+
+    /*
+     * When only a bounded number of sessions is asked for, more session IDs than that are read from the database,
+     * because hydrating a session ID can drop it (the session context may have expired, or the session may not be the
+     * effective one for the login tenant). Reading a small multiple of the requested count keeps a single round trip
+     * sufficient in practice, while staying independent of how many sessions the user has accumulated.
+     */
+    private static final int CANDIDATE_SESSION_ID_FETCH_MULTIPLIER = 4;
+    private static final int MIN_CANDIDATE_SESSION_ID_FETCH_COUNT = 10;
+
     private SessionManagementService sessionManagementService = new SessionManagementService();
 
     @Override
@@ -299,6 +310,49 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 }
             } else {
                 userSessions = getActiveSessionList(getActiveSessionIdListByUserId(userId), null, null);
+            }
+        } catch (UserSessionException e) {
+            String msg = "Error occurred while retrieving federated associations for the userId: " + userId;
+            throw new SessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, msg, e);
+        }
+        return userSessions;
+    }
+
+    @Override
+    public List<UserSession> getSessionsByUserId(String userId, String tenantDomain, int limit)
+            throws SessionManagementException {
+
+        if (limit <= 0) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_DATA,
+                    "the session limit must be greater than zero");
+        }
+        if (StringUtils.isBlank(userId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving up to " + limit + " active sessions of user: " + userId + ".");
+        }
+
+        List<UserSession> userSessions;
+        // First check whether a federated association exists for the userId.
+        try {
+            int tenantId = getTenantId(tenantDomain);
+            Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap =
+                    getAuthSessionUserMapFromFedAssociationMapping(tenantId, userId);
+            if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
+                String fedAssociatedUserId = authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.USER_ID);
+                if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
+                    userSessions = getBoundedActiveSessionList(fedAssociatedUserId,
+                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
+                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME), limit);
+                    if (userSessions.size() < limit) {
+                        addAssociatedLocalUserIdSessions(userSessions, userId, limit);
+                    }
+                } else {
+                    userSessions = getBoundedActiveSessionList(userId, null, null, limit);
+                }
+            } else {
+                userSessions = getBoundedActiveSessionList(userId, null, null, limit);
             }
         } catch (UserSessionException e) {
             String msg = "Error occurred while retrieving federated associations for the userId: " + userId;
@@ -629,6 +683,27 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     /**
+     * Returns at most {@code limit} active session IDs for a given user ID.
+     *
+     * @param userId User ID for which the active sessions should be retrieved.
+     * @param limit  Maximum number of session IDs to retrieve.
+     * @return The list of active session IDs, holding at most {@code limit} elements.
+     * @throws SessionManagementServerException If active session IDs cannot be retrieved from the database.
+     */
+    private List<String> getActiveSessionIdListByUserId(String userId, int limit)
+            throws SessionManagementServerException {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Retrieving up to " + limit + " active sessions owned by the user: " + userId + ".");
+            }
+            return UserSessionStore.getInstance().getActiveSessionIds(userId, limit);
+        } catch (UserSessionException e) {
+            throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, userId, e);
+        }
+    }
+
+    /**
      * Returns the session id list for a given user.
      *
      * @param user  user object
@@ -660,8 +735,29 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     private List<UserSession> getActiveSessionList(List<String> sessionIdList, String idpId, String idpName)
             throws SessionManagementServerException {
 
+        return getActiveSessionList(sessionIdList, idpId, idpName, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Returns the active sessions from a given list of session IDs, stopping as soon as {@code limit} sessions have
+     * been resolved. Hydrating a session ID reads the session context and the session metadata, so a caller that only
+     * needs a bounded number of sessions must not hydrate the whole list.
+     *
+     * @param sessionIdList List of session IDs.
+     * @param idpId         ID of the authenticated IdP.
+     * @param idpName       Name of the authenticated IdP.
+     * @param limit         Maximum number of sessions to resolve.
+     * @return List of user sessions, holding at most {@code limit} elements.
+     * @throws SessionManagementServerException If an error occurs when retrieving the UserSessions.
+     */
+    private List<UserSession> getActiveSessionList(List<String> sessionIdList, String idpId, String idpName, int limit)
+            throws SessionManagementServerException {
+
         List<UserSession> sessionsList = new ArrayList<>();
         for (String sessionId : sessionIdList) {
+            if (sessionsList.size() >= limit) {
+                break;
+            }
             if (sessionId != null) {
                 SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
                         FrameworkUtils.getLoginTenantDomainFromContext());
@@ -1008,6 +1104,90 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         for (UserSession associatedLocalUserIdSession : associatedLocalUserIdSessions) {
             if (userSessions.stream().noneMatch(userSession ->
                     StringUtils.equals(userSession.getSessionId(), associatedLocalUserIdSession.getSessionId()))) {
+                userSessions.add(associatedLocalUserIdSession);
+            }
+        }
+    }
+
+    /**
+     * Returns at most {@code limit} active sessions of a given user ID, reading only as many session IDs from the
+     * database as are needed to resolve them.
+     * <p>
+     * The returned list is complete whenever it holds fewer than {@code limit} sessions: if the bounded read cannot
+     * establish that, this falls back to the unbounded lookup. That keeps the result identical to
+     * {@link #getSessionsByUserId(String, String)} while making the common case independent of how many sessions the
+     * user has accumulated.
+     *
+     * @param userId  User ID for which the active sessions should be retrieved.
+     * @param idpId   ID of the authenticated IdP.
+     * @param idpName Name of the authenticated IdP.
+     * @param limit   Maximum number of sessions to resolve.
+     * @return List of user sessions, holding at most {@code limit} elements.
+     * @throws SessionManagementServerException If an error occurs when retrieving the UserSessions.
+     */
+    private List<UserSession> getBoundedActiveSessionList(String userId, String idpId, String idpName, int limit)
+            throws SessionManagementServerException {
+
+        int candidateLimit = Math.max(limit * CANDIDATE_SESSION_ID_FETCH_MULTIPLIER,
+                MIN_CANDIDATE_SESSION_ID_FETCH_COUNT);
+        List<String> candidateSessionIds = getActiveSessionIdListByUserId(userId, candidateLimit);
+        List<UserSession> userSessions = getActiveSessionList(candidateSessionIds, idpId, idpName, limit);
+        if (userSessions.size() >= limit || candidateSessionIds.size() < candidateLimit) {
+            /*
+            Either the limit was reached, or every active session ID of the user was read and hydrated. In both cases
+            the result is the same as the unbounded lookup would have produced.
+             */
+            return userSessions;
+        }
+        /*
+        The candidate window was exhausted before the limit was reached, so there may be further active sessions that
+        were not read. Fall back to the unbounded lookup to keep the result complete.
+         */
+        if (log.isDebugEnabled()) {
+            log.debug("Resolved only " + userSessions.size() + " of up to " + limit + " sessions from " +
+                    candidateLimit + " candidate session IDs of user: " + userId +
+                    ". Falling back to the unbounded session lookup.");
+        }
+        List<UserSession> allUserSessions = getActiveSessionList(getActiveSessionIdListByUserId(userId), idpId,
+                idpName, limit);
+        return allUserSessions;
+    }
+
+    /**
+     * Adds up to the remaining number of sessions of the local user ID associated with a federated user to the given
+     * session list. Bounded counterpart of
+     * {@link #addAssociatedAssociatedLocalUserIdSessions(List, String)}.
+     *
+     * @param userSessions          Sessions resolved for the federated user ID, added to in place.
+     * @param associatedLocalUserId Local user ID associated with the federated user.
+     * @param limit                 Maximum size the session list should reach.
+     * @throws SessionManagementServerException If an error occurs when retrieving the UserSessions.
+     */
+    private void addAssociatedLocalUserIdSessions(List<UserSession> userSessions, String associatedLocalUserId,
+                                                  int limit) throws SessionManagementServerException {
+
+        int remaining = limit - userSessions.size();
+        if (remaining <= 0) {
+            return;
+        }
+        /* If the `FilterByUniqueSessionIdForUser` property is set to true, only sessions with a session ID that is not
+         already in the list are added. If set to false, duplicate entries are kept, matching the behaviour of the
+         unbounded lookup. */
+        if (!Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))) {
+            userSessions.addAll(getBoundedActiveSessionList(associatedLocalUserId, null, null, remaining));
+            return;
+        }
+        Set<String> resolvedSessionIds = userSessions.stream().map(UserSession::getSessionId)
+                .collect(Collectors.toSet());
+        /* A session already resolved for the federated user ID does not count towards the limit here, so read enough
+         candidates to be able to skip them. */
+        List<UserSession> associatedLocalUserIdSessions =
+                getBoundedActiveSessionList(associatedLocalUserId, null, null, remaining + resolvedSessionIds.size());
+        for (UserSession associatedLocalUserIdSession : associatedLocalUserIdSessions) {
+            if (userSessions.size() >= limit) {
+                break;
+            }
+            if (resolvedSessionIds.add(associatedLocalUserIdSession.getSessionId())) {
                 userSessions.add(associatedLocalUserIdSession);
             }
         }

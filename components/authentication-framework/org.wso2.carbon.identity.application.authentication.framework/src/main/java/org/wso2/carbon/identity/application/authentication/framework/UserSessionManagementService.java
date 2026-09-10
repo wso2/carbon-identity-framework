@@ -66,6 +66,26 @@ public interface UserSessionManagementService {
     List<UserSession> getSessionsByUserId(String userId, String tenantDomain) throws SessionManagementException;
 
     /**
+     * Get at most the given number of active sessions of the given user ID.
+     * <p>
+     * Callers that only need to know whether a user has reached a session count threshold must use this method rather
+     * than {@link #getSessionsByUserId(String, String)}: resolving every session of a user reads the session store
+     * once per session, so its cost grows without bound for accounts that accumulate sessions. The returned list is
+     * complete whenever it holds fewer than {@code limit} sessions.
+     *
+     * @param userId       Unique ID of the user.
+     * @param tenantDomain Tenant domain of the user.
+     * @param limit        Maximum number of sessions to return. Must be greater than zero.
+     * @return List of user session objects, holding at most {@code limit} elements.
+     * @throws SessionManagementException if the session retrieval fails.
+     */
+    default List<UserSession> getSessionsByUserId(String userId, String tenantDomain, int limit)
+            throws SessionManagementException {
+
+        return getSessionsByUserId(userId, tenantDomain);
+    }
+
+    /**
      * Terminate all the active sessions of the given user ID.
      *
      * @param userId Unique ID of the user.

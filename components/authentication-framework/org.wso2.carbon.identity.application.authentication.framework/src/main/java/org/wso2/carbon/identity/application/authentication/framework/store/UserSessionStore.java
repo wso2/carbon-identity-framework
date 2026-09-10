@@ -457,6 +457,69 @@ public class UserSessionStore {
     }
 
     /**
+     * Method to get at most a given number of active session IDs of a given user ID. A session is considered active
+     * while the session store holds a record for it and no DELETE marker has been written for it.
+     * <p>
+     * Callers that only need to know whether a user has reached a session count threshold must use this method instead
+     * of {@link #getActiveSessionIds(String)}: the unbounded query performs one seek into IDN_AUTH_SESSION_STORE for
+     * every session ever mapped to the user, so its cost grows without bound for accounts that accumulate sessions.
+     *
+     * @param userId ID of the user.
+     * @param limit  Maximum number of session IDs to retrieve. Must be greater than zero.
+     * @return The list of active session IDs, holding at most {@code limit} elements.
+     * @throws UserSessionException If an error occurs when retrieving the active session ID list from the database.
+     */
+    public List<String> getActiveSessionIds(String userId, int limit) throws UserSessionException {
+
+        if (limit <= 0) {
+            throw new UserSessionException("Limit must be greater than zero when retrieving active session IDs for " +
+                    "user ID: " + userId + ". Provided limit: " + limit);
+        }
+        List<String> sessionIdList = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(getRowLimitedActiveSessionIdsQuery(limit))) {
+                preparedStatement.setString(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        sessionIdList.add(resultSet.getString(1));
+                    }
+                }
+            } catch (SQLException e1) {
+                throw new UserSessionException("Error while retrieving active session IDs for user ID: " + userId, e1);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving active session IDs for user ID: " + userId, e);
+        }
+        return sessionIdList;
+    }
+
+    /**
+     * Resolve the row limited active session lookup query for the session database in use.
+     *
+     * @param limit Maximum number of rows the query should return.
+     * @return The query, with the row limit applied.
+     * @throws UserSessionException If the session database type could not be resolved.
+     */
+    private String getRowLimitedActiveSessionIdsQuery(int limit) throws UserSessionException {
+
+        try {
+            if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION)) {
+                return String.format(SQLQueries.SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID_MSSQL_LIMITED, limit);
+            }
+            if (JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION) ||
+                    JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)) {
+                return String.format(SQLQueries.SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID_FETCH_FIRST_LIMITED, limit);
+            }
+            // H2, MySQL, MariaDB and PostgreSQL.
+            return String.format(SQLQueries.SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID_LIMIT_LIMITED, limit);
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while resolving the session database type to build the row " +
+                    "limited active session lookup query.", e);
+        }
+    }
+
+    /**
      * Removes all the expired session records from relevant tables.
      */
     public void removeExpiredSessionRecords() {

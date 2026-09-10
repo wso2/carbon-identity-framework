@@ -48,6 +48,8 @@ import java.util.Map;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.testng.Assert.assertEquals;
@@ -208,6 +210,85 @@ public class UserSessionManagementServiceImplTest {
 
         assertEquals(userSessions.size(), 2);
         assertTrue(userSessions.stream().anyMatch(session -> TEST_SESSION_ID_2.equals(session.getSessionId())));
+    }
+
+    /**
+     * A bounded session lookup must read only as many session IDs as it needs, and must never fall back to the
+     * unbounded lookup while it can establish the answer from the bounded read. The unbounded lookup performs one
+     * seek into the session store per session ever mapped to the user, so issuing it on the login path makes every
+     * login of an account that accumulates sessions progressively more expensive.
+     */
+    @Test
+    public void testGetBoundedActiveSessionListReadsOnlyWhatIsNeeded() throws Exception {
+
+        int limit = 2;
+        String userId = "bounded-lookup-user";
+        // Fewer candidate session IDs than the candidate window, so every active session of the user was read.
+        List<String> candidateSessionIds = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            candidateSessionIds.add("bounded-session-" + i);
+        }
+        when(userSessionStore.getActiveSessionIds(userId, 10)).thenReturn(candidateSessionIds);
+
+        List<UserSession> userSessions = invokeGetBoundedActiveSessionList(userId, candidateSessionIds, limit);
+
+        assertEquals(userSessions.size(), limit, "No more sessions than the given limit should be resolved.");
+        verify(userSessionStore, never()).getActiveSessionIds(userId);
+    }
+
+    /**
+     * When the candidate window is exhausted without resolving the requested number of sessions, the bounded lookup
+     * must fall back to the unbounded one so that the returned set stays complete.
+     */
+    @Test
+    public void testGetBoundedActiveSessionListFallsBackWhenCandidateWindowExhausted() throws Exception {
+
+        int limit = 2;
+        String userId = "exhausted-window-user";
+        // A full candidate window of session IDs, none of which resolves to a session.
+        List<String> candidateSessionIds = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            candidateSessionIds.add("unresolvable-session-" + i);
+        }
+        when(userSessionStore.getActiveSessionIds(userId, 10)).thenReturn(candidateSessionIds);
+        when(userSessionStore.getActiveSessionIds(userId)).thenReturn(candidateSessionIds);
+
+        List<UserSession> userSessions = invokeGetBoundedActiveSessionList(userId, new ArrayList<>(), limit);
+
+        assertTrue(userSessions.isEmpty(), "No session should be resolved when none of the candidates hydrates.");
+        verify(userSessionStore).getActiveSessionIds(userId);
+    }
+
+    /**
+     * Invokes the private bounded session lookup with the session contexts and session records of
+     * {@code resolvableSessionIds} mocked as available.
+     */
+    private List<UserSession> invokeGetBoundedActiveSessionList(String userId, List<String> resolvableSessionIds,
+                                                                int limit) throws Exception {
+
+        Method method = UserSessionManagementServiceImpl.class.getDeclaredMethod("getBoundedActiveSessionList",
+                String.class, String.class, String.class, int.class);
+        method.setAccessible(true);
+
+        SessionContext mockedSessionContext = mock(SessionContext.class);
+        when(mockedSessionContext.getProperties()).thenReturn(new HashMap<>());
+
+        try (MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class);
+             MockedConstruction<UserSessionDAOImpl> userSessionDAOConstruction =
+                     mockConstruction(UserSessionDAOImpl.class, (mock, context) -> {
+                         for (String sessionId : resolvableSessionIds) {
+                             when(mock.getSession(sessionId))
+                                     .thenReturn(createTestUserSession(sessionId, userId));
+                         }
+                     })) {
+
+            frameworkUtilsMockedStatic.when(FrameworkUtils::getLoginTenantDomainFromContext).thenReturn("carbon.super");
+            for (String sessionId : resolvableSessionIds) {
+                frameworkUtilsMockedStatic.when(() -> FrameworkUtils.getSessionContextFromCache(sessionId,
+                        "carbon.super")).thenReturn(mockedSessionContext);
+            }
+            return (List<UserSession>) method.invoke(userSessionManagementService, userId, null, null, limit);
+        }
     }
 
     private UserSession createTestUserSession(String sessionId, String userId) {

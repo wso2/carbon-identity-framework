@@ -63,8 +63,12 @@ public class SQLQueries {
     public static final String SQL_SELECT_SESSION_ID_OF_USER_ID =
             "SELECT SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING WHERE USER_ID = ?";
 
-    public static final String SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID =
-            "SELECT IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING " +
+    /**
+     * Predicate of the active session lookup, shared by the unbounded and the row limited variants below. A session is
+     * active while the session store holds a record for it and no DELETE marker has been written for it.
+     */
+    private static final String ACTIVE_SESSION_IDS_OF_USER_ID_BODY =
+            " IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING " +
             "WHERE IDN_AUTH_USER_SESSION_MAPPING.USER_ID = ? " +
             "AND EXISTS (" +
                 "SELECT 1 FROM IDN_AUTH_SESSION_STORE WHERE IDN_AUTH_SESSION_STORE.SESSION_ID = " +
@@ -76,6 +80,24 @@ public class SQLQueries {
                 "IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID AND IDN_AUTH_SESSION_STORE.SESSION_TYPE = '" +
                 SESSION_CONTEXT_CACHE_NAME + "' AND IDN_AUTH_SESSION_STORE.OPERATION = '" + DELETE_OPERATION +
             "')";
+
+    public static final String SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID =
+            "SELECT" + ACTIVE_SESSION_IDS_OF_USER_ID_BODY;
+
+    /*
+     * Row limited variants of the above. Callers that only need to know whether a user has reached a session count
+     * threshold must use these: the unbounded query performs one seek into IDN_AUTH_SESSION_STORE for every session
+     * ever mapped to the user, so its cost grows without bound for accounts that accumulate sessions. The limit is
+     * formatted in rather than bound as a parameter so that the optimizer gets an explicit row goal.
+     */
+    public static final String SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID_MSSQL_LIMITED =
+            "SELECT TOP (%d)" + ACTIVE_SESSION_IDS_OF_USER_ID_BODY;
+
+    public static final String SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID_LIMIT_LIMITED =
+            "SELECT" + ACTIVE_SESSION_IDS_OF_USER_ID_BODY + " LIMIT %d";
+
+    public static final String SQL_SELECT_ACTIVE_SESSION_IDS_OF_USER_ID_FETCH_FIRST_LIMITED =
+            "SELECT" + ACTIVE_SESSION_IDS_OF_USER_ID_BODY + " FETCH FIRST %d ROWS ONLY";
 
     public static final String SQL_SELECT_TERMINATED_SESSION_IDS =
             "SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE SESSION_TYPE = '" + SESSION_CONTEXT_CACHE_NAME

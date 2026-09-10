@@ -501,6 +501,85 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     }
 
     /**
+     * Test the row limited getActiveSessionIds reads no more session IDs than asked for. Callers that only need to
+     * know whether a user has reached a session count threshold rely on this: without the row limit, the lookup cost
+     * grows with the number of sessions the user has accumulated.
+     * <p>
+     * Each test takes exactly one connection through {@code mockIdentityDataBaseUtilConnection}, which suppresses
+     * close() on it and so never returns it to the pool. Hence one session store call per test.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionIdsForStaleSessionMapping"})
+    public void testGetActiveSessionIdsWithLimit() throws Exception {
+
+        mockSessionDBConnectionWithoutLeak();
+        cleanupTestData();
+        populateLimitedUserSessions();
+
+        List<String> limitedSessionIds = UserSessionStore.getInstance().getActiveSessionIds("limitedUser", 2);
+
+        Assert.assertEquals(limitedSessionIds.size(), 2,
+                "No more session IDs than the given limit should be returned.");
+        for (String sessionId : limitedSessionIds) {
+            Assert.assertTrue(sessionId.startsWith("limitedSession"),
+                    "Only active sessions of the given user should be returned. Returned: " + sessionId);
+        }
+
+        cleanupTestData();
+    }
+
+    /**
+     * Test the row limited getActiveSessionIds returns every active session of the user when the limit is not
+     * reached, so that a caller can tell a complete result from a truncated one by its size.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionIdsWithLimit"})
+    public void testGetActiveSessionIdsWhenLimitNotReached() throws Exception {
+
+        mockSessionDBConnectionWithoutLeak();
+        cleanupTestData();
+        populateLimitedUserSessions();
+
+        List<String> sessionIds = UserSessionStore.getInstance().getActiveSessionIds("limitedUser", 10);
+
+        Assert.assertEquals(sessionIds.size(), 5,
+                "All active sessions of the user should be returned when the limit is not reached.");
+        Assert.assertFalse(sessionIds.contains("deletedSession"),
+                "The deleted session of the user should not be returned as active.");
+        Assert.assertFalse(sessionIds.contains("anotherSession"),
+                "A session belonging to another user should not be returned.");
+
+        cleanupTestData();
+    }
+
+    /**
+     * Test the row limited getActiveSessionIds rejects a limit that cannot bound the read. No connection is mocked
+     * here, since the limit is validated before the database is touched.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionIdsWhenLimitNotReached"},
+            expectedExceptions = UserSessionException.class)
+    public void testGetActiveSessionIdsWithInvalidLimit() throws Exception {
+
+        UserSessionStore.getInstance().getActiveSessionIds("limitedUser", 0);
+    }
+
+    /**
+     * Creates five active sessions for "limitedUser", plus a deleted session of the same user and a session of
+     * another user that must stay excluded.
+     */
+    private void populateLimitedUserSessions() throws Exception {
+
+        long currentTime = System.currentTimeMillis();
+        for (int i = 1; i <= 5; i++) {
+            createUserSessionMapping("limitedUser", "limitedSession" + i);
+            createSession("limitedSession" + i, "CREATE", currentTime - 30000);
+        }
+        createUserSessionMapping("limitedUser", "deletedSession");
+        createSession("deletedSession", "CREATE", currentTime - 30000);
+        createSession("deletedSession", "DELETE", currentTime - 5000);
+        createUserSessionMapping("anotherUser", "anotherSession");
+        createSession("anotherSession", "CREATE", currentTime - 30000);
+    }
+
+    /**
      * Test getActiveSessionIds returns an empty list when the user has no sessions.
      */
     @Test(dependsOnMethods = {"testGetActiveSessionIdsForStaleSessionMapping"})
@@ -513,6 +592,19 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
         Assert.assertNotNull(activeSessionIds, "An empty list is expected instead of null.");
         Assert.assertTrue(activeSessionIds.isEmpty(), "No active sessions are expected for the user.");
+    }
+
+    /**
+     * Stubs the session database connection without suppressing close() on it, so that the connection is returned to
+     * the pool once the code under test closes it. {@link #mockIdentityDataBaseUtilConnection(Connection, Boolean,
+     * MockedStatic)} suppresses close(), which permanently consumes one of the pool's connections; the pool holds
+     * eight and waits indefinitely once they are gone.
+     */
+    private void mockSessionDBConnectionWithoutLeak() throws SQLException {
+
+        Connection connection = getConnection(DB_NAME);
+        mockedIdentityDatabaseUtil.when(() -> IdentityDatabaseUtil.getSessionDBConnection(false))
+                .thenReturn(connection);
     }
 
     private void mockIdentityDataBaseUtilConnection(Connection connection, Boolean shouldApplyTransaction,
