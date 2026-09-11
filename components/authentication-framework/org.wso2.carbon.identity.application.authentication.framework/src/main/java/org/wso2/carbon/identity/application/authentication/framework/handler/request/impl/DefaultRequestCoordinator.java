@@ -866,22 +866,25 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     /**
      * Invokes the registered {@link DeviceDataResolver} on the initiation request and stores
-     * any resolved device data payload on the authentication context. A no-op when no resolver
-     * implementation is registered.
+     * any resolved device data payload on the authentication context.
      * <p>
-     * A resolver failure is a server error, not a client error. Since resolution is best effort and
-     * must not break the authentication flow, the failure is flagged on the context under
-     * {@link FrameworkConstants#DEVICE_DATA_RESOLUTION_FAILED} so downstream policy evaluation can
-     * report a server error rather than treating the device data as missing or invalid.
+     * An unavailable resolver and a resolver failure are server errors, hence they are surfaced as
+     * a {@link FrameworkException} instead of leaving the context without device data. Otherwise
+     * the flow continues and the missing device data is later reported as a client error at device
+     * policy evaluation.
      *
      * @param request The initiation request carrying the device token.
      * @param context The authentication context being initialized.
+     * @throws FrameworkException If the device data resolver is not available or the resolution
+     *                            fails.
      */
-    private void resolveAndStoreDeviceData(HttpServletRequest request, AuthenticationContext context) {
+    private void resolveAndStoreDeviceData(HttpServletRequest request, AuthenticationContext context)
+            throws FrameworkException {
 
         DeviceDataResolver deviceDataResolver = FrameworkServiceDataHolder.getInstance().getDeviceDataResolver();
         if (deviceDataResolver == null) {
-            return;
+            throw new FrameworkException("Device data resolver is not available to resolve the device data of the " +
+                    "authentication request.");
         }
         try {
             Optional<Map<String, Object>> deviceData =
@@ -893,11 +896,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
             }
         } catch (RuntimeException e) {
-            // Device data resolution is best effort and must never break the authentication flow,
-            // but the failure must stay distinguishable from an absent device token so that it is
-            // not later reported as a client error at policy evaluation.
-            context.setProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED, Boolean.TRUE);
-            log.error("Error while resolving device data at initiation.", e);
+            throw new FrameworkException("Error while resolving device data at initiation.", e);
         }
     }
 

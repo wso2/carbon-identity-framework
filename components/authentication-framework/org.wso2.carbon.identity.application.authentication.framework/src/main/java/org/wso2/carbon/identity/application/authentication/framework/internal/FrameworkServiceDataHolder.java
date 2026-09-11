@@ -347,8 +347,8 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Get {@link DeviceDataResolver}. May be {@code null} when no resolver implementation is
-     * registered, as device data resolution is best-effort and optional.
+     * Get {@link DeviceDataResolver}. May be {@code null} until the resolver implementation is
+     * bound, as the reference is dynamic.
      *
      * @return DeviceDataResolver instance, or {@code null} if not registered.
      */

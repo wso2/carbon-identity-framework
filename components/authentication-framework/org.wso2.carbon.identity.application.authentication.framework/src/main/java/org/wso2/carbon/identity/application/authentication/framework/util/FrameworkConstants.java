@@ -269,7 +269,6 @@ public abstract class FrameworkConstants {
     public static final String REMOVE_COMMONAUTH_COOKIE = "removeCommonAuthCookie";
     public static final String INITIAL_CONTEXT = "initialContext";
     public static final String DEVICE_DATA = "deviceData";
-    public static final String DEVICE_DATA_RESOLUTION_FAILED = "deviceDataResolutionFailed";
     public static final String RESTART_LOGIN_FLOW_QUERY_PARAMS =
             "&authFailure=true&authFailureMsg=login.reinitiate.message";
     public static final String NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG =
