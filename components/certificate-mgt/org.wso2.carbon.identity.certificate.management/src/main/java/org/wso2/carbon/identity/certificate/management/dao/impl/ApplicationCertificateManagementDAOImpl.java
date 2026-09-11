@@ -37,6 +37,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 /**
  * This class is the implementation of the Application Certificate Management DAO.
@@ -159,6 +162,24 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
 
     @Override
     @Deprecated
+    public void updateCertificateContent(int certificateId, String certificateContent, int tenantId,
+                                         Connection connection) throws CertificateMgtException {
+
+        try (PreparedStatement preparedStatement =
+                     connection.prepareStatement(ApplicationCertificateMgtSQLQueries.UPDATE_CERTIFICATE_CONTENT)) {
+            InputStream certByteStream = getCertificateByteStream(certificateContent);
+            preparedStatement.setBinaryStream(1, certByteStream, certByteStream.available());
+            preparedStatement.setInt(2, certificateId);
+            preparedStatement.setInt(3, tenantId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException | IOException e) {
+            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE,
+                    e, String.valueOf(certificateId));
+        }
+    }
+
+    @Override
+    @Deprecated
     public void deleteCertificate(int certificateId, int tenantId) throws CertificateMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -172,6 +193,22 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
                 return null;
             });
         } catch (TransactionException e) {
+            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_DELETING_CERTIFICATE,
+                    e, String.valueOf(certificateId));
+        }
+    }
+
+    @Override
+    @Deprecated
+    public void deleteCertificate(int certificateId, int tenantId, Connection connection)
+            throws CertificateMgtException {
+
+        try (PreparedStatement preparedStatement =
+                     connection.prepareStatement(ApplicationCertificateMgtSQLQueries.DELETE_CERTIFICATE)) {
+            preparedStatement.setInt(1, certificateId);
+            preparedStatement.setInt(2, tenantId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
             CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_DELETING_CERTIFICATE,
                     e, String.valueOf(certificateId));
         }

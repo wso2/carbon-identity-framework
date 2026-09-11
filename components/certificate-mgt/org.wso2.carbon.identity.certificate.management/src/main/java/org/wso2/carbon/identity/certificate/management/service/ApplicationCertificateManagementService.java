@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.certificate.management.service;
 
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
+
+import java.sql.Connection;
 
 /**
  * Interface for managing trusted certificates of applications of a tenant.
@@ -76,6 +78,24 @@ public interface ApplicationCertificateManagementService {
             throws CertificateMgtException;
 
     /**
+     * Update a certificate's content with given id, executing on the given connection instead of a new,
+     * independently committed one.
+     *
+     * @param certificateId      Certificate ID.
+     * @param certificateContent Certificate content.
+     * @param tenantDomain       Tenant domain.
+     * @param connection         Connection on which the update should be executed. The caller owns the connection's
+     *                           lifecycle (commit/rollback/close).
+     * @throws CertificateMgtException If an error occurs while updating the certificate.
+     */
+    @Deprecated
+    default void updateCertificateContent(int certificateId, String certificateContent, String tenantDomain,
+                                          Connection connection) throws CertificateMgtException {
+
+        updateCertificateContent(certificateId, certificateContent, tenantDomain);
+    }
+
+    /**
      * Delete a certificate with given id.
      *
      * @param certificateId Certificate ID.
@@ -84,4 +104,21 @@ public interface ApplicationCertificateManagementService {
      */
     @Deprecated
     void deleteCertificate(int certificateId, String tenantDomain) throws CertificateMgtException;
+
+    /**
+     * Delete a certificate with given id, executing on the given connection instead of a new, independently
+     * committed one.
+     *
+     * @param certificateId Certificate ID.
+     * @param tenantDomain  Tenant domain.
+     * @param connection    Connection on which the delete should be executed. The caller owns the connection's
+     *                      lifecycle (commit/rollback/close).
+     * @throws CertificateMgtException If an error occurs while deleting the certificate.
+     */
+    @Deprecated
+    default void deleteCertificate(int certificateId, String tenantDomain, Connection connection)
+            throws CertificateMgtException {
+
+        deleteCertificate(certificateId, tenantDomain);
+    }
 }

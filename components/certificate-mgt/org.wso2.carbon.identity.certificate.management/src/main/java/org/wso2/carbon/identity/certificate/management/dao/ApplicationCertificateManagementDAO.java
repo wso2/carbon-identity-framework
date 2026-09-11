@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.certificate.management.dao;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 
+import java.sql.Connection;
+
 /**
  * This interface defines the Application Certificate Management DAO.
  * This supports using auto-incremented IDs for certificate management operations in application-mgt.
@@ -78,6 +80,24 @@ public interface ApplicationCertificateManagementDAO {
             throws CertificateMgtException;
 
     /**
+     * Update a certificate's content with given id, executing on the given connection instead of a new,
+     * independently committed one.
+     *
+     * @param certificateId      Certificate ID.
+     * @param certificateContent Certificate content.
+     * @param tenantId           Tenant Id.
+     * @param connection         Connection on which the update should be executed. The caller owns the connection's
+     *                           lifecycle (commit/rollback/close).
+     * @throws CertificateMgtException If an error occurs while updating the certificate.
+     */
+    @Deprecated
+    default void updateCertificateContent(int certificateId, String certificateContent, int tenantId,
+                                          Connection connection) throws CertificateMgtException {
+
+        updateCertificateContent(certificateId, certificateContent, tenantId);
+    }
+
+    /**
      * Delete a certificate with given id.
      *
      * @param certificateId Certificate ID.
@@ -86,4 +106,21 @@ public interface ApplicationCertificateManagementDAO {
      */
     @Deprecated
     void deleteCertificate(int certificateId, int tenantId) throws CertificateMgtException;
+
+    /**
+     * Delete a certificate with given id, executing on the given connection instead of a new, independently
+     * committed one.
+     *
+     * @param certificateId Certificate ID.
+     * @param tenantId      Tenant Id.
+     * @param connection    Connection on which the delete should be executed. The caller owns the connection's
+     *                      lifecycle (commit/rollback/close).
+     * @throws CertificateMgtException If an error occurs while deleting the certificate.
+     */
+    @Deprecated
+    default void deleteCertificate(int certificateId, int tenantId, Connection connection)
+            throws CertificateMgtException {
+
+        deleteCertificate(certificateId, tenantId);
+    }
 }

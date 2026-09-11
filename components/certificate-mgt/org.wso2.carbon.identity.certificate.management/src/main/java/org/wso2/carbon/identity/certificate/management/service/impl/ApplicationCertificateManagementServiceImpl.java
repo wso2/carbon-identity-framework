@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.certificate.management.util.CertificateMgtExcept
 import org.wso2.carbon.identity.certificate.management.util.CertificateValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
+import java.sql.Connection;
 import java.util.UUID;
 
 /**
@@ -155,6 +156,27 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     }
 
     /**
+     * Update a certificate with given id, executing on the given connection so the update can participate in a
+     * caller-managed transaction.
+     *
+     * @param certificateId      Certificate ID.
+     * @param certificateContent Certificate content.
+     * @param tenantDomain       Tenant domain.
+     * @param connection         Connection on which the update should be executed.
+     * @throws CertificateMgtException If an error occurs while updating the certificate.
+     */
+    @Override
+    @Deprecated
+    public void updateCertificateContent(int certificateId, String certificateContent, String tenantDomain,
+                                         Connection connection) throws CertificateMgtException {
+
+        LOG.debug("Updating certificate with id: " + certificateId);
+        doPreUpdateValidations(certificateId, certificateContent, tenantDomain);
+        CACHE_BACKED_DAO.updateCertificateContent(certificateId, certificateContent,
+                IdentityTenantUtil.getTenantId(tenantDomain), connection);
+    }
+
+    /**
      * Delete a certificate with given id.
      *
      * @param certificateId Certificate ID.
@@ -167,6 +189,24 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
 
         LOG.debug("Deleting certificate with id: " + certificateId);
         CACHE_BACKED_DAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * Delete a certificate with given id, executing on the given connection so the delete can participate in a
+     * caller-managed transaction.
+     *
+     * @param certificateId Certificate ID.
+     * @param tenantDomain  Tenant domain.
+     * @param connection    Connection on which the delete should be executed.
+     * @throws CertificateMgtException If an error occurs while deleting the certificate.
+     */
+    @Override
+    @Deprecated
+    public void deleteCertificate(int certificateId, String tenantDomain, Connection connection)
+            throws CertificateMgtException {
+
+        LOG.debug("Deleting certificate with id: " + certificateId);
+        CACHE_BACKED_DAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain), connection);
     }
 
     /**
