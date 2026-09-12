@@ -59,6 +59,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.app
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.impl.AppAssociatedRolesResolverImpl;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.orgdiscovery.OrganizationDiscoveryHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
@@ -718,6 +719,29 @@ public class FrameworkServiceComponent {
             log.debug("Post Authenticaion Handler : " + postAuthenticationHandler.getName() + " unregistered");
         }
         FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().remove(postAuthenticationHandler);
+    }
+
+    @Reference(
+            name = "device.data.resolver",
+            service = DeviceDataResolver.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDeviceDataResolver"
+    )
+    protected void setDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Device data resolver : " + deviceDataResolver.getClass().getName() + " registered");
+        }
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+    }
+
+    protected void unsetDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Device data resolver : " + deviceDataResolver.getClass().getName() + " unregistered");
+        }
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
     }
 
     @Reference(
