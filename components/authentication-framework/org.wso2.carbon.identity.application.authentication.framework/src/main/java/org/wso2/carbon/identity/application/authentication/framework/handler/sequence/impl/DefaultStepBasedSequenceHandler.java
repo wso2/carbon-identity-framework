@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.utils.DiagnosticLog;
@@ -254,6 +255,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
 
         boolean isAuthenticatorExecuted = false;
+        boolean federatedAttributeStep = false;
         ImpersonatedUser impersonatedUser = null;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
@@ -366,6 +368,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 }
                 if (stepConfig.isSubjectAttributeStep()) {
 
+                    /* Organization login is handled by its own authenticator and is not part of the
+                       pre IS 6.0.0 federated attribute behaviour. */
+                    federatedAttributeStep = !FrameworkConstants.ORGANIZATION_AUTHENTICATOR
+                            .equals(authenticator.getName());
+
                     if (!sequenceConfig.getApplicationConfig().isMappedSubjectIDSelected()) {
                         // if we found the mapped subject - then we do not need to worry about
                         // finding attributes.
@@ -443,14 +450,35 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         List<ClaimMapping> selectedRequestedClaims = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityClaimFilter().getFilteredClaims(context, appConfig);
 
-        // Reset the user attributes returned from federate IdP if the requested claims are not empty.
-        if (!selectedRequestedClaims.isEmpty()) {
-            sequenceConfig.getAuthenticatedUser().setUserAttributes(Collections.unmodifiableMap(new HashMap<>()));
+        /* When the SP requested claims only behaviour is turned off, the attributes received from the
+           federated IdP are kept, as they were before IS 6.0.0. */
+        boolean retainFederatedAttributes = !allowSPRequestedFedClaimsOnly && federatedAttributeStep;
+
+        if (!retainFederatedAttributes) {
+            // Reset the user attributes returned from federate IdP if the requested claims are not empty.
+            if (!selectedRequestedClaims.isEmpty()) {
+                sequenceConfig.getAuthenticatedUser()
+                        .setUserAttributes(Collections.unmodifiableMap(new HashMap<>()));
+            }
+            if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()) {
+                sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+            }
         }
-        if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()) {
-            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-        }
-        if (!authenticatedUserAttributes.isEmpty()) {
+        if (retainFederatedAttributes && !hasServiceProviderRequestedClaimValues(authenticatedUserAttributes)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Retaining the user attributes received from the federated IdP since no requested "
+                        + "claim value is resolved for the application and "
+                        + CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY + " is set to false.");
+            }
+            Map<ClaimMapping, String> federatedAttributes =
+                    new HashMap<>(sequenceConfig.getAuthenticatedUser().getUserAttributes());
+            for (Map.Entry<ClaimMapping, String> entry : authenticatedUserAttributes.entrySet()) {
+                if (FrameworkConstants.IDP_MAPPED_USER_ROLES.equals(getLocalClaimUri(entry.getKey()))) {
+                    federatedAttributes.put(entry.getKey(), entry.getValue());
+                }
+            }
+            sequenceConfig.getAuthenticatedUser().setUserAttributes(federatedAttributes);
+        } else if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
 
@@ -634,6 +662,33 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
                                                        List<String> locallyMappedUserRoles) throws FrameworkException {
         return DefaultSequenceHandlerUtils.getServiceProviderMappedUserRoles(sequenceConfig, locallyMappedUserRoles);
+    }
+
+    /**
+     * Checks whether the resolved claim values hold any value other than the claims the framework adds
+     * internally for every federated authentication.
+     *
+     * @param attributes Claim values resolved for the application.
+     * @return true if at least one service provider requested claim value is resolved.
+     */
+    private boolean hasServiceProviderRequestedClaimValues(Map<ClaimMapping, String> attributes) {
+
+        for (ClaimMapping claimMapping : attributes.keySet()) {
+            String claimUri = getLocalClaimUri(claimMapping);
+            if (!FrameworkConstants.IDP_MAPPED_USER_ROLES.equals(claimUri)
+                    && !IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR.equals(claimUri)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getLocalClaimUri(ClaimMapping claimMapping) {
+
+        if (claimMapping == null || claimMapping.getLocalClaim() == null) {
+            return null;
+        }
+        return claimMapping.getLocalClaim().getClaimUri();
     }
 
     private boolean isSPStandardClaimDialect(String clientType) {
