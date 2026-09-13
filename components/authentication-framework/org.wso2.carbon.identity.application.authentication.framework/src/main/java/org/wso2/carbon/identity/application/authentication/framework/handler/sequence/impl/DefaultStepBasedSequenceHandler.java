@@ -69,6 +69,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ENABLE_SP_REQUESTED_FED_CLAIM_FILTERING;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.REQUESTED_SUBJECT;
 
 /**
@@ -79,6 +80,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
     private static boolean allowSPRequestedFedClaimsOnly = true;
+    private static boolean enableSPRequestedFedClaimFiltering = true;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -97,6 +99,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY))) {
             allowSPRequestedFedClaimsOnly =
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY));
+        }
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ENABLE_SP_REQUESTED_FED_CLAIM_FILTERING))) {
+            enableSPRequestedFedClaimFiltering = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(CONFIG_ENABLE_SP_REQUESTED_FED_CLAIM_FILTERING));
         }
     }
 
@@ -381,7 +387,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // send all local mapped claim values or idp claim values
                         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
                         if (MapUtils.isEmpty(appConfig.getRequestedClaimMappings()) &&
-                                (!allowSPRequestedFedClaimsOnly ||
+                                (!isSPRequestedFedClaimFilteringEnabled() ||
                                         !isSPStandardClaimDialect(context.getRequestType()))) {
 
                             if (MapUtils.isNotEmpty(localClaimValues)) {
@@ -450,9 +456,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         List<ClaimMapping> selectedRequestedClaims = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityClaimFilter().getFilteredClaims(context, appConfig);
 
-        /* When the SP requested claims only behaviour is turned off, the attributes received from the
-           federated IdP are kept, as they were before IS 6.0.0. */
-        boolean retainFederatedAttributes = !allowSPRequestedFedClaimsOnly && federatedAttributeStep;
+        /* When the filtering of federated claims down to the claims the service provider requested is
+           turned off, the attributes received from the federated IdP are kept, as they were before
+           IS 6.0.0. */
+        boolean retainFederatedAttributes = !enableSPRequestedFedClaimFiltering && federatedAttributeStep;
 
         if (!retainFederatedAttributes) {
             // Reset the user attributes returned from federate IdP if the requested claims are not empty.
@@ -468,7 +475,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (log.isDebugEnabled()) {
                 log.debug("Retaining the user attributes received from the federated IdP since no requested "
                         + "claim value is resolved for the application and "
-                        + CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY + " is set to false.");
+                        + CONFIG_ENABLE_SP_REQUESTED_FED_CLAIM_FILTERING + " is set to false.");
             }
             Map<ClaimMapping, String> federatedAttributes =
                     new HashMap<>(sequenceConfig.getAuthenticatedUser().getUserAttributes());
@@ -689,6 +696,21 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             return null;
         }
         return claimMapping.getLocalClaim().getClaimUri();
+    }
+
+    /**
+     * Whether the claims received from the federated IdP are filtered down to the claims the service provider
+     * requested.
+     * <p>
+     * {@code EnableSPRequestedFedClaimFiltering} is the configuration for this. The deprecated
+     * {@code AllowSPRequestedFedClaimsOnly} is still honoured, so a deployment that turned it off keeps the
+     * behaviour it had: either configuration set to false turns the filtering off.
+     *
+     * @return true if the claims are filtered down to the claims the service provider requested.
+     */
+    private static boolean isSPRequestedFedClaimFilteringEnabled() {
+
+        return allowSPRequestedFedClaimsOnly && enableSPRequestedFedClaimFiltering;
     }
 
     private boolean isSPStandardClaimDialect(String clientType) {
