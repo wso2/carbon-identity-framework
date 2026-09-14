@@ -1876,32 +1876,33 @@ public class ApplicationManagementServiceImplTest {
     public void testCertificateIsNotTouchedWhenApplicationUpdateFails() throws Exception {
 
         String appId = createApplicationWithCertificate(APPLICATION_NAME_FAILED_UPDATE_WITH_CERT);
-
-        ServiceProvider appToUpdate = applicationManagementService.getApplicationByResourceId(appId,
-                SUPER_TENANT_DOMAIN_NAME);
-        /*
-        Remove the certificate and, in the same request, set a JWKS URI longer than the 255 character limit of the
-        SP_METADATA value column, so that the update fails while writing the service provider properties.
-         */
-        appToUpdate.setCertificateContent(StringUtils.EMPTY);
-        appToUpdate.setJwksUri("https://localhost/" + StringUtils.repeat("a", 255) + "/jwks");
         try {
-            applicationManagementService.updateApplicationByResourceId(appId, appToUpdate, SUPER_TENANT_DOMAIN_NAME,
-                    REGISTRY_SYSTEM_USERNAME);
-            Assert.fail("Successful update of the application without an exception is considered as a failure");
-        } catch (IdentityApplicationManagementException e) {
-            // Expected, since the JWKS URI does not fit in the SP_METADATA value column.
+            ServiceProvider appToUpdate = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            /*
+            Remove the certificate and, in the same request, set a JWKS URI longer than the 255 character limit of
+            the SP_METADATA value column, so that the update fails while writing the service provider properties.
+             */
+            appToUpdate.setCertificateContent(StringUtils.EMPTY);
+            appToUpdate.setJwksUri("https://localhost/" + StringUtils.repeat("a", 255) + "/jwks");
+            try {
+                applicationManagementService.updateApplicationByResourceId(appId, appToUpdate,
+                        SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+                Assert.fail("Successful update of the application without an exception is considered as a failure");
+            } catch (IdentityApplicationManagementException e) {
+                // Expected, since the JWKS URI does not fit in the SP_METADATA value column.
+            }
+
+            verify(applicationCertificateManagementService, never()).deleteCertificate(anyInt(), anyString());
+
+            ServiceProvider appAfterFailedUpdate = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            Assert.assertEquals(getCertificateReferences(appAfterFailedUpdate),
+                    Collections.singletonList(String.valueOf(CERTIFICATE_ID)));
+            Assert.assertEquals(appAfterFailedUpdate.getCertificateContent(), certificate.getCertificateContent());
+        } finally {
+            deleteApplicationWithCertificate(APPLICATION_NAME_FAILED_UPDATE_WITH_CERT);
         }
-
-        verify(applicationCertificateManagementService, never()).deleteCertificate(anyInt(), anyString());
-
-        ServiceProvider appAfterFailedUpdate = applicationManagementService.getApplicationByResourceId(appId,
-                SUPER_TENANT_DOMAIN_NAME);
-        Assert.assertEquals(getCertificateReferences(appAfterFailedUpdate),
-                Collections.singletonList(String.valueOf(CERTIFICATE_ID)));
-        Assert.assertEquals(appAfterFailedUpdate.getCertificateContent(), certificate.getCertificateContent());
-
-        deleteApplicationWithCertificate(APPLICATION_NAME_FAILED_UPDATE_WITH_CERT);
     }
 
     /**
@@ -1912,17 +1913,18 @@ public class ApplicationManagementServiceImplTest {
     public void testGetApplicationWithDanglingCertificateReference() throws Exception {
 
         String appId = createApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_READ);
+        try {
+            reset(applicationCertificateManagementService);
+            doThrow(certificateNotFoundException).when(applicationCertificateManagementService)
+                    .getCertificate(anyInt(), anyString());
 
-        reset(applicationCertificateManagementService);
-        doThrow(certificateNotFoundException).when(applicationCertificateManagementService)
-                .getCertificate(anyInt(), anyString());
-
-        ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(appId,
-                SUPER_TENANT_DOMAIN_NAME);
-        Assert.assertNotNull(retrievedSP, "A dangling certificate reference should not fail the application read");
-        Assert.assertNull(retrievedSP.getCertificateContent());
-
-        deleteApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_READ);
+            ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            Assert.assertNotNull(retrievedSP, "A dangling certificate reference should not fail the application read");
+            Assert.assertNull(retrievedSP.getCertificateContent());
+        } finally {
+            deleteApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_READ);
+        }
     }
 
     /**
@@ -1934,20 +1936,19 @@ public class ApplicationManagementServiceImplTest {
     public void testGetApplicationFailsWhenCertificateRetrievalFailsForAnotherReason() throws Exception {
 
         String appId = createApplicationWithCertificate(APPLICATION_NAME_CERT_READ_FAILURE);
-
-        reset(applicationCertificateManagementService);
-        doThrow(clientException).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
-
         try {
+            reset(applicationCertificateManagementService);
+            doThrow(clientException).when(applicationCertificateManagementService)
+                    .getCertificate(anyInt(), anyString());
+
             applicationManagementService.getApplicationByResourceId(appId, SUPER_TENANT_DOMAIN_NAME);
             Assert.fail("An unexpected certificate management failure should not be treated as an absent certificate");
         } catch (IdentityApplicationManagementException e) {
             // Expected, since the failure is not a missing certificate record.
+        } finally {
+            // Resets the certificate management service mock as well, so that it does not leak into other tests.
+            deleteApplicationWithCertificate(APPLICATION_NAME_CERT_READ_FAILURE);
         }
-
-        reset(applicationCertificateManagementService);
-        when(applicationCertificateManagementService.getCertificate(anyInt(), anyString())).thenReturn(certificate);
-        deleteApplicationWithCertificate(APPLICATION_NAME_CERT_READ_FAILURE);
     }
 
     /**
@@ -1958,25 +1959,27 @@ public class ApplicationManagementServiceImplTest {
     public void testUpdateApplicationWithDanglingCertificateReference() throws Exception {
 
         String appId = createApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_UPDATE);
+        try {
+            ServiceProvider appToUpdate = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
 
-        ServiceProvider appToUpdate = applicationManagementService.getApplicationByResourceId(appId,
-                SUPER_TENANT_DOMAIN_NAME);
+            int newCertificateId = CERTIFICATE_ID + 1;
+            doThrow(certificateNotFoundException).when(applicationCertificateManagementService)
+                    .updateCertificateContent(anyInt(), anyString(), anyString());
+            doReturn(newCertificateId).when(applicationCertificateManagementService)
+                    .addCertificate(any(), anyString());
 
-        int newCertificateId = CERTIFICATE_ID + 1;
-        doThrow(certificateNotFoundException).when(applicationCertificateManagementService)
-                .updateCertificateContent(anyInt(), anyString(), anyString());
-        doReturn(newCertificateId).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+            appToUpdate.setCertificateContent(UPDATED_CERTIFICATE);
+            applicationManagementService.updateApplicationByResourceId(appId, appToUpdate, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
 
-        appToUpdate.setCertificateContent(UPDATED_CERTIFICATE);
-        applicationManagementService.updateApplicationByResourceId(appId, appToUpdate, SUPER_TENANT_DOMAIN_NAME,
-                REGISTRY_SYSTEM_USERNAME);
-
-        ServiceProvider updatedSP = applicationManagementService.getApplicationByResourceId(appId,
-                SUPER_TENANT_DOMAIN_NAME);
-        Assert.assertEquals(getCertificateReferences(updatedSP),
-                Collections.singletonList(String.valueOf(newCertificateId)));
-
-        deleteApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_UPDATE);
+            ServiceProvider updatedSP = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            Assert.assertEquals(getCertificateReferences(updatedSP),
+                    Collections.singletonList(String.valueOf(newCertificateId)));
+        } finally {
+            deleteApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_UPDATE);
+        }
     }
 
     /**
