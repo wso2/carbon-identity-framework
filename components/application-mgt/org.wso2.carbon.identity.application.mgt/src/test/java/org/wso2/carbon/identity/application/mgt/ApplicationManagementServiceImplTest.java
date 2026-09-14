@@ -182,6 +182,7 @@ public class ApplicationManagementServiceImplTest {
     private static final String APPLICATION_NAME_FAILED_UPDATE_WITH_CERT = "Test application failed update with cert";
     private static final String APPLICATION_NAME_DANGLING_CERT_READ = "Test application dangling cert read";
     private static final String APPLICATION_NAME_DANGLING_CERT_UPDATE = "Test application dangling cert update";
+    private static final String APPLICATION_NAME_CERT_READ_FAILURE = "Test application cert read failure";
     private static final String APPLICATION_TEMPLATE_ID_1 = "Test_template_1";
     private static final String APPLICATION_TEMPLATE_ID_2 = "Test_template_2";
     private static final String APPLICATION_TEMPLATE_VERSION_1 = "v1.0.0";
@@ -1922,6 +1923,31 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertNull(retrievedSP.getCertificateContent());
 
         deleteApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_READ);
+    }
+
+    /**
+     * Only a missing certificate record is treated as an absent certificate. Any other failure of the certificate
+     * management service must still surface, rather than silently reading the application back without its
+     * certificate.
+     */
+    @Test(groups = "certificate", priority = 12)
+    public void testGetApplicationFailsWhenCertificateRetrievalFailsForAnotherReason() throws Exception {
+
+        String appId = createApplicationWithCertificate(APPLICATION_NAME_CERT_READ_FAILURE);
+
+        reset(applicationCertificateManagementService);
+        doThrow(clientException).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
+
+        try {
+            applicationManagementService.getApplicationByResourceId(appId, SUPER_TENANT_DOMAIN_NAME);
+            Assert.fail("An unexpected certificate management failure should not be treated as an absent certificate");
+        } catch (IdentityApplicationManagementException e) {
+            // Expected, since the failure is not a missing certificate record.
+        }
+
+        reset(applicationCertificateManagementService);
+        when(applicationCertificateManagementService.getCertificate(anyInt(), anyString())).thenReturn(certificate);
+        deleteApplicationWithCertificate(APPLICATION_NAME_CERT_READ_FAILURE);
     }
 
     /**
