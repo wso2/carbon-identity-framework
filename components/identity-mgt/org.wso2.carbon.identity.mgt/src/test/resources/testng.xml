@@ -44,6 +44,8 @@
         <classes>
             <class name="org.wso2.carbon.identity.mgt.store.InMemoryIdentityDataStoreTest"/>
             <class name="org.wso2.carbon.identity.mgt.store.UserStoreBasedIdentityDataStoreTest"/>
+            <class name="org.wso2.carbon.identity.mgt.store.RegistryRecoveryDataStoreTest"/>
+            <class name="org.wso2.carbon.identity.mgt.store.ArtifactDeleteThreadTest"/>
         </classes>
     </test>
 </suite>
