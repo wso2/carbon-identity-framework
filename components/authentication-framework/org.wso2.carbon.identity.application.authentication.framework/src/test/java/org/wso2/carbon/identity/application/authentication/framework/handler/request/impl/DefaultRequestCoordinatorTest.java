@@ -69,7 +69,6 @@ import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -1397,27 +1396,18 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
                 "resolveAndStoreDeviceData", HttpServletRequest.class, AuthenticationContext.class);
         method.setAccessible(true);
-        try {
-            method.invoke(requestCoordinator, request, context);
-        } catch (InvocationTargetException e) {
-            if (e.getCause() instanceof Exception) {
-                throw (Exception) e.getCause();
-            }
-            throw e;
-        }
+        method.invoke(requestCoordinator, request, context);
     }
 
     @Test
-    public void testResolveAndStoreDeviceDataFailsWithoutRegisteredResolver() throws Exception {
+    public void testResolveAndStoreDeviceDataWithoutRegisteredResolver() throws Exception {
 
         FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        // An unavailable resolver is a server error, hence it must not be reported as an absent
-        // device token at device policy evaluation.
-        assertThrows(FrameworkException.class, () -> invokeResolveAndStoreDeviceData(request, context));
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
     }
 
@@ -1448,14 +1438,13 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
 
-        // An absent device token is a client error, hence the flow must continue without device data.
         invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
 
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
     }
 
     @Test
-    public void testResolveAndStoreDeviceDataFailsOnResolverFailure() throws Exception {
+    public void testResolveAndStoreDeviceDataDoesNotBreakFlowOnResolverFailure() throws Exception {
 
         DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
         when(deviceDataResolver.resolveDeviceData(any(), anyString()))
@@ -1465,11 +1454,44 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        FrameworkException exception =
-                assertThrows(FrameworkException.class, () -> invokeResolveAndStoreDeviceData(request, context));
+        // Resolution is best effort: the runtime exception must be swallowed, not propagated.
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
 
-        assertTrue(exception.getCause() instanceof IllegalStateException);
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
+        // The failure must remain distinguishable from an absent device token.
+        assertEquals(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED), Boolean.TRUE);
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataDoesNotFlagFailureWhenTokenIsAbsent() throws Exception {
+
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.empty());
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        // No device token presented is not a server error, so the failure flag must stay unset.
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED));
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataDoesNotFlagFailureOnSuccess() throws Exception {
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("platform", "ANDROID");
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.of(payload));
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED));
     }
 }
