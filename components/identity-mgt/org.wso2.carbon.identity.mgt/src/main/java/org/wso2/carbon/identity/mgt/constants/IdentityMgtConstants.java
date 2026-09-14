@@ -34,6 +34,14 @@ public class IdentityMgtConstants {
 
     public static final String IDENTITY_MANAGEMENT_CHALLENGES = IDENTITY_MANAGEMENT_PATH + "/challenges";
 
+    /*
+     *  Delimiter used to store the registry resource entries. Must be valid characters.
+     *  RecoveryProcessor builds confirmation codes as "sequence + delimiter + username + delimiter + code",
+     *  and the resource path parsing in RegistryRecoveryDataStore and ArtifactDeleteThread relies on the
+     *  same value. Change it in one place only.
+     */
+    public static final String REG_DELIMITER = "___";
+
     public static final String CONFIRMATION_KEY_NOT_MACHING = "The credential update failed. Secret key is not matching.";
 
     public static final String EMAIL_CONF_DIRECTORY = "email";
