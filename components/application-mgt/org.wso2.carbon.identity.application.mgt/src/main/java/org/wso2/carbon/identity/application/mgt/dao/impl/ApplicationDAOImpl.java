@@ -678,7 +678,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
              */
             List<ServiceProviderProperty> propertiesWithoutCertificateReference = Arrays.stream(spProperties)
                     .filter(property -> !SP_PROPERTY_NAME_CERTIFICATE.equals(property.getName()))
-                    .collect(Collectors.toList());
+                    .toList();
             updateServiceProviderProperties(connection, applicationId, propertiesWithoutCertificateReference,
                     tenantID);
         }
