@@ -1041,24 +1041,38 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 newlyAddedCertificateID = getCertificateIDByName(serviceProvider.getApplicationName(), tenantID);
             }
             addApplicationCertificateReferenceAsServiceProviderProperty(serviceProvider, newlyAddedCertificateID);
-            try {
-                persistApplicationCertificateReference(connection, serviceProvider.getApplicationID(),
-                        String.valueOf(newlyAddedCertificateID), tenantID);
-            } catch (SQLException e) {
-                /*
-                The certificate record above is committed on the certificate management service's own connection,
-                so the rollback of the application update does not remove it. Delete it here, otherwise the failed
-                update leaves an orphan certificate record behind.
-                 */
-                deleteNewlyAddedCertificate(newlyAddedCertificateID, serviceProvider.getApplicationName(), tenantID);
-                throw new IdentityApplicationManagementException("Error while persisting the certificate reference " +
-                        "of application: " + serviceProvider.getApplicationName(), e);
-            }
+            persistNewCertificateReference(connection, serviceProvider, newlyAddedCertificateID, tenantID);
         } catch (CertificateMgtClientException e) {
             throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
         } catch (CertificateMgtException e) {
             throw new IdentityApplicationManagementServerException("Error while adding certificate for application: " +
                     serviceProvider.getApplicationName(), e);
+        }
+    }
+
+    /**
+     * Writes the reference to a certificate record that was just added for the given application. If the reference
+     * cannot be written, the certificate record is deleted again: it is committed on the certificate management
+     * service's own connection, so the rollback of the application update does not remove it, and it would
+     * otherwise be left behind as an orphan.
+     *
+     * @param connection      Connection of the ongoing application update transaction.
+     * @param serviceProvider Service provider object.
+     * @param certificateId   ID of the certificate record that was just added.
+     * @param tenantID        Tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while writing the certificate reference.
+     */
+    private void persistNewCertificateReference(Connection connection, ServiceProvider serviceProvider,
+                                                int certificateId, int tenantID)
+            throws IdentityApplicationManagementException {
+
+        try {
+            persistApplicationCertificateReference(connection, serviceProvider.getApplicationID(),
+                    String.valueOf(certificateId), tenantID);
+        } catch (SQLException e) {
+            deleteNewlyAddedCertificate(certificateId, serviceProvider.getApplicationName(), tenantID);
+            throw new IdentityApplicationManagementException("Error while persisting the certificate reference of " +
+                    "application: " + serviceProvider.getApplicationName(), e);
         }
     }
 
