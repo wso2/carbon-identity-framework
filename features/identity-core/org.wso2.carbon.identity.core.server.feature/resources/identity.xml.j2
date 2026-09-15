@@ -5287,6 +5287,8 @@
             <IncludePrimaryWhenSecondaryPresent>{{token_exchange.implicit_association.include_primary_when_secondary_present}}</IncludePrimaryWhenSecondaryPresent>
         </ImplicitAssociation>
         <LimitScopesToSubjectToken>{{token_exchange.limit_scopes_to_subject_token}}</LimitScopesToSubjectToken>
+        <!-- Applicable only for manually configured certificates. Not applicable for JWKS based validation. -->
+        <EnforceCertificateExpiryValidity>{{token_exchange.enforce_certificate_expiry_validity}}</EnforceCertificateExpiryValidity>
     </TokenExchange>
 
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->

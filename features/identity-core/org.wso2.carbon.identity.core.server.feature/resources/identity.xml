@@ -2789,6 +2789,12 @@
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
+    <!-- Token exchange grant configurations -->
+    <TokenExchange>
+        <!-- Applicable only for manually configured certificates. Not applicable for JWKS based validation. -->
+        <EnforceCertificateExpiryValidity>true</EnforceCertificateExpiryValidity>
+    </TokenExchange>
+
     <AdaptiveAuth>
         <!--Default configs for event publisher-->
         <EventPublisher>
