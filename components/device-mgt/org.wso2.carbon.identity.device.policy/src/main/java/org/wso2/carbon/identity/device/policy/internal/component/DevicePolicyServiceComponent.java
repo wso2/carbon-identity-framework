@@ -63,7 +63,7 @@ public class DevicePolicyServiceComponent {
             "JDBCPersistenceManager.DeviceTokenJtiCleanUp.Enable";
     private static final String JTI_CLEANUP_PERIOD_PROPERTY =
             "JDBCPersistenceManager.DeviceTokenJtiCleanUp.CleanUpPeriod";
-    private static final long DEFAULT_JTI_CLEANUP_PERIOD_MINUTES = 15;
+    private static final long DEFAULT_JTI_CLEANUP_PERIOD_MINUTES = 1440;
 
     private DeviceTokenJtiCleanupService deviceTokenJtiCleanupService;
 
