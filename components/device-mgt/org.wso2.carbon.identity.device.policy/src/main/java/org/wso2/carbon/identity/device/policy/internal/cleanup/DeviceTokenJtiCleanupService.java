@@ -73,7 +73,7 @@ public class DeviceTokenJtiCleanupService {
      */
     private static final class DeviceTokenJtiCleanupTask implements Runnable {
 
-        private final DeviceTokenReplayProtectionService replayService =
+        private final DeviceTokenReplayProtectionService replayProtectionService =
                 DeviceTokenReplayProtectionService.getInstance();
 
         @Override
@@ -83,7 +83,7 @@ public class DeviceTokenJtiCleanupService {
                 LOG.debug("Running the device token jti cleanup task.");
             }
             try {
-                replayService.removeExpiredTokens();
+                replayProtectionService.removeExpiredTokens();
             } catch (Throwable t) {
                 LOG.error("Error while running the device token jti cleanup task.");
             }
