@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.M
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -274,6 +275,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (authRequest != null) {
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
+
+                // Resolve verified device data from the initiation request and store it on the context.
+                resolveAndStoreDeviceData(request, context);
 
                 // We'll use the cloned context to re-initiate the login flow when the session
                 // nonce cookie validation failed.
@@ -858,6 +862,43 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // set current request and response to the authentication context.
         context.setProperty(FrameworkConstants.RequestAttribute.HTTP_REQUEST, new TransientObjectWrapper(request));
         context.setProperty(FrameworkConstants.RequestAttribute.HTTP_RESPONSE, new TransientObjectWrapper(response));
+    }
+
+    /**
+     * Invokes the registered {@link DeviceDataResolver} on the initiation request and stores
+     * any resolved device data payload on the authentication context. A no-op when no resolver
+     * implementation is registered.
+     * <p>
+     * A resolver failure is a server error, not a client error. Since resolution is best effort and
+     * must not break the authentication flow, the failure is flagged on the context under
+     * {@link FrameworkConstants#DEVICE_DATA_RESOLUTION_FAILED} so downstream policy evaluation can
+     * report a server error rather than treating the device data as missing or invalid.
+     *
+     * @param request The initiation request carrying the device token.
+     * @param context The authentication context being initialized.
+     */
+    private void resolveAndStoreDeviceData(HttpServletRequest request, AuthenticationContext context) {
+
+        DeviceDataResolver deviceDataResolver = FrameworkServiceDataHolder.getInstance().getDeviceDataResolver();
+        if (deviceDataResolver == null) {
+            return;
+        }
+        try {
+            Optional<Map<String, Object>> deviceData =
+                    deviceDataResolver.resolveDeviceData(request, context.getTenantDomain());
+            if (deviceData.isPresent()) {
+                context.setProperty(FrameworkConstants.DEVICE_DATA, deviceData.get());
+                if (log.isDebugEnabled()) {
+                    log.debug("Device data resolved and stored on the authentication context.");
+                }
+            }
+        } catch (RuntimeException e) {
+            // Device data resolution is best effort and must never break the authentication flow,
+            // but the failure must stay distinguishable from an absent device token so that it is
+            // not later reported as a client error at policy evaluation.
+            context.setProperty(FrameworkConstants.DEVICE_DATA_RESOLUTION_FAILED, Boolean.TRUE);
+            log.error("Error while resolving device data at initiation.", e);
+        }
     }
 
     /**
