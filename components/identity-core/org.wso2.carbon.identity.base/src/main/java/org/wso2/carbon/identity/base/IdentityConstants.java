@@ -182,6 +182,8 @@ public class IdentityConstants {
     public static final String IDENTITY_UTIL_ENABLE_SHA256 = "IdentityUtil.EnableSHA256";
     public static final String CERT_THUMBPRINT_ENABLE_SHA256 = "CertThumbprint.EnableSHA256";
     public static final String ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR = "AllowLegacyRoleClaimBehaviour";
+    public static final String RETURN_LEGACY_ROLE_CLAIM_IN_APPLICATION_RESPONSE =
+            "ReturnLegacyRoleClaimInApplicationResponse";
 
     private IdentityConstants() {
     }

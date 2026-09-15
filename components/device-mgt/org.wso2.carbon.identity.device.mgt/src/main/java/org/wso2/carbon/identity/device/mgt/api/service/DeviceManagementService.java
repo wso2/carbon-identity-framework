@@ -30,6 +30,15 @@ import java.util.List;
 public interface DeviceManagementService {
 
     /**
+     * Generates a new unique device identifier. Callers that need to construct a {@link Device}
+     * (e.g. the device registration executor) must obtain the id from here rather than minting
+     * their own, so device.mgt remains the single source of truth for the id format.
+     *
+     * @return A new unique device identifier.
+     */
+    String generateDeviceId();
+
+    /**
      * Registers a pre-verified {@link Device} in the database.
      *
      * @param device       The verified device to register.

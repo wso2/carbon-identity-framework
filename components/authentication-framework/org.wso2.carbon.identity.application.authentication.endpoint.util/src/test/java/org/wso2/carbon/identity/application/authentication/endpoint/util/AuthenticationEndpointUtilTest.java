@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.commons.lang.StringUtils;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.mockito.Mock;
@@ -29,13 +31,17 @@ import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.Us
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.wso2.carbon.user.core.UserCoreConstants.DOMAIN_SEPARATOR;
@@ -269,5 +275,34 @@ public class AuthenticationEndpointUtilTest {
             Assert.assertEquals(AuthenticationEndpointUtil.isConsentPageRedirectParamsAllowed(),
                     allowConsentPageRedirectParams);
         }
+    }
+
+    @DataProvider(name = "malformedBackendURLProvider")
+    public Object[][] provideMalformedBackendURLs() {
+
+        // These URLs are built by appending a request parameter to an API path, so a malformed
+        // request produces a path that java.net.URI cannot parse.
+        return new Object[][]{
+                {"https://localhost:9443/api/identity/auth/v1.1/data/AuthRequestKey/ehezr\"m628d"},
+                {"https://localhost:9443/api/identity/auth/v1.1/data/OauthConsentKey/a b"},
+                {"https://localhost:9443/api/identity/auth/v1.1/context/a|b"},
+        };
+    }
+
+    @Test(dataProvider = "malformedBackendURLProvider")
+    public void testSendGetRequestWithMalformedURL(String backendURL) {
+
+        CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
+        try (MockedStatic<HTTPClientManager> httpClientManager = mockStatic(HTTPClientManager.class)) {
+            httpClientManager.when(() -> HTTPClientManager.executeWithHttpClient(any()))
+                    .thenAnswer(invocation -> ((HTTPClientManager.HttpClientOperation<?, ?>)
+                            invocation.getArgument(0)).execute(httpClient));
+
+            // Must not throw. The unparsable URL used to surface as an unchecked
+            // IllegalArgumentException from URI.create(), which unwound out of the servlet.
+            Assert.assertEquals(AuthenticationEndpointUtil.sendGetRequest(backendURL), StringUtils.EMPTY);
+        }
+        // Nothing was sent, so there is no response to read.
+        verifyNoInteractions(httpClient);
     }
 }

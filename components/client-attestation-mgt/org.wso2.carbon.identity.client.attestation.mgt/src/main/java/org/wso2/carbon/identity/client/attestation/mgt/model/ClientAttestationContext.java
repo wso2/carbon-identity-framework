@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ *  Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -22,6 +22,8 @@ package org.wso2.carbon.identity.client.attestation.mgt.model;
 import org.wso2.carbon.identity.client.attestation.mgt.utils.Constants;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
+import java.util.List;
+
 
 /**
  * The object which will contain context information which are passed through API based Authentication process.
@@ -38,6 +40,7 @@ public class ClientAttestationContext extends MessageContext {
     private Constants.ClientTypes clientType;
     private String validationFailureMessage;
     private final boolean attestationEnabled;
+    private List<String> deviceIntegrityVerdicts;
 
     public ClientAttestationContext(boolean attestationEnabled) {
 
@@ -99,6 +102,27 @@ public class ClientAttestationContext extends MessageContext {
         this.validationFailureMessage = validationFailureMessage;
     }
 
+    /**
+     * Returns Google-verified device recognition verdicts extracted from the Play Integrity response.
+     * Null until set by AndroidAttestationValidator; empty list when no verdicts.
+     *
+     * @return List of device recognition verdict strings, or null if not yet set.
+     */
+    public List<String> getDeviceIntegrityVerdicts() {
+
+        return deviceIntegrityVerdicts;
+    }
+
+    /**
+     * Sets the device recognition verdicts obtained from the Google Play Integrity API response.
+     *
+     * @param deviceIntegrityVerdicts List of verdict strings from deviceIntegrity.deviceRecognitionVerdict.
+     */
+    public void setDeviceIntegrityVerdicts(List<String> deviceIntegrityVerdicts) {
+
+        this.deviceIntegrityVerdicts = deviceIntegrityVerdicts;
+    }
+
     @Override
     public String toString() {
 
@@ -109,6 +133,7 @@ public class ClientAttestationContext extends MessageContext {
                 ", isAttested=" + isAttested +
                 ", clientType=" + clientType +
                 ", errorMessage='" + validationFailureMessage + '\'' +
+                ", deviceIntegrityVerdicts=" + deviceIntegrityVerdicts +
                 '}';
     }
 }
