@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.orgdiscovery.OrganizationDiscoveryHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
@@ -91,6 +92,7 @@ public class FrameworkServiceDataHolder {
     private JsGenericGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
+    private DeviceDataResolver deviceDataResolver;
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
     private ConsentManager consentManager = null;
     private ConsentAppMappingService consentAppMappingService = null;
@@ -342,6 +344,27 @@ public class FrameworkServiceDataHolder {
     public List<PostAuthenticationHandler> getPostAuthenticationHandlers() {
 
         return this.postAuthenticationHandlers;
+    }
+
+    /**
+     * Get {@link DeviceDataResolver}. May be {@code null} when no resolver implementation is
+     * registered, as device data resolution is best-effort and optional.
+     *
+     * @return DeviceDataResolver instance, or {@code null} if not registered.
+     */
+    public DeviceDataResolver getDeviceDataResolver() {
+
+        return this.deviceDataResolver;
+    }
+
+    /**
+     * Set {@link DeviceDataResolver}.
+     *
+     * @param deviceDataResolver DeviceDataResolver instance.
+     */
+    public void setDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        this.deviceDataResolver = deviceDataResolver;
     }
 
     /**

@@ -270,6 +270,8 @@ public abstract class FrameworkConstants {
     public static final String RESTART_LOGIN_FLOW = "restartLoginFlow";
     public static final String REMOVE_COMMONAUTH_COOKIE = "removeCommonAuthCookie";
     public static final String INITIAL_CONTEXT = "initialContext";
+    public static final String DEVICE_DATA = "deviceData";
+    public static final String DEVICE_DATA_RESOLUTION_FAILED = "deviceDataResolutionFailed";
     public static final String RESTART_LOGIN_FLOW_QUERY_PARAMS =
             "&authFailure=true&authFailureMsg=login.reinitiate.message";
     public static final String NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG =
@@ -680,6 +682,7 @@ public abstract class FrameworkConstants {
         public static final String JS_AUTH_FAILURE = "fail";
         public static final String JS_ENDPOINT_PARAMS = "endpointParams";
         public static final String JS_PASSWORD_RESET_COMPLETE = "passwordResetComplete";
+        public static final String JS_DEVICE_DATA = "deviceData";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";

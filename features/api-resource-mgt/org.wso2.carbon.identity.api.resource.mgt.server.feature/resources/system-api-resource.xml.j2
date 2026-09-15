@@ -951,6 +951,21 @@
                     description="Delete agent accounts in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="SCIM2 Agents API" identifier="/o/scim2/Agents" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Agents API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Agent" name="internal_org_agent_mgt_view"
+                    description="View agent accounts in the organization"/>
+            <Scope displayName="List Agents" name="internal_org_agent_mgt_list"
+                    description="Search agent accounts in the organization"/>
+            <Scope displayName="Create Agent" name="internal_org_agent_mgt_create"
+                    description="Create new agent accounts in the organization"/>
+            <Scope displayName="Update Agent" name="internal_org_agent_mgt_update"
+                    description="Update agent accounts in the organization"/>
+            <Scope displayName="Delete Agent" name="internal_org_agent_mgt_delete"
+                    description="Delete agent accounts in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
                  requiresAuthorization="true" description="API representation of the User Related Code Management API" type="TENANT">
         <Scopes>
@@ -2212,6 +2227,63 @@
                     description="Manage deletes of agents from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Agent Management Feature Organization" identifier="console:org:agents"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Agent Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Agent Feature" name="console:org:agents"
+                   description="Manage agents in the organization from the Console"/>
+            <Scope displayName="Agent View Feature" name="console:org:agents_view"
+                   description="Manage views of agents in the organization from the Console"/>
+            <Scope displayName="Agent Edit Feature" name="console:org:agents_edit"
+                   description="Manage edits of agents in the organization from the Console"/>
+            <Scope displayName="Agent Update Feature" name="console:org:agents_update"
+                   description="Manage updates of agents in the organization from the Console"/>
+            <Scope displayName="Agent Create Feature" name="console:org:agents_create"
+                   description="Manage creates of agents in the organization from the Console"/>
+            <Scope displayName="Agent Delete Feature" name="console:org:agents_delete"
+                   description="Manage deletes of agents in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Agent Sharing Management Feature" identifier="console:agentSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Agent Sharing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Agent Sharing Management Feature" name="console:agentSharing"
+                   description="Manage agent sharing from the Console"/>
+            <Scope displayName="Agent Sharing Management View Feature" name="console:agentSharing_view"
+                   description="View agent sharing status from the Console"/>
+            <Scope displayName="Agent Sharing Management Edit Feature" name="console:agentSharing_edit"
+                   description="Edit agent sharing status from the Console"/>
+            <Scope displayName="Agent Sharing Management Update Feature" name="console:agentSharing_update"
+                   description="Update agent sharing status from the Console"/>
+            <Scope displayName="Agent Sharing Management Create Feature" name="console:agentSharing_create"
+                   description="Create agent sharing status from the Console"/>
+            <Scope displayName="Agent Sharing Management Delete Feature" name="console:agentSharing_delete"
+                   description="Delete agent sharing status from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Agent Sharing Management Feature Organization" identifier="console:org:agentSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Agent Sharing Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Agent Sharing Management Feature" name="console:org:agentSharing"
+                   description="Manage agent sharing in the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management View Feature" name="console:org:agentSharing_view"
+                   description="View the shared status of agents within the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management Edit Feature" name="console:org:agentSharing_edit"
+                   description="Manage edits of agent sharing status in the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management Update Feature" name="console:org:agentSharing_update"
+                   description="Manage updates of agent sharing status in the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management Create Feature" name="console:org:agentSharing_create"
+                   description="Manage creates of agent sharing status in the organization from the Console"/>
+            <Scope displayName="Agent Sharing Management Delete Feature" name="console:org:agentSharing_delete"
+                   description="Manage deletes of agent sharing status in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"
                  requiresAuthorization="true"
                  description="Resource representation of the Server Management Feature"
@@ -3027,4 +3099,108 @@
                                    description="Manage deletes of VC templates from the Console"/>
         </Scopes>
     </APIResource>
+    {% if openid4vp.enabled %}
+    <!-- [Organization] Presentation Definition Management API -->
+    <APIResource name="Presentation Definition Management API" identifier="/o/api/server/v1/openid4vp/presentation-definitions"
+                 requiresAuthorization="true"
+                 description="API representation of the Presentation Definition Management API for organizations" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Presentation Definitions" name="internal_org_presentation_definition_view"
+                   description="View Presentation Definitions in the organization"/>
+            <Scope displayName="Create Presentation Definition" name="internal_org_presentation_definition_create"
+                   description="Create new Presentation Definition in the organization"/>
+            <Scope displayName="Update Presentation Definition" name="internal_org_presentation_definition_update"
+                   description="Update Presentation Definition in the organization"/>
+            <Scope displayName="Delete Presentation Definition" name="internal_org_presentation_definition_delete"
+                   description="Delete Presentation Definition in the organization"/>
+        </Scopes>
+    </APIResource>
+    <!-- Presentation Definition Management API -->
+    <APIResource name="Presentation Definition Management API" identifier="/api/server/v1/openid4vp/presentation-definitions"
+                 requiresAuthorization="true"
+                 description="API representation of the Presentation Definition Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Presentation Definitions" name="internal_presentation_definition_view"
+                   description="View Presentation Definitions"/>
+            <Scope displayName="Create Presentation Definition" name="internal_presentation_definition_create"
+                   description="Create new Presentation Definition"/>
+            <Scope displayName="Update Presentation Definition" name="internal_presentation_definition_update"
+                   description="Update Presentation Definition"/>
+            <Scope displayName="Delete Presentation Definition" name="internal_presentation_definition_delete"
+                   description="Delete Presentation Definition"/>
+        </Scopes>
+    </APIResource>
+    <!-- [Organization] VC Verification API -->
+    <APIResource name="VC Verification API" identifier="/o/api/server/v1/openid4vp/vc-verifications"
+                 requiresAuthorization="true"
+                 description="API for standalone VC Verification" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Initiate VC Verification" name="internal_org_vc_verification_create"
+                   description="Initiate a new VC Verification session"/>
+            <Scope displayName="View VC Verification Status" name="internal_org_vc_verification_view"
+                   description="Poll the status of a VC Verification session"/>
+        </Scopes>
+    </APIResource>
+    <!-- VC Verification API -->
+    <APIResource name="VC Verification API" identifier="/api/server/v1/openid4vp/vc-verifications"
+                 requiresAuthorization="true"
+                 description="API for standalone VC Verification" type="TENANT">
+        <Scopes>
+            <Scope displayName="Initiate VC Verification" name="internal_vc_verification_create"
+                   description="Initiate a new VC Verification session"/>
+            <Scope displayName="View VC Verification Status" name="internal_vc_verification_view"
+                   description="Poll the status of a VC Verification session"/>
+        </Scopes>
+    </APIResource>
+    <!-- Presentation Definitions Console Feature -->
+    <APIResource name="Presentation Definitions Feature" identifier="console:presentation_definitions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Presentation Definitions Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Presentation Definitions Feature" name="console:presentation_definitions"
+                   description="Manage Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions View Feature" name="console:presentation_definitions_view"
+                   description="View Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Edit Feature" name="console:presentation_definitions_edit"
+                   description="Edit Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Create Feature" name="console:presentation_definitions_create"
+                   description="Create Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Update Feature" name="console:presentation_definitions_update"
+                   description="Update Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Delete Feature" name="console:presentation_definitions_delete"
+                   description="Delete Presentation Definitions from the Console"/>
+        </Scopes>
+    </APIResource>
+    <!-- [Organization] Presentation Definitions Console Feature -->
+    <APIResource name="Presentation Definitions Feature Organization" identifier="console:org:presentation_definitions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Presentation Definitions Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Presentation Definitions Feature" name="console:org:presentation_definitions"
+                   description="Manage Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions View Feature" name="console:org:presentation_definitions_view"
+                   description="View Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Edit Feature" name="console:org:presentation_definitions_edit"
+                   description="Edit Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Create Feature" name="console:org:presentation_definitions_create"
+                   description="Create Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Update Feature" name="console:org:presentation_definitions_update"
+                   description="Update Presentation Definitions from the Console"/>
+            <Scope displayName="Presentation Definitions Delete Feature" name="console:org:presentation_definitions_delete"
+                   description="Delete Presentation Definitions from the Console"/>
+        </Scopes>
+    </APIResource>
+    <!-- Verifiable Presentation Settings Console Feature -->
+    <APIResource name="Verifiable Presentation Settings Feature" identifier="console:verifiablePresentationSettings"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Verifiable Presentation Settings Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Verifiable Presentation Settings Feature" name="console:verifiablePresentationSettings"
+                   description="Manage Verifiable Presentation Settings from the Console"/>
+        </Scopes>
+    </APIResource>
+    {% endif %}
 </APIResources>

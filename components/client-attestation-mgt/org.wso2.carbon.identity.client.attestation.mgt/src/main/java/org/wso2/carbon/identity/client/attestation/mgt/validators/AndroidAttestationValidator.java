@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ *  Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -28,6 +28,7 @@ import com.google.api.services.playintegrity.v1.PlayIntegrityRequestInitializer;
 import com.google.api.services.playintegrity.v1.model.AppIntegrity;
 import com.google.api.services.playintegrity.v1.model.DecodeIntegrityTokenRequest;
 import com.google.api.services.playintegrity.v1.model.DecodeIntegrityTokenResponse;
+import com.google.api.services.playintegrity.v1.model.DeviceIntegrity;
 import com.google.api.services.playintegrity.v1.model.RequestDetails;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.TimeZone;
 
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.CLIENT_ATTESTATION_ALLOWED_WINDOW_IN_MILL_SECOND;
@@ -166,8 +168,12 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
     }
 
     /**
-     * Validates the overall integrity of the response by checking various components including
-     * request details, device integrity, account details, and application integrity.
+     * Validates the integrity response and records its outcome on the context.
+     *
+     * <p>Marks the context as attested when both the request details and the application integrity
+     * checks pass, and stores the device recognition verdicts reported by Google. The verdicts are
+     * recorded regardless of the attestation outcome, since a device that fails attestation is
+     * exactly the case a device policy needs the verdicts for.
      *
      * @param decodeIntegrityTokenResponse The response containing the integrity token and various integrity details.
      * @param clientAttestationContext  The context to store the validation results and updated information.
@@ -175,10 +181,19 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
     private void validateIntegrityResponse(DecodeIntegrityTokenResponse decodeIntegrityTokenResponse,
                                            ClientAttestationContext clientAttestationContext) {
 
-        // Validate different aspects of the integrity response, and return true if all checks pass.
+        // Mark the client as attested only when both checks pass; nothing is returned to the caller.
         if (validateRequestDetails(decodeIntegrityTokenResponse, clientAttestationContext) &&
                 validateAppIntegrity(decodeIntegrityTokenResponse, clientAttestationContext)) {
             clientAttestationContext.setAttested(true);
+        }
+
+        // Record the verdicts Google reported, falling back to an empty list when it reported none.
+        DeviceIntegrity deviceIntegrity =
+                decodeIntegrityTokenResponse.getTokenPayloadExternal().getDeviceIntegrity();
+        if (deviceIntegrity != null && deviceIntegrity.getDeviceRecognitionVerdict() != null) {
+            clientAttestationContext.setDeviceIntegrityVerdicts(deviceIntegrity.getDeviceRecognitionVerdict());
+        } else {
+            clientAttestationContext.setDeviceIntegrityVerdicts(Collections.emptyList());
         }
     }
 

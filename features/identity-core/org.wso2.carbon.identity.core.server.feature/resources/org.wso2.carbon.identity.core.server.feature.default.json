@@ -1446,6 +1446,7 @@
   "console.ui.routes.organizationEnabledRoutes.accountSecurity": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.actions": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.admin-forced-password-reset": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.agents": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.apiResources": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.applications": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
@@ -1672,6 +1673,19 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
+  "console.connection_sharing.enabled": "$ref{connection_sharing.idp.enable}",
+  "console.connection_sharing.scopes.feature": ["console:connectionSharing"],
+  "console.connection_sharing.disabled_features": [],
+  "console.connection_sharing.scopes.create": ["internal_idp_share"],
+  "console.connection_sharing.scopes.read": [
+    "internal_idp_shared_access_view",
+    "internal_organization_view"
+  ],
+  "console.connection_sharing.scopes.update": [
+    "internal_idp_share",
+    "internal_idp_unshare"
+  ],
+  "console.connection_sharing.scopes.delete": ["internal_idp_unshare"],
   "console.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
   "console.consents.scopes.feature": ["console:consents"],
   "console.consents.disabled_features": [],
@@ -2016,6 +2030,14 @@
   "console.verifiable_credentials.scopes.read": ["internal_vc_template_view"],
   "console.verifiable_credentials.scopes.update": ["internal_vc_template_update"],
   "console.verifiable_credentials.scopes.delete": ["internal_vc_template_delete"],
+  "console.verifiable_presentation.enabled": "$ref{openid4vp.enabled}",
+  "console.verifiable_presentation.scopes.feature": ["console:presentation_definitions"],
+  "console.verifiable_presentation.disabled_features": [],
+  "console.verifiable_presentation.scopes.create": ["internal_presentation_definition_create"],
+  "console.verifiable_presentation.scopes.read": ["internal_presentation_definition_view"],
+  "console.verifiable_presentation.scopes.update": ["internal_presentation_definition_update"],
+  "console.verifiable_presentation.scopes.delete": ["internal_presentation_definition_delete"],
+  "openid4vp.enabled": false,
   "console.ws_fed_configuration.enabled": true,
   "console.self_app_identifier": "Console",
   "console.system_apps_identifiers": ["Console", "My Account"],
@@ -2417,6 +2439,7 @@
   "tenant_level_application_authentication_config.enabled_for_auth_sequence": true,
   "branding_configuration.use_intermediate_loader_page": false,
   "branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal": false,
+  "webappscommon.inherit_app_level_custom_layout": true,
 
   "enhanced_organization_authentication_feature.enabled": true,
 
@@ -2452,5 +2475,7 @@
 
   "saas_apps.return_roles_in_id_token": false,
 
-  "rules.device_policy.max_expressions_combined_with_and": 15
+  "rules.device_policy.max_expressions_combined_with_and": 15,
+
+  "legacy_claims.return_legacy_role_claim_in_application_response": false
 }
