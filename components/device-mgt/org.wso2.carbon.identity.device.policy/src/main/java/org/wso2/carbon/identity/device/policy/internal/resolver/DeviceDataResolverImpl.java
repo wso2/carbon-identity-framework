@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.client.attestation.mgt.utils.Constants;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
@@ -54,8 +55,6 @@ import javax.servlet.http.HttpServletRequest;
 public class DeviceDataResolverImpl implements DeviceDataResolver {
 
     private static final Log LOG = LogFactory.getLog(DeviceDataResolverImpl.class);
-    private static final String DEVICE_TOKEN_PARAM = "device_token";
-    private static final String DEVICE_TOKEN_HEADER = "X-Device-Token";
 
     @Override
     public Optional<Map<String, Object>> resolveDeviceData(HttpServletRequest request, String tenantDomain) {
@@ -64,9 +63,10 @@ public class DeviceDataResolverImpl implements DeviceDataResolver {
             return Optional.empty();
         }
 
-        String deviceToken = request.getParameter(DEVICE_TOKEN_PARAM);
+        // The framework gates the resolution on the same transport, hence the shared constants.
+        String deviceToken = request.getParameter(FrameworkConstants.DEVICE_TOKEN_PARAM);
         if (StringUtils.isBlank(deviceToken)) {
-            deviceToken = request.getHeader(DEVICE_TOKEN_HEADER);
+            deviceToken = request.getHeader(FrameworkConstants.DEVICE_TOKEN_HEADER);
         }
         if (StringUtils.isBlank(deviceToken)) {
             return Optional.empty();
