@@ -29,6 +29,12 @@
 
         </classes>
     </test>
+    <test name="org.wso2.carbon.identity.mgt" preserve-order="false" parallel="none">
+        <classes>
+            <class name="org.wso2.carbon.identity.mgt.RecoveryProcessorTest"/>
+            <class name="org.wso2.carbon.identity.mgt.util.UtilsTest"/>
+        </classes>
+    </test>
     <test name="org.wso2.carbon.identity.mgt.listener" preserve-order="false" parallel="none">
         <classes>
             <class name="org.wso2.carbon.identity.mgt.listener.TenantSyncListenerTest"/>
@@ -38,6 +44,8 @@
         <classes>
             <class name="org.wso2.carbon.identity.mgt.store.InMemoryIdentityDataStoreTest"/>
             <class name="org.wso2.carbon.identity.mgt.store.UserStoreBasedIdentityDataStoreTest"/>
+            <class name="org.wso2.carbon.identity.mgt.store.RegistryRecoveryDataStoreTest"/>
+            <class name="org.wso2.carbon.identity.mgt.store.ArtifactDeleteThreadTest"/>
         </classes>
     </test>
 </suite>

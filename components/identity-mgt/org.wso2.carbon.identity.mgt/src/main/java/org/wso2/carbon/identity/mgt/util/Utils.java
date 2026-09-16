@@ -412,4 +412,32 @@ public class Utils {
         return PolicyEngine.getPolicy(new ByteArrayInputStream(policyString.getBytes()));
 
     }
+
+    /**
+     * Extracts the username segment from a confirmation code registry resource.
+     *
+     * <p>Primary user store entries are named {@code sequence + REG_DELIMITER + username + REG_DELIMITER + code}.
+     * The username may itself contain the delimiter, or end with an underscore that merges into it, so the segment is
+     * taken between the first and the last delimiter rather than by splitting. Secondary user store entries are
+     * collections named {@code sequence + REG_DELIMITER + domain} and carry a single delimiter, so they yield no
+     * username.</p>
+     *
+     * @param resource resource name or path to read.
+     * @return the username segment, or {@code null} if the resource does not carry two non overlapping delimiters.
+     */
+    public static String extractUserNameFromCodeResource(String resource) {
+
+        if (resource == null) {
+            return null;
+        }
+
+        int firstDelimiter = resource.indexOf(IdentityMgtConstants.REG_DELIMITER);
+        int lastDelimiter = resource.lastIndexOf(IdentityMgtConstants.REG_DELIMITER);
+        // A run of four or more underscores makes the two matches overlap, which is not a username boundary.
+        if (firstDelimiter < 0 || lastDelimiter < firstDelimiter + IdentityMgtConstants.REG_DELIMITER.length()) {
+            return null;
+        }
+
+        return resource.substring(firstDelimiter + IdentityMgtConstants.REG_DELIMITER.length(), lastDelimiter);
+    }
 }
