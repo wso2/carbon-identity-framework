@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.device.policy.internal.component;
 
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
@@ -37,7 +36,6 @@ public class DevicePolicyComponentServiceHolder {
     private PolicyEvaluationService policyEvaluationService;
     private PolicyManagementService policyManagementService;
     private DeviceManagementService deviceManagementService;
-    private JsFunctionRegistry jsFunctionRegistry;
     private ClientAttestationService clientAttestationService;
     private DevicePolicyEvaluator devicePolicyEvaluator;
     private IntegrityDataEnricher integrityDataEnricher;
@@ -84,16 +82,6 @@ public class DevicePolicyComponentServiceHolder {
     public void setDeviceManagementService(DeviceManagementService deviceManagementService) {
 
         this.deviceManagementService = deviceManagementService;
-    }
-
-    public JsFunctionRegistry getJsFunctionRegistry() {
-
-        return jsFunctionRegistry;
-    }
-
-    public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
-
-        this.jsFunctionRegistry = jsFunctionRegistry;
     }
 
     /**

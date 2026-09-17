@@ -22,7 +22,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
@@ -46,7 +45,6 @@ public class DevicePolicyComponentServiceHolderTest {
         holder.setPolicyEvaluationService(null);
         holder.setPolicyManagementService(null);
         holder.setDeviceManagementService(null);
-        holder.setJsFunctionRegistry(null);
         holder.setClientAttestationService(null);
         holder.setDevicePolicyEvaluator(null);
         holder.setIntegrityDataEnricher(null);
@@ -71,13 +69,6 @@ public class DevicePolicyComponentServiceHolderTest {
         DeviceManagementService service = mock(DeviceManagementService.class);
         holder.setDeviceManagementService(service);
         Assert.assertEquals(holder.getDeviceManagementService(), service);
-    }
-
-    @Test
-    public void testJsFunctionRegistry() {
-        JsFunctionRegistry registry = mock(JsFunctionRegistry.class);
-        holder.setJsFunctionRegistry(registry);
-        Assert.assertEquals(holder.getJsFunctionRegistry(), registry);
     }
 
     @Test

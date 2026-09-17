@@ -29,7 +29,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -37,7 +36,6 @@ import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenService;
 import org.wso2.carbon.identity.device.policy.internal.cleanup.DeviceTokenJtiCleanupService;
-import org.wso2.carbon.identity.device.policy.internal.js.DevicePolicyJsFunction;
 import org.wso2.carbon.identity.device.policy.internal.resolver.DeviceDataResolverImpl;
 import org.wso2.carbon.identity.device.policy.internal.rule.DevicePolicyEvaluationDataProvider;
 import org.wso2.carbon.identity.device.policy.internal.service.IntegrityDataEnricher;
@@ -49,8 +47,8 @@ import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataP
 
 /**
  * OSGi DS component for the device policy bundle.
- * Registers DevicePolicyEvaluator, RuleEvaluationDataProvider,
- * and the isDevicePolicyCompliant JS function.
+ * Registers DevicePolicyEvaluator and RuleEvaluationDataProvider. The isDevicePolicyCompliant
+ * conditional authentication function lives in the identity-conditional-auth-functions repository.
  */
 @Component(
         name = "device.policy.service.component",
@@ -87,11 +85,6 @@ public class DevicePolicyServiceComponent {
             DevicePolicyComponentServiceHolder holder = DevicePolicyComponentServiceHolder.getInstance();
             holder.setDevicePolicyEvaluator(devicePolicyEvaluator);
             holder.setIntegrityDataEnricher(integrityDataEnricher);
-
-            holder.getJsFunctionRegistry().register(
-                    JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
-                    "isDevicePolicyCompliant",
-                    new DevicePolicyJsFunction());
 
             startDeviceTokenJtiCleanup();
 
@@ -200,25 +193,6 @@ public class DevicePolicyServiceComponent {
 
         DevicePolicyComponentServiceHolder.getInstance().setDeviceManagementService(null);
         LOG.debug("DeviceManagementService unset in Device Policy component.");
-    }
-
-    @Reference(
-            name = "js.function.registry",
-            service = JsFunctionRegistry.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetJsFunctionRegistry"
-    )
-    protected void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
-
-        DevicePolicyComponentServiceHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
-        LOG.debug("JsFunctionRegistry set in Device Policy component.");
-    }
-
-    protected void unsetJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
-
-        DevicePolicyComponentServiceHolder.getInstance().setJsFunctionRegistry(null);
-        LOG.debug("JsFunctionRegistry unset in Device Policy component.");
     }
 
     @Reference(

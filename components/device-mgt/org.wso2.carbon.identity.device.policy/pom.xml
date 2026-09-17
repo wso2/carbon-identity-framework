@@ -119,16 +119,10 @@
             <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
         </dependency>
 
-        <!-- Authentication framework - JsFunctionRegistry -->
+        <!-- Authentication framework - DeviceDataResolver SPI and FrameworkConstants -->
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-        </dependency>
-
-        <!-- GraalVM SDK - HostAccess annotation for JS function exposure -->
-        <dependency>
-            <groupId>org.wso2.orbit.graalvm.sdk</groupId>
-            <artifactId>graal-sdk</artifactId>
         </dependency>
 
         <!-- Nimbus JOSE+JWT - JWT parsing and signature verification -->
@@ -233,17 +227,10 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.evaluation.api.provider;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
-                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.handler.device;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.context;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.util;
                             version="${carbon.identity.package.import.version.range}",
-                            org.graalvm.polyglot; version="${graalvm.version.range}",
                             com.nimbusds.jose.*; version="${nimbusds.osgi.version.range}",
                             com.nimbusds.jwt.*; version="${nimbusds.osgi.version.range}",
                             org.wso2.carbon.identity.client.attestation.mgt.services;

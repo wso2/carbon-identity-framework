@@ -6,7 +6,6 @@
             <class name="org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractorTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyDiagnosticLoggerTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandlerTest"/>
-            <class name="org.wso2.carbon.identity.device.policy.internal.js.DevicePolicyJsFunctionTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.dao.impl.DeviceTokenJtiDAOImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyServiceComponentTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolderTest"/>

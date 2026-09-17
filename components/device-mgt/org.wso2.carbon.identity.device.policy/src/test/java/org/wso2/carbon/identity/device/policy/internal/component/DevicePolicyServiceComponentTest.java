@@ -28,7 +28,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
@@ -65,9 +64,6 @@ public class DevicePolicyServiceComponentTest {
         when(componentContext.getBundleContext()).thenReturn(bundleContext);
 
         mockedIdentityUtil = mockStatic(IdentityUtil.class);
-
-        JsFunctionRegistry jsFunctionRegistry = mock(JsFunctionRegistry.class);
-        DevicePolicyComponentServiceHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
     }
 
     @AfterMethod
@@ -78,7 +74,6 @@ public class DevicePolicyServiceComponentTest {
         holder.setPolicyEvaluationService(null);
         holder.setPolicyManagementService(null);
         holder.setDeviceManagementService(null);
-        holder.setJsFunctionRegistry(null);
         holder.setClientAttestationService(null);
         holder.setDevicePolicyEvaluator(null);
         holder.setIntegrityDataEnricher(null);
@@ -179,24 +174,6 @@ public class DevicePolicyServiceComponentTest {
             // Ignore
         }
         Assert.assertNull(DevicePolicyComponentServiceHolder.getInstance().getDeviceManagementService());
-    }
-
-    @Test
-    public void testSetAndUnsetJsFunctionRegistry() {
-        JsFunctionRegistry registry = mock(JsFunctionRegistry.class);
-        try {
-            component.setJsFunctionRegistry(registry);
-        } catch (NoSuchMethodError e) {
-            // Ignore
-        }
-        Assert.assertEquals(DevicePolicyComponentServiceHolder.getInstance().getJsFunctionRegistry(), registry);
-
-        try {
-            component.unsetJsFunctionRegistry(registry);
-        } catch (NoSuchMethodError e) {
-            // Ignore
-        }
-        Assert.assertNull(DevicePolicyComponentServiceHolder.getInstance().getJsFunctionRegistry());
     }
 
     @Test
