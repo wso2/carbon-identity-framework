@@ -36,8 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * Resolves verified device data from the initiation request.
- * The device token is read from the {@code device_token} query parameter first (redirect flows),
- * then from the {@code X-Device-Token} header (app native / headless flows). The token is verified
+ * The device token is read from the {@code X-Device-Token} header first (app native / headless
+ * flows), then from the {@code device_token} query parameter (redirect flows). The token is verified
  * via {@link DeviceTokenExtractor} and the resulting claims are returned as the device payload.
  *
  * <p>If the request carries the {@code x-client-attestation} header (the same header already
@@ -64,9 +64,9 @@ public class DeviceDataResolverImpl implements DeviceDataResolver {
         }
 
         // The framework gates the resolution on the same transport, hence the shared constants.
-        String deviceToken = request.getParameter(FrameworkConstants.DEVICE_TOKEN_PARAM);
+        String deviceToken = request.getHeader(FrameworkConstants.DEVICE_TOKEN_HEADER);
         if (StringUtils.isBlank(deviceToken)) {
-            deviceToken = request.getHeader(FrameworkConstants.DEVICE_TOKEN_HEADER);
+            deviceToken = request.getParameter(FrameworkConstants.DEVICE_TOKEN_PARAM);
         }
         if (StringUtils.isBlank(deviceToken)) {
             return Optional.empty();

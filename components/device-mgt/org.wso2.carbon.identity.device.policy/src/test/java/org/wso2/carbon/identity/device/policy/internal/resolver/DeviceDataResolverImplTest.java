@@ -39,6 +39,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -122,6 +123,29 @@ public class DeviceDataResolverImplTest {
             Optional<Map<String, Object>> result = deviceDataResolver.resolveDeviceData(request, "carbon.super");
             assertTrue(result.isPresent());
             assertEquals(result.get().get("deviceId"), "device-456");
+        }
+    }
+
+    @Test
+    public void testResolveDeviceDataPrefersTheHeaderOverTheParameter() throws Exception {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getHeader("X-Device-Token")).thenReturn("header-token");
+        when(request.getParameter("device_token")).thenReturn("param-token");
+
+        Map<String, Object> mockData = new HashMap<>();
+        mockData.put("deviceId", "device-789");
+
+        try (MockedConstruction<DeviceTokenExtractor> mockedConstruction = mockConstruction(DeviceTokenExtractor.class,
+                (mock, context) -> {
+                    when(mock.extractFromToken(anyString(), anyString())).thenReturn(mockData);
+                })) {
+
+            Optional<Map<String, Object>> result = deviceDataResolver.resolveDeviceData(request, "carbon.super");
+
+            assertTrue(result.isPresent());
+            // The header is the primary transport; the parameter is only a fallback.
+            verify(mockedConstruction.constructed().get(0)).extractFromToken("header-token", "carbon.super");
         }
     }
 
