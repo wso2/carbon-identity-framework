@@ -24,9 +24,9 @@ import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationRe
 import java.util.Map;
 
 /**
- * Evaluates device policy compliance against a named policy using device
- * attribute data. Enriches the device data with platform-verified integrity
- * values before finding the rule for the device's platform and evaluating it.
+ * Evaluates device policy compliance against a policy using device attribute
+ * data. Enriches the device data with platform-verified integrity values
+ * before finding the rule for the device's platform and evaluating it.
  * If no rule is configured for the platform, the policy does not restrict
  * that platform and the device is treated as compliant.
  */
@@ -38,6 +38,22 @@ public interface DevicePolicyEvaluator {
      * internally before evaluation, so callers do not need to enrich it
      * themselves.
      *
+     * @param policyId     ID of the policy to evaluate against.
+     * @param deviceData   Mutable map of device field names to their values.
+     * @param appId        App resource ID for loading credentials.
+     * @param tenantDomain Tenant domain for policy lookup and evaluation.
+     * @return A {@link DevicePolicyEvaluationResult} representing the evaluation status and field details.
+     * @throws DevicePolicyException If an error occurs during policy evaluation.
+     */
+    DevicePolicyEvaluationResult evaluate(String policyId, Map<String, Object> deviceData,
+                                           String appId, String tenantDomain)
+            throws DevicePolicyException;
+
+    /**
+     * Resolves the policy name to its ID and evaluates it through
+     * {@link #evaluate(String, Map, String, String)}. For callers that reference a policy by name,
+     * such as adaptive authentication scripts and flow executors.
+     *
      * @param policyName   Name of the policy to evaluate against.
      * @param deviceData   Mutable map of device field names to their values.
      * @param appId        App resource ID for loading credentials.
@@ -45,7 +61,7 @@ public interface DevicePolicyEvaluator {
      * @return A {@link DevicePolicyEvaluationResult} representing the evaluation status and field details.
      * @throws DevicePolicyException If an error occurs during policy evaluation.
      */
-    DevicePolicyEvaluationResult evaluate(String policyName, Map<String, Object> deviceData,
-                                           String appId, String tenantDomain)
+    DevicePolicyEvaluationResult evaluateByPolicyName(String policyName, Map<String, Object> deviceData,
+                                                      String appId, String tenantDomain)
             throws DevicePolicyException;
 }

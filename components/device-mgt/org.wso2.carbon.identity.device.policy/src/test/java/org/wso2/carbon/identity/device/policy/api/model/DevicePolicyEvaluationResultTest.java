@@ -27,15 +27,15 @@ import java.util.List;
 
 public class DevicePolicyEvaluationResultTest {
 
-    private static final String POLICY_NAME = "TestPolicy";
+    private static final String POLICY_ID = "TestPolicyId";
 
     @Test
     public void testCompliantFactory() {
 
-        DevicePolicyEvaluationResult result = DevicePolicyEvaluationResult.compliant(POLICY_NAME);
+        DevicePolicyEvaluationResult result = DevicePolicyEvaluationResult.compliant(POLICY_ID);
 
         Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.COMPLIANT);
-        Assert.assertEquals(result.getPolicyName(), POLICY_NAME);
+        Assert.assertEquals(result.getPolicyId(), POLICY_ID);
         Assert.assertTrue(result.isCompliant());
         Assert.assertTrue(result.getFailedFields().isEmpty());
         Assert.assertTrue(result.getMissingFields().isEmpty());
@@ -45,10 +45,10 @@ public class DevicePolicyEvaluationResultTest {
     public void testNonCompliantFactory() {
 
         List<String> failed = new ArrayList<>(Arrays.asList("isRooted", "diskEncryption"));
-        DevicePolicyEvaluationResult result = DevicePolicyEvaluationResult.nonCompliant(POLICY_NAME, failed);
+        DevicePolicyEvaluationResult result = DevicePolicyEvaluationResult.nonCompliant(POLICY_ID, failed);
 
         Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.NON_COMPLIANT);
-        Assert.assertEquals(result.getPolicyName(), POLICY_NAME);
+        Assert.assertEquals(result.getPolicyId(), POLICY_ID);
         Assert.assertFalse(result.isCompliant());
         Assert.assertEquals(result.getFailedFields(), Arrays.asList("isRooted", "diskEncryption"));
         Assert.assertTrue(result.getMissingFields().isEmpty());
@@ -70,10 +70,10 @@ public class DevicePolicyEvaluationResultTest {
     public void testIncompleteDeviceDataFactory() {
 
         List<String> missing = new ArrayList<>(Arrays.asList("platform"));
-        DevicePolicyEvaluationResult result = DevicePolicyEvaluationResult.incompleteDeviceData(POLICY_NAME, missing);
+        DevicePolicyEvaluationResult result = DevicePolicyEvaluationResult.incompleteDeviceData(POLICY_ID, missing);
 
         Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.INCOMPLETE_DEVICE_DATA);
-        Assert.assertEquals(result.getPolicyName(), POLICY_NAME);
+        Assert.assertEquals(result.getPolicyId(), POLICY_ID);
         Assert.assertFalse(result.isCompliant());
         Assert.assertEquals(result.getMissingFields(), Arrays.asList("platform"));
         Assert.assertTrue(result.getFailedFields().isEmpty());

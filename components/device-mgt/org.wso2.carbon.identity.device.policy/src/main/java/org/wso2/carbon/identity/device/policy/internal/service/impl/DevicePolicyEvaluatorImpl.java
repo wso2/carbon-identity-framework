@@ -54,7 +54,7 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
     private static final String FLOW_TYPE_DEVICE_POLICY = "DEVICE_POLICY";
 
     @Override
-    public DevicePolicyEvaluationResult evaluate(String policyName, Map<String, Object> deviceData,
+    public DevicePolicyEvaluationResult evaluate(String policyId, Map<String, Object> deviceData,
                                                  String appId, String tenantDomain)
             throws DevicePolicyException {
 
@@ -64,14 +64,14 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
 
         String platform = (String) deviceData.get(DEVICE_PLATFORM_FIELD);
 
-        Policy policy = getPolicy(policyName, tenantDomain);
+        Policy policy = getPolicy(policyId, tenantDomain);
         if (policy == null) {
             throw DevicePolicyExceptionHandler.handleClientException(
-                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyName, tenantDomain);
+                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyId, tenantDomain);
         }
 
         Optional<DevicePolicyEvaluationResult> incompleteResult =
-                checkDeviceDataCompleteness(policyName, policy, deviceData);
+                checkDeviceDataCompleteness(policyId, policy, deviceData);
         if (incompleteResult.isPresent()) {
             return incompleteResult.get();
         }
@@ -85,7 +85,7 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                     .evaluate(policy.getId(), platform != null ? platform : "", context, tenantDomain);
         } catch (PolicyEvaluationException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
-                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyName);
+                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyId);
         }
 
         if (!result.isSatisfied()) {
@@ -95,24 +95,49 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                     .flatMap(resourceResult ->
                             ((RuleResourceEvaluationResult) resourceResult).getFailedFields().stream())
                     .toList();
-            return DevicePolicyEvaluationResult.nonCompliant(policyName, failedFields);
+            return DevicePolicyEvaluationResult.nonCompliant(policyId, failedFields);
         }
-        return DevicePolicyEvaluationResult.compliant(policyName);
+        return DevicePolicyEvaluationResult.compliant(policyId);
     }
 
-    private Policy getPolicy(String policyName, String tenantDomain) throws DevicePolicyServerException {
+    @Override
+    public DevicePolicyEvaluationResult evaluateByPolicyName(String policyName, Map<String, Object> deviceData,
+                                                             String appId, String tenantDomain)
+            throws DevicePolicyException {
+
+        String policyId = getPolicyId(policyName, tenantDomain);
+        if (policyId == null) {
+            throw DevicePolicyExceptionHandler.handleClientException(
+                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyName, tenantDomain);
+        }
+        return evaluate(policyId, deviceData, appId, tenantDomain);
+    }
+
+    private Policy getPolicy(String policyId, String tenantDomain) throws DevicePolicyServerException {
 
         try {
             return DevicePolicyComponentServiceHolder.getInstance()
                     .getPolicyManagementService()
-                    .getPolicyByName(policyName, tenantDomain);
+                    .getPolicyById(policyId, tenantDomain);
+        } catch (PolicyManagementException e) {
+            throw DevicePolicyExceptionHandler.handleServerException(
+                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyId);
+        }
+    }
+
+    private String getPolicyId(String policyName, String tenantDomain) throws DevicePolicyServerException {
+
+        try {
+            return DevicePolicyComponentServiceHolder.getInstance()
+                    .getPolicyManagementService()
+                    .getPolicyIdByName(policyName, tenantDomain);
         } catch (PolicyManagementException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
                     DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyName);
         }
     }
 
-    private Optional<DevicePolicyEvaluationResult> checkDeviceDataCompleteness(String policyName,
+    private Optional<DevicePolicyEvaluationResult> checkDeviceDataCompleteness(String policyId,
             Policy policy, Map<String, Object> deviceData) {
 
         String platform = (String) deviceData.get(DEVICE_PLATFORM_FIELD);
@@ -125,9 +150,9 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
 
         if (!missingFields.isEmpty()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Device data incomplete for policy '" + policyName + "': " + missingFields);
+                LOG.debug("Device data incomplete for policy '" + policyId + "': " + missingFields);
             }
-            return Optional.of(DevicePolicyEvaluationResult.incompleteDeviceData(policyName, missingFields));
+            return Optional.of(DevicePolicyEvaluationResult.incompleteDeviceData(policyId, missingFields));
         }
         return Optional.empty();
     }

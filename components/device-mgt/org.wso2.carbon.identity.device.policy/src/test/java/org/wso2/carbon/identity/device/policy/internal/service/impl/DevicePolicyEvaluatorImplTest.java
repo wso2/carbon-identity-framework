@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DevicePolicyEvaluatorImplTest {
@@ -91,10 +92,10 @@ public class DevicePolicyEvaluatorImplTest {
         Map<String, Object> deviceData = new HashMap<>();
 
         Policy policy = mock(Policy.class);
-        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(policy);
+        when(policyManagementService.getPolicyById(anyString(), anyString())).thenReturn(policy);
 
         DevicePolicyEvaluationResult result =
-                devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
+                devicePolicyEvaluator.evaluate("testPolicyId", deviceData, "appId", "carbon.super");
 
         Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.INCOMPLETE_DEVICE_DATA);
         Assert.assertEquals(result.getMissingFields(), Collections.singletonList("platform"));
@@ -121,10 +122,10 @@ public class DevicePolicyEvaluatorImplTest {
         resources.add(ruleResource);
         when(policy.getResources()).thenReturn(resources);
 
-        when(policyManagementService.getPolicyByName("testPolicy", "carbon.super")).thenReturn(policy);
+        when(policyManagementService.getPolicyById("testPolicyId", "carbon.super")).thenReturn(policy);
 
         DevicePolicyEvaluationResult result =
-                devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
+                devicePolicyEvaluator.evaluate("testPolicyId", deviceData, "appId", "carbon.super");
 
         Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.INCOMPLETE_DEVICE_DATA);
         Assert.assertEquals(result.getMissingFields(), Collections.singletonList("androidIntegrity"));
@@ -136,9 +137,9 @@ public class DevicePolicyEvaluatorImplTest {
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "android");
 
-        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(null);
+        when(policyManagementService.getPolicyById(anyString(), anyString())).thenReturn(null);
 
-        devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
+        devicePolicyEvaluator.evaluate("testPolicyId", deviceData, "appId", "carbon.super");
     }
 
     @Test
@@ -149,7 +150,7 @@ public class DevicePolicyEvaluatorImplTest {
         Policy policy = mock(Policy.class);
         when(policy.getId()).thenReturn("policyId123");
         when(policy.getResources()).thenReturn(Collections.emptyList());
-        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(policy);
+        when(policyManagementService.getPolicyById(anyString(), anyString())).thenReturn(policy);
 
         PolicyEvaluationResult evalResult = mock(PolicyEvaluationResult.class);
         when(evalResult.isSatisfied()).thenReturn(true);
@@ -157,7 +158,7 @@ public class DevicePolicyEvaluatorImplTest {
                 any(PolicyEvaluationContext.class), anyString())).thenReturn(evalResult);
 
         DevicePolicyEvaluationResult result =
-                devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
+                devicePolicyEvaluator.evaluate("testPolicyId", deviceData, "appId", "carbon.super");
 
         Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.COMPLIANT);
         Assert.assertTrue(result.isCompliant());
@@ -171,7 +172,7 @@ public class DevicePolicyEvaluatorImplTest {
         Policy policy = mock(Policy.class);
         when(policy.getId()).thenReturn("policyId123");
         when(policy.getResources()).thenReturn(Collections.emptyList());
-        when(policyManagementService.getPolicyByName(anyString(), anyString())).thenReturn(policy);
+        when(policyManagementService.getPolicyById(anyString(), anyString())).thenReturn(policy);
 
         PolicyEvaluationResult evalResult = mock(PolicyEvaluationResult.class);
         when(evalResult.isSatisfied()).thenReturn(false);
@@ -186,7 +187,7 @@ public class DevicePolicyEvaluatorImplTest {
                 any(PolicyEvaluationContext.class), anyString())).thenReturn(evalResult);
 
         DevicePolicyEvaluationResult result =
-                devicePolicyEvaluator.evaluate("testPolicy", deviceData, "appId", "carbon.super");
+                devicePolicyEvaluator.evaluate("testPolicyId", deviceData, "appId", "carbon.super");
 
         Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.NON_COMPLIANT);
         Assert.assertEquals(result.getFailedFields(), Arrays.asList("field1", "field2"));
@@ -213,10 +214,10 @@ public class DevicePolicyEvaluatorImplTest {
         List<PolicyResource> resources = new ArrayList<>();
         resources.add(ruleResource);
         when(policy.getResources()).thenReturn(resources);
-        when(policyManagementService.getPolicyByName("testPolicy", "carbon.super")).thenReturn(policy);
+        when(policyManagementService.getPolicyById("testPolicyId", "carbon.super")).thenReturn(policy);
 
         DevicePolicyEvaluationResult resultIncomplete =
-                devicePolicyEvaluator.evaluate("testPolicy", deviceDataMissing, "appId", "carbon.super");
+                devicePolicyEvaluator.evaluate("testPolicyId", deviceDataMissing, "appId", "carbon.super");
         Assert.assertEquals(resultIncomplete.getStatus(), DevicePolicyEvaluationResult.Status.INCOMPLETE_DEVICE_DATA);
         Assert.assertEquals(resultIncomplete.getMissingFields(), Collections.singletonList("isRooted"));
 
@@ -237,8 +238,40 @@ public class DevicePolicyEvaluatorImplTest {
                 any(PolicyEvaluationContext.class), anyString())).thenReturn(evalResult);
 
         DevicePolicyEvaluationResult resultNonCompliant =
-                devicePolicyEvaluator.evaluate("testPolicy", deviceDataPresent, "appId", "carbon.super");
+                devicePolicyEvaluator.evaluate("testPolicyId", deviceDataPresent, "appId", "carbon.super");
         Assert.assertEquals(resultNonCompliant.getStatus(), DevicePolicyEvaluationResult.Status.NON_COMPLIANT);
         Assert.assertEquals(resultNonCompliant.getFailedFields(), Collections.singletonList("isRooted"));
+    }
+
+    @Test
+    public void testEvaluateByPolicyNameResolvesTheIdAndEvaluates() throws Exception {
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "android");
+
+        Policy policy = mock(Policy.class);
+        when(policyManagementService.getPolicyIdByName("testPolicy", "carbon.super")).thenReturn("testPolicyId");
+        when(policyManagementService.getPolicyById("testPolicyId", "carbon.super")).thenReturn(policy);
+
+        PolicyEvaluationResult evaluationResult = mock(PolicyEvaluationResult.class);
+        when(evaluationResult.isSatisfied()).thenReturn(true);
+        when(policyEvaluationService.evaluate(any(), anyString(), any(), anyString())).thenReturn(evaluationResult);
+
+        DevicePolicyEvaluationResult result =
+                devicePolicyEvaluator.evaluateByPolicyName("testPolicy", deviceData, "appId", "carbon.super");
+
+        Assert.assertTrue(result.isCompliant());
+        // The result identifies the policy by ID, whichever entry point was used.
+        Assert.assertEquals(result.getPolicyId(), "testPolicyId");
+        verify(policyManagementService).getPolicyById("testPolicyId", "carbon.super");
+    }
+
+    @Test(expectedExceptions = DevicePolicyClientException.class)
+    public void testEvaluateByPolicyNameThrowsWhenTheNameDoesNotResolve() throws Exception {
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "android");
+
+        when(policyManagementService.getPolicyIdByName(anyString(), anyString())).thenReturn(null);
+
+        devicePolicyEvaluator.evaluateByPolicyName("testPolicy", deviceData, "appId", "carbon.super");
     }
 }

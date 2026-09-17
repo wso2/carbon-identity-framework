@@ -37,15 +37,15 @@ public class DevicePolicyEvaluationResult {
     }
 
     private final Status status;
-    private final String policyName;
+    private final String policyId;
     private final List<String> failedFields;
     private final List<String> missingFields;
 
-    private DevicePolicyEvaluationResult(Status status, String policyName,
+    private DevicePolicyEvaluationResult(Status status, String policyId,
             List<String> failedFields, List<String> missingFields) {
 
         this.status = status;
-        this.policyName = policyName;
+        this.policyId = policyId;
         this.failedFields = failedFields != null ? Collections.unmodifiableList(new ArrayList<>(failedFields))
                 : Collections.emptyList();
         this.missingFields = missingFields != null ? Collections.unmodifiableList(new ArrayList<>(missingFields))
@@ -55,36 +55,36 @@ public class DevicePolicyEvaluationResult {
     /**
      * Creates a {@link DevicePolicyEvaluationResult} representing a compliant evaluation result.
      *
-     * @param policyName Name of the evaluated policy.
+     * @param policyId ID of the evaluated policy.
      * @return Compliant result.
      */
-    public static DevicePolicyEvaluationResult compliant(String policyName) {
+    public static DevicePolicyEvaluationResult compliant(String policyId) {
 
-        return new DevicePolicyEvaluationResult(Status.COMPLIANT, policyName, null, null);
+        return new DevicePolicyEvaluationResult(Status.COMPLIANT, policyId, null, null);
     }
 
     /**
      * Creates a {@link DevicePolicyEvaluationResult} representing a non-compliant evaluation result.
      *
-     * @param policyName   Name of the evaluated policy.
+     * @param policyId     ID of the evaluated policy.
      * @param failedFields List of field names that failed policy evaluation.
      * @return Non-compliant result.
      */
-    public static DevicePolicyEvaluationResult nonCompliant(String policyName, List<String> failedFields) {
+    public static DevicePolicyEvaluationResult nonCompliant(String policyId, List<String> failedFields) {
 
-        return new DevicePolicyEvaluationResult(Status.NON_COMPLIANT, policyName, failedFields, null);
+        return new DevicePolicyEvaluationResult(Status.NON_COMPLIANT, policyId, failedFields, null);
     }
 
     /**
      * Creates a {@link DevicePolicyEvaluationResult} representing an incomplete device data result.
      *
-     * @param policyName    Name of the evaluated policy.
+     * @param policyId      ID of the evaluated policy.
      * @param missingFields List of required field names absent from the device data.
      * @return Incomplete device data result.
      */
-    public static DevicePolicyEvaluationResult incompleteDeviceData(String policyName, List<String> missingFields) {
+    public static DevicePolicyEvaluationResult incompleteDeviceData(String policyId, List<String> missingFields) {
 
-        return new DevicePolicyEvaluationResult(Status.INCOMPLETE_DEVICE_DATA, policyName, null, missingFields);
+        return new DevicePolicyEvaluationResult(Status.INCOMPLETE_DEVICE_DATA, policyId, null, missingFields);
     }
 
     /**
@@ -98,13 +98,13 @@ public class DevicePolicyEvaluationResult {
     }
 
     /**
-     * Returns the name of the evaluated policy.
+     * Returns the ID of the evaluated policy.
      *
-     * @return Policy name string.
+     * @return Policy ID string.
      */
-    public String getPolicyName() {
+    public String getPolicyId() {
 
-        return policyName;
+        return policyId;
     }
 
     /**
