@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.device.policy.internal.service.impl;
 
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientEx
 import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
 import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
 import org.wso2.carbon.identity.device.policy.internal.service.IntegrityDataEnricher;
+import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.api.model.RuleResourceEvaluationResult;
@@ -273,5 +275,41 @@ public class DevicePolicyEvaluatorImplTest {
         when(policyManagementService.getPolicyIdByName(anyString(), anyString())).thenReturn(null);
 
         devicePolicyEvaluator.evaluateByPolicyName("testPolicy", deviceData, "appId", "carbon.super");
+    }
+
+    @Test
+    public void testEvaluateFromTokenVerifiesTheTokenAndEvaluates() throws Exception {
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "android");
+
+        Policy policy = mock(Policy.class);
+        when(policyManagementService.getPolicyById("testPolicyId", "carbon.super")).thenReturn(policy);
+
+        PolicyEvaluationResult evaluationResult = mock(PolicyEvaluationResult.class);
+        when(evaluationResult.isSatisfied()).thenReturn(true);
+        when(policyEvaluationService.evaluate(any(), anyString(), any(), anyString())).thenReturn(evaluationResult);
+
+        try (MockedConstruction<DeviceTokenExtractor> mockedExtractor = Mockito.mockConstruction(
+                DeviceTokenExtractor.class,
+                (mock, ctx) -> when(mock.extractWithPublicKey(anyString(), anyString(), anyString(), anyString()))
+                        .thenReturn(deviceData))) {
+
+            DevicePolicyEvaluationResult result = devicePolicyEvaluator.evaluateFromToken("testPolicyId",
+                    "token", "publicKey", "correlationId", "appId", "carbon.super");
+
+            Assert.assertTrue(result.isCompliant());
+            Assert.assertEquals(result.getPolicyId(), "testPolicyId");
+            verify(mockedExtractor.constructed().get(0))
+                    .extractWithPublicKey("token", "publicKey", "correlationId", "carbon.super");
+        }
+    }
+
+    @Test(expectedExceptions = DevicePolicyClientException.class)
+    public void testEvaluateFromTokenByPolicyNameThrowsWhenTheNameDoesNotResolve() throws Exception {
+
+        when(policyManagementService.getPolicyIdByName(anyString(), anyString())).thenReturn(null);
+
+        devicePolicyEvaluator.evaluateFromTokenByPolicyName("testPolicy", "token", "publicKey",
+                "correlationId", "appId", "carbon.super");
     }
 }

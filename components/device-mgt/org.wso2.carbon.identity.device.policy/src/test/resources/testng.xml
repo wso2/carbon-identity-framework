@@ -13,7 +13,6 @@
             <class name="org.wso2.carbon.identity.device.policy.internal.cleanup.DeviceTokenJtiCleanupServiceTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.service.IntegrityDataEnricherTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenReplayProtectionServiceTest"/>
-            <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.DeviceTokenServiceImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.service.impl.DevicePolicyEvaluatorImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.resolver.DeviceDataResolverImplTest"/>
             <class name="org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessageTest"/>

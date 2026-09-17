@@ -64,4 +64,42 @@ public interface DevicePolicyEvaluator {
     DevicePolicyEvaluationResult evaluateByPolicyName(String policyName, Map<String, Object> deviceData,
                                                       String appId, String tenantDomain)
             throws DevicePolicyException;
+
+    /**
+     * Verifies a device-data JWT signed with the given public key and evaluates the resolved device
+     * data through {@link #evaluate(String, Map, String, String)}. For callers that hold a token
+     * rather than resolved device data, and whose trust in the key was established out of band, such
+     * as the device registration flow verifying the key through the challenge signature. Signature,
+     * {@code iat} freshness and {@code jti} single-use are enforced before the claims are trusted.
+     *
+     * @param policyId        ID of the policy to evaluate against.
+     * @param token           Raw JWT string carrying the device attributes.
+     * @param base64PublicKey Base64-encoded X.509 EC public key to verify the signature against.
+     * @param correlationId   Identifier used only for diagnostic correlation.
+     * @param appId           App resource ID for loading credentials.
+     * @param tenantDomain    Tenant domain for policy lookup and evaluation.
+     * @return A {@link DevicePolicyEvaluationResult} representing the evaluation status and field details.
+     * @throws DevicePolicyException If the token is invalid or stale, or evaluation fails.
+     */
+    DevicePolicyEvaluationResult evaluateFromToken(String policyId, String token, String base64PublicKey,
+                                                   String correlationId, String appId, String tenantDomain)
+            throws DevicePolicyException;
+
+    /**
+     * Resolves the policy name to its ID and evaluates the device-data JWT through
+     * {@link #evaluateFromToken(String, String, String, String, String, String)}.
+     *
+     * @param policyName      Name of the policy to evaluate against.
+     * @param token           Raw JWT string carrying the device attributes.
+     * @param base64PublicKey Base64-encoded X.509 EC public key to verify the signature against.
+     * @param correlationId   Identifier used only for diagnostic correlation.
+     * @param appId           App resource ID for loading credentials.
+     * @param tenantDomain    Tenant domain for policy lookup and evaluation.
+     * @return A {@link DevicePolicyEvaluationResult} representing the evaluation status and field details.
+     * @throws DevicePolicyException If the token is invalid or stale, or evaluation fails.
+     */
+    DevicePolicyEvaluationResult evaluateFromTokenByPolicyName(String policyName, String token,
+                                                               String base64PublicKey, String correlationId,
+                                                               String appId, String tenantDomain)
+            throws DevicePolicyException;
 }

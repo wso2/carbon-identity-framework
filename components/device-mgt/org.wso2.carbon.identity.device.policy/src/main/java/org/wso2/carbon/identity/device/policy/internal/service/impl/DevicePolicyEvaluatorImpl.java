@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationRe
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandler;
+import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
@@ -111,6 +112,30 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                     DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyName, tenantDomain);
         }
         return evaluate(policyId, deviceData, appId, tenantDomain);
+    }
+
+    @Override
+    public DevicePolicyEvaluationResult evaluateFromToken(String policyId, String token, String base64PublicKey,
+                                                          String correlationId, String appId, String tenantDomain)
+            throws DevicePolicyException {
+
+        Map<String, Object> deviceData = new DeviceTokenExtractor()
+                .extractWithPublicKey(token, base64PublicKey, correlationId, tenantDomain);
+        return evaluate(policyId, deviceData, appId, tenantDomain);
+    }
+
+    @Override
+    public DevicePolicyEvaluationResult evaluateFromTokenByPolicyName(String policyName, String token,
+                                                                      String base64PublicKey, String correlationId,
+                                                                      String appId, String tenantDomain)
+            throws DevicePolicyException {
+
+        String policyId = getPolicyId(policyName, tenantDomain);
+        if (policyId == null) {
+            throw DevicePolicyExceptionHandler.handleClientException(
+                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyName, tenantDomain);
+        }
+        return evaluateFromToken(policyId, token, base64PublicKey, correlationId, appId, tenantDomain);
     }
 
     private Policy getPolicy(String policyId, String tenantDomain) throws DevicePolicyServerException {
