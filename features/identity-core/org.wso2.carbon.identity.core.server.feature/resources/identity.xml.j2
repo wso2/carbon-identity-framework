@@ -5060,8 +5060,13 @@
     <IncludeMultiOptionsInAPIBasedAuthResponse>{{authentication.include_multi_options_in_api_based_auth_response}}</IncludeMultiOptionsInAPIBasedAuthResponse>
     <IncludeAuthInitDataOnRetryInAPIBasedAuthResponse>{{authentication.include_auth_init_data_on_retry_in_api_based_auth_response}}</IncludeAuthInitDataOnRetryInAPIBasedAuthResponse>
 
-    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <!-- Configuration to allow only SP requested claims during federated flow.
+         Deprecated: use EnableSPRequestedFedClaimFiltering instead. -->
     <AllowSPRequestedFedClaimsOnly>{{authentication.allow_sp_requested_fed_claims_only}}</AllowSPRequestedFedClaimsOnly>
+
+    <!-- Configuration to filter the claims received from the federated IdP down to the claims the service
+         provider requested. Set to false to send every claim received from the federated IdP. -->
+    <EnableSPRequestedFedClaimFiltering>{{authentication.enable_sp_requested_fed_claim_filtering}}</EnableSPRequestedFedClaimFiltering>
 
     {% if stored_procedure_dao is defined %}
     <!-- Stored Procedure supported DAO Implementation of Identity components.
