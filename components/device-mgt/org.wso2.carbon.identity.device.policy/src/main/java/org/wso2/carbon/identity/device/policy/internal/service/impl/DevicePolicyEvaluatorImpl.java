@@ -35,15 +35,10 @@ import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResu
 import org.wso2.carbon.identity.policy.evaluation.api.model.RuleResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
-import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
-import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
-import org.wso2.carbon.identity.rule.management.api.model.Expression;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Default implementation of {@link DevicePolicyEvaluator}.
@@ -69,13 +64,17 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                     DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyId, tenantDomain);
         }
 
-        Optional<DevicePolicyEvaluationResult> incompleteResult =
-                checkDeviceDataCompleteness(policyId, policy, deviceData);
-        if (incompleteResult.isPresent()) {
-            return incompleteResult.get();
-        }
-        // The completeness check above guarantees the platform is present.
+        // The platform is the only field required up front, since it selects the rule to evaluate.
+        // Every other field is left to the rule engine: a rule may be satisfied by only part of its
+        // expressions, so absent data does not necessarily mean the policy cannot pass.
         String platform = (String) deviceData.get(DEVICE_PLATFORM_FIELD);
+        if (StringUtils.isBlank(platform)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Device data incomplete for policy '" + policyId + "': " + DEVICE_PLATFORM_FIELD);
+            }
+            return DevicePolicyEvaluationResult.incompleteDeviceData(policyId,
+                    Collections.singletonList(DEVICE_PLATFORM_FIELD));
+        }
 
         PolicyEvaluationContext context = new PolicyEvaluationContext(FLOW_TYPE_DEVICE_POLICY);
         deviceData.forEach(context::add);
@@ -96,6 +95,17 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                     .flatMap(resourceResult ->
                             ((RuleResourceEvaluationResult) resourceResult).getFailedFields().stream())
                     .toList();
+            // A field the device never sent failed because the data was absent, not because the
+            // device breached the policy. Report those as incomplete data instead.
+            List<String> missingFields = failedFields.stream()
+                    .filter(field -> isBlankValue(deviceData.get(field)))
+                    .toList();
+            if (!missingFields.isEmpty()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Device data incomplete for policy '" + policyId + "': " + missingFields);
+                }
+                return DevicePolicyEvaluationResult.incompleteDeviceData(policyId, missingFields);
+            }
             return DevicePolicyEvaluationResult.nonCompliant(policyId, failedFields);
         }
         return DevicePolicyEvaluationResult.compliant(policyId);
@@ -162,47 +172,8 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
         }
     }
 
-    private Optional<DevicePolicyEvaluationResult> checkDeviceDataCompleteness(String policyId,
-            Policy policy, Map<String, Object> deviceData) {
+    private boolean isBlankValue(Object value) {
 
-        String platform = (String) deviceData.get(DEVICE_PLATFORM_FIELD);
-        List<String> missingFields;
-        if (StringUtils.isBlank(platform)) {
-            missingFields = Collections.singletonList(DEVICE_PLATFORM_FIELD);
-        } else {
-            missingFields = findMissingRequiredFields(platform, policy, deviceData);
-        }
-
-        if (!missingFields.isEmpty()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Device data incomplete for policy '" + policyId + "': " + missingFields);
-            }
-            return Optional.of(DevicePolicyEvaluationResult.incompleteDeviceData(policyId, missingFields));
-        }
-        return Optional.empty();
-    }
-
-    private List<String> findMissingRequiredFields(String platform, Policy policy, Map<String, Object> deviceData) {
-
-        PolicyResource resource = policy.getResources().stream()
-                .filter(r -> r.getResourceType() == ResourceType.RULE
-                        && platform.equalsIgnoreCase(r.getTarget()))
-                .findFirst()
-                .orElse(null);
-        if (!(resource instanceof RulePolicyResource)) {
-            return Collections.emptyList();
-        }
-        RulePolicyResource ruleResource = (RulePolicyResource) resource;
-        if (ruleResource.getRule() == null) {
-            return Collections.emptyList();
-        }
-        return ruleResource.getRule().getExpressions().stream()
-                .map(Expression::getField)
-                .distinct()
-                .filter(field -> {
-                    Object value = deviceData.get(field);
-                    return value == null || String.valueOf(value).trim().isEmpty();
-                })
-                .toList();
+        return value == null || StringUtils.isBlank(String.valueOf(value));
     }
 }

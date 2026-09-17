@@ -35,18 +35,11 @@ import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResu
 import org.wso2.carbon.identity.policy.evaluation.api.model.RuleResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
-import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
-import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
-import org.wso2.carbon.identity.rule.management.api.model.Expression;
-import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -105,26 +98,21 @@ public class DevicePolicyEvaluatorImplTest {
     }
 
     @Test
-    public void testEvaluateWithMissingFields() throws Exception {
+    public void testEvaluateReportsFailedFieldsTheDeviceNeverSentAsMissing() throws Exception {
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "android");
 
         Policy policy = mock(Policy.class);
-        RulePolicyResource ruleResource = mock(RulePolicyResource.class);
-        when(ruleResource.getResourceType()).thenReturn(ResourceType.RULE);
-        when(ruleResource.getTarget()).thenReturn("android");
-
-        Rule rule = mock(Rule.class);
-        Expression expression = mock(Expression.class);
-        when(expression.getField()).thenReturn("androidIntegrity");
-        when(rule.getExpressions()).thenReturn(Collections.singletonList(expression));
-        when(ruleResource.getRule()).thenReturn(rule);
-
-        List<PolicyResource> resources = new ArrayList<>();
-        resources.add(ruleResource);
-        when(policy.getResources()).thenReturn(resources);
-
         when(policyManagementService.getPolicyById("testPolicyId", "carbon.super")).thenReturn(policy);
+
+        PolicyEvaluationResult evalResult = mock(PolicyEvaluationResult.class);
+        when(evalResult.isSatisfied()).thenReturn(false);
+        RuleResourceEvaluationResult ruleResult = mock(RuleResourceEvaluationResult.class);
+        when(ruleResult.isSatisfied()).thenReturn(false);
+        when(ruleResult.getFailedFields()).thenReturn(Collections.singletonList("androidIntegrity"));
+        when(evalResult.getResults()).thenReturn(Collections.singletonList(ruleResult));
+        when(policyEvaluationService.evaluate(anyString(), anyString(),
+                any(PolicyEvaluationContext.class), anyString())).thenReturn(evalResult);
 
         DevicePolicyEvaluationResult result =
                 devicePolicyEvaluator.evaluate("testPolicyId", deviceData, "appId", "carbon.super");
@@ -132,6 +120,29 @@ public class DevicePolicyEvaluatorImplTest {
         Assert.assertEquals(result.getStatus(), DevicePolicyEvaluationResult.Status.INCOMPLETE_DEVICE_DATA);
         Assert.assertEquals(result.getMissingFields(), Collections.singletonList("androidIntegrity"));
         Assert.assertTrue(result.getFailedFields().isEmpty());
+    }
+
+    @Test
+    public void testEvaluateIsCompliantWhenPartialDataStillSatisfiesTheRule() throws Exception {
+        // A rule combined with OR can be satisfied by one branch alone, so absent data for the other
+        // branch must not short circuit the evaluation.
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "android");
+        deviceData.put("biometric", "true");
+
+        Policy policy = mock(Policy.class);
+        when(policyManagementService.getPolicyById("testPolicyId", "carbon.super")).thenReturn(policy);
+
+        PolicyEvaluationResult evalResult = mock(PolicyEvaluationResult.class);
+        when(evalResult.isSatisfied()).thenReturn(true);
+        when(policyEvaluationService.evaluate(anyString(), anyString(),
+                any(PolicyEvaluationContext.class), anyString())).thenReturn(evalResult);
+
+        DevicePolicyEvaluationResult result =
+                devicePolicyEvaluator.evaluate("testPolicyId", deviceData, "appId", "carbon.super");
+
+        Assert.assertTrue(result.isCompliant());
+        Assert.assertTrue(result.getMissingFields().isEmpty());
     }
 
     @Test(expectedExceptions = DevicePolicyClientException.class)
@@ -170,6 +181,8 @@ public class DevicePolicyEvaluatorImplTest {
     public void testEvaluateResultNotSatisfied() throws Exception {
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "android");
+        deviceData.put("field1", "value1");
+        deviceData.put("field2", "value2");
 
         Policy policy = mock(Policy.class);
         when(policy.getId()).thenReturn("policyId123");
@@ -198,40 +211,11 @@ public class DevicePolicyEvaluatorImplTest {
 
     @Test
     public void testDistinguishIncompleteDeviceDataFromNonCompliant() throws Exception {
-        // Scenario 1: missing field 'isRooted' -> INCOMPLETE_DEVICE_DATA
-        Map<String, Object> deviceDataMissing = new HashMap<>();
-        deviceDataMissing.put("platform", "android");
-
         Policy policy = mock(Policy.class);
-        RulePolicyResource ruleResource = mock(RulePolicyResource.class);
-        when(ruleResource.getResourceType()).thenReturn(ResourceType.RULE);
-        when(ruleResource.getTarget()).thenReturn("android");
-
-        Rule rule = mock(Rule.class);
-        Expression expression = mock(Expression.class);
-        when(expression.getField()).thenReturn("isRooted");
-        when(rule.getExpressions()).thenReturn(Collections.singletonList(expression));
-        when(ruleResource.getRule()).thenReturn(rule);
-
-        List<PolicyResource> resources = new ArrayList<>();
-        resources.add(ruleResource);
-        when(policy.getResources()).thenReturn(resources);
         when(policyManagementService.getPolicyById("testPolicyId", "carbon.super")).thenReturn(policy);
 
-        DevicePolicyEvaluationResult resultIncomplete =
-                devicePolicyEvaluator.evaluate("testPolicyId", deviceDataMissing, "appId", "carbon.super");
-        Assert.assertEquals(resultIncomplete.getStatus(), DevicePolicyEvaluationResult.Status.INCOMPLETE_DEVICE_DATA);
-        Assert.assertEquals(resultIncomplete.getMissingFields(), Collections.singletonList("isRooted"));
-
-        // Scenario 2: field present but failed evaluation -> NON_COMPLIANT
-        Map<String, Object> deviceDataPresent = new HashMap<>();
-        deviceDataPresent.put("platform", "android");
-        deviceDataPresent.put("isRooted", "true");
-
-        when(policy.getId()).thenReturn("policyId123");
         PolicyEvaluationResult evalResult = mock(PolicyEvaluationResult.class);
         when(evalResult.isSatisfied()).thenReturn(false);
-
         RuleResourceEvaluationResult ruleResult = mock(RuleResourceEvaluationResult.class);
         when(ruleResult.isSatisfied()).thenReturn(false);
         when(ruleResult.getFailedFields()).thenReturn(Collections.singletonList("isRooted"));
@@ -239,8 +223,24 @@ public class DevicePolicyEvaluatorImplTest {
         when(policyEvaluationService.evaluate(anyString(), anyString(),
                 any(PolicyEvaluationContext.class), anyString())).thenReturn(evalResult);
 
+        // Scenario 1: the device never sent 'isRooted' -> INCOMPLETE_DEVICE_DATA.
+        Map<String, Object> deviceDataMissing = new HashMap<>();
+        deviceDataMissing.put("platform", "android");
+
+        DevicePolicyEvaluationResult resultIncomplete =
+                devicePolicyEvaluator.evaluate("testPolicyId", deviceDataMissing, "appId", "carbon.super");
+
+        Assert.assertEquals(resultIncomplete.getStatus(), DevicePolicyEvaluationResult.Status.INCOMPLETE_DEVICE_DATA);
+        Assert.assertEquals(resultIncomplete.getMissingFields(), Collections.singletonList("isRooted"));
+
+        // Scenario 2: 'isRooted' was sent but failed the rule -> NON_COMPLIANT.
+        Map<String, Object> deviceDataPresent = new HashMap<>();
+        deviceDataPresent.put("platform", "android");
+        deviceDataPresent.put("isRooted", "true");
+
         DevicePolicyEvaluationResult resultNonCompliant =
                 devicePolicyEvaluator.evaluate("testPolicyId", deviceDataPresent, "appId", "carbon.super");
+
         Assert.assertEquals(resultNonCompliant.getStatus(), DevicePolicyEvaluationResult.Status.NON_COMPLIANT);
         Assert.assertEquals(resultNonCompliant.getFailedFields(), Collections.singletonList("isRooted"));
     }
