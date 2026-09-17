@@ -138,7 +138,7 @@ public class Flow {
         // -----------------------------------------------------------------------------------------------
 
         // -------------------------- Consent management flows -------------------------------------------
-        FLOW_DEFINITIONS.put(Name.CONSENT_GRANT, EnumSet.of(InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.CONSENT_GRANT, EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.CONSENT_CREATE, EnumSet.of(InitiatingPersona.ADMIN));
         FLOW_DEFINITIONS.put(Name.CONSENT_REVOKE, EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.USER));
 
