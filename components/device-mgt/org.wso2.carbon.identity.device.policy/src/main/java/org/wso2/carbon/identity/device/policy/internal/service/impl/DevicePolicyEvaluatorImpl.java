@@ -63,8 +63,6 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                 .getIntegrityDataEnricher()
                 .enrich(deviceData, appId, tenantDomain);
 
-        String platform = (String) deviceData.get(DEVICE_PLATFORM_FIELD);
-
         Policy policy = getPolicy(policyId, tenantDomain);
         if (policy == null) {
             throw DevicePolicyExceptionHandler.handleClientException(
@@ -76,6 +74,8 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
         if (incompleteResult.isPresent()) {
             return incompleteResult.get();
         }
+        // The completeness check above guarantees the platform is present.
+        String platform = (String) deviceData.get(DEVICE_PLATFORM_FIELD);
 
         PolicyEvaluationContext context = new PolicyEvaluationContext(FLOW_TYPE_DEVICE_POLICY);
         deviceData.forEach(context::add);
@@ -83,7 +83,7 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
         try {
             result = DevicePolicyComponentServiceHolder.getInstance()
                     .getPolicyEvaluationService()
-                    .evaluate(policy.getId(), platform != null ? platform : "", context, tenantDomain);
+                    .evaluate(policyId, platform, context, tenantDomain);
         } catch (PolicyEvaluationException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
                     DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyId);
