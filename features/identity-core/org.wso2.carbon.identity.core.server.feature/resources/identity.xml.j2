@@ -1663,6 +1663,9 @@
         <PromptSubjectClaimRequestedConsent>{{authentication.consent.subject.prompt}}</PromptSubjectClaimRequestedConsent>
         <!--Specify whether consent V2 API related functionalities should be enabled.-->
         <EnableV2API>{{consent_mgt.enable_v2_api}}</EnableV2API>
+        <!--Specify whether the existing active consents of the same subject, application and purpose should be
+        revoked when a new consent is added via the consent V2 API.-->
+        <RevokeActiveConsentsOnCreate>{{consent_mgt.revoke_active_consents_on_create}}</RevokeActiveConsentsOnCreate>
     </Consent>
 
     <SecurityTokenService>

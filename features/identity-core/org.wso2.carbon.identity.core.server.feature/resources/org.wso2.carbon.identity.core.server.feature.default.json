@@ -2414,6 +2414,7 @@
   "flow_execution.enable_legacy_invited_user_registration_flow": false,
   "flow_execution.registration.display_claim_availability": false,
   "consent_mgt.enable_v2_api": true,
+  "consent_mgt.revoke_active_consents_on_create": true,
   "branding_configuration.custom_content.max_file_size": "1048576",
   "captcha.disable_for_console.login": false,
   "captcha.enable_captcha_for_local_otp_authenticators": true,
