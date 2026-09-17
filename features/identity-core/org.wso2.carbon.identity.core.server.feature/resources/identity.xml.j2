@@ -1919,6 +1919,41 @@
             Supported versions : IS 7.0.0 onwards
         -->
         <EnableSpecCompliantEmailHandling>{{scim2.enable_spec_compliant_email_handling}}</EnableSpecCompliantEmailHandling>
+        <!--
+            Configuration to specify which claims should be blocked from being updating in the
+            SCIM2 /Me endpoint for better security and privacy.
+        -->
+        {% if scim2.me.blocked_claims is defined or scim2.me.extended_blocked_claims is defined %}
+        <Me>
+            <!--
+                List of claims that are blocked from being updating via SCIM2/Me endpoint.
+            -->
+            {% if scim2.me.blocked_claims is defined and scim2.me.blocked_claims|length %}
+            <BlockedClaims>
+                {% for claim in scim2.me.blocked_claims %}
+                <BlockedClaim>{{claim}}</BlockedClaim>
+                {% endfor %}
+            </BlockedClaims>
+            {% else %}
+            <BlockedClaims></BlockedClaims>
+            {% endif %}
+
+            <!--
+                Extended list of claims that are blocked from being updating via SCIM2/Me endpoint.
+                This provides additional blocking configuration for more granular control.
+                Default: Empty (no claims are blocked)
+            -->
+            {% if scim2.me.extended_blocked_claims is defined and scim2.me.extended_blocked_claims|length %}
+            <ExtendedBlockedClaims>
+                {% for claim in scim2.me.extended_blocked_claims %}
+                <ExtendedBlockedClaim>{{claim}}</ExtendedBlockedClaim>
+                {% endfor %}
+            </ExtendedBlockedClaims>
+            {% else %}
+            <ExtendedBlockedClaims></ExtendedBlockedClaims>
+            {% endif %}
+        </Me>
+        {% endif %}
     </SCIM2>
 
     <Captcha>
