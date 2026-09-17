@@ -2111,24 +2111,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     return certificate.getCertificateContent();
                 }
             } catch (CertificateMgtClientException e) {
-                if (!ERROR_CODE_CERTIFICATE_DOES_NOT_EXIST.equals(e.getErrorCode())) {
-                    String errorMessage = "An error occurred while retrieving the certificate for the application.";
-                    log.error(errorMessage);
-                    throw new CertificateRetrievingException(errorMessage, e);
+                if (ERROR_CODE_CERTIFICATE_DOES_NOT_EXIST.equals(e.getErrorCode())) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No certificate found for the certificate reference id: " + certificateReferenceId +                               " in tenant id: " + tenantID + ". Returning null as the certificate content.");
+                    }
+                    return null;
                 }
-                /*
-                Kept for backward compatibility with applications that already carry a dangling certificate
-                reference, left behind by an application update that failed midway before certificate handling was
-                made the last step of that transaction. Failing here would fail every read of the application, and
-                with it the listing of all applications in the tenant, so the certificate is treated as absent
-                instead. The stale reference property itself is cleaned up the next time the application
-                certificate is updated, not during a read.
-                 */
-                if (log.isDebugEnabled()) {
-                    log.debug("No certificate found for the certificate reference id: " + certificateReferenceId +
-                            " in tenant id: " + tenantID + ". Returning null as the certificate content.");
-                }
-                return null;
+                throw e;
             } catch (CertificateMgtException e) {
                 String errorMessage = "An error occurred while retrieving the certificate for the application.";
                 log.error(errorMessage);
