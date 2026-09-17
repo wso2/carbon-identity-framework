@@ -86,17 +86,4 @@ public class DevicePolicyDiagnosticLoggerTest {
             loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), times(2));
         }
     }
-
-    @Test
-    public void testLogMissingDeviceData() {
-        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
-            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
-            loggerUtils.when(() -> LoggerUtils.triggerDiagnosticLogEvent(any())).thenAnswer(invocation -> null);
-
-            logger.logMissingDeviceData("testPolicy");
-            logger.logMissingDeviceData(null);
-
-            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), times(2));
-        }
-    }
 }

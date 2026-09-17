@@ -33,11 +33,9 @@ public class DevicePolicyDiagnosticLogger {
 
     private static final String ACTION_VALIDATE_TOKEN = "validate-device-token";
     private static final String ACTION_ENRICH_INTEGRITY = "enrich-device-integrity";
-    private static final String ACTION_EVALUATE_POLICY = "evaluate-device-policy";
 
     private static final String PARAM_DEVICE_ID = "deviceId";
     private static final String PARAM_APP_ID = "applicationId";
-    private static final String PARAM_POLICY_NAME = "policyName";
     private static final String PARAM_REASON = "reason";
 
     /**
@@ -90,23 +88,6 @@ public class DevicePolicyDiagnosticLogger {
                 DiagnosticLog.ResultStatus.FAILED)
                 .inputParam(PARAM_APP_ID, appId != null ? appId : UNKNOWN)
                 .inputParam(PARAM_REASON, reason);
-        LoggerUtils.triggerDiagnosticLogEvent(builder);
-    }
-
-    /**
-     * Log that no verified device data was present on the authentication context for a policy check.
-     *
-     * @param policyName Policy that could not be evaluated.
-     */
-    public void logMissingDeviceData(String policyName) {
-
-        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
-            return;
-        }
-        DiagnosticLog.DiagnosticLogBuilder builder = newBuilder(ACTION_EVALUATE_POLICY,
-                "No verified device data on the authentication context; device policy cannot be evaluated.",
-                DiagnosticLog.ResultStatus.FAILED)
-                .inputParam(PARAM_POLICY_NAME, policyName != null ? policyName : UNKNOWN);
         LoggerUtils.triggerDiagnosticLogEvent(builder);
     }
 
