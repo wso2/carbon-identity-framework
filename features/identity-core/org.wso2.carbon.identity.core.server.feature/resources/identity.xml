@@ -64,6 +64,10 @@
             <Enable>true</Enable>
             <CleanUpPeriod>1440</CleanUpPeriod>
         </PushedAuthReqCleanUp>
+        <DeviceTokenJtiCleanUp>
+            <Enable>true</Enable>
+            <CleanUpPeriod>15</CleanUpPeriod>
+        </DeviceTokenJtiCleanUp>
     </JDBCPersistenceManager>
 
     <!--

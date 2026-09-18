@@ -26,13 +26,14 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Extension point for resolving verified device data from an authentication initiation request.
  * <p>
- * Implementations are registered as OSGi services and bound by the framework as an optional
+ * Implementations are registered as OSGi services and bound by the framework as a dynamic
  * reference. The resolved payload is stored on the authentication context under
  * {@code FrameworkConstants.DEVICE_DATA} and is exposed to adaptive authentication scripts as
  * {@code context.deviceData}.
  * <p>
- * Device data resolution is best-effort: the framework functions normally when no implementation
- * is registered, and implementations must not throw to abort an authentication flow.
+ * An unresolvable device token is a client error and must be returned as an empty optional. A
+ * failure to perform the resolution itself is a server error and fails the authentication flow,
+ * hence implementations must not signal client errors by throwing.
  */
 public interface DeviceDataResolver {
 
