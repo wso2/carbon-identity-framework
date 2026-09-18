@@ -571,6 +571,143 @@ public class IdPManagementDAOTest {
         }
     }
 
+    private static final String GOOGLE_TEMPLATE_ID = "google-idp";
+    private static final String OIDC_TEMPLATE_ID = "enterprise-oidc-idp";
+
+    /**
+     * Add three IdPs to SAMPLE_TENANT_ID, two carrying a template id and one without.
+     */
+    private void addTemplatedTestIdps() throws IdentityProviderManagementException {
+
+        IdentityProvider googleIdP = new IdentityProvider();
+        googleIdP.setIdentityProviderName("googleIdP");
+        googleIdP.setTemplateId(GOOGLE_TEMPLATE_ID);
+
+        IdentityProvider oidcIdP = new IdentityProvider();
+        oidcIdP.setIdentityProviderName("oidcIdP");
+        oidcIdP.setTemplateId(OIDC_TEMPLATE_ID);
+
+        IdentityProvider plainIdP = new IdentityProvider();
+        plainIdP.setIdentityProviderName("plainIdP");
+
+        idPManagementDAO.addIdP(googleIdP, SAMPLE_TENANT_ID);
+        idPManagementDAO.addIdP(oidcIdP, SAMPLE_TENANT_ID);
+        idPManagementDAO.addIdP(plainIdP, SAMPLE_TENANT_ID);
+    }
+
+    private static List<ExpressionNode> templateIdFilter(String operation, String value) {
+
+        ExpressionNode expressionNode = new ExpressionNode();
+        expressionNode.setAttributeValue("templateId");
+        expressionNode.setOperation(operation);
+        expressionNode.setValue(value);
+        List<ExpressionNode> expressionNodes = new ArrayList<>();
+        expressionNodes.add(expressionNode);
+        return expressionNodes;
+    }
+
+    @Test
+    public void testGetIdPsSearchWithTemplateIdAttribute() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTemplatedTestIdps();
+
+            List<IdentityProvider> idps = idPManagementDAO.getIdPsSearch(SAMPLE_TENANT_ID, new ArrayList<>(), 10, 0,
+                    "ASC", "NAME", Arrays.asList("templateId"));
+
+            Map<String, String> templateIds = new HashMap<>();
+            for (IdentityProvider idp : idps) {
+                templateIds.put(idp.getIdentityProviderName(), idp.getTemplateId());
+            }
+            assertEquals(templateIds.get("googleIdP"), GOOGLE_TEMPLATE_ID);
+            assertEquals(templateIds.get("oidcIdP"), OIDC_TEMPLATE_ID);
+            // An IdP created without a template id has no templateId property to resolve.
+            assertNull(templateIds.get("plainIdP"));
+        }
+    }
+
+    @Test
+    public void testGetIdPsSearchWithoutTemplateIdAttribute() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTemplatedTestIdps();
+
+            List<IdentityProvider> idps = idPManagementDAO.getIdPsSearch(SAMPLE_TENANT_ID, new ArrayList<>(), 10, 0,
+                    "ASC", "NAME", Arrays.asList("isPrimary"));
+
+            for (IdentityProvider idp : idps) {
+                assertNull(idp.getTemplateId(), "Template id must not be resolved unless it is requested.");
+            }
+        }
+    }
+
+    @DataProvider
+    public Object[][] getIdPsSearchFilteredByTemplateIdData() {
+
+        return new Object[][]{
+                {templateIdFilter("eq", GOOGLE_TEMPLATE_ID), 1, "googleIdP"},
+                {templateIdFilter("eq", OIDC_TEMPLATE_ID), 1, "oidcIdP"},
+                {templateIdFilter("eq", "no-such-template"), 0, null},
+                {templateIdFilter("co", "idp"), 2, "googleIdP"},
+                {templateIdFilter("sw", "google"), 1, "googleIdP"},
+                {templateIdFilter("ew", "oidc-idp"), 1, "oidcIdP"},
+        };
+    }
+
+    @Test(dataProvider = "getIdPsSearchFilteredByTemplateIdData")
+    public void testGetIdPsSearchFilteredByTemplateId(List<ExpressionNode> expressionNodes, int count,
+                                                      String firstIdp) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTemplatedTestIdps();
+
+            List<IdentityProvider> idps = idPManagementDAO.getIdPsSearch(SAMPLE_TENANT_ID, expressionNodes, 10, 0,
+                    "ASC", "NAME", Arrays.asList("templateId"));
+
+            assertEquals(idps.size(), count);
+            if (count > 0) {
+                assertEquals(idps.get(0).getIdentityProviderName(), firstIdp);
+            }
+        }
+    }
+
+    @DataProvider
+    public Object[][] getCountOfIdPsFilteredByTemplateIdData() {
+
+        return new Object[][]{
+                {templateIdFilter("eq", GOOGLE_TEMPLATE_ID), 1},
+                {templateIdFilter("eq", "no-such-template"), 0},
+                {templateIdFilter("co", "idp"), 2},
+        };
+    }
+
+    @Test(dataProvider = "getCountOfIdPsFilteredByTemplateIdData")
+    public void testGetCountOfIdPsFilteredByTemplateId(List<ExpressionNode> expressionNodes, int count)
+            throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTemplatedTestIdps();
+
+            assertEquals(idPManagementDAO.getCountOfFilteredIdPs(SAMPLE_TENANT_ID, expressionNodes), count);
+        }
+    }
+
     @DataProvider
     public Object[][] getCountOfFilteredIdPsData() {
 
