@@ -36,6 +36,7 @@
     <url>http://wso2.org</url>
 
     <modules>
+        <module>org.wso2.carbon.identity.device.registration</module>
         <module>org.wso2.carbon.identity.device.mgt</module>
     </modules>
 
@@ -46,8 +47,12 @@
                 <artifactId>org.wso2.carbon.identity.device.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.device.policy</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
 </project>
-
