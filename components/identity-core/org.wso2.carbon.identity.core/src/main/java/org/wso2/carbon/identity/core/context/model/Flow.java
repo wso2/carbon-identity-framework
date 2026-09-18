@@ -144,6 +144,10 @@ public class Flow {
 
         FLOW_DEFINITIONS.put(Name.PURPOSE_UPDATE, EnumSet.of(InitiatingPersona.ADMIN));
         // -----------------------------------------------------------------------------------------------
+
+        // ------------------------------ Device management flows ----------------------------------------
+        FLOW_DEFINITIONS.put(Name.DEVICE_REGISTER, EnumSet.of(InitiatingPersona.USER));
+        // -----------------------------------------------------------------------------------------------
     }
 
     /**
@@ -227,7 +231,11 @@ public class Flow {
         CONSENT_CREATE,
         CONSENT_GRANT,
         CONSENT_REVOKE,
-        PURPOSE_UPDATE
+        PURPOSE_UPDATE,
+        // --------------------------------------------------
+
+        // ---------Device management flows------------------
+        DEVICE_REGISTER
         // --------------------------------------------------
     }
 
