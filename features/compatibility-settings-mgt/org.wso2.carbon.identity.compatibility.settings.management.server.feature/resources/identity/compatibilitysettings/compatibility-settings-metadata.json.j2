@@ -85,5 +85,17 @@
         "targetValue" : {{compatibility_setting.dcr.decode_redirect_uris_in_response.target_value | default("false")}},
         "defaultValue" : {{compatibility_setting.dcr.decode_redirect_uris_in_response.default_value | default("true")}}
     }
+  },
+  "tokenExchange": {
+    "limitScopesToSubjectToken" : {
+        "timestampReference" : "{{compatibility_setting.token_exchange.limit_scopes_to_subject_token.timestamp_reference | default('2026-10-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.token_exchange.limit_scopes_to_subject_token.target_value | default("false")}},
+        "defaultValue" : {{compatibility_setting.token_exchange.limit_scopes_to_subject_token.default_value | default("true")}}
+    },
+    "defaultRestrictScopeIssuanceForFederatedTokens" : {
+        "timestampReference" : "{{compatibility_setting.token_exchange.default_restrict_scope_issuance_for_federated_tokens.timestamp_reference | default('2026-10-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.token_exchange.default_restrict_scope_issuance_for_federated_tokens.target_value | default("false")}},
+        "defaultValue" : {{compatibility_setting.token_exchange.default_restrict_scope_issuance_for_federated_tokens.default_value | default("false")}}
+    }
   }
 }
