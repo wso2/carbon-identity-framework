@@ -1256,6 +1256,20 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * Retrieve the identifier of the identity provider of the given name, in the given tenant. The identifier is
+     * read from the database, as it is not held by the identity provider caches.
+     *
+     * @param idPName  Name of the IdP.
+     * @param tenantId Tenant Id of the IdP.
+     * @return the identifier of the identity provider, or -1 if the tenant has no identity provider of that name.
+     * @throws IdentityProviderManagementException if the identifier could not be retrieved.
+     */
+    public int getIdPIdByName(String idPName, int tenantId) throws IdentityProviderManagementException {
+
+        return idPManagementFacade.getIdPIdByName(idPName, tenantId);
+    }
+
+    /**
      * Get IDP group data by IDP group IDs.
      *
      * @param idpGroupIds List of IDP group IDs.
