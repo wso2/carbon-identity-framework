@@ -1388,6 +1388,8 @@
 
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
+        <ChildOrganizationSubscriptionEnabled>false</ChildOrganizationSubscriptionEnabled>
+        <ChannelUuidColumnAvailable>false</ChannelUuidColumnAvailable>
         <Registration>
             <SkipSignupConfirmationIfAccountLockDisabled>true</SkipSignupConfirmationIfAccountLockDisabled>
         </Registration>

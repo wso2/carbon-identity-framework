@@ -143,4 +143,45 @@ public interface WebhookManagementDAO {
      */
     List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
                                     int tenantId) throws WebhookMgtException;
+
+    /**
+     * Retrieve the active webhooks an event raised in a tenant should reach, including webhooks
+     * owned by an ancestor organization that has opted this tenant in for the channel.
+     * <p>
+     * Only meaningful for the Publisher adapter, where each webhook is posted to individually. The
+     * PublisherSubscriber adapter reaches descendant organizations through topics, not through this
+     * list.
+     *
+     * @param eventProfileName    Event profile name.
+     * @param eventProfileVersion Event profile version.
+     * @param channelUri          Channel URI of the event.
+     * @param tenantId            Tenant the event was raised in.
+     * @return Active webhooks, own and inherited, empty when there are none.
+     * @throws WebhookMgtException If the webhooks cannot be retrieved.
+     */
+    List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName, String eventProfileVersion,
+                                                    String channelUri, int tenantId) throws WebhookMgtException;
+
+    /**
+     * Webhooks whose subscription to the given channel is live.
+     * <p>
+     * A webhook is answered for when its subscription to this channel has been accepted, which is stated per
+     * channel: a partially active webhook has some channels subscribed and others not, and only the subscribed
+     * ones are its own. The webhook's own state is accepted as either active or partially active, the latter
+     * being the state a subscriber adapter leaves a webhook in once the hub has accepted its subscriptions and
+     * which no later state replaces.
+     *
+     * @param eventProfileName                     Event profile name.
+     * @param eventProfileVersion                  Event profile version.
+     * @param channelUri                           Channel URI of the event.
+     * @param tenantId                             Tenant the event was raised in.
+     * @param includeChildOrganizationSubscriptions Whether to widen the answer to the webhooks of ancestor
+     *                                             organizations that subscribed this organization to the channel.
+     * @return Those webhooks, empty when there are none.
+     * @throws WebhookMgtException If the webhooks cannot be retrieved.
+     */
+    List<Webhook> getSubscribedWebhooks(String eventProfileName, String eventProfileVersion,
+                                        String channelUri, int tenantId,
+                                        boolean includeChildOrganizationSubscriptions)
+            throws WebhookMgtException;
 }

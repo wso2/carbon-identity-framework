@@ -124,4 +124,27 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         return getHandler().getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
+
+    /**
+     * Whether the organization fanout is folded in is the adapter type handler's decision, so this
+     * delegates like every other call rather than choosing for it.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName, String eventProfileVersion,
+                                                           String channelUri, int tenantId)
+            throws WebhookMgtException {
+
+        return getHandler().getActiveWebhooksWithSubscribedChildOrgs(eventProfileName, eventProfileVersion, channelUri,
+                tenantId);
+    }
+
+    @Override
+    public List<Webhook> getSubscribedWebhooks(String eventProfileName, String eventProfileVersion,
+                                               String channelUri, int tenantId,
+                                               boolean includeChildOrganizationSubscriptions)
+            throws WebhookMgtException {
+
+        return getHandler().getSubscribedWebhooks(eventProfileName, eventProfileVersion, channelUri,
+                tenantId, includeChildOrganizationSubscriptions);
+    }
 }
