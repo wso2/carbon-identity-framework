@@ -143,4 +143,22 @@ public interface WebhookManagementDAO {
      */
     List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
                                     int tenantId) throws WebhookMgtException;
+
+    /**
+     * Retrieve the active webhooks an event raised in a tenant should reach, including webhooks
+     * owned by an ancestor organization that has opted this tenant in for the channel.
+     * <p>
+     * Only meaningful for the Publisher adapter, where each webhook is posted to individually. The
+     * PublisherSubscriber adapter reaches descendant organizations through topics, not through this
+     * list.
+     *
+     * @param eventProfileName    Event profile name.
+     * @param eventProfileVersion Event profile version.
+     * @param channelUri          Channel URI of the event.
+     * @param tenantId            Tenant the event was raised in.
+     * @return Active webhooks, own and inherited, empty when there are none.
+     * @throws WebhookMgtException If the webhooks cannot be retrieved.
+     */
+    List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName, String eventProfileVersion,
+                                                    String channelUri, int tenantId) throws WebhookMgtException;
 }

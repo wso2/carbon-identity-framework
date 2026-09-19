@@ -31,6 +31,20 @@ public class WebhookMgtConstants {
     public static final String SECRET_FIELD = "Secret";
     public static final String STATUS_FIELD = "Status";
 
+    /**
+     * Organization lifecycle events this component reacts to, and the properties they carry.
+     * <p>
+     * These names are the contract published by the organization management extension bundle
+     * (org.wso2.carbon.identity.organization.management.ext.Constants). They are restated here
+     * rather than imported so that webhook management does not take a build dependency on that
+     * bundle for four string literals. The names are part of the identity event contract and are
+     * matched by value at runtime, so they must not be changed independently of it.
+     */
+    public static final String EVENT_POST_ADD_ORGANIZATION = "POST_ADD_ORGANIZATION";
+    public static final String EVENT_POST_DELETE_ORGANIZATION = "POST_DELETE_ORGANIZATION";
+    public static final String EVENT_PROP_ORGANIZATION = "ORGANIZATION";
+    public static final String EVENT_PROP_ORGANIZATION_ID = "ORGANIZATION_ID";
+
     private WebhookMgtConstants() {
 
     }

@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
@@ -35,7 +37,12 @@ import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManageme
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR;
 import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR;
@@ -56,6 +63,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
     private static final String WEBHOOK_SCHEMA_VERSION = "v1";
     private static final String WEBHOOK_VERSION = "1.0.0";
+    public static final String CHANNEL_UUID_COLUMN_AVAILABLE = "Webhooks.ChannelUuidColumnAvailable";
 
     @Override
     public void createWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
@@ -81,8 +89,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
             jdbcTemplate.withTransaction(template -> {
                 updateWebhookInDB(webhook, tenantId);
                 int webhookId = getInternalWebhookIdByUuid(webhook.getId(), tenantId);
-                deleteWebhookEventsInDB(webhookId);
-                addWebhookEventsToDB(webhookId, webhook.getEventsSubscribed());
+                upsertWebhookEventsInDB(webhookId, webhook.getEventsSubscribed());
                 return null;
             });
         } catch (TransactionException e) {
@@ -143,6 +150,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
                         .eventsSubscribed(events)
+                        .tenantId(webhook.getTenantId())
                         .build();
             });
         } catch (TransactionException e) {
@@ -284,6 +292,36 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         }
     }
 
+    @Override
+    public List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName, String eventProfileVersion,
+                                                           String channelUri, int tenantId)
+            throws WebhookMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(template ->
+                    template.executeQuery(
+                            WebhookSQLConstants.Query.GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_WITH_SUBSCRIBED_CHILD_ORGS,
+                            (resultSet, rowNumber) -> mapResultSetToWebhook(resultSet),
+                            statement -> {
+                                statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, channelUri);
+                                statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
+                                // Same tenant, bound under the subscription table's own column name.
+                                statement.setInt(WebhookSQLConstants.Column.SUBSCRIBED_ORG_TENANT_ID, tenantId);
+                                statement.setString(WebhookSQLConstants.Column.STATUS, WebhookStatus.ACTIVE.name());
+                                statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME, eventProfileName);
+                                statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_VERSION,
+                                        eventProfileVersion);
+                            }
+                    )
+            );
+        } catch (TransactionException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_ERROR, e, channelUri,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
+    }
+
     // --- Private helper methods ---
 
     private Webhook mapResultSetToWebhook(ResultSet resultSet) throws SQLException {
@@ -299,6 +337,9 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 .secret(resultSet.getString(WebhookSQLConstants.Column.SECRET_ALIAS))
                 .createdAt(resultSet.getTimestamp(WebhookSQLConstants.Column.CREATED_AT))
                 .updatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.UPDATED_AT))
+                // Carried so that the secret and the channels of an inherited webhook are read from
+                // the tenant that owns it, not from the tenant the event was raised in.
+                .tenantId(resultSet.getInt(WebhookSQLConstants.Column.TENANT_ID))
                 .build();
     }
 
@@ -364,12 +405,20 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         if (events == null || events.isEmpty()) {
             return;
         }
+        boolean isChannelUuidColumnExists = isChannelUuidColumnExists();
+        String query = isChannelUuidColumnExists ? WebhookSQLConstants.Query.ADD_WEBHOOK_EVENT_WITH_UUID
+                : WebhookSQLConstants.Query.ADD_WEBHOOK_EVENT;
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template -> {
-            template.executeBatchInsert(WebhookSQLConstants.Query.ADD_WEBHOOK_EVENT,
+            template.executeBatchInsert(query,
                     statement -> {
                         statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
                         for (Subscription event : events) {
+                            if (isChannelUuidColumnExists) {
+                                statement.setString(WebhookSQLConstants.Column.CHANNEL_UUID,
+                                        UUID.randomUUID().toString());
+                            }
                             statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, event.getChannelUri());
                             String status = event.getStatus() != null ? event.getStatus().name() : null;
                             statement.setString(WebhookSQLConstants.Column.CHANNEL_SUBSCRIPTION_STATUS, status);
@@ -378,6 +427,21 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                     }, null);
             return null;
         });
+    }
+
+    /**
+     * Check whether IDN_WEBHOOK_CHANNELS.UUID is present, so that the component keeps working
+     * against a schema on which the channel UUID migration has not been applied yet.
+     * <p>
+     * Probes by selecting the column with a row limiter; the statement fails when the column is
+     * absent, which is caught and reported as false.
+     *
+     * @return true if the column exists.
+     */
+    private boolean isChannelUuidColumnExists() {
+
+        String configuredValue = IdentityUtil.getProperty(CHANNEL_UUID_COLUMN_AVAILABLE);
+        return StringUtils.isBlank(configuredValue) || Boolean.parseBoolean(configuredValue);
     }
 
     private void updateWebhookEventStatusInDB(int webhookId, List<Subscription> channels) throws TransactionException {
@@ -403,12 +467,71 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         });
     }
 
-    private void deleteWebhookEventsInDB(int webhookId) throws TransactionException {
+    /**
+     * Reconcile the persisted channel rows of a webhook with the desired set.
+     * <p>
+     * Channels present both before and after the update are left untouched, so their UUID — the
+     * stable identity that the REST channel sub-resource and organization subscriptions hang off —
+     * and their CHANNEL_SUBSCRIPTION_STATUS both survive. Only removed channels are deleted and
+     * only genuinely new channels are inserted. Subscription status transitions stay owned by the
+     * activate/deactivate/retry path and are deliberately not touched here.
+     *
+     * @param webhookId Internal webhook id.
+     * @param desired   Channels the webhook should be subscribed to after the update.
+     * @throws TransactionException If a database error occurs.
+     */
+    private void upsertWebhookEventsInDB(int webhookId, List<Subscription> desired) throws TransactionException {
+
+        Set<String> existingUris = new HashSet<>(getWebhookChannelUrisInDB(webhookId));
+
+        Set<String> desiredUris = new LinkedHashSet<>();
+        List<Subscription> channelsToAdd = new ArrayList<>();
+        if (desired != null) {
+            for (Subscription channel : desired) {
+                if (channel == null || channel.getChannelUri() == null) {
+                    continue;
+                }
+                if (desiredUris.add(channel.getChannelUri()) && !existingUris.contains(channel.getChannelUri())) {
+                    channelsToAdd.add(channel);
+                }
+            }
+        }
+
+        List<String> channelUrisToRemove = new ArrayList<>();
+        for (String existingUri : existingUris) {
+            if (!desiredUris.contains(existingUri)) {
+                channelUrisToRemove.add(existingUri);
+            }
+        }
+
+        deleteWebhookEventsByChannelUrisInDB(webhookId, channelUrisToRemove);
+        addWebhookEventsToDB(webhookId, channelsToAdd);
+    }
+
+    private List<String> getWebhookChannelUrisInDB(int webhookId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        return jdbcTemplate.withTransaction(template ->
+                template.executeQuery(WebhookSQLConstants.Query.LIST_WEBHOOK_CHANNEL_URIS_BY_WEBHOOK_ID,
+                        (resultSet, rowNumber) -> resultSet.getString(WebhookSQLConstants.Column.CHANNEL_URI),
+                        statement -> statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId)));
+    }
+
+    private void deleteWebhookEventsByChannelUrisInDB(int webhookId, List<String> channelUris)
+            throws TransactionException {
+
+        if (channelUris == null || channelUris.isEmpty()) {
+            return;
+        }
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template -> {
-            template.executeUpdate(WebhookSQLConstants.Query.DELETE_WEBHOOK_EVENTS,
-                    statement -> statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId));
+            for (String channelUri : channelUris) {
+                template.executeUpdate(WebhookSQLConstants.Query.DELETE_WEBHOOK_EVENT_BY_CHANNEL_URI,
+                        statement -> {
+                            statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
+                            statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, channelUri);
+                        });
+            }
             return null;
         });
     }
