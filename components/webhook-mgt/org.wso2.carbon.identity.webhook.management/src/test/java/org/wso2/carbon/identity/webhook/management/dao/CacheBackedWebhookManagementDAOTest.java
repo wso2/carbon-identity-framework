@@ -359,4 +359,55 @@ public class CacheBackedWebhookManagementDAOTest {
                 org.mockito.ArgumentMatchers.any(ActiveWebhooksCacheEntry.class),
                 org.mockito.ArgumentMatchers.eq(tenantId));
     }
+
+    /**
+     * The widened lookup shares the active webhooks cache: a hit is served without reaching the DAO.
+     */
+    @Test
+    public void testGetActiveWebhooksWithSubscribedChildOrgs_CacheHit() throws Exception {
+
+        ActiveWebhooksCacheKey cacheKey = new ActiveWebhooksCacheKey("profile", "v1", "http://channel", TENANT_ID);
+        List<Webhook> webhooks = Arrays.asList(mock(Webhook.class), mock(Webhook.class));
+        ActiveWebhooksCacheEntry cacheEntry = mock(ActiveWebhooksCacheEntry.class);
+        ActiveWebhooksCache activeWebhooksCache = injectActiveWebhooksCache();
+        when(activeWebhooksCache.getValueFromCache(cacheKey, TENANT_ID)).thenReturn(cacheEntry);
+        when(cacheEntry.getWebhooks()).thenReturn(webhooks);
+
+        List<Webhook> result = cacheBackedWebhookManagementDAO.getActiveWebhooksWithSubscribedChildOrgs(
+                "profile", "v1", "http://channel", TENANT_ID);
+
+        assertEquals(result, webhooks);
+        verify(webhookManagementDAO, never()).getActiveWebhooksWithSubscribedChildOrgs(
+                "profile", "v1", "http://channel", TENANT_ID);
+    }
+
+    /**
+     * On a miss the widened lookup reads through to the DAO and caches the answer.
+     */
+    @Test
+    public void testGetActiveWebhooksWithSubscribedChildOrgs_CacheMiss() throws Exception {
+
+        List<Webhook> webhooks = Arrays.asList(mock(Webhook.class), mock(Webhook.class));
+        ActiveWebhooksCache activeWebhooksCache = injectActiveWebhooksCache();
+        when(activeWebhooksCache.getValueFromCache(Mockito.any(ActiveWebhooksCacheKey.class), Mockito.anyInt()))
+                .thenReturn(null);
+        when(webhookManagementDAO.getActiveWebhooksWithSubscribedChildOrgs(
+                "profile", "v1", "http://channel", TENANT_ID)).thenReturn(webhooks);
+
+        List<Webhook> result = cacheBackedWebhookManagementDAO.getActiveWebhooksWithSubscribedChildOrgs(
+                "profile", "v1", "http://channel", TENANT_ID);
+
+        assertEquals(result, webhooks);
+        verify(activeWebhooksCache).addToCache(Mockito.any(ActiveWebhooksCacheKey.class),
+                Mockito.any(ActiveWebhooksCacheEntry.class), Mockito.eq(TENANT_ID));
+    }
+
+    private ActiveWebhooksCache injectActiveWebhooksCache() throws Exception {
+
+        ActiveWebhooksCache activeWebhooksCache = Mockito.mock(ActiveWebhooksCache.class);
+        Field field = cacheBackedWebhookManagementDAO.getClass().getDeclaredField("activeWebhooksCache");
+        field.setAccessible(true);
+        field.set(cacheBackedWebhookManagementDAO, activeWebhooksCache);
+        return activeWebhooksCache;
+    }
 }

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.dao;
 
+import org.mockito.Answers;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -26,6 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
@@ -83,6 +85,7 @@ public class WebhookManagementDAOFacadeTest {
     private Webhook testWebhook;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private MockedStatic<IdentityUtil> identityUtil;
     private MockedStatic<WebhookManagementComponentServiceHolder> componentHolderStatic;
     private WebhookManagementDAOFacade daoFacade;
     private TopicManagementService topicManagementService;
@@ -96,6 +99,12 @@ public class WebhookManagementDAOFacadeTest {
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+
+        // The test schema has the IDN_WEBHOOK_CHANNELS.UUID column. Unit tests do not load identity.xml, so the
+        // property is mocked. Every other IdentityUtil method keeps its real behavior.
+        identityUtil = mockStatic(IdentityUtil.class, Answers.CALLS_REAL_METHODS);
+        identityUtil.when(() -> IdentityUtil.getProperty(WebhookManagementDAOImpl.CHANNEL_UUID_COLUMN_AVAILABLE))
+                .thenReturn("true");
 
         componentHolderStatic = mockStatic(WebhookManagementComponentServiceHolder.class);
         mockedHolder = mock(WebhookManagementComponentServiceHolder.class);
@@ -148,6 +157,9 @@ public class WebhookManagementDAOFacadeTest {
 
         if (identityTenantUtil != null) {
             identityTenantUtil.close();
+        }
+        if (identityUtil != null) {
+            identityUtil.close();
         }
         if (componentHolderStatic != null) {
             componentHolderStatic.close();

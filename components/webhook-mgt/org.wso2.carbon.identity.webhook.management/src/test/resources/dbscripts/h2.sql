@@ -20,17 +20,45 @@ CREATE TABLE IF NOT EXISTS IDN_WEBHOOK (
 -- Table: IDN_WEBHOOK_CHANNELS
 CREATE TABLE IF NOT EXISTS IDN_WEBHOOK_CHANNELS (
     ID INTEGER NOT NULL AUTO_INCREMENT,
+    -- Matches the DDL of a fresh deployment. Tests of the insert used before the channel UUID migration drop
+    -- the NOT NULL constraint for their duration.
+    UUID VARCHAR(36) NOT NULL,
     WEBHOOK_ID INTEGER NOT NULL,
     CHANNEL_URI VARCHAR(255) NOT NULL,
     CHANNEL_SUBSCRIPTION_STATUS VARCHAR(30),
-    UNIQUE (WEBHOOK_ID, CHANNEL_URI),
     PRIMARY KEY (ID),
+    UNIQUE(UUID),
     UNIQUE(WEBHOOK_ID, CHANNEL_URI),
     CONSTRAINT FK_IDN_WEBHOOK_CHANNELS_WEBHOOKS
     FOREIGN KEY (WEBHOOK_ID)
     REFERENCES IDN_WEBHOOK(ID)
     ON DELETE CASCADE
     );
+
+-- Table: IDN_WEBHOOK_CHANNEL_ORG_SUB
+-- Which descendant organizations feed a given webhook channel.
+-- TOPIC_UUID and TOPIC are populated only under the PublisherSubscriber adapter; under the
+-- Publisher (HTTP) adapter no topics exist and both stay NULL.
+-- SUBSCRIBED_ORG_TENANT_ID drives publish-time resolution; SUBSCRIBED_ORG_ID serves the REST
+-- layer, which works in organization ids. The mapping between them is fixed at organization
+-- creation, so holding both is safe.
+CREATE TABLE IF NOT EXISTS IDN_WEBHOOK_CHANNEL_ORG_SUB (
+    CHANNEL_UUID VARCHAR(36) NOT NULL,
+    SUBSCRIBED_ORG_TENANT_ID INTEGER NOT NULL,
+    SUBSCRIBED_ORG_ID VARCHAR(36) NOT NULL,
+    TOPIC_UUID VARCHAR(36),
+    TOPIC VARCHAR(255),
+    PRIMARY KEY (CHANNEL_UUID, SUBSCRIBED_ORG_TENANT_ID),
+    CONSTRAINT FK_IDN_WEBHOOK_CHANNEL_ORG_SUB_CHANNELS
+    FOREIGN KEY (CHANNEL_UUID)
+    REFERENCES IDN_WEBHOOK_CHANNELS(UUID)
+    ON DELETE CASCADE
+    );
+
+-- The publish-time lookup. The primary key cannot serve it: SUBSCRIBED_ORG_TENANT_ID is the
+-- trailing key column, while publish-time resolution filters on it alone.
+CREATE INDEX IF NOT EXISTS IDX_IDN_WEBHOOK_CHANNEL_ORG_SUB_ORG
+    ON IDN_WEBHOOK_CHANNEL_ORG_SUB(SUBSCRIBED_ORG_TENANT_ID);
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS IDX_IDN_WEBHOOK_TENANT ON IDN_WEBHOOK(TENANT_ID);

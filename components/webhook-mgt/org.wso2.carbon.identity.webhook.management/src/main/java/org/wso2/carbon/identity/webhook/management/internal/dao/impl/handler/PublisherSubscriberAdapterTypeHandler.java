@@ -110,6 +110,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
                         .eventsSubscribed(subscriptions)
+                        .tenantId(webhook.getTenantId())
                         .build();
             }
         } else {
@@ -379,6 +380,20 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
 
+    /**
+     * Deliberately the same answer as {@link #getActiveWebhooks}: under the PublisherSubscriber
+     * adapter a descendant organization is reached by publishing to the owning organization's
+     * topic, and the hub fans out from there. Widening this list would make the adapter post the
+     * same event once per inherited webhook on top of the topic publish.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName, String eventProfileVersion,
+                                                           String channelUri, int tenantId)
+            throws WebhookMgtException {
+
+        return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+    }
+
     // --- Helper methods below ---
 
     private void ensureTopicsExistOrRegister(List<Subscription> events, String eventProfileName,
@@ -411,6 +426,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(base.getCreatedAt())
                 .updatedAt(base.getUpdatedAt())
                 .eventsSubscribed(updatedSubs)
+                .tenantId(base.getTenantId())
                 .build();
     }
 
