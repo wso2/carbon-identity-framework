@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionList
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -248,6 +249,24 @@ public class FlowExecutionEngineServiceComponent {
 
         LOG.debug("Unsetting the Claim Metadata Management Service in the Flow Engine component.");
         FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        LOG.debug("Setting the Organization Manager in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        LOG.debug("Unsetting the Organization Manager in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(null);
     }
 
     @Reference(

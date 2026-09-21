@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionList
 import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -49,6 +50,7 @@ public class FlowExecutionEngineDataHolder {
     private ApplicationManagementService applicationManagementService;
     private FederatedAssociationManager federatedAssociationManager;
     private IdentityEventService identityEventService;
+    private OrganizationManager organizationManager;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
     private FlowExecutionEngineDataHolder() {
@@ -253,5 +255,25 @@ public class FlowExecutionEngineDataHolder {
     public void setIdentityEventService(IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Get the organization manager.
+     *
+     * @return Organization manager.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Set the organization manager.
+     *
+     * @param organizationManager Organization manager.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
     }
 }
