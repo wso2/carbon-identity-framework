@@ -598,6 +598,15 @@
         <Cookie name="ALOR"/>
     </CookiesToInvalidate>
 
+    <SessionStorage>
+        <Type>redis</Type>
+        <Properties>
+            <Property name="hosts">redis-1:6379</Property>
+            <Property name="connection.timeout.millis">2000</Property>
+            <Property name="">ignored</Property>
+        </Properties>
+    </SessionStorage>
+
     <CircuitBreaker>
         <Enabled>true</Enabled>
         <TenantServiceCacheCapacity>2</TenantServiceCacheCapacity>
