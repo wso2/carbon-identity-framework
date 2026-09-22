@@ -193,6 +193,15 @@ public class SQLQueries {
     public static final String SQL_GET_APPS_FOR_SESSION_ID = "SELECT SUBJECT, APP_ID FROM IDN_AUTH_SESSION_APP_INFO " +
             "WHERE SESSION_ID = ?";
 
+    public static final String SQL_GET_APPS_FOR_SESSION_IDS = "SELECT SESSION_ID, SUBJECT, APP_ID FROM " +
+            "IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID IN (%s)";
+
+    public static final String SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_FOR_SESSION_IDS = "SELECT SESSION_ID, " +
+            "PROPERTY_TYPE, VALUE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (%s)";
+
+    public static final String SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_FOR_SESSION_IDS_H2 = "SELECT SESSION_ID, " +
+            "PROPERTY_TYPE, `VALUE` FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (%s)";
+
     /**
      * @deprecated Since the applications of a session are read through the application management service.
      */

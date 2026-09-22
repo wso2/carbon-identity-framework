@@ -78,12 +78,159 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private static final String IDN_AUTH_USER_SESSION_MAPPING_TABLE = "IDN_AUTH_USER_SESSION_MAPPING";
     private static final String IDN_AUTH_SESSION_APP_INFO_TABLE = "IDN_AUTH_SESSION_APP_INFO_TABLE";
     private static final String IDN_AUTH_SESSION_META_DATA_TABLE = "IDN_AUTH_SESSION_META_DATA";
+    private static final String COLUMN_SESSION_ID = "SESSION_ID";
     private static final String COLUMN_SUBJECT = "SUBJECT";
     private static final String COLUMN_APP_ID = "APP_ID";
 
     private static final int DEFAULT_DELETE_CHUNK_SIZE = 10000;
 
+    private static final int SESSION_ID_BATCH_SIZE = 500;
+
     private static volatile Integer deleteChunkSize;
+
+    @Override
+    public Map<String, UserSession> getSessions(List<String> sessionIds) throws SessionManagementServerException {
+
+        Map<String, UserSession> sessions = new HashMap<>();
+        if (sessionIds == null || sessionIds.isEmpty()) {
+            return sessions;
+        }
+        Map<String, List<Application>> applicationsBySession = new HashMap<>();
+        Map<String, Map<String, String>> propertiesBySession = new HashMap<>();
+        try {
+            for (int start = 0; start < sessionIds.size(); start += SESSION_ID_BATCH_SIZE) {
+                List<String> batch =
+                        sessionIds.subList(start, Math.min(start + SESSION_ID_BATCH_SIZE, sessionIds.size()));
+                if (log.isDebugEnabled()) {
+                    log.debug("Reading the applications and the metadata of " + batch.size() + " sessions.");
+                }
+                Map<String, List<Application>> applicationsOfBatch = new HashMap<>();
+                readApplicationsOfSessions(batch, applicationsOfBatch);
+                readPropertiesOfSessions(batch, propertiesBySession);
+                SessionMgtUtils.setApplicationDetails(applicationsOfBatch.values().stream()
+                        .flatMap(List::stream).collect(Collectors.toList()));
+                applicationsBySession.putAll(applicationsOfBatch);
+            }
+        } catch (DataAccessException e) {
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
+        }
+
+        applicationsBySession.values()
+                .forEach(applications -> applications.removeIf(application -> application.getAppName() == null));
+
+        applicationsBySession.forEach((sessionId, applications) -> {
+            if (applications.isEmpty()) {
+                return;
+            }
+            UserSession userSession = new UserSession();
+            userSession.setSessionId(sessionId);
+            setSessionProperties(userSession, propertiesBySession.get(sessionId));
+            userSession.setApplications(applications);
+            sessions.put(sessionId, userSession);
+        });
+        return sessions;
+    }
+
+    /**
+     * Read the applications of the given session IDs into the given map.
+     *
+     * @param sessionIds            Session IDs to read, at most {@link #SESSION_ID_BATCH_SIZE} of them.
+     * @param applicationsBySession Map to collect the applications into, keyed by session ID.
+     * @throws DataAccessException If the applications could not be read.
+     */
+    private void readApplicationsOfSessions(List<String> sessionIds,
+                                            Map<String, List<Application>> applicationsBySession)
+            throws DataAccessException {
+
+        String sqlStmt = String.format(SQLQueries.SQL_GET_APPS_FOR_SESSION_IDS, getPlaceholders(sessionIds.size()));
+        JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION).executeQuery(sqlStmt, (resultSet, rowNumber) -> {
+            applicationsBySession.computeIfAbsent(resultSet.getString(COLUMN_SESSION_ID), key -> new ArrayList<>())
+                    .add(new Application(resultSet.getString(COLUMN_SUBJECT), null,
+                            resultSet.getString(COLUMN_APP_ID), null));
+            return null;
+        }, preparedStatement -> bindSessionIds(preparedStatement, sessionIds));
+    }
+
+    /**
+     * Read the metadata properties of the given session IDs into the given map.
+     *
+     * @param sessionIds          Session IDs to read, at most {@link #SESSION_ID_BATCH_SIZE} of them.
+     * @param propertiesBySession Map to collect the properties into, keyed by session ID.
+     * @throws DataAccessException If the properties could not be read.
+     */
+    private void readPropertiesOfSessions(List<String> sessionIds,
+                                          Map<String, Map<String, String>> propertiesBySession)
+            throws DataAccessException {
+
+        String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
+                ? SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_FOR_SESSION_IDS_H2
+                : SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_FOR_SESSION_IDS;
+        sqlStmt = String.format(sqlStmt, getPlaceholders(sessionIds.size()));
+        JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION).executeQuery(sqlStmt, (resultSet, rowNumber) -> {
+            propertiesBySession.computeIfAbsent(resultSet.getString(1), key -> new HashMap<>())
+                    .put(resultSet.getString(2), resultSet.getString(3));
+            return null;
+        }, preparedStatement -> bindSessionIds(preparedStatement, sessionIds));
+    }
+
+    /**
+     * Bind the given session IDs as the parameters of the given statement, in order.
+     *
+     * @param preparedStatement Statement to bind to.
+     * @param sessionIds        Session IDs to bind.
+     * @throws SQLException If a parameter could not be set.
+     */
+    private void bindSessionIds(PreparedStatement preparedStatement, List<String> sessionIds) throws SQLException {
+
+        int index = 1;
+        for (String sessionId : sessionIds) {
+            preparedStatement.setString(index++, sessionId);
+        }
+    }
+
+    /**
+     * Build the parameter placeholders of an IN clause of the given size.
+     *
+     * @param count Number of placeholders.
+     * @return The placeholders, comma separated.
+     */
+    private String getPlaceholders(int count) {
+
+        return String.join(", ", Collections.nCopies(count, "?"));
+    }
+
+    /**
+     * Set the metadata properties of a session on the session object.
+     *
+     * @param userSession   Session to set the properties on.
+     * @param propertiesMap Properties of the session, which may be null when it has none.
+     */
+    private void setSessionProperties(UserSession userSession, Map<String, String> propertiesMap) {
+
+        if (propertiesMap == null) {
+            return;
+        }
+        propertiesMap.forEach((key, value) -> {
+            switch (key) {
+                case SessionMgtConstants.USER_AGENT:
+                    userSession.setUserAgent(value);
+                    break;
+                case SessionMgtConstants.IP_ADDRESS:
+                    userSession.setIp(value);
+                    break;
+                case SessionMgtConstants.LAST_ACCESS_TIME:
+                    userSession.setLastAccessTime(value);
+                    break;
+                case SessionMgtConstants.LOGIN_TIME:
+                    userSession.setLoginTime(value);
+                    break;
+                default:
+                    break;
+            }
+        });
+    }
 
     @Override
     public UserSession getSession(String sessionId) throws SessionManagementServerException {
@@ -387,12 +534,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
     private List<Application> getApplicationsForSessionID(String sessionId) throws DataAccessException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
-        return jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APPS_FOR_SESSION_ID,
-                (resultSet, rowNumber) ->
-                        new Application(resultSet.getString(COLUMN_SUBJECT),
-                                null, resultSet.getString(COLUMN_APP_ID), null),
-                preparedStatement -> preparedStatement.setString(1, sessionId));
+        Map<String, List<Application>> applicationsBySession = new HashMap<>();
+        readApplicationsOfSessions(Collections.singletonList(sessionId), applicationsBySession);
+        return applicationsBySession.getOrDefault(sessionId, new ArrayList<>());
     }
 
     /**
