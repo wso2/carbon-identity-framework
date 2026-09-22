@@ -1939,8 +1939,7 @@ public class InputValidationServiceTest {
         Assert.assertNotEquals(futureResponse.getErrorCode(), invalidResponse.getErrorCode());
     }
 
-    @Test(dataProvider = "organizationFieldProvider",
-            description = "Core organization fields are routed onto their own field on the flow organization.")
+    @Test(dataProvider = "organizationFieldProvider")
     public void testCoreOrganizationFieldsAreRouted(String identifier, String value) throws Exception {
 
         FlowExecutionContext context = organizationFlowContext(identifier);
@@ -1970,7 +1969,7 @@ public class InputValidationServiceTest {
         };
     }
 
-    @Test(description = "An organization input that is not a core field is kept as a custom attribute.")
+    @Test
     public void testCustomOrganizationAttributeIsRouted() throws Exception {
 
         FlowExecutionContext context = organizationFlowContext("industry");
@@ -1982,7 +1981,7 @@ public class InputValidationServiceTest {
         Assert.assertNull(context.getFlowOrganization().getOrganizationName());
     }
 
-    @Test(description = "Routing is driven by identifierType, not by the identifier name.")
+    @Test
     public void testInputWithoutOrganizationIdentifierTypeIsNotRouted() throws Exception {
 
         FlowExecutionContext context = initiateFlowContext();
@@ -2002,7 +2001,7 @@ public class InputValidationServiceTest {
                 "An untyped organization-like input must not be stored as a custom attribute either.");
     }
 
-    @Test(description = "A declared organization identifier type wins over a claim URI shaped identifier.")
+    @Test
     public void testOrganizationIdentifierTypeWinsOverClaimUriPrefix() throws Exception {
 
         String claimShapedIdentifier = CLAIM_URI_PREFIX + "organization";
@@ -2021,7 +2020,7 @@ public class InputValidationServiceTest {
                 "Organization data stored on the user would be persisted to their profile.");
     }
 
-    @Test(description = "Organization fields nested inside a form component are still resolved.")
+    @Test
     public void testNestedComponentIdentifierTypesAreResolved() throws Exception {
 
         FlowExecutionContext context = initiateFlowContext();
@@ -2040,7 +2039,7 @@ public class InputValidationServiceTest {
         Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
     }
 
-    @Test(description = "Identifiers are resolved across every step, not only the step being executed.")
+    @Test
     public void testIdentifierTypesAreResolvedAcrossAllSteps() throws Exception {
 
         FlowExecutionContext context = initiateFlowContext();
@@ -2059,7 +2058,7 @@ public class InputValidationServiceTest {
         Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
     }
 
-    @Test(description = "A flow with no graph config must not fail input validation.")
+    @Test
     public void testMissingGraphConfigIsTolerated() throws Exception {
 
         FlowExecutionContext context = initiateFlowContext();
