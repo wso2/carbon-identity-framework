@@ -195,6 +195,8 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUse
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL_ORACLE;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.GET_FILTERED_SHARED_APPLICATIONS;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.APP_FILTER_PLACEHOLDER;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.APP_ID_LIST_PLACEHOLDER;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID;
@@ -6545,7 +6547,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             return Collections.emptyList();
         }
         String placeholders = String.join(", ", Collections.nCopies(appIds.length, "?"));
-        String query = String.format(ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_IDS, placeholders);
+        String query = ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_IDS
+                .replace(APP_ID_LIST_PLACEHOLDER, placeholders);
         List<ApplicationBasicInfo> result = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = connection.prepareStatement(query)) {
@@ -6568,7 +6571,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public List<ApplicationBasicInfo> getApplicationBasicInfos(String filterClause, List<Object> filterParams)
             throws IdentityApplicationManagementException {
 
-        String query = String.format(ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_FILTER, filterClause);
+        String query = ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_FILTER
+                .replace(APP_FILTER_PLACEHOLDER, filterClause);
         List<ApplicationBasicInfo> result = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = connection.prepareStatement(query)) {
