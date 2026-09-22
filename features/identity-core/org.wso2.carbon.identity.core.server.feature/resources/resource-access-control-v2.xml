@@ -2426,9 +2426,16 @@
     <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/oid4vci/nonce" secured="false" http-method="POST"/>
     <!-- OpenID4VP Protocol Endpoints -->
-    <Resource context="(.*)/openid4vp/v1/request/(.*)" secured="false" http-method="GET"/>
-    <Resource context="(.*)/openid4vp/v1/response" secured="false" http-method="POST"/>
-    <Resource context="(.*)/openid4vp/v1/status" secured="false" http-method="GET"/>
+    <Resource context="(.*)/oid4vp/requests/(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/oid4vp/responses" secured="false" http-method="POST"/>
+    <Resource context="(.*)/oid4vp/verification-sessions/(.*)/status" secured="false" http-method="GET"/>
+    <!-- OpenID4VP Verification Sessions API -->
+    <Resource context="(.*)/oid4vp/verification-sessions" secured="true" http-method="POST">
+        <Scopes>internal_vc_verification_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/oid4vp/verification-sessions/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_vc_verification_view</Scopes>
+    </Resource>
     <!-- Presentation Definition Management API -->
     <Resource context="(.*)/api/server/v1/openid4vp/presentation-definitions(.*)" secured="true" http-method="GET">
         <Scopes>internal_presentation_definition_view</Scopes>
@@ -2442,14 +2449,6 @@
     <Resource context="(.*)/api/server/v1/openid4vp/presentation-definitions(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_presentation_definition_delete</Scopes>
     </Resource>
-    <!-- VC Verification API -->
-    <Resource context="(.*)/api/server/v1/openid4vp/vc-verifications" secured="true" http-method="POST">
-        <Scopes>internal_vc_verification_create</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/openid4vp/vc-verifications/(.*)" secured="true" http-method="GET">
-        <Scopes>internal_vc_verification_view</Scopes>
-    </Resource>
-    
 
     <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
     <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">

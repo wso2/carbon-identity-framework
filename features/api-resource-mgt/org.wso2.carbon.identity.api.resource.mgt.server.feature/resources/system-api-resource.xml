@@ -3058,7 +3058,7 @@
         </Scopes>
     </APIResource>
     <!-- VC Verification API -->
-    <APIResource name="VC Verification API" identifier="/api/server/v1/openid4vp/vc-verifications"
+    <APIResource name="VC Verification API" identifier="/oid4vp/verification-sessions"
                  requiresAuthorization="true"
                  description="API for standalone VC Verification" type="TENANT">
         <Scopes>
