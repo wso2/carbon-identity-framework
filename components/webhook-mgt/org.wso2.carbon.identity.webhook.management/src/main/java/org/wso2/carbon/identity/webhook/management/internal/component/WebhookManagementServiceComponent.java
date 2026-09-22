@@ -28,6 +28,8 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.sharing.policy.management.ResourceSharingPolicyHandlerService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
@@ -87,6 +89,47 @@ public class WebhookManagementServiceComponent {
         } catch (Throwable e) {
             LOG.error("Error while deactivating WebhookManagementService", e);
         }
+    }
+
+    @Reference(
+            name = "organization.manager.service.component",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("OrganizationManager set in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("OrganizationManager unset in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    @Reference(
+            name = "resource.sharing.policy.handler.service.component",
+            service = ResourceSharingPolicyHandlerService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetResourceSharingPolicyHandlerService"
+    )
+    protected void setResourceSharingPolicyHandlerService(
+            ResourceSharingPolicyHandlerService resourceSharingPolicyHandlerService) {
+
+        WebhookManagementComponentServiceHolder.getInstance()
+                .setResourceSharingPolicyHandlerService(resourceSharingPolicyHandlerService);
+        LOG.debug("ResourceSharingPolicyHandlerService set in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    protected void unsetResourceSharingPolicyHandlerService(
+            ResourceSharingPolicyHandlerService resourceSharingPolicyHandlerService) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setResourceSharingPolicyHandlerService(null);
+        LOG.debug("ResourceSharingPolicyHandlerService unset in WebhookManagementComponentServiceHolder bundle.");
     }
 
     @Reference(
