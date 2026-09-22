@@ -80,6 +80,8 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private static final String IDN_AUTH_USER_SESSION_MAPPING_TABLE = "IDN_AUTH_USER_SESSION_MAPPING";
     private static final String IDN_AUTH_SESSION_APP_INFO_TABLE = "IDN_AUTH_SESSION_APP_INFO_TABLE";
     private static final String IDN_AUTH_SESSION_META_DATA_TABLE = "IDN_AUTH_SESSION_META_DATA";
+    private static final String COLUMN_SUBJECT = "SUBJECT";
+    private static final String COLUMN_APP_ID = "APP_ID";
 
     private static final int DEFAULT_DELETE_CHUNK_SIZE = 10000;
 
@@ -390,8 +392,8 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
         return jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APPS_FOR_SESSION_ID,
                 (resultSet, rowNumber) ->
-                        new Application(resultSet.getString("SUBJECT"),
-                                null, resultSet.getString("APP_ID"), null),
+                        new Application(resultSet.getString(COLUMN_SUBJECT),
+                                null, resultSet.getString(COLUMN_APP_ID), null),
                 preparedStatement -> preparedStatement.setString(1, sessionId));
     }
 
@@ -479,19 +481,15 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     public boolean isExistingMapping(String userId, String sessionId) throws UserSessionException {
 
         boolean isExisting = false;
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
-            try (PreparedStatement preparedStatement = connection
-                    .prepareStatement(SQLQueries.SQL_SELECT_USER_SESSION_MAP)) {
-                preparedStatement.setString(1, userId);
-                preparedStatement.setString(2, sessionId);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if (resultSet.next()) {
-                        isExisting = true;
-                    }
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
+             PreparedStatement preparedStatement = connection
+                     .prepareStatement(SQLQueries.SQL_SELECT_USER_SESSION_MAP)) {
+            preparedStatement.setString(1, userId);
+            preparedStatement.setString(2, sessionId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    isExisting = true;
                 }
-            } catch (SQLException e1) {
-                throw new UserSessionException("Error while retrieving existing mapping between user Id: " + userId
-                        + " and session Id: " + sessionId, e1);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving existing mapping between user Id: " + userId

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -521,9 +521,10 @@ public interface ApplicationDAO {
     }
 
     /**
-     * Retrieve the basic information of the applications of the given identifiers, of any tenant.
+     * Retrieve the basic information of the applications of the given identifiers.
      *
-     * @param appIds Application identifiers.
+     * @param appIds Application identifiers, i.e. the auto incremented {@code ID} column values of the
+     *               {@code SP_APP} table.
      * @return the basic information of the matching applications.
      * @throws IdentityApplicationManagementException if the applications could not be retrieved.
      */
@@ -534,8 +535,8 @@ public interface ApplicationDAO {
     }
 
     /**
-     * Retrieve the basic information of the applications of the given tenant, and of the SaaS applications,
-     * whose name matches the given filter.
+     * Retrieve the basic information of the applications, and of the SaaS applications, whose name matches
+     * the given filter.
      *
      * @param filterClause Filter clause of the query, with {@code ?} placeholders for its values.
      * @param filterParams Values of the filter clause, in the order of their placeholders.

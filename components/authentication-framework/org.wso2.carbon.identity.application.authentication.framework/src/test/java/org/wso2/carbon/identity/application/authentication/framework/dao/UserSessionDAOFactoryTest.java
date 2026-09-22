@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.dao;
 
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -57,29 +58,25 @@ public class UserSessionDAOFactoryTest {
         registeredDAOs.clear();
     }
 
-    /**
-     * A deployment that does not configure the session storage keeps the relational DAO, without
-     * needing anything to be registered.
-     */
-    @Test
-    public void testUnconfiguredStoreResolvesToTheRelationalDAO() {
+    @DataProvider(name = "relationalStoreConfigurations")
+    public Object[][] relationalStoreConfigurations() {
 
-        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
-            identityUtil.when(() -> IdentityUtil.getProperty(SESSION_STORAGE_TYPE_PROPERTY)).thenReturn(null);
-
-            assertTrue(UserSessionDAOFactory.getUserSessionDAO() instanceof UserSessionDAOImpl);
-        }
+        return new Object[][]{
+                {null},
+                {"JDBC"}
+        };
     }
 
     /**
-     * The relational store configured by name resolves to the relational DAO as well, even though
-     * nothing registers it.
+     * An unconfigured session storage, or the relational store configured by name, resolves to the
+     * relational DAO, without needing anything to be registered.
      */
-    @Test
-    public void testJdbcStoreResolvesToTheRelationalDAO() {
+    @Test(dataProvider = "relationalStoreConfigurations")
+    public void testUnconfiguredOrJdbcStoreResolvesToTheRelationalDAO(String configuredStoreName) {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
-            identityUtil.when(() -> IdentityUtil.getProperty(SESSION_STORAGE_TYPE_PROPERTY)).thenReturn("JDBC");
+            identityUtil.when(() -> IdentityUtil.getProperty(SESSION_STORAGE_TYPE_PROPERTY))
+                    .thenReturn(configuredStoreName);
 
             assertTrue(UserSessionDAOFactory.getUserSessionDAO() instanceof UserSessionDAOImpl);
         }

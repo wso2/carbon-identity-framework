@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Appli
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -45,6 +45,9 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.wso2.carbon.identity.base.IdentityConstants.SESSION_STORAGE_CONFIG;
+import static org.wso2.carbon.identity.base.IdentityConstants.SESSION_STORAGE_TYPE;
 
 /**
  * Utility methods for session store related operations.
@@ -58,8 +61,7 @@ public class SessionMgtUtils {
 
     public static final String DEFAULT_SESSION_STORE_NAME = "jdbc";
 
-    private static final String SESSION_STORAGE_TYPE_PROPERTY =
-            IdentityConstants.SESSION_STORAGE_CONFIG + "." + IdentityConstants.SESSION_STORAGE_TYPE;
+    private static final String SESSION_STORAGE_TYPE_PROPERTY = SESSION_STORAGE_CONFIG + "." + SESSION_STORAGE_TYPE;
 
     /**
      * Returns the name of the configured session store, normalized to lower case.
@@ -517,14 +519,18 @@ public class SessionMgtUtils {
             appIds.add(application.getAppId());
         }
         Map<String, Application> records = getApplicationsByIds(appIds);
-        for (Application application : applications) {
+        Iterator<Application> iterator = applications.iterator();
+        while (iterator.hasNext()) {
+            Application application = iterator.next();
             Application record = records.get(application.getAppId());
             if (record != null) {
                 application.setAppName(record.getAppName());
                 application.setResourceId(record.getResourceId());
             }
+            if (application.getAppName() == null) {
+                iterator.remove();
+            }
         }
-        applications.removeIf(application -> application.getAppName() == null);
     }
 
     /**

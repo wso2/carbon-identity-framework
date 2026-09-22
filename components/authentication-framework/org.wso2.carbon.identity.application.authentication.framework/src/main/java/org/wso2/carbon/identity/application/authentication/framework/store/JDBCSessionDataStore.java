@@ -854,7 +854,8 @@ public class JDBCSessionDataStore extends SessionDataStore {
         if (sessionDataCleanupEnabled) {
             removeExpiredSessionData(sqlDeleteExpiredDataTask);
         }
-        if (tempDataCleanupEnabled && periodicTempDataCleanupEnabled) {
+        if (tempDataCleanupEnabled && periodicTempDataCleanupEnabled
+                && StringUtils.isNotBlank(sqlDeleteExpiredDataTask)) {
             removeExpiredSessionData(replaceTableName(sqlDeleteExpiredDataTask));
         }
         if (operationDataCleanupEnabled) {

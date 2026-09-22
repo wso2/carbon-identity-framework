@@ -250,7 +250,7 @@ public abstract class SessionDataStore {
     }
 
     /**
-     * @deprecated Now handled as part of {@link #removeExpiredSessionData()} (IDENTITY-5131).
+     * @deprecated Since this is now handled as part of {@link #removeExpiredSessionData()} (IDENTITY-5131).
      */
     @Deprecated
     public void removeExpiredOperationData() {

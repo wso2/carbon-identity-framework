@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * Reads and writes the authentication user records of {@code IDN_AUTH_USER}, which stay in the relational
  * identity store regardless of the configured session store.

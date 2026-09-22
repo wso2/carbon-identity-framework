@@ -76,28 +76,7 @@
         <SkipClaimMetadataPersistence>{{identity_data_source.skip_claim_metadata_persistence}}</SkipClaimMetadataPersistence>
     </JDBCPersistenceManager>
 
-    <!--
-    Where authentication session data is stored. Left out, sessions are stored in the identity database
-    by the relational store, which is what every deployment that does not configure this uses.
-
-    "Type" names a session store implementation registered as an OSGi service, matched case
-    insensitively. "Properties" carries the settings of that implementation: the names are defined by
-    the store rather than by the server, so they are passed to it as they are written here, and a value
-    can be a secure vault alias like any other value of this file.
-
-    An example that selects a Redis store and configures its connection:
-
-        [session_storage]
-        type = "redis"
-
-        [session_storage.properties]
-        hosts = "redis-1:6379,redis-2:6379"
-        enable = true
-        "connection.timeout.millis" = 2000
-
-    A property name carrying a dot has to be quoted in deployment.toml, as an unquoted one is read as a
-    nested table rather than as a name.
-    -->
+    <!-- A property name carrying a dot has to be quoted in deployment.toml. -->
     {% if session_storage.type is defined %}
     <SessionStorage>
         <Type>{{session_storage.type}}</Type>
