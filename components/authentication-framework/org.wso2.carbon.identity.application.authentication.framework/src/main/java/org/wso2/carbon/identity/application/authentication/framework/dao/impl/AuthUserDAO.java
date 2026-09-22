@@ -19,18 +19,20 @@
 package org.wso2.carbon.identity.application.authentication.framework.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -70,35 +72,17 @@ public class AuthUserDAO {
     public void storeUserData(String userId, String userName, int tenantId, String userDomain, int idPId)
             throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
-            try (PreparedStatement ps = connection.prepareStatement(SQLQueries.SQL_INSERT_USER_STORE_OPERATION)) {
-                ps.setString(1, userId);
-                ps.setString(2, userName);
-                ps.setInt(3, tenantId);
-                ps.setString(4, userDomain == null ? FEDERATED_USER_DOMAIN : userDomain.toUpperCase());
-                ps.setInt(5, idPId);
-                ps.executeUpdate();
-                IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw new DuplicatedAuthUserException("Error when store user data.", e);
-            }
-        } catch (SQLIntegrityConstraintViolationException e) {
-            throw new DuplicatedAuthUserException(
-                    "Duplicated user entry found in IDN_AUTH_USER table. Username: " + userName +
-                    " Tenant Id: " + tenantId + " User Store Domain: " + userDomain +
-                    " Identity Provider Id: " + idPId, e);
-        } catch (SQLException e) {
-            if (StringUtils.containsIgnoreCase(e.getMessage(), "USER_STORE_CONSTRAINT")) {
-                throw new DuplicatedAuthUserException(
-                        "Duplicated user entry found in IDN_AUTH_USER table. Username: " + userName +
-                        " Tenant Id: " + tenantId + " User Store Domain: " + userDomain +
-                        " Identity Provider Id: " + idPId, e);
-            }
-            throw new UserSessionException(
-                    "Error while storing authenticated user details to the database table IDN_AUTH_USER_STORE " +
-                    "of user: " + userName + ", Tenant Id: " + tenantId + ", User domain: " + userDomain +
-                    ", Identity provider id: " + idPId, e);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        try {
+            jdbcTemplate.executeUpdate(SQLQueries.SQL_INSERT_USER_STORE_OPERATION, preparedStatement -> {
+                preparedStatement.setString(1, userId);
+                preparedStatement.setString(2, userName);
+                preparedStatement.setInt(3, tenantId);
+                preparedStatement.setString(4, userDomain == null ? FEDERATED_USER_DOMAIN : userDomain.toUpperCase());
+                preparedStatement.setInt(5, idPId);
+            });
+        } catch (DataAccessException e) {
+            throw new DuplicatedAuthUserException("Error when store user data.", e);
         }
     }
 
@@ -115,24 +99,22 @@ public class AuthUserDAO {
     public String getUserId(String userName, int tenantId, String userDomain, int idPId)
             throws UserSessionException {
 
-        String userId = null;
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
-             PreparedStatement ps = connection.prepareStatement(SQLQueries.SQL_SELECT_USER_ID)) {
-            ps.setString(1, userName);
-            ps.setInt(2, tenantId);
-            ps.setString(3, userDomain == null ? FEDERATED_USER_DOMAIN : userDomain.toUpperCase());
-            ps.setInt(4, idPId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    userId = rs.getString(1);
-                }
-            }
-        } catch (SQLException e) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        try {
+            return jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_SELECT_USER_ID,
+                    (resultSet, rowNumber) -> resultSet.getString(1),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, userName);
+                        preparedStatement.setInt(2, tenantId);
+                        preparedStatement.setString(3, userDomain == null ? FEDERATED_USER_DOMAIN :
+                                userDomain.toUpperCase());
+                        preparedStatement.setInt(4, idPId);
+                    });
+        } catch (DataAccessException e) {
             throw new UserSessionException(
                     "Error while retrieving User Id of the user: " + userName + ", Tenant Id: " + tenantId +
                     ", User domain: " + userDomain + ", Identity provider id: " + idPId, e);
         }
-        return userId;
     }
 
     /**
@@ -144,20 +126,15 @@ public class AuthUserDAO {
      */
     public boolean isExistingUser(String userId) throws UserSessionException {
 
-        boolean isExisting = false;
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
-             PreparedStatement ps = connection.prepareStatement(SQLQueries.SQL_SELECT_INFO_OF_USER_ID)) {
-            ps.setString(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    isExisting = true;
-                }
-            }
-        } catch (SQLException e) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        try {
+            return jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_SELECT_INFO_OF_USER_ID,
+                    (resultSet, rowNumber) -> resultSet.getString(1),
+                    preparedStatement -> preparedStatement.setString(1, userId)) != null;
+        } catch (DataAccessException e) {
             throw new UserSessionException(
                     "Error while retrieving information of user id: " + userId, e);
         }
-        return isExisting;
     }
 
     /**
@@ -208,17 +185,17 @@ public class AuthUserDAO {
         }
         String placeholder = String.join(", ", Collections.nCopies(userIds.size(), "?"));
         String query = SQLQueries.SQL_GET_IDP_IDS_BY_USER_ID_LIST.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
-             PreparedStatement ps = connection.prepareStatement(query)) {
-            for (int i = 0; i < userIds.size(); i++) {
-                ps.setString(i + 1, userIds.get(i));
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.put(rs.getString(COLUMN_USER_ID), Integer.toString(rs.getInt(COLUMN_IDP_ID)));
-                }
-            }
-        } catch (SQLException e) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        try {
+            jdbcTemplate.executeQuery(query,
+                    (resultSet, rowNumber) -> result.put(resultSet.getString(COLUMN_USER_ID),
+                            Integer.toString(resultSet.getInt(COLUMN_IDP_ID))),
+                    preparedStatement -> {
+                        for (int i = 0; i < userIds.size(); i++) {
+                            preparedStatement.setString(i + 1, userIds.get(i));
+                        }
+                    });
+        } catch (DataAccessException e) {
             throw new UserSessionException("Error while retrieving IDP IDs for user IDs.", e);
         }
         return result;
