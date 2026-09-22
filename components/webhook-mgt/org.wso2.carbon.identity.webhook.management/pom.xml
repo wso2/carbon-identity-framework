@@ -146,6 +146,8 @@
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.bean;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.event;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.handler;
