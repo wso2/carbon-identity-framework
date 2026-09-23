@@ -64,7 +64,7 @@ public class DeviceRegistrationServiceComponent {
                     new RegistrationFlowCompletionListener(),
                     null);
             LOG.debug("Device registration executor bundle activated.");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.error("Error while activating device registration executor bundle.", e);
         }
     }

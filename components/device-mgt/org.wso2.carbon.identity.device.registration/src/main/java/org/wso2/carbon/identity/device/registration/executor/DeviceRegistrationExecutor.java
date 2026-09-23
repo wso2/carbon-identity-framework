@@ -68,6 +68,8 @@ public class DeviceRegistrationExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(DeviceRegistrationExecutor.class);
 
+    private static final String POLICY_EVALUATION_FAILED = "Policy evaluation failed for policy: ";
+
     private final DeviceRegistrationDiagnosticLogger diagnosticLogger = new DeviceRegistrationDiagnosticLogger();
 
     @Override
@@ -305,7 +307,7 @@ public class DeviceRegistrationExecutor implements Executor {
             return response;
 
         } catch (DevicePolicyClientException e) {
-            diagnosticLogger.logRegistrationFailure("Policy evaluation failed for policy: " + policyName
+            diagnosticLogger.logRegistrationFailure(POLICY_EVALUATION_FAILED + policyName
                     + ": " + e.getMessage());
             ExecutorResponse response = new ExecutorResponse();
             response.setResult(STATUS_USER_ERROR);
@@ -314,8 +316,8 @@ public class DeviceRegistrationExecutor implements Executor {
             response.setErrorDescription(e.getDescription());
             return response;
         } catch (DevicePolicyException e) {
-            diagnosticLogger.logRegistrationFailure("Policy evaluation failed for policy: " + policyName);
-            LOG.error("Policy evaluation failed for policy: " + policyName, e);
+            diagnosticLogger.logRegistrationFailure(POLICY_EVALUATION_FAILED + policyName);
+            LOG.error(POLICY_EVALUATION_FAILED + policyName, e);
             ExecutorResponse response = new ExecutorResponse();
             response.setResult(STATUS_ERROR);
             response.setErrorCode(ErrorMessage.ERROR_WHILE_EVALUATING_POLICY.getCode());
