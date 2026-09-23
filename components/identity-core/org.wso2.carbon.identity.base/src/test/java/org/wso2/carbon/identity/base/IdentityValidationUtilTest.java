@@ -205,4 +205,29 @@ public class IdentityValidationUtilTest {
         //This may not have been deleted if testPatternExists(), or testRemovePattern() is failed
         IdentityValidationUtil.removePattern(SIMPLE_LETTERS_KEY);
     }
+    @Test
+    public void testPatternExistsWithNonExistentKey() {
+        assertFalse(IdentityValidationUtil.patternExists("NON_EXISTENT_PATTERN_KEY_12345"));
+    }
+
+    @Test
+    public void testPatternExistsWithNullKey() {
+        assertFalse(IdentityValidationUtil.patternExists(null));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAddPatternWithNullKey() {
+        IdentityValidationUtil.addPattern(null, "^[0-9]+$");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAddPatternWithNullRegex() {
+        IdentityValidationUtil.addPattern("SOME_KEY", null);
+    }
+
+    @Test
+    public void testRemovePatternWithNonExistentKey() {
+        IdentityValidationUtil.removePattern("NON_EXISTENT_KEY_XYZ");
+        assertFalse(IdentityValidationUtil.patternExists("NON_EXISTENT_KEY_XYZ"));
+    }
 }
