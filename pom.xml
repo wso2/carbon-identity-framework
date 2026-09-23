@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.11.203-SNAPSHOT</version>
+    <version>7.11.207-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -122,6 +122,7 @@
         <module>features/client-attestation-mgt</module>
         <module>features/trusted-app-mgt</module>
         <module>features/rule-mgt</module>
+        <module>features/device-mgt</module>
         <module>features/webhook-mgt</module>
         <module>features/action-mgt</module>
         <module>features/policy-mgt</module>

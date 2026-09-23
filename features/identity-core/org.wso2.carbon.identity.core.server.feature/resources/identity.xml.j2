@@ -73,6 +73,10 @@
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
             <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
         </PushedAuthReqCleanUp>
+        <DeviceTokenJtiCleanUp>
+            <Enable>{{device_token.cleanup.enable_expired_jti_cleanup}}</Enable>
+            <CleanUpPeriod>{{device_token.cleanup.clean_expired_jti_every}}</CleanUpPeriod>
+        </DeviceTokenJtiCleanUp>
         <SkipClaimMetadataPersistence>{{identity_data_source.skip_claim_metadata_persistence}}</SkipClaimMetadataPersistence>
     </JDBCPersistenceManager>
 
@@ -1663,6 +1667,9 @@
         <PromptSubjectClaimRequestedConsent>{{authentication.consent.subject.prompt}}</PromptSubjectClaimRequestedConsent>
         <!--Specify whether consent V2 API related functionalities should be enabled.-->
         <EnableV2API>{{consent_mgt.enable_v2_api}}</EnableV2API>
+        <!--Specify whether the existing active consents of the same subject, application and purpose should be
+        revoked when a new consent is added via the consent V2 API.-->
+        <RevokeActiveConsentsOnCreate>{{consent_mgt.revoke_active_consents_on_create}}</RevokeActiveConsentsOnCreate>
     </Consent>
 
     <SecurityTokenService>
@@ -1916,6 +1923,41 @@
             Supported versions : IS 7.0.0 onwards
         -->
         <EnableSpecCompliantEmailHandling>{{scim2.enable_spec_compliant_email_handling}}</EnableSpecCompliantEmailHandling>
+        <!--
+            Configuration to specify which claims should be blocked from being updating in the
+            SCIM2 /Me endpoint for better security and privacy.
+        -->
+        {% if scim2.me.blocked_claims is defined or scim2.me.extended_blocked_claims is defined %}
+        <Me>
+            <!--
+                List of claims that are blocked from being updating via SCIM2/Me endpoint.
+            -->
+            {% if scim2.me.blocked_claims is defined and scim2.me.blocked_claims|length %}
+            <BlockedClaims>
+                {% for claim in scim2.me.blocked_claims %}
+                <BlockedClaim>{{claim}}</BlockedClaim>
+                {% endfor %}
+            </BlockedClaims>
+            {% else %}
+            <BlockedClaims></BlockedClaims>
+            {% endif %}
+
+            <!--
+                Extended list of claims that are blocked from being updating via SCIM2/Me endpoint.
+                This provides additional blocking configuration for more granular control.
+                Default: Empty (no claims are blocked)
+            -->
+            {% if scim2.me.extended_blocked_claims is defined and scim2.me.extended_blocked_claims|length %}
+            <ExtendedBlockedClaims>
+                {% for claim in scim2.me.extended_blocked_claims %}
+                <ExtendedBlockedClaim>{{claim}}</ExtendedBlockedClaim>
+                {% endfor %}
+            </ExtendedBlockedClaims>
+            {% else %}
+            <ExtendedBlockedClaims></ExtendedBlockedClaims>
+            {% endif %}
+        </Me>
+        {% endif %}
     </SCIM2>
 
     <Captcha>

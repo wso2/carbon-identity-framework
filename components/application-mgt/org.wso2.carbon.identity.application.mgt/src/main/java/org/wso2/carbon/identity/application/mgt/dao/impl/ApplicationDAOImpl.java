@@ -224,6 +224,7 @@ import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements PaginatableFilterableApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
+    private static final String ERROR_CODE_CERTIFICATE_DOES_NOT_EXIST = "60001";
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
     private static final String UUID = "UUID";
     private static final String SPACE = " ";
@@ -629,8 +630,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         // you can change application name, description, isSasApp...
         updateBasicApplicationData(serviceProvider, connection);
 
-        updateApplicationCertificate(serviceProvider, tenantID);
-
         updateInboundProvisioningConfiguration(applicationId, serviceProvider.getInboundProvisioningConfig(),
                 connection);
 
@@ -672,8 +671,24 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         updateConfigurationsAsServiceProperties(serviceProvider);
         if (ArrayUtils.isNotEmpty(serviceProvider.getSpProperties())) {
             ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
-            updateServiceProviderProperties(connection, applicationId, Arrays.asList(spProperties), tenantID);
+            /*
+            The certificate reference property is deliberately left out here. The certificate record and its
+            reference property are written together by updateApplicationCertificate() below, so that the reference
+            is dropped when the certificate is removed, and points at the correct record otherwise.
+             */
+            List<ServiceProviderProperty> propertiesWithoutCertificateReference = Arrays.stream(spProperties)
+                    .filter(property -> !SP_PROPERTY_NAME_CERTIFICATE.equals(property.getName()))
+                    .toList();
+            updateServiceProviderProperties(connection, applicationId, propertiesWithoutCertificateReference,
+                    tenantID);
         }
+
+        /*
+        The certificate is updated as the very last step of the application update. The certificate management
+        service commits on its own connection, so anything that fails before this point rolls the application
+        update back without having touched the certificate record. See https://github.com/wso2/product-is/issues/28238
+         */
+        updateApplicationCertificate(connection, serviceProvider, tenantID);
 
         // Will be supported with 'Advance Consent Management Feature'.
             /*
@@ -796,26 +811,99 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * service provider and a reference is not available, create a new database record for the certificate and add the
      * reference to the given service provider object.
      *
+     * The certificate reference property is written here as well, on the connection of the ongoing application
+     * update transaction, because {@link #addApplicationConfigurations} skips it when writing the rest of the
+     * service provider properties. This keeps the reference property and the certificate record in step: the
+     * reference is written only for a certificate record that was just created or updated, and is left out
+     * altogether when the certificate is removed.
+     *
+     * @param connection      Connection of the ongoing application update transaction.
      * @param serviceProvider Service provider object.
      * @param tenantID        Tenant ID.
-     * @throws IdentityApplicationManagementException If an error occurs while updating the certificate.
+     * @throws IdentityApplicationManagementException If an error occurs while updating the certificate or while
+     *                                                writing the certificate reference.
      */
-    private void updateApplicationCertificate(ServiceProvider serviceProvider, int tenantID)
+    private void updateApplicationCertificate(Connection connection, ServiceProvider serviceProvider, int tenantID)
             throws IdentityApplicationManagementException {
 
         if (StringUtils.isBlank(serviceProvider.getCertificateContent())) {
             // Remove the certificate reference property if exists and remove the certificate.
             removeCertificateReferenceAndDelete(serviceProvider, tenantID);
-        } else {
-            String certificateReferenceIdString = getCertificateReferenceID(serviceProvider.getSpProperties());
-            if (certificateReferenceIdString != null) {
-                // If there is a reference, update the relevant existing certificate record.
-                updateCertificate(certificateReferenceIdString, serviceProvider.getCertificateContent(), tenantID);
-            } else {
-                // There is no existing reference. Persisting the certificate as a new record.
-                persistApplicationCertificate(serviceProvider, tenantID);
-            }
+            return;
         }
+
+        String certificateReferenceIdString = getCertificateReferenceID(serviceProvider.getSpProperties());
+        if (certificateReferenceIdString != null &&
+                updateCertificate(certificateReferenceIdString, serviceProvider.getCertificateContent(), tenantID)) {
+            /*
+            The existing certificate record was updated in place, hence the reference stays the same. Nothing has
+            to be compensated if the reference write fails: the application update rolls back and leaves the
+            reference it already had, still pointing at the same record.
+             */
+            try {
+                persistApplicationCertificateReference(connection, serviceProvider.getApplicationID(),
+                        certificateReferenceIdString, tenantID);
+            } catch (SQLException e) {
+                throw new IdentityApplicationManagementException("Error while persisting the certificate reference " +
+                        "of application: " + serviceProvider.getApplicationName(), e);
+            }
+        } else {
+            /*
+            Either there is no existing reference, or the reference is a dangling one left behind by an
+            application update that failed midway before this fix. Drop any such stale reference first, so that
+            persisting the certificate as a new record below does not leave the service provider carrying two
+            certificate reference properties.
+             */
+            removeCertificateReferenceProperty(serviceProvider);
+            persistApplicationCertificate(connection, serviceProvider, tenantID);
+        }
+    }
+
+    /**
+     * Removes the certificate reference property, if there is one, from the given service provider object. Unlike
+     * {@link #removeCertificateReferenceAndDelete}, the certificate record the property points at is left alone.
+     *
+     * @param serviceProvider Service provider object.
+     */
+    private void removeCertificateReferenceProperty(ServiceProvider serviceProvider) {
+
+        ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
+
+        if (spProperties == null) {
+            return;
+        }
+
+        OptionalInt certificateReferenceIdIndex = IntStream.range(0, spProperties.length)
+                .filter(index -> SP_PROPERTY_NAME_CERTIFICATE.equals(spProperties[index].getName()))
+                .findFirst();
+
+        if (certificateReferenceIdIndex.isPresent()) {
+            serviceProvider.setSpProperties(
+                    getFilteredSpProperties(spProperties, certificateReferenceIdIndex.getAsInt()));
+        }
+    }
+
+    /**
+     * Writes the certificate reference property of the given application on the connection of the ongoing
+     * application update transaction, so that it is committed or rolled back along with the rest of the update.
+     *
+     * @param connection             Connection of the ongoing application update transaction.
+     * @param applicationId          Application ID.
+     * @param certificateReferenceId ID of the certificate record the application refers to.
+     * @param tenantID               Tenant ID.
+     * @throws SQLException If an error occurs while writing the certificate reference property.
+     */
+    private void persistApplicationCertificateReference(Connection connection, int applicationId,
+                                                        String certificateReferenceId, int tenantID)
+            throws SQLException {
+
+        ServiceProviderProperty certificateReferenceProperty = new ServiceProviderProperty();
+        certificateReferenceProperty.setName(SP_PROPERTY_NAME_CERTIFICATE);
+        certificateReferenceProperty.setDisplayName(SP_PROPERTY_NAME_CERTIFICATE);
+        certificateReferenceProperty.setValue(certificateReferenceId);
+
+        addServiceProviderProperties(connection, applicationId,
+                Collections.singletonList(certificateReferenceProperty), tenantID);
     }
 
     /**
@@ -873,16 +961,30 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @param certificateId      Certificate ID.
      * @param certificateContent Certificate content to be updated.
      * @param tenantID           Tenant ID.
+     * @return True if the certificate record was updated, false if no certificate record exists for the given ID.
      * @throws IdentityApplicationManagementException If an error occurs while updating the certificate.
      */
-    private void updateCertificate(String certificateId, String certificateContent, int tenantID)
+    private boolean updateCertificate(String certificateId, String certificateContent, int tenantID)
             throws IdentityApplicationManagementException {
 
         try {
             ApplicationManagementServiceComponentHolder.getInstance().getApplicationCertificateMgtService()
                     .updateCertificateContent(Integer.parseInt(certificateId), certificateContent,
                             IdentityTenantUtil.getTenantDomain(tenantID));
+            return true;
         } catch (CertificateMgtClientException e) {
+            if (ERROR_CODE_CERTIFICATE_DOES_NOT_EXIST.equals(e.getErrorCode())) {
+                /*
+                The application carries a dangling certificate reference, which was possible before the certificate
+                update became the last step of the application update transaction. Rather than failing the update,
+                let the caller persist the certificate as a new record and replace the stale reference with it.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("No certificate found for the certificate reference id: " + certificateId +
+                            " in tenant id: " + tenantID + ". The certificate will be persisted as a new record.");
+                }
+                return false;
+            }
             throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
         } catch (CertificateMgtException e) {
             throw new IdentityApplicationManagementException("Error while updating certificate", e);
@@ -909,14 +1011,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Persists the certificate content of the given service provider object,
-     * and adds ID of the newly added certificate as a property of the service provider object.
+     * Persists the certificate content of the given service provider object, and adds ID of the newly added
+     * certificate as a property of the service provider object and of the application in the database.
      *
+     * @param connection      Connection of the ongoing application update transaction.
      * @param serviceProvider Service provider object.
      * @param tenantID        Tenant ID.
-     * @throws IdentityApplicationManagementException If an error occurs while adding the certificate.
+     * @throws IdentityApplicationManagementException If an error occurs while adding the certificate or while
+     *                                                writing the certificate reference.
      */
-    private void persistApplicationCertificate(ServiceProvider serviceProvider, int tenantID)
+    private void persistApplicationCertificate(Connection connection, ServiceProvider serviceProvider, int tenantID)
             throws IdentityApplicationManagementException {
 
         try {
@@ -937,11 +1041,57 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 newlyAddedCertificateID = getCertificateIDByName(serviceProvider.getApplicationName(), tenantID);
             }
             addApplicationCertificateReferenceAsServiceProviderProperty(serviceProvider, newlyAddedCertificateID);
+            persistNewCertificateReference(connection, serviceProvider, newlyAddedCertificateID, tenantID);
         } catch (CertificateMgtClientException e) {
             throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
         } catch (CertificateMgtException e) {
             throw new IdentityApplicationManagementServerException("Error while adding certificate for application: " +
                     serviceProvider.getApplicationName(), e);
+        }
+    }
+
+    /**
+     * Writes the reference to a certificate record that was just added for the given application. If the reference
+     * cannot be written, the certificate record is deleted again: it is committed on the certificate management
+     * service's own connection, so the rollback of the application update does not remove it, and it would
+     * otherwise be left behind as an orphan.
+     *
+     * @param connection      Connection of the ongoing application update transaction.
+     * @param serviceProvider Service provider object.
+     * @param certificateId   ID of the certificate record that was just added.
+     * @param tenantID        Tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while writing the certificate reference.
+     */
+    private void persistNewCertificateReference(Connection connection, ServiceProvider serviceProvider,
+                                                int certificateId, int tenantID)
+            throws IdentityApplicationManagementException {
+
+        try {
+            persistApplicationCertificateReference(connection, serviceProvider.getApplicationID(),
+                    String.valueOf(certificateId), tenantID);
+        } catch (SQLException e) {
+            deleteNewlyAddedCertificate(certificateId, serviceProvider.getApplicationName(), tenantID);
+            throw new IdentityApplicationManagementException("Error while persisting the certificate reference of " +
+                    "application: " + serviceProvider.getApplicationName(), e);
+        }
+    }
+
+    /**
+     * Deletes a certificate record that was added for an application whose update then failed, so that the failed
+     * update does not leave the record behind. A failure to delete is logged rather than thrown, so that it does
+     * not mask the failure that triggered the removal.
+     *
+     * @param certificateId   ID of the certificate record to delete.
+     * @param applicationName Name of the application the certificate was added for.
+     * @param tenantID        Tenant ID.
+     */
+    private void deleteNewlyAddedCertificate(int certificateId, String applicationName, int tenantID) {
+
+        try {
+            deleteCertificate(certificateId, IdentityTenantUtil.getTenantDomain(tenantID));
+        } catch (IdentityApplicationManagementException e) {
+            log.error("Error while deleting the certificate with id: " + certificateId + " added for application: " +
+                    applicationName + ". The certificate record is left behind without a reference to it.", e);
         }
     }
 
@@ -1960,6 +2110,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (certificate != null) {
                     return certificate.getCertificateContent();
                 }
+            } catch (CertificateMgtClientException e) {
+                if (ERROR_CODE_CERTIFICATE_DOES_NOT_EXIST.equals(e.getErrorCode())) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No certificate found for the certificate reference id: " +
+                                certificateReferenceId + " in tenant id: " + tenantID +
+                                ". Returning null as the certificate content.");
+                    }
+                    return null;
+                }
+                String errorMessage = "An error occurred while retrieving the certificate for the application.";
+                log.error(errorMessage);
+                throw new CertificateRetrievingException(errorMessage, e);
             } catch (CertificateMgtException e) {
                 String errorMessage = "An error occurred while retrieving the certificate for the application.";
                 log.error(errorMessage);
