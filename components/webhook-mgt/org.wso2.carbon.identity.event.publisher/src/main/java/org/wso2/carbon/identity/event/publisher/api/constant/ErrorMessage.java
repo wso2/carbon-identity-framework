@@ -38,7 +38,9 @@ public enum ErrorMessage {
     CONFIG_FILE_RETRIEVAL_ERROR("EVENTPUBLISHER-65005", "Error while retrieving the configuration file.",
             "Error while retrieving the configuration file: %s."),
     CONFIG_FILE_PERMISSION_DENIED("EVENTPUBLISHER-65006", "Permission denied while accessing the configuration file.",
-            "Permission denied while accessing the configuration file: %s.");
+            "Permission denied while accessing the configuration file: %s."),
+    ERROR_CODE_NO_PUBLISHER_FOR_PROFILE("EVENTPUBLISHER-65007", "No event publisher found for profile.",
+            "No event publisher is registered to handle the event profile: %s.");
 
     private final String code;
     private final String message;

@@ -29,8 +29,10 @@ import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisherService;
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
 import org.wso2.carbon.identity.event.publisher.internal.util.EventPublisherExceptionHandler;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the EventPublisherService interface.
@@ -47,12 +49,9 @@ public class EventPublisherServiceImpl implements EventPublisherService {
 
     private static final Log log = LogFactory.getLog(EventPublisherServiceImpl.class);
     private static final EventPublisherServiceImpl eventPublisherServiceImpl = new EventPublisherServiceImpl();
-    private final String webhookAdapter;
 
     private EventPublisherServiceImpl() {
 
-        webhookAdapter = EventPublisherComponentServiceHolder.getInstance()
-                .getWebhookAdapter().getName();
     }
 
     /**
@@ -68,7 +67,7 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
             throws EventPublisherException {
 
-        EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
+        EventPublisher adapterManager = resolveForProfile(eventContext.getEventProfileName());
 
         log.debug("Invoking registered event publisher: " + adapterManager.getClass().getName());
         adapterManager.publish(eventPayload, eventContext);
@@ -77,7 +76,7 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     @Override
     public boolean canHandleEvent(EventContext eventContext) throws EventPublisherException {
 
-        EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
+        EventPublisher adapterManager = resolveForProfile(eventContext.getEventProfileName());
 
         log.debug("Invoking canHandle method of event publisher: " + adapterManager.getClass().getName());
         try {
@@ -89,17 +88,21 @@ public class EventPublisherServiceImpl implements EventPublisherService {
         return false;
     }
 
-    private EventPublisher retrieveAdapterManager(String adapter) throws EventPublisherException {
+    private EventPublisher resolveForProfile(String eventProfileName) throws EventPublisherException {
 
-        List<EventPublisher> managers =
-                EventPublisherComponentServiceHolder.getInstance().getEventPublishers();
+        Set<String> currentActiveAdapterNames = EventPublisherComponentServiceHolder.getInstance()
+            .getCurrentActiveAdapters().stream()
+            .map(Adapter::getName)
+            .collect(Collectors.toSet());
 
-        for (EventPublisher manager : managers) {
-            if (adapter.equals(manager.getAssociatedAdapter())) {
-                return manager;
-            }
+    for (EventPublisher publisher : EventPublisherComponentServiceHolder.getInstance().getEventPublishers()) {
+        if (currentActiveAdapterNames.contains(publisher.getAssociatedAdapter())
+                && publisher.getSupportedEventProfiles().contains(eventProfileName)) {
+            return publisher;
         }
-
-        throw EventPublisherExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND);
     }
+    throw EventPublisherExceptionHandler.handleServerException(
+            ErrorMessage.ERROR_CODE_NO_PUBLISHER_FOR_PROFILE, eventProfileName);
+  }
+
 }

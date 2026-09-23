@@ -22,6 +22,9 @@ import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherExce
 import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
 import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayload;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * The EventPublisher interface.
  */
@@ -33,6 +36,15 @@ public interface EventPublisher {
      * @return Name of the event publisher.
      */
     String getAssociatedAdapter();
+
+    /**
+     * Retrieves the event profiles supported by this event publisher.
+     *
+     * @return List of supported event profile names.
+     */
+    default List<String> getSupportedEventProfiles() {
+        return Collections.emptyList();
+    }
 
     /**
      * Publish a given event to the intermediate hub.
