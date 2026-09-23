@@ -18,9 +18,13 @@
 
 package org.wso2.carbon.identity.webhook.management.api.service;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.ChannelSubscribedOrganizations;
+import org.wso2.carbon.identity.webhook.management.api.model.SubscriptionPolicy;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookChannel;
 
 import java.util.List;
 
@@ -80,6 +84,38 @@ public interface WebhookManagementService {
     List<Webhook> getWebhooks(String tenantDomain) throws WebhookMgtException;
 
     /**
+     * Get a page of webhooks for a tenant.
+     * <p>
+     * Ordering is stable across calls, so paging through the collection visits every webhook once as long as
+     * the collection itself does not change. Pair with {@link #getWebhooksCount(String)} to report the full
+     * size alongside a page; the size is not derivable from a page.
+     *
+     * @param offset       Number of records to skip. Must not be negative.
+     * @param limit        Maximum number of records to return. Must be greater than zero.
+     * @param tenantDomain Tenant domain.
+     * @return Webhooks in the requested window, empty when the offset is past the end of the collection.
+     * @throws WebhookMgtException If the paging arguments are invalid, or an error occurs while retrieving
+     *                             webhooks.
+     */
+    default List<Webhook> getWebhooks(int offset, int limit, String tenantDomain)
+            throws WebhookMgtException, NotImplementedException {
+
+        throw new NotImplementedException("getWebhooks method is not implemented.");
+    }
+
+    /**
+     * Get the total number of webhooks for a tenant, independent of any page window.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Number of webhooks configured for the tenant.
+     * @throws WebhookMgtException If an error occurs while counting webhooks.
+     */
+    default int getWebhooksCount(String tenantDomain) throws WebhookMgtException, NotImplementedException {
+
+        throw new NotImplementedException("getWebhooksCount method is not implemented.");
+    }
+
+    /**
      * Get webhook events by webhook ID.
      *
      * @param webhookId    Webhook subscription ID.
@@ -131,4 +167,106 @@ public interface WebhookManagementService {
      */
     List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
                                     String tenantDomain) throws WebhookMgtException;
+
+    /**
+     * Retrieve every channel of a webhook, in one call.
+     * <p>
+     * Each entry carries the channel's URI, its stable id, the webhook's subscription status for it and its
+     * organization subscription policy -- enough to render a webhook without a request per channel. The
+     * subscribed organizations themselves are not included; they are read from the channel organizations
+     * sub-resource, which resolves names and parents and is paginated.
+     *
+     * @param webhookId    Webhook UUID.
+     * @param tenantDomain Tenant domain of the webhook-owning organization.
+     * @return One entry per channel, empty when the webhook has no channels.
+     * @throws WebhookMgtException If the channels cannot be retrieved.
+     */
+    default List<WebhookChannel> getWebhookChannels(String webhookId, String tenantDomain)
+            throws WebhookMgtException, NotImplementedException {
+
+        throw new NotImplementedException("getWebhookChannels method is not implemented.");
+    }
+    /**
+     * Resolve the issuer identifier of the organization that transmits events for a webhook.
+     * <p>
+     * A Security Event Token names its transmitter in {@code iss}, and the transmitter is the
+     * organization that owns the webhook -- not the organization the event was raised in. An event
+     * raised in a descendant and delivered to an ancestor's webhook is transmitted by that ancestor.
+     * <p>
+     * Root organizations resolve to {@code /t/<tenant domain>}; a sub-organization resolves to
+     * {@code /t/<root tenant domain>/o/<organization id>}.
+     *
+     * @param tenantId Tenant owning the webhook.
+     * @return Absolute issuer URL of the transmitting organization.
+     * @throws WebhookMgtException If the organization cannot be resolved.
+     */
+    default String resolveTransmitterIssuer(int tenantId) throws WebhookMgtException, NotImplementedException {
+
+        throw new NotImplementedException("resolveTransmitterIssuer method is not implemented.");
+    }
+
+    /**
+     * Get a page of the organizations subscribed to a channel, together with the channel context that
+     * describes it.
+     * <p>
+     * The channel URI, the subscription policy, the total count and the page are read behind a single
+     * ownership check rather than one per value, and describe one moment rather than four.
+     *
+     * @param webhookId    Webhook UUID.
+     * @param channelId    Channel UUID.
+     * @param tenantDomain Tenant domain.
+     * @param offset       Number of organizations to skip.
+     * @param limit        Maximum number of organizations to return.
+     * @return The page and the channel context around it.
+     * @throws WebhookMgtException If the channel does not belong to the webhook, or the read fails.
+     */
+    default ChannelSubscribedOrganizations getChannelOrganizationSubscriptions(String webhookId, String channelId,
+                                                                              String tenantDomain, int offset,
+                                                                              int limit)
+            throws WebhookMgtException, NotImplementedException {
+
+        throw new NotImplementedException("getChannelOrganizationSubscriptions method is not implemented.");
+    }
+
+    /**
+     * Get a single channel of a webhook: its URI, the webhook's subscription status for it, and the
+     * organization subscription policy in force for it.
+     * <p>
+     * Read behind a single ownership check rather than one per value, and describing one moment rather than
+     * several.
+     *
+     * @param webhookId    Webhook UUID.
+     * @param channelId    Channel UUID.
+     * @param tenantDomain Tenant domain.
+     * @return The channel and the subscription state around it.
+     * @throws WebhookMgtException If the channel does not belong to the webhook, or the read fails.
+     */
+    default WebhookChannel getWebhookChannel(String webhookId, String channelId, String tenantDomain)
+            throws WebhookMgtException, NotImplementedException {
+
+        throw new NotImplementedException("getWebhookChannel method is not implemented.");
+    }
+
+    /**
+     * Set the organization subscription of a webhook channel, replacing whatever is in force.
+     * <p>
+     * This is the only path that edits an organization subscription. It deliberately does not go
+     * through {@code updateWebhook}, which is unsupported on the PublisherSubscriber adapter, so
+     * the operation works on both adapters.
+     *
+     * @param webhookId       Webhook UUID.
+     * @param channelId       Channel UUID.
+     * @param policy          Policy to apply.
+     * @param organizationIds Organizations to subscribe. Required for
+     *                        {@link SubscriptionPolicy#SELECTED_ORGS_ONLY}, ignored otherwise.
+     * @param tenantDomain    Tenant domain of the webhook-owning organization.
+     * @throws WebhookMgtException If the channel does not belong to the webhook, or the policy
+     *                             cannot be applied.
+     */
+    default void updateChannelSubscription(String webhookId, String channelId, SubscriptionPolicy policy,
+                                           List<String> organizationIds, String tenantDomain)
+            throws WebhookMgtException, NotImplementedException {
+
+        throw new NotImplementedException("updateChannelSubscription method is not implemented.");
+    }
 }

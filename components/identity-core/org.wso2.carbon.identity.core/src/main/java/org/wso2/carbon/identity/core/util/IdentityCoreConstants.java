@@ -126,6 +126,8 @@ public class IdentityCoreConstants {
 
     // Webhook constants.
     public static final String MAXIMUM_WEBHOOKS_PER_TENANT_PROPERTY = "Webhooks.MaximumWebhooksPerTenant";
+    public static final String CHILD_ORGANIZATION_SUBSCRIPTION_ENABLED_PROPERTY =
+            "Webhooks.ChildOrganizationSubscriptionEnabled";
 
     // System application constants
     public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
@@ -137,6 +139,8 @@ public class IdentityCoreConstants {
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
 
     public static final int DEFAULT_MAXIMUM_WEBHOOKS_PER_TENANT = 10;
+
+    public static final boolean DEFAULT_CHILD_ORGANIZATION_SUBSCRIPTION_ENABLED = false;
 
     // Agentic AI constants
     public static final String AGENT_IDENTITY_ENABLE = "AgentIdentity.Enabled";
