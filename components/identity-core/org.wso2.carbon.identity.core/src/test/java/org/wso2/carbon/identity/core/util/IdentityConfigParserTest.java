@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2017-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -28,6 +28,7 @@ import org.wso2.securevault.SecretResolver;
 
 import javax.xml.namespace.QName;
 import java.nio.file.Paths;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -82,6 +83,17 @@ public class IdentityConfigParserTest {
     public void testGetReverseProxyConfigurationHolder() throws Exception {
         assertTrue(MapUtils.isNotEmpty(IdentityConfigParser.getReverseProxyConfigurationHolder()), "Reverse " +
                 "Proxy config holder should not be null/empty");
+    }
+
+    @Test(dependsOnMethods = "testGetInstance")
+    public void testGetSessionStorageProperties() throws Exception {
+        Map<String, String> properties = IdentityConfigParser.getSessionStorageProperties();
+        assertEquals(properties.get("hosts"), "redis-1:6379", "Session storage property should be read by its name");
+        assertEquals(properties.get("connection.timeout.millis"), "2000", "A property name carrying a dot should be " +
+                "kept as it is written");
+        assertEquals(properties.size(), 2, "A property without a name should be ignored");
+        assertEquals(IdentityConfigParser.getInstance().getConfiguration().get("SessionStorage.Type"), "redis",
+                "The session storage type should be read as a plain configuration value");
     }
 
     @DataProvider(name = "ConfigElementValues")

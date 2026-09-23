@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~  Copyright (c) 2017-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~  WSO2 Inc. licenses this file to you under the Apache License,
   ~  Version 2.0 (the "License"); you may not use this file except
@@ -597,6 +597,15 @@
         <Cookie name="sessionNonceCookie"/>
         <Cookie name="ALOR"/>
     </CookiesToInvalidate>
+
+    <SessionStorage>
+        <Type>redis</Type>
+        <Properties>
+            <Property name="hosts">redis-1:6379</Property>
+            <Property name="connection.timeout.millis">2000</Property>
+            <Property name="">ignored</Property>
+        </Properties>
+    </SessionStorage>
 
     <CircuitBreaker>
         <Enabled>true</Enabled>

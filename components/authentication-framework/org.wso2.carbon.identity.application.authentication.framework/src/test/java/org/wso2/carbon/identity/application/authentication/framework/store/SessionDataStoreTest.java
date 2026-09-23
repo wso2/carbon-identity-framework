@@ -121,7 +121,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
             mockCarbonContext(carbonContext);
             mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
             mockDataHolder(frameworkServiceDataHolder);
-            SessionDataStore.getInstance().persistSessionData(key, type, entry, nanoTime, tenantId);
+            JDBCSessionDataStore.getInstance().persistSessionData(key, type, entry, nanoTime, tenantId);
         }
     }
 
@@ -148,7 +148,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
                     sessionContextDO);
             mockCarbonContext(carbonContext);
             mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
-            Object sessionData = SessionDataStore.getInstance().getSessionData(key, type, operation);
+            Object sessionData = JDBCSessionDataStore.getInstance().getSessionData(key, type, operation);
             assertEquals(sessionData, obj);
         }
     }
@@ -176,7 +176,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
             mockCarbonContext(carbonContext);
             mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
             mockDataHolder(frameworkServiceDataHolder);
-            SessionDataStore.getInstance().removeSessionData(key, type, 30002);
+            JDBCSessionDataStore.getInstance().removeSessionData(key, type, 30002);
         }
     }
 
@@ -209,7 +209,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
             mockCarbonContext(carbonContext);
             mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
             mockDataHolder(frameworkServiceDataHolder);
-            boolean isSessionDataExist = SessionDataStore.getInstance()
+            boolean isSessionDataExist = JDBCSessionDataStore.getInstance()
                     .validateLastOperationOnSessionData(key, type, operation);
             assertEquals(isSessionDataExist, isExist);
         }
@@ -227,7 +227,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
             mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
             mockCarbonContext(carbonContext);
             mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
-            SessionDataStore.getInstance().removeExpiredSessionData();
+            JDBCSessionDataStore.getInstance().removeExpiredSessionData();
         }
     }
 
@@ -301,7 +301,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
     @Test(description = "Test getCleanupTimeout with max session timeout greater than remember me")
     public void testGetCleanupTimeoutWithMaxSessionTimeoutGreaterThanRememberMe() throws Exception {
 
-        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        SessionDataStore sessionDataStore = JDBCSessionDataStore.getInstance();
         int tenantId = 1;
         String tenantDomain = "test.com";
         String type = "sessionType";
@@ -333,7 +333,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
     @Test(description = "Test getCleanupTimeout with remember me timeout greater than max session timeout")
     public void testGetCleanupTimeoutWithRememberMeGreaterThanMaxSessionTimeout() throws Exception {
 
-        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        SessionDataStore sessionDataStore = JDBCSessionDataStore.getInstance();
         int tenantId = 1;
         String tenantDomain = "test.com";
         String type = "sessionType";
@@ -365,7 +365,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
     @Test(description = "Test getCleanupTimeout when max session timeout is not configured")
     public void testGetCleanupTimeoutWhenMaxSessionTimeoutNotConfigured() throws Exception {
 
-        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        SessionDataStore sessionDataStore = JDBCSessionDataStore.getInstance();
         int tenantId = 1;
         String tenantDomain = "test.com";
         String type = "sessionType";
@@ -396,7 +396,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
     @Test(description = "Test getCleanupTimeout with equal remember me and max session timeout")
     public void testGetCleanupTimeoutWithEqualTimeouts() throws Exception {
 
-        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        SessionDataStore sessionDataStore = JDBCSessionDataStore.getInstance();
         int tenantId = 1;
         String tenantDomain = "test.com";
         String type = "sessionType";
@@ -427,7 +427,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
     @Test(description = "Test getCleanupTimeout with invalid tenant ID")
     public void testGetCleanupTimeoutWithInvalidTenantId() throws Exception {
 
-        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        SessionDataStore sessionDataStore = JDBCSessionDataStore.getInstance();
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
         String type = "sessionType";
         long expectedTimeout = 20; // Default cleanup timeout in minutes.

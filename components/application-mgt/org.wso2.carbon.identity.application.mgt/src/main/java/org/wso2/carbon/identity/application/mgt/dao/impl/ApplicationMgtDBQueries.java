@@ -116,6 +116,14 @@ public class ApplicationMgtDBQueries {
     public static final String GET_APP_UUID_BY_TENANT_AND_NAME = "SELECT UUID FROM SP_APP WHERE " +
             "TENANT_ID = :TENANT_ID; AND APP_NAME = :APP_NAME;";
 
+    // SQLPlaceholders.APP_ID_LIST_PLACEHOLDER is replaced at runtime with the generated list of ID parameters.
+    public static final String LOAD_APP_BASIC_INFO_BY_IDS =
+            "SELECT ID, APP_NAME, UUID FROM SP_APP WHERE ID IN (" + SQLPlaceholders.APP_ID_LIST_PLACEHOLDER + ")";
+
+    // SQLPlaceholders.APP_FILTER_PLACEHOLDER is replaced at runtime with the filter clause of the caller.
+    public static final String LOAD_APP_BASIC_INFO_BY_FILTER =
+            "SELECT ID, APP_NAME, UUID FROM SP_APP " + SQLPlaceholders.APP_FILTER_PLACEHOLDER;
+
     // Load application basic information for listing with pagination
     public static final String LOAD_APP_NAMES_BY_TENANT_MYSQL = "SELECT ID, APP_NAME, VERSION, DESCRIPTION, " +
             "UUID, IMAGE_URL, ACCESS_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = ? AND " +
@@ -749,6 +757,10 @@ public class ApplicationMgtDBQueries {
         // Related to APP_GROUP_ASSOCIATION table.
         public static final String GROUP_ID_CONDITION_PLACEHOLDER = "_GROUP_ID_CONDITION_";
         public static final String GROUP_ID_LIST_PLACEHOLDER = "_GROUP_ID_LIST_";
+
+        // Related to basic application info retrieval queries.
+        public static final String APP_ID_LIST_PLACEHOLDER = "_APP_ID_LIST_";
+        public static final String APP_FILTER_PLACEHOLDER = "_APP_FILTER_";
 
         // Related to authorized API and scope retrieval queries.
         public static final String PLACEHOLDER_API_IDS = "API_ID_LIST";
