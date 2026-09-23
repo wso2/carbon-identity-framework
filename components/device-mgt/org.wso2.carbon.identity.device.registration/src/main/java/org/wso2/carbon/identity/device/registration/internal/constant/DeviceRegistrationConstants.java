@@ -29,10 +29,9 @@ public class DeviceRegistrationConstants {
 
     public static final String EXECUTOR_NAME = "DeviceRegistrationExecutor";
 
-    public static final String CTX_DEVICE_REGISTRATION = "device.registration.data";
-
     public static final String CLAIM_USER_ID = "http://wso2.org/claims/userid";
 
+    public static final String CTX_DEVICE_REGISTRATION = "device.registration.data";
     public static final String CTX_REGISTRATION_ID = "device.registration.id";
     public static final String CTX_CHALLENGE = "device.registration.challenge";
 

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.device.registration.executor;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -74,6 +75,7 @@ public class DeviceRegistrationExecutor implements Executor {
 
     @Override
     public String getName() {
+
         return DeviceRegistrationConstants.EXECUTOR_NAME;
     }
 
@@ -93,11 +95,13 @@ public class DeviceRegistrationExecutor implements Executor {
 
         // Nothing to compensate: this executor never persists a device itself. Persistence is
         // always deferred to RegistrationFlowCompletionListener, which only runs once the whole
+        // flow completes.
         return null;
     }
 
     @Override
     public List<String> getInitiationData() {
+
         return Collections.singletonList(USERNAME_CLAIM_URI);
     }
 
@@ -342,7 +346,7 @@ public class DeviceRegistrationExecutor implements Executor {
             case INCOMPLETE_DEVICE_DATA:
                 return String.join(", ", result.getMissingFields());
             default:
-                return "";
+                return StringUtils.EMPTY;
         }
     }
 }

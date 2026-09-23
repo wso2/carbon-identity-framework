@@ -33,25 +33,31 @@ public class DeviceRegistrationComponentServiceHolder {
     private DevicePolicyEvaluator devicePolicyEvaluator;
 
     private DeviceRegistrationComponentServiceHolder() {
+
     }
 
     public static DeviceRegistrationComponentServiceHolder getInstance() {
+
         return INSTANCE;
     }
 
     public DeviceManagementService getDeviceManagementService() {
+
         return deviceManagementService;
     }
 
     public void setDeviceManagementService(DeviceManagementService deviceManagementService) {
+
         this.deviceManagementService = deviceManagementService;
     }
 
     public DevicePolicyEvaluator getDevicePolicyEvaluator() {
+
         return devicePolicyEvaluator;
     }
 
     public void setDevicePolicyEvaluator(DevicePolicyEvaluator devicePolicyEvaluator) {
+
         this.devicePolicyEvaluator = devicePolicyEvaluator;
     }
 

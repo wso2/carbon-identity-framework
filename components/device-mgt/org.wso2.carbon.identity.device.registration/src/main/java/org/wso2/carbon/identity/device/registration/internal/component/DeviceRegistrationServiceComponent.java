@@ -114,5 +114,4 @@ public class DeviceRegistrationServiceComponent {
         LOG.debug("Unsetting DevicePolicyEvaluator in the device registration executor.");
         DeviceRegistrationComponentServiceHolder.getInstance().setDevicePolicyEvaluator(null);
     }
-
 }

@@ -51,16 +51,19 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
 
     @Override
     public int getExecutionOrderId() {
+
         return 10;
     }
 
     @Override
     public int getDefaultOrderId() {
+
         return 10;
     }
 
     @Override
     public boolean isEnabled() {
+
         return true;
     }
 
