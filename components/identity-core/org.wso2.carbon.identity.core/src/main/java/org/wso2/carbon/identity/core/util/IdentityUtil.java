@@ -1648,6 +1648,26 @@ public class IdentityUtil {
     }
 
     /**
+     * Check whether child organization subscriptions are enabled for webhooks.
+     * <p>
+     * The feature requires the channel UUID column on IDN_WEBHOOK_CHANNELS and the channel
+     * organization subscription table, so it stays disabled until an operator has applied the
+     * corresponding database migration and enabled it explicitly. It is declared rather than probed
+     * for so that the state is visible in configuration and identical across database types.
+     *
+     * @return true if child organization subscriptions are enabled.
+     */
+    public static boolean isChildOrganizationSubscriptionEnabled() {
+
+        String childOrganizationSubscriptionEnabled =
+                IdentityUtil.getProperty(IdentityCoreConstants.CHILD_ORGANIZATION_SUBSCRIPTION_ENABLED_PROPERTY);
+        if (StringUtils.isBlank(childOrganizationSubscriptionEnabled)) {
+            return IdentityCoreConstants.DEFAULT_CHILD_ORGANIZATION_SUBSCRIPTION_ENABLED;
+        }
+        return Boolean.parseBoolean(childOrganizationSubscriptionEnabled);
+    }
+
+    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.
