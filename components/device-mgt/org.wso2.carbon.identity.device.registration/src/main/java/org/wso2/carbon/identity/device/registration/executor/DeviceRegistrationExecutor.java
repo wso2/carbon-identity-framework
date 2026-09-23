@@ -267,35 +267,16 @@ public class DeviceRegistrationExecutor implements Executor {
         DeviceRegistrationComponentServiceHolder holder = DeviceRegistrationComponentServiceHolder.getInstance();
         DevicePolicyEvaluator evaluator = holder.getDevicePolicyEvaluator();
 
-        Map<String, Object> deviceData;
         try {
-            deviceData = holder.getDeviceTokenService().resolveAndVerifyDataFromToken(
+            // The evaluator verifies the device data token with the key established through the
+            // challenge signature, then evaluates the policy against the resolved device data.
+            DevicePolicyEvaluationResult result = evaluator.evaluateFromTokenByPolicyName(
+                    policyName,
                     context.getUserInputData().get(DeviceRegistrationConstants.FIELD_DEVICE_DATA),
                     context.getUserInputData().get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY),
                     registrationId,
+                    context.getApplicationId(),
                     context.getTenantDomain());
-        } catch (DevicePolicyClientException e) {
-            diagnosticLogger.logRegistrationFailure("Device data token verification failed: " + e.getMessage());
-            ExecutorResponse response = new ExecutorResponse();
-            response.setResult(STATUS_USER_ERROR);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getMessage());
-            response.setErrorDescription(e.getDescription());
-            return response;
-        } catch (DevicePolicyException e) {
-            diagnosticLogger.logRegistrationFailure("Device data token verification failed: " + e.getMessage());
-            LOG.error("Device data token verification failed during registration.", e);
-            ExecutorResponse response = new ExecutorResponse();
-            response.setResult(STATUS_ERROR);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getMessage());
-            response.setErrorDescription(e.getDescription());
-            return response;
-        }
-
-        try {
-            DevicePolicyEvaluationResult result = evaluator.evaluate(policyName, deviceData,
-                    context.getApplicationId(), context.getTenantDomain());
             if (result.isCompliant()) {
                 // Device is compliant.
                 diagnosticLogger.logPolicyEvaluation(policyName, true, null);

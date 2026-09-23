@@ -30,7 +30,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
-import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenService;
 import org.wso2.carbon.identity.device.registration.executor.DeviceRegistrationExecutor;
 import org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListener;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
@@ -116,22 +115,4 @@ public class DeviceRegistrationServiceComponent {
         DeviceRegistrationComponentServiceHolder.getInstance().setDevicePolicyEvaluator(null);
     }
 
-    @Reference(
-            name = "DeviceTokenService",
-            service = DeviceTokenService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetDeviceTokenService"
-    )
-    protected void setDeviceTokenService(DeviceTokenService deviceTokenService) {
-
-        LOG.debug("Setting DeviceTokenService in the device registration executor.");
-        DeviceRegistrationComponentServiceHolder.getInstance().setDeviceTokenService(deviceTokenService);
-    }
-
-    protected void unsetDeviceTokenService(DeviceTokenService deviceTokenService) {
-
-        LOG.debug("Unsetting DeviceTokenService in the device registration executor.");
-        DeviceRegistrationComponentServiceHolder.getInstance().setDeviceTokenService(null);
-    }
 }
