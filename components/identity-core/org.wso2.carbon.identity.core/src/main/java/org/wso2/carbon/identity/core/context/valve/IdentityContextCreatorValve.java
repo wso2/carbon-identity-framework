@@ -28,8 +28,10 @@ import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.internal.context.OrganizationResolver;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 public class IdentityContextCreatorValve extends ValveBase {
 
@@ -48,6 +50,23 @@ public class IdentityContextCreatorValve extends ValveBase {
     public void invoke(Request request, Response response) throws IOException, ServletException {
 
         try {
+            // Enforce RFC 9110 §11.6.1: The Authorization header is a single-value field.
+            // Rejecting requests with multiple Authorization headers early at the transport/valve layer
+            // prevents potential header manipulation and security vulnerabilities.
+            Enumeration<String> authHeaders = request.getHeaders("Authorization");
+            if (authHeaders != null) {
+                int authHeaderCount = 0;
+                while (authHeaders.hasMoreElements()) {
+                    authHeaders.nextElement();
+                    authHeaderCount++;
+                    if (authHeaderCount > 1) {
+                        LOG.warn("Multiple Authorization headers detected.");
+                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Multiple Authorization headers are not allowed.");
+                        return;
+                    }
+                }
+            }
+
             initIdentityContext();
             initRequest(request);
             initAccessTokenIssuedOrganization(request.getRequestURI());
