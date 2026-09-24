@@ -118,12 +118,10 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
         }
 
-        // An application that could not be resolved should not be considered for the session object. The batch is
-        // resolved as a flattened copy, so the unresolved ones are left to be removed from the sessions themselves.
-        applicationsBySession.values()
-                .forEach(applications -> applications.removeIf(application -> application.getAppName() == null));
-
         applicationsBySession.forEach((sessionId, applications) -> {
+            // An application that could not be resolved should not be considered for the session object. The batch
+            // is resolved as a flattened copy, so the unresolved ones are removed from the sessions themselves here.
+            applications.removeIf(application -> application.getAppName() == null);
             if (applications.isEmpty()) {
                 return;
             }
