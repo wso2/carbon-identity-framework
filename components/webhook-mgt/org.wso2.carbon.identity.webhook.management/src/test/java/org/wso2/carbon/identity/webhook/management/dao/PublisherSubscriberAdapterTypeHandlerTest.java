@@ -53,6 +53,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -284,5 +285,24 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         handler.retryWebhook(webhook, 1);
 
         verify(dao).retryWebhook(any(Webhook.class), eq(1));
+    }
+
+    /**
+     * Under the PublisherSubscriber adapter the hub fans out from the owner's topic, so widening the list would
+     * post the same event twice. Both lookups must stay on the tenant-only query.
+     */
+    @Test
+    public void testActiveWebhookLookupsStayWithinOwnTenant() throws WebhookMgtException {
+
+        WebhookManagementDAO localDao = mock(WebhookManagementDAO.class);
+        PublisherSubscriberAdapterTypeHandler subscriberHandler = new PublisherSubscriberAdapterTypeHandler(localDao);
+        List<Webhook> expected = Collections.singletonList(mock(Webhook.class));
+        when(localDao.getActiveWebhooks("profile", "v1", "channel", 1)).thenReturn(expected);
+
+        Assert.assertEquals(subscriberHandler.getActiveWebhooks("profile", "v1", "channel", 1), expected);
+        Assert.assertEquals(
+                subscriberHandler.getActiveWebhooksWithSubscribedChildOrgs("profile", "v1", "channel", 1), expected);
+        verify(localDao, never())
+                .getActiveWebhooksWithSubscribedChildOrgs(anyString(), anyString(), anyString(), anyInt());
     }
 }
