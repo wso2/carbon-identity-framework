@@ -71,6 +71,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private static final Log log = LogFactory.getLog(UserSessionDAOImpl.class);
 
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
+    public static final String SESSION_ID_LIST_PLACEHOLDER = "_SESSION_ID_LIST_";
 
     private static final String FEDERATED_USER_DOMAIN = "FEDERATED";
     private static final String DELETE_CHUNK_SIZE_PROPERTY = "JDBCPersistenceManager.SessionDataPersist" +
@@ -117,6 +118,8 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
         }
 
+        // An application that could not be resolved should not be considered for the session object. The batch is
+        // resolved as a flattened copy, so the unresolved ones are left to be removed from the sessions themselves.
         applicationsBySession.values()
                 .forEach(applications -> applications.removeIf(application -> application.getAppName() == null));
 
@@ -126,7 +129,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             }
             UserSession userSession = new UserSession();
             userSession.setSessionId(sessionId);
-            setSessionProperties(userSession, propertiesBySession.get(sessionId));
+            setSessionMetadata(userSession, propertiesBySession.get(sessionId));
             userSession.setApplications(applications);
             sessions.put(sessionId, userSession);
         });
@@ -164,7 +167,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             userSession.setSessionId(sessionId);
             userSession.setUserId(userId);
 
-            setSessionProperties(userSession, propertiesMap);
+            setSessionMetadata(userSession, propertiesMap);
 
             List<Application> applicationList = getApplicationsForSessionID(sessionId);
             SessionMgtUtils.setApplicationDetails(applicationList);
@@ -387,7 +390,8 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                                             Map<String, List<Application>> applicationsBySession)
             throws DataAccessException {
 
-        String sqlStmt = String.format(SQLQueries.SQL_GET_APPS_FOR_SESSION_IDS, getPlaceholders(sessionIds.size()));
+        String sqlStmt = SQLQueries.SQL_GET_APPS_FOR_SESSION_IDS
+                .replace(SESSION_ID_LIST_PLACEHOLDER, getPlaceholders(sessionIds.size()));
         JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION).executeQuery(sqlStmt, (resultSet, rowNumber) -> {
             applicationsBySession.computeIfAbsent(resultSet.getString(COLUMN_SESSION_ID), key -> new ArrayList<>())
                     .add(new Application(resultSet.getString(COLUMN_SUBJECT), null,
@@ -410,7 +414,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
                 ? SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_FOR_SESSION_IDS_H2
                 : SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_FOR_SESSION_IDS;
-        sqlStmt = String.format(sqlStmt, getPlaceholders(sessionIds.size()));
+        sqlStmt = sqlStmt.replace(SESSION_ID_LIST_PLACEHOLDER, getPlaceholders(sessionIds.size()));
         JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION).executeQuery(sqlStmt, (resultSet, rowNumber) -> {
             propertiesBySession.computeIfAbsent(resultSet.getString(1), key -> new HashMap<>())
                     .put(resultSet.getString(2), resultSet.getString(3));
@@ -450,7 +454,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
      * @param userSession   Session to set the properties on.
      * @param propertiesMap Properties of the session, which may be null when it has none.
      */
-    private void setSessionProperties(UserSession userSession, Map<String, String> propertiesMap) {
+    private void setSessionMetadata(UserSession userSession, Map<String, String> propertiesMap) {
 
         if (propertiesMap == null) {
             return;
