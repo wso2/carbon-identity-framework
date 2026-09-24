@@ -64,14 +64,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_DESCRIPTION_KEY;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_HANDLE_KEY;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_NAME_KEY;
-
 /**
  * Processes responses from Flow Extension actions, applying {@code REPLACE} operations on user
- * claims, credentials, and organization attributes into pending maps on the {@link FlowContext}
- * for the executor to forward.
+ * claims and credentials into pending maps on the {@link FlowContext} for the executor to forward.
  * Only {@code REPLACE} is supported and {@code /flow/} paths are read-only.
  */
 public class FlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
@@ -102,7 +97,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         Map<String, Object> pendingClaims = new HashMap<>();
         Map<String, char[]> pendingCredentials = new HashMap<>();
-        Map<String, Object> pendingOrganizationAttributes = new HashMap<>();
 
         List<OperationExecutionResult> results = new ArrayList<>();
 
@@ -115,7 +109,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
                 }
                 results.add(processOperation(
-                        operation, pendingClaims, pendingCredentials, pendingOrganizationAttributes, tenantDomain));
+                        operation, pendingClaims, pendingCredentials, tenantDomain));
             }
         } else {
             if (LOG.isDebugEnabled()) {
@@ -128,10 +122,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
         if (!pendingCredentials.isEmpty()) {
             actionFlowContext.add(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
-        }
-        if (!pendingOrganizationAttributes.isEmpty()) {
-            actionFlowContext.add(FlowExtensionConstants.PENDING_ORGANIZATION_ATTRIBUTES_KEY,
-                    pendingOrganizationAttributes);
         }
 
         logOperationExecutionResults(results);
@@ -148,14 +138,12 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * @param operation           The operation to process.
      * @param pendingClaims       Accumulator map for user claim updates.
      * @param pendingCredentials  Accumulator map for user credential updates.
-     * @param pendingOrganizationAttributes Accumulator map for organization updates.
      * @param tenantDomain        Tenant domain, used for claim URI validation.
      * @return The result of the operation execution.
      */
     private OperationExecutionResult processOperation(PerformableOperation operation,
                                                       Map<String, Object> pendingClaims,
                                                       Map<String, char[]> pendingCredentials,
-                                                      Map<String, Object> pendingOrganizationAttributes,
                                                       String tenantDomain)
             throws ActionExecutionResponseProcessorException {
 
@@ -179,67 +167,10 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
         } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
-        } else if (isOrganizationPath(path)) {
-            return handleOrganizationOperation(operation, pendingOrganizationAttributes);
         }
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                 "Unknown path");
-    }
-
-    private OperationExecutionResult handleOrganizationOperation(PerformableOperation operation,
-                                                                 Map<String, Object> pendingOrganizationAttributes) {
-
-        if (operation.getValue() == null) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    ERROR_VALUE_REQUIRED_FOR_REPLACE);
-        }
-        if (!(operation.getValue() instanceof String)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Expected a string value for organization path: " + operation.getPath());
-        }
-
-        String key;
-        switch (operation.getPath()) {
-            case FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH:
-                key = ORG_NAME_KEY;
-                break;
-            case FlowExtensionConstants.FlowContextPaths.ORGANIZATION_HANDLE_PATH:
-                key = ORG_HANDLE_KEY;
-                break;
-            case FlowExtensionConstants.FlowContextPaths.ORGANIZATION_DESCRIPTION_PATH:
-                key = ORG_DESCRIPTION_KEY;
-                break;
-            default:
-                key = extractOrganizationAttributeKey(operation.getPath());
-                if (key == null) {
-                    return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                            "Unknown organization path: " + operation.getPath());
-                }
-                break;
-        }
-
-        pendingOrganizationAttributes.put(key, operation.getValue());
-        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                "Organization attribute replace applied.");
-    }
-
-    private boolean isOrganizationPath(String path) {
-
-        return FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH.equals(path)
-                || FlowExtensionConstants.FlowContextPaths.ORGANIZATION_HANDLE_PATH.equals(path)
-                || FlowExtensionConstants.FlowContextPaths.ORGANIZATION_DESCRIPTION_PATH.equals(path)
-                || extractOrganizationAttributeKey(path) != null;
-    }
-
-    private String extractOrganizationAttributeKey(String path) {
-
-        String prefix = FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH + "/";
-        if (path == null || !path.startsWith(prefix)) {
-            return null;
-        }
-        String key = path.substring(prefix.length());
-        return key.isEmpty() || key.contains("/") ? null : key;
     }
 
     /**

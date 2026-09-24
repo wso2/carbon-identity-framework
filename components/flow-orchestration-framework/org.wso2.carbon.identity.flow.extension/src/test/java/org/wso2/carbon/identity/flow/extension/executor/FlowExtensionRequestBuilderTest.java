@@ -34,14 +34,12 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
-import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
-import org.wso2.carbon.identity.flow.extension.model.FlowExtensionOrganization;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionUser;
 
 import java.util.Arrays;
@@ -217,37 +215,6 @@ public class FlowExtensionRequestBuilderTest {
         Object annotations = actionFlowContext.getContextData().get(FlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY);
         assertNotNull(annotations);
         assertEquals(((Map<?, ?>) annotations).get(CLAIM_PATH), "[string]");
-    }
-
-    @Test
-    public void testBuildRequestWithFlowOrganizationAttributes() throws Exception {
-
-        FlowExecutionContext execCtx = execContext();
-        FlowOrganization organization = execCtx.getFlowOrganization();
-        organization.setOrganizationName("Acme");
-        organization.setOrganizationHandle("acme");
-        organization.setOrganizationDescription("Acme organization");
-        organization.setAttribute("taxId", "123");
-
-        AccessConfig accessConfig = new AccessConfig(
-                Arrays.asList(
-                        new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH, false),
-                        new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_HANDLE_PATH, false),
-                        new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_DESCRIPTION_PATH, false),
-                        new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH
-                                + "/taxId", false)),
-                Collections.emptyList());
-
-        ActionExecutionRequest request = builder.buildActionExecutionRequest(
-                flowContextWith(execCtx), actionContext(accessConfig));
-
-        FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
-        FlowExtensionOrganization flowOrganization = (FlowExtensionOrganization) event.getOrganization();
-        assertNotNull(flowOrganization);
-        assertEquals(flowOrganization.getName(), "Acme");
-        assertEquals(flowOrganization.getOrgHandle(), "acme");
-        assertEquals(flowOrganization.getDescription(), "Acme organization");
-        assertEquals(flowOrganization.getAttributes().get("taxId"), "123");
     }
 
     @Test

@@ -34,7 +34,6 @@ public class ExecutorResponse {
     private List<String> requiredData;
     private List<String> optionalData;
     private Map<String, Object> updatedUserClaims;
-    private Map<String, Object> updatedOrganizationAttributes;
     private Map<String, char[]> userCredentials;
     private Map<String, Object> contextProperties;
     private Map<String, String> additionalInfo;
@@ -89,16 +88,6 @@ public class ExecutorResponse {
     public void setUpdatedUserClaims(Map<String, Object> updatedUserClaims) {
 
         this.updatedUserClaims = updatedUserClaims;
-    }
-
-    public Map<String, Object> getUpdatedOrganizationAttributes() {
-
-        return updatedOrganizationAttributes;
-    }
-
-    public void setUpdatedOrganizationAttributes(Map<String, Object> updatedOrganizationAttributes) {
-
-        this.updatedOrganizationAttributes = updatedOrganizationAttributes;
     }
 
     public Map<String, char[]> getUserCredentials() {

@@ -184,24 +184,6 @@ public class TaskExecutionNodeTest {
     }
 
     @Test
-    public void testExecutorOrganizationAttributesUpdatedStatus() throws Exception {
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_COMPLETE);
-        Map<String, Object> updatedOrganizationAttributes = new HashMap<>();
-        updatedOrganizationAttributes.put("organizationName", "Acme");
-        updatedOrganizationAttributes.put("taxId", "123");
-        executorResponse.setUpdatedOrganizationAttributes(updatedOrganizationAttributes);
-
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
-            NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
-            assertEquals(nodeResponse.getStatus(), STATUS_COMPLETE);
-            assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme");
-            assertEquals(context.getFlowOrganization().getAttribute("taxId"), "123");
-        }
-    }
-
-    @Test
     public void testExecutorRetryStatus() throws Exception {
 
         ExecutorResponse executorResponse = new ExecutorResponse();

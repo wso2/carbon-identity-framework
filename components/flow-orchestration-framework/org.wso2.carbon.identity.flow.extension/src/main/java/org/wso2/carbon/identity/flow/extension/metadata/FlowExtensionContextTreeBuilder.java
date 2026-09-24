@@ -200,20 +200,7 @@ public class FlowExtensionContextTreeBuilder {
         children.add(readOnlyLeaf("id", "Organization ID", FlowContextPaths.ORGANIZATION_ID_PATH));
         children.add(readOnlyLeaf("name", "Organization Name", FlowContextPaths.ORGANIZATION_NAME_PATH));
         children.add(readOnlyLeaf("orgHandle", "Organization Handle", FlowContextPaths.ORGANIZATION_HANDLE_PATH));
-        children.add(readOnlyLeaf("description", "Organization Description",
-                FlowContextPaths.ORGANIZATION_DESCRIPTION_PATH));
         children.add(readOnlyLeaf("depth", "Organization Depth", FlowContextPaths.ORGANIZATION_DEPTH_PATH));
-        children.add(FlowExtensionContextTreeNode.builder()
-                .key("attributes")
-                .title("Attributes")
-                .path(FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH)
-                .dataType("Map<String, String>")
-                .nodeType(ContextTree.NODE_MAP)
-                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
-                .dynamicEntryAllowed(true)
-                .dynamicEntryType(ContextTree.DATA_TYPE_STRING)
-                .children(Collections.emptyList())
-                .build());
         return FlowExtensionContextTreeNode.builder()
                 .key("organization")
                 .title("Organization")
