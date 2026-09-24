@@ -28,7 +28,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
@@ -212,7 +211,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ResultSet rs = null;
         List<ServiceProviderProperty> idpProperties = new ArrayList<ServiceProviderProperty>();
         try {
-            prepStmt = isH2DB() ? dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2) :
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            prepStmt = isH2DB(databaseProductName) ?
+                    dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID);
             prepStmt.setInt(1, spId);
             rs = prepStmt.executeQuery();
@@ -223,7 +224,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
             }
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             throw new SQLException("Error while retrieving SP metadata for SP ID: " + spId, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
@@ -246,7 +247,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         PreparedStatement prepStmt = null;
         try {
-            prepStmt = isH2DB() ? dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            prepStmt = isH2DB(databaseProductName) ?
+                    dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA);
             for (ServiceProviderProperty property : properties) {
                 if (StringUtils.isNotBlank(property.getValue())) {
@@ -265,7 +268,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
             }
             prepStmt.executeBatch();
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             String errorMsg = "Error while adding SP properties for SP ID: " + spId + " and tenant ID: " + tenantId;
             throw new SQLException(errorMsg, e);
         } finally {
