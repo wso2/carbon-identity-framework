@@ -210,8 +210,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<ServiceProviderProperty> idpProperties = new ArrayList<ServiceProviderProperty>();
-        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         try {
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
             prepStmt = isH2DB(databaseProductName) ?
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID);
@@ -246,8 +246,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws SQLException {
 
         PreparedStatement prepStmt = null;
-        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         try {
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
             prepStmt = isH2DB(databaseProductName) ?
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA);

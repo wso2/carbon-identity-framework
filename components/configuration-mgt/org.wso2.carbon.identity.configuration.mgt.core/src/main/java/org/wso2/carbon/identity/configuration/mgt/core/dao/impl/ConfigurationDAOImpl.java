@@ -935,14 +935,15 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            String databaseProductName = jdbcTemplate.getDatabaseProductName();
             String query;
-            if (isH2DB()) {
+            if (isH2DB(databaseProductName)) {
                 query = INSERT_OR_UPDATE_ATTRIBUTE_H2;
-            } else if (isPostgreSQLDB()) {
+            } else if (isPostgreSQLDB(databaseProductName)) {
                 query = INSERT_OR_UPDATE_ATTRIBUTE_POSTGRESQL;
-            } else if (isMSSqlDB() || isDB2DB()) {
+            } else if (isMSSqlDB(databaseProductName) || isDB2DB(databaseProductName)) {
                 query = INSERT_OR_UPDATE_ATTRIBUTE_MSSQL_OR_DB2;
-            } else if (isOracleDB()) {
+            } else if (isOracleDB(databaseProductName)) {
                 query = INSERT_OR_UPDATE_ATTRIBUTE_ORACLE;
             } else {
                 query = INSERT_OR_UPDATE_ATTRIBUTE_MYSQL;
