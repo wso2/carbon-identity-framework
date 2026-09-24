@@ -28,11 +28,13 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
+import org.wso2.carbon.identity.webhook.management.internal.handler.OrganizationSubscriptionEventHandler;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
@@ -68,6 +70,11 @@ public class WebhookManagementServiceComponent {
 
             bundleContext.registerService(WebhookManagementService.class.getName(),
                     WebhookManagementServiceImpl.getInstance(), null);
+
+            // Keeps the materialised organization fanout of ALL-policy channels in line with the
+            // organization tree as organizations are created and deleted.
+            bundleContext.registerService(AbstractEventHandler.class.getName(),
+                    new OrganizationSubscriptionEventHandler(), null);
             LOG.debug("WebhookManagementService is activated");
         } catch (Throwable e) {
             LOG.error("Error while activating WebhookManagementService", e);
