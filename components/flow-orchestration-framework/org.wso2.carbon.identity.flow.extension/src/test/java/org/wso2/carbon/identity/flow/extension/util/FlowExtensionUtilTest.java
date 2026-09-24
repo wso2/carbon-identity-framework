@@ -24,13 +24,17 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 
 import java.util.Arrays;
 import java.util.Collections;
 
 import static org.mockito.Mockito.mockStatic;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS;
 
@@ -168,4 +172,23 @@ public class FlowExtensionUtilTest {
         assertFalse(FlowExtensionUtil.isNonModifiablePath("/user/claims"));
         assertFalse(FlowExtensionUtil.isNonModifiablePath(USER_ID_PATH + "{[string]}"));
     }
+
+    @Test
+    public void testFilterContextCopiesFlowOrganization() {
+
+        FlowExecutionContext source = new FlowExecutionContext();
+        source.setFlowUser(null);
+        FlowOrganization organization = source.getFlowOrganization();
+        organization.setOrganizationName("Acme");
+        organization.setOrganizationHandle("acme");
+        organization.setAttribute("taxId", "123");
+
+        FlowExecutionContext filtered = FlowExtensionUtil.filterContext(source);
+
+        assertEquals(filtered.getFlowOrganization().getOrganizationName(), "Acme");
+        assertEquals(filtered.getFlowOrganization().getOrganizationHandle(), "acme");
+        assertEquals(filtered.getFlowOrganization().getAttribute("taxId"), "123");
+        assertNotSame(filtered.getFlowOrganization(), organization);
+    }
+
 }
