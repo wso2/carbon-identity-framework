@@ -147,16 +147,16 @@
             <Scopes>internal_vc_verification_view</Scopes>
         </Resource>
         <!-- Presentation Definition Management API -->
-        <Resource context="(.*)/api/server/v1/openid4vp/presentation-definitions(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/presentation-definitions(.*)" secured="true" http-method="GET">
             <Scopes>internal_presentation_definition_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/openid4vp/presentation-definitions(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/presentation-definitions(.*)" secured="true" http-method="POST">
             <Scopes>internal_presentation_definition_create</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/openid4vp/presentation-definitions(.*)" secured="true" http-method="PUT, PATCH">
+        <Resource context="(.*)/api/server/v1/presentation-definitions(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_presentation_definition_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/openid4vp/presentation-definitions(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/api/server/v1/presentation-definitions(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_presentation_definition_delete</Scopes>
         </Resource>
         {% endif %}
