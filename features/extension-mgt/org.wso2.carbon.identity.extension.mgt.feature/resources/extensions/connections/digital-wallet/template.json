@@ -35,10 +35,10 @@
       "outboundProvisioningRoles": []
     },
     "federatedAuthenticators": {
-      "defaultAuthenticatorId": "T3BlbklEQ29ubmVjdEF1dGhlbnRpY2F0b3I",
+      "defaultAuthenticatorId": "UHJlc2VudGF0aW9uQXV0aGVudGljYXRvcg",
       "authenticators": [
         {
-          "authenticatorId": "T3BlbklEQ29ubmVjdEF1dGhlbnRpY2F0b3I",
+          "authenticatorId": "UHJlc2VudGF0aW9uQXV0aGVudGljYXRvcg",
           "isEnabled": true,
           "properties": [
             {
