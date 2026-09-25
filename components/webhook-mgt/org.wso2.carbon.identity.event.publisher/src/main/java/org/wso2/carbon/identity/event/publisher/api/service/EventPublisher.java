@@ -43,7 +43,7 @@ public interface EventPublisher {
      * @return List of supported event profile names.
      */
     default List<String> getSupportedEventProfiles() {
-        return Collections.emptyList();
+        return Collections.singletonList("WSO2");
     }
 
     /**
