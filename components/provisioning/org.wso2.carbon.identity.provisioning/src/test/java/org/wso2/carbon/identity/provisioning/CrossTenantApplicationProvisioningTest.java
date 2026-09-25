@@ -21,10 +21,8 @@ package org.wso2.carbon.identity.provisioning;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -63,12 +61,6 @@ public class CrossTenantApplicationProvisioningTest {
         if (System.getProperty("carbon.home") == null) {
             System.setProperty("carbon.home", ".");
         }
-    }
-
-    @BeforeMethod
-    public void setUp() {
-
-        MockitoAnnotations.openMocks(this);
     }
 
     /**
