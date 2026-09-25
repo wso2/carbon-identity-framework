@@ -38,6 +38,7 @@ public class FlowOrganization implements Serializable {
     private String organizationHandle;
     private String organizationDescription;
     private String organizationStatus;
+    private String organizationId;
     private Map<String, String> attributes = new HashMap<>();
 
     public String getOrganizationName() {
@@ -78,6 +79,16 @@ public class FlowOrganization implements Serializable {
     public void setOrganizationStatus(String organizationStatus) {
 
         this.organizationStatus = organizationStatus;
+    }
+
+    public String getOrganizationId() {
+
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+
+        this.organizationId = organizationId;
     }
 
     public Map<String, String> getAttributes() {
