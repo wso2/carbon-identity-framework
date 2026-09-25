@@ -381,6 +381,17 @@
             <Scopes>internal_policy_mgt_delete</Scopes>
         </Resource>
 
+        <!-- Device Management API -->
+        <Resource context="(.*)/api/server/v1/devices(.*)" secured="true" http-method="PATCH">
+            <Scopes>internal_device_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/devices(.*)" secured="true" http-method="GET">
+            <Scopes>internal_device_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/devices(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_device_mgt_delete</Scopes>
+        </Resource>
+
         <!-- [Organization] Secret Management API -->
         <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_secret_mgt_add</Scopes>
