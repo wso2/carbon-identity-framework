@@ -117,7 +117,7 @@
                             org.wso2.carbon.identity.webhook.metadata.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            com.fasterxml.jackson.annotation; version="${jackson.annotation.imp.pkg.version.range}",
+                            com.fasterxml.jackson.annotation; version="${com.fasterxml.jackson.annotation.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>
