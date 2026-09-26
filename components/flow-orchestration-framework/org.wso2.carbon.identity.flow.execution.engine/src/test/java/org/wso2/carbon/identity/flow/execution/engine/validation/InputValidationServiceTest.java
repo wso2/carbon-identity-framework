@@ -53,6 +53,8 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfigurati
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -82,6 +84,12 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ORGANIZATION_NAME;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_HANDLE_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_NAME_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_NAME_CONTAINS_HTML_CONTENT;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_RESERVED_ORGANIZATION_NAME;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
@@ -1931,8 +1939,7 @@ public class InputValidationServiceTest {
         Assert.assertNotEquals(futureResponse.getErrorCode(), invalidResponse.getErrorCode());
     }
 
-    @Test(dataProvider = "organizationFieldProvider",
-            description = "Core organization fields are routed onto their own field on the flow organization.")
+    @Test(dataProvider = "organizationFieldProvider")
     public void testCoreOrganizationFieldsAreRouted(String identifier, String value) throws Exception {
 
         FlowExecutionContext context = organizationFlowContext(identifier);
@@ -1962,7 +1969,7 @@ public class InputValidationServiceTest {
         };
     }
 
-    @Test(description = "An organization input that is not a core field is kept as a custom attribute.")
+    @Test
     public void testCustomOrganizationAttributeIsRouted() throws Exception {
 
         FlowExecutionContext context = organizationFlowContext("industry");
@@ -1974,7 +1981,7 @@ public class InputValidationServiceTest {
         Assert.assertNull(context.getFlowOrganization().getOrganizationName());
     }
 
-    @Test(description = "Routing is driven by identifierType, not by the identifier name.")
+    @Test
     public void testInputWithoutOrganizationIdentifierTypeIsNotRouted() throws Exception {
 
         FlowExecutionContext context = initiateFlowContext();
@@ -1994,7 +2001,7 @@ public class InputValidationServiceTest {
                 "An untyped organization-like input must not be stored as a custom attribute either.");
     }
 
-    @Test(description = "A declared organization identifier type wins over a claim URI shaped identifier.")
+    @Test
     public void testOrganizationIdentifierTypeWinsOverClaimUriPrefix() throws Exception {
 
         String claimShapedIdentifier = CLAIM_URI_PREFIX + "organization";
@@ -2013,7 +2020,7 @@ public class InputValidationServiceTest {
                 "Organization data stored on the user would be persisted to their profile.");
     }
 
-    @Test(description = "Organization fields nested inside a form component are still resolved.")
+    @Test
     public void testNestedComponentIdentifierTypesAreResolved() throws Exception {
 
         FlowExecutionContext context = initiateFlowContext();
@@ -2032,7 +2039,7 @@ public class InputValidationServiceTest {
         Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
     }
 
-    @Test(description = "Identifiers are resolved across every step, not only the step being executed.")
+    @Test
     public void testIdentifierTypesAreResolvedAcrossAllSteps() throws Exception {
 
         FlowExecutionContext context = initiateFlowContext();
@@ -2051,7 +2058,7 @@ public class InputValidationServiceTest {
         Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
     }
 
-    @Test(description = "A flow with no graph config must not fail input validation.")
+    @Test
     public void testMissingGraphConfigIsTolerated() throws Exception {
 
         FlowExecutionContext context = initiateFlowContext();
@@ -2062,18 +2069,157 @@ public class InputValidationServiceTest {
         Assert.assertTrue(context.getFlowOrganization().getAttributes().isEmpty());
     }
 
+    @Test
+    public void testValidateOrganizationInputsWithValidDetails() throws Exception {
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.getOrganizationNameById(anyString())).thenReturn("Super");
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(organizationManager);
+        FlowExecutionContext context = organizationFlowContext(ORG_NAME_KEY, ORG_HANDLE_KEY);
+        context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
+        context.getUserInputData().put(ORG_HANDLE_KEY, "acme");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+        Assert.assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme Corporation");
+        Assert.assertEquals(context.getFlowOrganization().getOrganizationHandle(), "acme");
+    }
+
+    @Test
+    public void testValidateOrganizationInputsWithBlankName() {
+
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(mock(OrganizationManager.class));
+        FlowExecutionContext context = organizationFlowContext(ORG_NAME_KEY);
+        context.getUserInputData().put(ORG_NAME_KEY, "  ");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_RETRY);
+        Assert.assertEquals(response.getErrorCode(), ERROR_CODE_INVALID_ORGANIZATION_NAME.getCode());
+    }
+
+    @Test
+    public void testValidateOrganizationInputsWithHtmlName() {
+
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(mock(OrganizationManager.class));
+        FlowExecutionContext context = organizationFlowContext(ORG_NAME_KEY);
+        context.getUserInputData().put(ORG_NAME_KEY, "<b>Acme</b>");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_RETRY);
+        Assert.assertEquals(response.getErrorCode(), ERROR_CODE_ORGANIZATION_NAME_CONTAINS_HTML_CONTENT.getCode());
+    }
+
+    @Test
+    public void testValidateOrganizationInputsWithReservedName() throws Exception {
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.getOrganizationNameById(anyString())).thenReturn("Super");
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(organizationManager);
+        FlowExecutionContext context = organizationFlowContext(ORG_NAME_KEY);
+        context.getUserInputData().put(ORG_NAME_KEY, "super");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_RETRY);
+        Assert.assertEquals(response.getErrorCode(), ERROR_CODE_RESERVED_ORGANIZATION_NAME.getCode());
+    }
+
+    @Test
+    public void testValidateOrganizationInputsWithExistingName() throws Exception {
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.getOrganizationNameById(anyString())).thenReturn("Super");
+        when(organizationManager.isOrganizationExistByNameInGivenHierarchy("Acme Corporation"))
+                .thenReturn(true);
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(organizationManager);
+        FlowExecutionContext context = organizationFlowContext(ORG_NAME_KEY);
+        context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_RETRY);
+        Assert.assertEquals(response.getErrorCode(), ERROR_CODE_ORGANIZATION_NAME_ALREADY_EXISTS.getCode());
+    }
+
+    @Test
+    public void testValidateOrganizationInputsWithExistingHandle() throws Exception {
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.getOrganizationNameById(anyString())).thenReturn("Super");
+        when(organizationManager.isOrganizationExistByHandle("acme")).thenReturn(true);
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(organizationManager);
+        FlowExecutionContext context = organizationFlowContext(ORG_NAME_KEY, ORG_HANDLE_KEY);
+        context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
+        context.getUserInputData().put(ORG_HANDLE_KEY, "acme");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_RETRY);
+        Assert.assertEquals(response.getErrorCode(), ERROR_CODE_ORGANIZATION_HANDLE_ALREADY_EXISTS.getCode());
+    }
+
+    @Test
+    public void testValidateOrganizationInputsWithBlankHandle() throws Exception {
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.getOrganizationNameById(anyString())).thenReturn("Super");
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(organizationManager);
+        FlowExecutionContext context = organizationFlowContext(ORG_HANDLE_KEY);
+        context.getUserInputData().put(ORG_HANDLE_KEY, "");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+        verify(organizationManager, never()).isOrganizationExistByHandle(anyString());
+    }
+
+    @Test
+    public void testValidateOrganizationInputsWhenOrganizationManagerFails() throws Exception {
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.getOrganizationNameById(anyString()))
+                .thenThrow(new OrganizationManagementException("error"));
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(organizationManager);
+        FlowExecutionContext context = organizationFlowContext(ORG_NAME_KEY);
+        context.getUserInputData().put(ORG_NAME_KEY, "Acme Corporation");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_RETRY);
+        Assert.assertEquals(response.getErrorCode(), ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE.getCode());
+    }
+
+    @Test
+    public void testValidateOrganizationInputsSkipsCustomAttributes() {
+
+        FlowExecutionEngineDataHolder.getInstance().setOrganizationManager(mock(OrganizationManager.class));
+        FlowExecutionContext context = organizationFlowContext("industry");
+        context.getUserInputData().put("industry", "software");
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(context);
+
+        Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+        Assert.assertEquals(context.getFlowOrganization().getAttribute("industry"), "software");
+    }
+
     /**
-     * Builds a context whose graph declares a single organization typed input with the given identifier.
+     * Builds a context whose graph declares one or more organization typed inputs with the given identifiers.
      *
-     * @param identifier Identifier of the organization input.
+     * @param identifiers Identifiers of the organization inputs.
      * @return The flow execution context.
      */
-    private FlowExecutionContext organizationFlowContext(String identifier) {
+    private FlowExecutionContext organizationFlowContext(String... identifiers) {
 
         FlowExecutionContext context = initiateFlowContext();
         GraphConfig graphConfig = new GraphConfig();
-        graphConfig.addNodePageMapping("step1", stepWithComponents(
-                Collections.singletonList(inputComponent(organizationFieldConfigs(identifier)))));
+        List<ComponentDTO> components = new ArrayList<>();
+        for (String identifier : identifiers) {
+            components.add(inputComponent(organizationFieldConfigs(identifier)));
+        }
+        graphConfig.addNodePageMapping("step1", stepWithComponents(components));
         context.setGraphConfig(graphConfig);
         return context;
     }

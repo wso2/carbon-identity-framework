@@ -178,6 +178,9 @@ public class Constants {
         ERROR_CODE_INFLOW_EXTENSION_ERROR("65034",
                 "Error occurred while invoking the flow extension.",
                 "Error occurred while invoking the flow extension."),
+        ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE("65035",
+                "Error while validating organization details.",
+                "Error occurred while validating the organization details of tenant: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
@@ -236,7 +239,22 @@ public class Constants {
                 "The value provided for %s cannot be a future date."),
         ERROR_CODE_CLAIM_INVALID_DATE("60019",
                 "Must be a valid date in the format YYYY-MM-DD.",
-                "The value provided for %s is not an existing calendar date.")
+                "The value provided for %s is not an existing calendar date."),
+        ERROR_CODE_INVALID_ORGANIZATION_NAME("60020",
+                "Invalid organization name.",
+                "The provided organization name is invalid."),
+        ERROR_CODE_ORGANIZATION_NAME_CONTAINS_HTML_CONTENT("60021",
+                "Organization name contains HTML content.",
+                "The provided organization name contains HTML content."),
+        ERROR_CODE_RESERVED_ORGANIZATION_NAME("60022",
+                "Organization name is reserved.",
+                "The provided organization name: %s is reserved."),
+        ERROR_CODE_ORGANIZATION_NAME_ALREADY_EXISTS("60023",
+                "Organization name already exists.",
+                "An organization with the provided name: %s already exists."),
+        ERROR_CODE_ORGANIZATION_HANDLE_ALREADY_EXISTS("60024",
+                "Organization handle already exists.",
+                "An organization with the provided handle: %s already exists.")
         ;
 
         private static final String ERROR_PREFIX = "FE";
