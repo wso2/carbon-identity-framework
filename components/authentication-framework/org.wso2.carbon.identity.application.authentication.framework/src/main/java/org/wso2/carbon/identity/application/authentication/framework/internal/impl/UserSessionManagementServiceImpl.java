@@ -67,6 +67,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -660,28 +661,34 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     private List<UserSession> getActiveSessionList(List<String> sessionIdList, String idpId, String idpName)
             throws SessionManagementServerException {
 
-        List<UserSession> sessionsList = new ArrayList<>();
+        String loginTenantDomain = FrameworkUtils.getLoginTenantDomainFromContext();
+        Map<String, SessionContext> sessionContexts = new LinkedHashMap<>();
         for (String sessionId : sessionIdList) {
-            if (sessionId != null) {
-                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
-                        FrameworkUtils.getLoginTenantDomainFromContext());
-                if (sessionContext != null) {
-                    UserSessionDAO userSessionDAO = UserSessionDAOFactory.getUserSessionDAO();
-                    UserSession userSession = userSessionDAO.getSession(sessionId);
-                    if (userSession != null) {
-                        if (!isEffectiveSession(sessionContext, userSession)) {
-                            continue;
-                        }
-                        if (StringUtils.isNotBlank(idpId)) {
-                            userSession.setIdpId(idpId);
-                        }
-                        if (StringUtils.isNotBlank(idpName)) {
-                            userSession.setIdpName(idpName);
-                        }
-                        sessionsList.add(userSession);
-                    }
-                }
+            if (sessionId == null) {
+                continue;
             }
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId, loginTenantDomain);
+            if (sessionContext != null) {
+                sessionContexts.put(sessionId, sessionContext);
+            }
+        }
+
+        Map<String, UserSession> userSessions = UserSessionDAOFactory.getUserSessionDAO()
+                .getSessions(new ArrayList<>(sessionContexts.keySet()));
+
+        List<UserSession> sessionsList = new ArrayList<>();
+        for (Map.Entry<String, SessionContext> sessionContext : sessionContexts.entrySet()) {
+            UserSession userSession = userSessions.get(sessionContext.getKey());
+            if (userSession == null || !isEffectiveSession(sessionContext.getValue(), userSession)) {
+                continue;
+            }
+            if (StringUtils.isNotBlank(idpId)) {
+                userSession.setIdpId(idpId);
+            }
+            if (StringUtils.isNotBlank(idpName)) {
+                userSession.setIdpName(idpName);
+            }
+            sessionsList.add(userSession);
         }
         return sessionsList;
     }
