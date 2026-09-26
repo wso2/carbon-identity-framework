@@ -124,6 +124,7 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -254,6 +255,9 @@ public class FrameworkUtils {
     public static final String TENANT_DOMAIN = "tenantDomain";
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
+    private static final int MAX_LOGGABLE_CLIENT_VALUE_LENGTH = 64;
+    private static final String PROMPT_ID_PARAM = "promptId";
+    private static final String PROMPT_RESP_PARAM = "promptResp";
     private static int maxInactiveInterval;
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
@@ -425,11 +429,13 @@ public class FrameworkUtils {
     public static AuthenticationContext getContextData(HttpServletRequest request) throws FrameworkRuntimeException {
 
         AuthenticationContext context = null;
-        if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
-            String promptId = request.getParameter("promptId");
+        if (request.getParameter(PROMPT_RESP_PARAM) != null && request.getParameter(PROMPT_ID_PARAM) != null) {
+            String promptId = request.getParameter(PROMPT_ID_PARAM);
             context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
             if (context != null) {
-                FrameworkUtils.removeAuthenticationContextFromCache(promptId);
+                FrameworkUtils.removeAuthenticationContextFromCache(promptId,
+                        FrameworkConstants.LogConstants.AuthContextInvalidationReasons.PROMPT_RESPONSE_PROCESSED,
+                        context);
                 return context;
             }
         }
@@ -461,6 +467,107 @@ public class FrameworkUtils {
         }
 
         return context;
+    }
+
+    /**
+     * Resolves the identifier of the authentication context which the given request refers to, following the same
+     * resolution order as {@link #getContextData(HttpServletRequest)} uses to resolve the context itself. This is
+     * needed when the context could not be found, since the identifier is not necessarily carried in the
+     * sessionDataKey parameter. Federated authenticators, for an example, carry it within the state or the
+     * RelayState of the callback.
+     *
+     * @param request Request to resolve the context identifier from.
+     * @return Context identifier which the request refers to, or null if none could be resolved.
+     */
+    public static String resolveContextIdentifier(HttpServletRequest request) {
+
+        if (request.getParameter(PROMPT_RESP_PARAM) != null
+                && StringUtils.isNotBlank(request.getParameter(PROMPT_ID_PARAM))) {
+            return request.getParameter(PROMPT_ID_PARAM);
+        }
+        String sessionDataKey = request.getParameter(FrameworkConstants.SESSION_DATA_KEY);
+        if (StringUtils.isNotBlank(sessionDataKey)) {
+            return sessionDataKey;
+        }
+
+        /* This is only used to enrich the logs of a request whose context could not be found, therefore it must
+         never fail the request it is trying to describe. */
+        try {
+            List<ApplicationAuthenticator> authenticatorList = ApplicationAuthenticatorManager.getInstance()
+                    .getAllAuthenticators(resolveTenantDomain(request));
+            for (ApplicationAuthenticator authenticator : authenticatorList) {
+                String contextIdentifier = resolveContextIdentifier(authenticator, request);
+                if (StringUtils.isNotBlank(contextIdentifier)) {
+                    return contextIdentifier;
+                }
+            }
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while getting the application authenticators to resolve the context identifier.", e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Resolves the identifier of the authentication context which the given request refers to, using the given
+     * authenticator. An authenticator of the tenant is free to throw anything from getContextIdentifier() for a
+     * request which was not meant for it, so a failure of a single authenticator is ignored rather than propagated.
+     *
+     * @param authenticator Authenticator to resolve the context identifier with.
+     * @param request       Request to resolve the context identifier from.
+     * @return Context identifier which the request refers to, or null if this authenticator could not resolve one.
+     */
+    private static String resolveContextIdentifier(ApplicationAuthenticator authenticator,
+                                                   HttpServletRequest request) {
+
+        try {
+            return authenticator.getContextIdentifier(request);
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Ignoring the failure of " + authenticator.getName()
+                        + " to resolve a context identifier from the request.", e);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Removes new line characters from a client supplied value and caps its length, so that it can be written to
+     * the server log. A value which the client controls would otherwise allow forged log records to be injected
+     * into the server log through new line characters, and an oversized value to flood it. Diagnostic log inputs do
+     * not need this, since they are recorded as structured data rather than as a log line.
+     *
+     * @param value Value received from the client. Can be null or blank.
+     * @return Value which is safe to be written to the server log.
+     */
+    public static String sanitizeForLogging(String value) {
+
+        return sanitizeForLogging(value, MAX_LOGGABLE_CLIENT_VALUE_LENGTH);
+    }
+
+    /**
+     * Removes new line characters from a client supplied value and caps its length at the given maximum, so that it
+     * can be written to the server log. This overload is for values such as request headers, which are legitimately
+     * longer than an identifier is and would lose their diagnostic value if they were capped as tightly.
+     *
+     * @param value     Value received from the client. Can be null or blank.
+     * @param maxLength Maximum number of characters to keep from the value.
+     * @return Value which is safe to be written to the server log.
+     */
+    public static String sanitizeForLogging(String value, int maxLength) {
+
+        /* Every value which is returned from here is passed through the replacement below, rather than a blank one
+         being returned as it is. A value which reaches the log without being replaced would keep this method from
+         counting as a sanitizer, both for a reader and for static analysis. */
+        if (value == null) {
+            return null;
+        }
+        String sanitizedValue = value.replaceAll("[\r\n]", "");
+        if (sanitizedValue.length() > maxLength) {
+            sanitizedValue = sanitizedValue.substring(0, maxLength) + "...";
+        }
+        return sanitizedValue;
     }
 
     public static RequestCoordinator getRequestCoordinator() {
@@ -1761,9 +1868,79 @@ public class FrameworkUtils {
      */
     public static void removeAuthenticationContextFromCache(String contextId) {
 
-        if (contextId != null) {
-            AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
-            AuthenticationContextCache.getInstance().clearCacheEntry(cacheKey);
+        removeAuthenticationContextFromCache(contextId, null);
+    }
+
+    /**
+     * Invalidates the authentication context held against the given context identifier. Since the context
+     * identifier is exposed to the client as the flowId in app native authentication, the flowId cannot be used
+     * to continue the authentication flow once this is invoked. The invalidation is recorded as a diagnostic log
+     * so that the complete lifecycle of a flowId can be traced.
+     *
+     * @param contextId Context identifier of the authentication context. This is the flowId in app native
+     *                  authentication.
+     * @param reason    Reason for the invalidation. Used only for logging purposes and can be null.
+     */
+    public static void removeAuthenticationContextFromCache(String contextId, String reason) {
+
+        removeAuthenticationContextFromCache(contextId, reason, null);
+    }
+
+    /**
+     * Invalidates the authentication context held against the given context identifier and records the invalidation
+     * as a diagnostic log carrying the application the flow belonged to. The application is needed so that the
+     * logging framework can apply its own filtering, such as leaving out Console traffic, which it decides by
+     * inspecting the client id and the application name of the entry.
+     *
+     * @param contextId Context identifier of the authentication context. This is the flowId in app native
+     *                  authentication.
+     * @param reason    Reason for the invalidation. Used only for logging purposes and can be null.
+     * @param context   Authentication context being invalidated. Used only to resolve the application for logging
+     *                  purposes and can be null.
+     */
+    public static void removeAuthenticationContextFromCache(String contextId, String reason,
+                                                            AuthenticationContext context) {
+
+        if (contextId == null) {
+            return;
+        }
+        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
+        AuthenticationContextCache.getInstance().clearCacheEntry(cacheKey);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Authentication context with the identifier: " + contextId + " is invalidated."
+                    + (StringUtils.isNotBlank(reason) ? " Reason: " + reason + "." : ""));
+        }
+        /* The cache entry is already cleared at this point. This method is invoked in the middle of concluding an
+         authentication and a logout flow, so a failure of the logging framework itself, such as a tenant which
+         cannot be resolved, must not be allowed to fail the flow which is being concluded. */
+        try {
+            if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+                return;
+            }
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.INVALIDATE_AUTH_CONTEXT)
+                    .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID, contextId)
+                    .resultMessage("Authentication context is invalidated. The flow identifier can no longer be " +
+                            "used to continue the authentication flow.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+            if (StringUtils.isNotBlank(reason)) {
+                diagnosticLogBuilder.inputParam(FrameworkConstants.LogConstants.INVALIDATION_REASON, reason);
+            }
+            if (context != null) {
+                if (StringUtils.isNotBlank(context.getRelyingParty())) {
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.CLIENT_ID, context.getRelyingParty());
+                }
+                if (StringUtils.isNotBlank(context.getServiceProviderName())) {
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                            context.getServiceProviderName());
+                }
+            }
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        } catch (Exception e) {
+            log.error("Error while recording the invalidation of the authentication context.", e);
         }
     }
 
