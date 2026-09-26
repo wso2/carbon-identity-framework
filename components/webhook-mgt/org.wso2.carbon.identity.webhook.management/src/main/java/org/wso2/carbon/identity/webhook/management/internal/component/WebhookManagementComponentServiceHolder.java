@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.webhook.management.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.sharing.policy.management.ResourceSharingPolicyHandlerService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
@@ -44,6 +46,8 @@ public class WebhookManagementComponentServiceHolder {
     private WebhookMetadataService webhookMetadataService;
     private EventAdapterMetadataService eventAdapterMetadataService;
     private Adapter webhookAdapter;
+    private ResourceSharingPolicyHandlerService resourceSharingPolicyHandlerService;
+    private OrganizationManager organizationManager;
 
     private WebhookManagementComponentServiceHolder() {
 
@@ -182,6 +186,49 @@ public class WebhookManagementComponentServiceHolder {
     public Adapter getWebhookAdapter() {
 
         return webhookAdapter;
+    }
+
+    /**
+     * Get the organization manager. Used to walk the organization hierarchy when materialising an
+     * ALL policy and to translate between organization ids and tenant ids.
+     *
+     * @return OrganizationManager.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Set the organization manager.
+     *
+     * @param organizationManager OrganizationManager.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Get the resource sharing policy handler service. Holds the organization subscription intent
+     * for webhook channels in UM_RESOURCE_SHARING_POLICY.
+     *
+     * @return ResourceSharingPolicyHandlerService.
+     */
+    public ResourceSharingPolicyHandlerService getResourceSharingPolicyHandlerService() {
+
+        return resourceSharingPolicyHandlerService;
+    }
+
+    /**
+     * Set the resource sharing policy handler service.
+     *
+     * @param resourceSharingPolicyHandlerService ResourceSharingPolicyHandlerService.
+     */
+    public void setResourceSharingPolicyHandlerService(
+            ResourceSharingPolicyHandlerService resourceSharingPolicyHandlerService) {
+
+        this.resourceSharingPolicyHandlerService = resourceSharingPolicyHandlerService;
     }
 
     /**
