@@ -209,4 +209,44 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
         }
         return webhooks;
     }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Shares the active webhooks cache with {@link #getActiveWebhooks}: the key already carries the
+     * profile, version, channel and tenant, and only one adapter type handler is in play for a
+     * given deployment, so the two never populate the same key with different answers.
+     * <p>
+     * Entries cached here can be invalidated by a change in a <em>different</em> tenant — the one
+     * that owns the webhook — which is why {@code WebhookManagementServiceImpl} clears the cache of
+     * every subscribed tenant when a webhook or its subscriptions change.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName, String eventProfileVersion,
+                                                           String channelUri, int tenantId)
+            throws WebhookMgtException {
+
+        ActiveWebhooksCacheKey cacheKey =
+                new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId);
+        ActiveWebhooksCacheEntry cacheEntry = activeWebhooksCache.getValueFromCache(cacheKey, tenantId);
+
+        if (cacheEntry != null && cacheEntry.getWebhooks() != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Active webhooks cache hit (including sub organizations) for channel URI: " + channelUri +
+                        ", tenant ID: " + tenantId + ". Returning from cache.");
+            }
+            return cacheEntry.getWebhooks();
+        }
+
+        List<Webhook> webhooks = webhookManagementDAO.getActiveWebhooksWithSubscribedChildOrgs(
+                eventProfileName, eventProfileVersion, channelUri, tenantId);
+        if (webhooks != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Active webhooks cache miss (including sub organizations) for channel URI: " + channelUri +
+                        ", tenant ID: " + tenantId + ". Adding to cache.");
+            }
+            activeWebhooksCache.addToCache(cacheKey, new ActiveWebhooksCacheEntry(webhooks), tenantId);
+        }
+        return webhooks;
+    }
 }

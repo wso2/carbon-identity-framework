@@ -2379,6 +2379,8 @@
   "outbound_adapters.httppublisher.type": "Publisher",
 
   "webhooks.maximum_webhooks_per_tenant": "10",
+  "webhooks.child_organization_subscription_enabled": false,
+  "webhooks.channel_uuid_column_available": false,
   "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": true,
   "webhooks.event_profiles.disabled_channels": [],
 

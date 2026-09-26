@@ -105,6 +105,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .tenantId(webhook.getTenantId())
                 .build();
         dao.activateWebhook(activatedWebhook, tenantId);
     }
@@ -124,6 +125,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .tenantId(webhook.getTenantId())
                 .build();
         dao.deactivateWebhook(deactivatedWebhook, tenantId);
     }
@@ -162,6 +164,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .tenantId(webhook.getTenantId())
                 .build();
         dao.updateWebhook(updatedWebhook, tenantId);
     }
@@ -171,5 +174,20 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                                            int tenantId) throws WebhookMgtException {
 
         return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+    }
+
+    /**
+     * Under the Publisher adapter every webhook is posted to individually, so an event raised in a
+     * descendant organization must reach the webhooks of ancestors that opted it in as well as the
+     * webhooks configured in its own tenant. Both come back from one query.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName,
+                                                                 String eventProfileVersion,
+                                                                 String channelUri, int tenantId)
+            throws WebhookMgtException {
+
+        return dao.getActiveWebhooksWithSubscribedChildOrgs(eventProfileName, eventProfileVersion,
+                channelUri, tenantId);
     }
 }
