@@ -370,14 +370,6 @@ public class OutboundProvisioningManager {
                     .getServiceProvider(serviceProviderIdentifier, spTenantDomainName);
 
             if (serviceProvider == null) {
-                /*
-                 * The application is not registered in the tenant the provisioning operation is running in.
-                 * This is the case when the request is authenticated with a token of an application residing
-                 * in another tenant, such as a system application. Application level outbound provisioning
-                 * configurations cannot be resolved for such an application, hence fall back to the resident
-                 * application configurations the same way an application without connectors does. The user
-                 * store operation itself must not fail because of this.
-                 */
                 if (isApplicationBasedOutboundProvisioningEnabled()) {
                     if (log.isDebugEnabled()) {
                         log.debug(String.format("The application: %s is not registered in the tenant domain: %s. " +
