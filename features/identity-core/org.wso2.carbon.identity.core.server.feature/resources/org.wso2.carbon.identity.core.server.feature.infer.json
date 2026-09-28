@@ -331,13 +331,7 @@
       "actions.action_request.case_insensitive_header_filtering": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps": false,
       "saas.enable_app_creation": true,
-      "saas.enable_cross_tenant_operations": false,
-      "consent_mgt.enable_v2_api": null,
-      "identity_mgt.events.schemes.ConsentEventHook.properties.enable": null,
-      "identity_mgt.events.schemes.ConsentPurposeEventHook.properties.enable": null,
-      "webhooks.event_profiles.disabled_channels": null,
-      "console.console_settings.use_granular_console_permissions": null,
-      "console.console_settings.disabled_features": null
+      "saas.enable_cross_tenant_operations": false
     },
     "IS_7.1.0": {
       "$extends": "IS_7.2.0",
@@ -381,13 +375,6 @@
       "oauth.enable_legacy_session_bound_token_behaviour": true,
       "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
       "identity_mgt.recovery.enable_normalized_retry_error_response": false,
-      "console.console_settings.use_granular_console_permissions": false,
-      "console.console_settings.disabled_features": [
-        "consoleSettings.invitedExternalAdmins",
-        "consoleSettings.privilegedUsers",
-        "consoleSettings.useGranularConsolePermissions"
-      ],
-      "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": null,
       "oauth.dcrm.decode_redirect_uris_in_response": null
     },
     "IS_7.0.0": {
@@ -400,13 +387,7 @@
       "oauth.return_sp_id_to_apps": null,
       "oauth.jwt.return_only_app_associated_roles": null,
       "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": null,
-      "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": null,
-      "resolve_tenant_domain_from_username.enabled": null,
-      "identity_mgt.recovery.enable_normalized_retry_error_response": null,
-      "use_resident_user_id_for_authenticated_shared_users.enabled": null,
-      "authentication.include_auth_failure_reason_in_api_based_response": null,
-      "authentication.include_multi_options_in_api_based_auth_response": null,
-      "actions.action_request.case_insensitive_header_filtering": null
+      "identity_mgt.recovery.enable_normalized_retry_error_response": null
     }
   }
 }
