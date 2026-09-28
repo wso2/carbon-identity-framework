@@ -386,7 +386,6 @@
       "event.default_listener.email_domain_validation_handler.enable": false,
       "oauth.return_sp_id_to_apps": null,
       "oauth.jwt.return_only_app_associated_roles": null,
-      "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": null,
       "identity_mgt.recovery.enable_normalized_retry_error_response": null
     }
   }
