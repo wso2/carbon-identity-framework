@@ -352,7 +352,8 @@
       "token_exchange.limit_scopes_to_subject_token": false,
       "token_exchange.use_requesting_app_subject_attribute": false,
       "legacy_claims.return_legacy_role_claim_in_application_response": true,
-      "webappscommon.inherit_app_level_custom_layout": false
+      "webappscommon.inherit_app_level_custom_layout": false,
+      "saml.validate_assertion_consumer_url_for_signed_requests": false
     },
     "IS_7.1.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -433,7 +434,8 @@
       "token_exchange.limit_scopes_to_subject_token": false,
       "token_exchange.use_requesting_app_subject_attribute": false,
       "legacy_claims.return_legacy_role_claim_in_application_response": true,
-      "webappscommon.inherit_app_level_custom_layout": false
+      "webappscommon.inherit_app_level_custom_layout": false,
+      "saml.validate_assertion_consumer_url_for_signed_requests": false
     },
     "IS_7.2.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -471,7 +473,8 @@
       "token_exchange.limit_scopes_to_subject_token": false,
       "token_exchange.use_requesting_app_subject_attribute": false,
       "legacy_claims.return_legacy_role_claim_in_application_response": true,
-      "webappscommon.inherit_app_level_custom_layout": false
+      "webappscommon.inherit_app_level_custom_layout": false,
+      "saml.validate_assertion_consumer_url_for_signed_requests": false
     },
     "IS_7.3.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -494,7 +497,8 @@
       "token_exchange.limit_scopes_to_subject_token": false,
       "token_exchange.use_requesting_app_subject_attribute": false,
       "legacy_claims.return_legacy_role_claim_in_application_response": true,
-      "webappscommon.inherit_app_level_custom_layout": false
+      "webappscommon.inherit_app_level_custom_layout": false,
+      "saml.validate_assertion_consumer_url_for_signed_requests": false
     }
   }
 }
