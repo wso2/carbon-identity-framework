@@ -388,8 +388,7 @@
         "consoleSettings.useGranularConsolePermissions"
       ],
       "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": null,
-      "oauth.dcrm.decode_redirect_uris_in_response": null,
-      "ai_services.http_client_use_system_properties": null
+      "oauth.dcrm.decode_redirect_uris_in_response": null
     },
     "IS_7.0.0": {
       "$extends": "IS_7.1.0",
