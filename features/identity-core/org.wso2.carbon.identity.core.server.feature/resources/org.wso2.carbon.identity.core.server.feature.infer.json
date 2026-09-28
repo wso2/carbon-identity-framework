@@ -384,8 +384,6 @@
       "user_store_commons.enable_circuit_breaker_for_user_stores": false,
       "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": true,
       "event.default_listener.email_domain_validation_handler.enable": false,
-      "oauth.return_sp_id_to_apps": null,
-      "oauth.jwt.return_only_app_associated_roles": null,
       "identity_mgt.recovery.enable_normalized_retry_error_response": null
     }
   }
