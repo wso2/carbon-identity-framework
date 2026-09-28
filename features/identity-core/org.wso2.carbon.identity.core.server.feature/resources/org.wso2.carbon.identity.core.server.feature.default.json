@@ -2395,6 +2395,7 @@
 
   "token_exchange.implicit_association.include_primary_when_secondary_present": true,
   "token_exchange.limit_scopes_to_subject_token": true,
+  "token_exchange.use_requesting_app_subject_attribute": true,
 
   "attribute.return_previous_additional_properties.enabled": false,
 
