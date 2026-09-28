@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -92,6 +93,29 @@ public interface UserSessionDAO {
             throws UserSessionException {
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Retrieve the sessions of the given session IDs.
+     *
+     * @param sessionIds Session IDs.
+     * @return The sessions that exist, keyed by session ID.
+     * @throws SessionManagementServerException If the sessions could not be retrieved.
+     */
+    default Map<String, UserSession> getSessions(List<String> sessionIds) throws SessionManagementServerException {
+
+        // A store that does not read sessions in batches still has to return them, so read them one at a time.
+        Map<String, UserSession> sessions = new HashMap<>();
+        if (sessionIds == null) {
+            return sessions;
+        }
+        for (String sessionId : sessionIds) {
+            UserSession userSession = getSession(sessionId);
+            if (userSession != null) {
+                sessions.put(sessionId, userSession);
+            }
+        }
+        return sessions;
     }
 
     /**
