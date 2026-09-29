@@ -48,6 +48,9 @@ import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.time.LocalDate;
@@ -75,6 +78,12 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_META_DATA_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ORGANIZATION_NAME;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_HANDLE_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_NAME_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_NAME_CONTAINS_HTML_CONTENT;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_RESERVED_ORGANIZATION_NAME;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
@@ -102,6 +111,8 @@ import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionE
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SUPER;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SUPER_ORG_ID;
 
 /**
  * This class is responsible for validating user inputs during the flow execution process.
@@ -289,10 +300,10 @@ public class InputValidationService {
     }
 
     /**
-     * Validate user inputs against claim uniqueness constraints.
+     * Validate user and organization inputs.
      *
      * @param context Flow context.
-     * @throws FlowEngineClientException If claim uniqueness validation fails.
+     * @throws FlowEngineException If an input fails validation.
      */
     private void validateUserInputs(FlowExecutionContext context) throws FlowEngineException {
 
@@ -305,16 +316,98 @@ public class InputValidationService {
         boolean skipUniquenessValidation = isUserResolveExecutor(context);
         Map<String, String> identifierTypes = resolveIdentifierTypes(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
-            // Organization inputs are not user claims, so the claim validations do not apply.
             if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(userInput.getKey()))) {
-                continue;
-            }
-            if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+                validateOrganizationInput(context.getTenantDomain(), userInput.getKey(), userInput.getValue());
+            } else if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
                 validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
                         skipUniquenessValidation);
             } else if (userInput.getKey().equals(PASSWORD_KEY)) {
                 validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
             }
+        }
+    }
+
+    /**
+     * Validate a submitted organization input before it is routed onto the flow organization.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param identifier   Organization input identifier.
+     * @param value        Organization input value.
+     * @throws FlowEngineException If an organization input fails validation.
+     */
+    private void validateOrganizationInput(String tenantDomain, String identifier, String value)
+            throws FlowEngineException {
+
+        switch (identifier) {
+            case ORG_NAME_KEY:
+                validateOrganizationName(tenantDomain, value);
+                break;
+            case ORG_HANDLE_KEY:
+                validateOrganizationHandle(tenantDomain, value);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Validate the organization name against the rules organization management enforces at creation:
+     * not blank, no HTML content, not a reserved name and unique within the current hierarchy.
+     *
+     * @param tenantDomain     Tenant domain.
+     * @param organizationName Organization name to validate.
+     * @throws FlowEngineException If the name is invalid or the validation fails.
+     */
+    private void validateOrganizationName(String tenantDomain, String organizationName)
+            throws FlowEngineException {
+
+        if (StringUtils.isBlank(organizationName)) {
+            throw handleClientException(ERROR_CODE_INVALID_ORGANIZATION_NAME);
+        }
+        if (Utils.hasHtmlContent(organizationName)) {
+            throw handleClientException(ERROR_CODE_ORGANIZATION_NAME_CONTAINS_HTML_CONTENT);
+        }
+        OrganizationManager organizationManager =
+                FlowExecutionEngineDataHolder.getInstance().getOrganizationManager();
+        String superRootOrgName;
+        try {
+            superRootOrgName = organizationManager.getOrganizationNameById(SUPER_ORG_ID);
+        } catch (OrganizationManagementException e) {
+            throw handleServerException(ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE, e, tenantDomain);
+        }
+        if (StringUtils.equalsIgnoreCase(superRootOrgName, organizationName) ||
+                StringUtils.equalsIgnoreCase(SUPER, organizationName)) {
+            throw handleClientException(ERROR_CODE_RESERVED_ORGANIZATION_NAME, organizationName);
+        }
+        if (organizationManager.isOrganizationExistByNameInGivenHierarchy(organizationName)) {
+            throw handleClientException(ERROR_CODE_ORGANIZATION_NAME_ALREADY_EXISTS, organizationName);
+        }
+    }
+
+    /**
+     * Validate the organization handle against tenant domain availability. A blank handle is valid;
+     * organization creation falls back to the organization ID in that case.
+     *
+     * @param tenantDomain       Tenant domain.
+     * @param organizationHandle Organization handle to validate.
+     * @throws FlowEngineException If the handle is taken or the validation fails.
+     */
+    private void validateOrganizationHandle(String tenantDomain, String organizationHandle)
+            throws FlowEngineException {
+
+        if (StringUtils.isBlank(organizationHandle)) {
+            return;
+        }
+        OrganizationManager organizationManager =
+                FlowExecutionEngineDataHolder.getInstance().getOrganizationManager();
+        boolean handleExists;
+        try {
+            handleExists = organizationManager.isOrganizationExistByHandle(organizationHandle);
+        } catch (OrganizationManagementException e) {
+            throw handleServerException(ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE, e, tenantDomain);
+        }
+        if (handleExists) {
+            throw handleClientException(ERROR_CODE_ORGANIZATION_HANDLE_ALREADY_EXISTS, organizationHandle);
         }
     }
 
