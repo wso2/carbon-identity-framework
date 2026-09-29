@@ -52,6 +52,8 @@
   "session.timeout.maximum_session_timeout": "30d",
   "par.cleanup.enable_expired_requests_cleanup": true,
   "par.cleanup.clean_expired_requests_every": "1d",
+  "device_token.cleanup.enable_expired_jti_cleanup": true,
+  "device_token.cleanup.clean_expired_jti_every": "1d",
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
   "key_mgt.key_manager_type": "SunX509",
   "key_mgt.trust_manager_type": "SunX509",
@@ -390,6 +392,7 @@
   "saml.metadata.assertion_encrypt_with_app_cert": true,
   "saml.enable_saml_sp_certificate_expiry_validation": true,
   "saml.enable_saml_idp_init_logout_response_signing": true,
+  "saml.validate_assertion_consumer_url_for_signed_requests": true,
   "saml.send_saml_auth_failure_response_to_sp": false,
   "saml.return_valid_name_id_format": false,
   "saml.response.allow_nested_assertions": false,
@@ -2393,6 +2396,7 @@
 
   "token_exchange.implicit_association.include_primary_when_secondary_present": true,
   "token_exchange.limit_scopes_to_subject_token": true,
+  "token_exchange.use_requesting_app_subject_attribute": true,
 
   "attribute.return_previous_additional_properties.enabled": false,
 

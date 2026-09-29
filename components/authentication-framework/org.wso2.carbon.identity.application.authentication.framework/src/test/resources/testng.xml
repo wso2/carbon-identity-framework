@@ -82,6 +82,9 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderErrorResponseTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAOFactoryTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStoreSelectionTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtilsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.AuthenticationServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.approles.impl.AppAssociatedRolesResolverImplTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImplTest"/>

@@ -188,6 +188,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
+            mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
@@ -199,6 +200,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
+            mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
@@ -210,6 +212,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
+            mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
@@ -295,6 +298,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
+            mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
             UserSessionStore.getInstance().storeUserSessionData(userId, sessionId);
         }
     }
@@ -306,6 +310,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, true, mockedIdentityDatabaseUtil);
+            mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
             UserSessionStore.getInstance().storeUserSessionData(userId, sessionId);
         }
     }

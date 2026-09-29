@@ -1265,6 +1265,18 @@
                    description="Delete policies in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Device Management API" identifier="/api/server/v1/devices"
+                 requiresAuthorization="true"
+                 description="API representation of the Device Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Devices" name="internal_device_mgt_view"
+                   description="View devices in the organization (root)"/>
+            <Scope displayName="Update Devices" name="internal_device_mgt_update"
+                   description="Update devices in the organization (root)"/>
+            <Scope displayName="Delete Devices" name="internal_device_mgt_delete"
+                   description="Delete devices in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Email Template Management API v1/v2"
                  identifier="/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API" type="TENANT">

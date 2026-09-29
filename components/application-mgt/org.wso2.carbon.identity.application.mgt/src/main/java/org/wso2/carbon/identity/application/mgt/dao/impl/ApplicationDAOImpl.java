@@ -195,6 +195,8 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUse
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL_ORACLE;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.GET_FILTERED_SHARED_APPLICATIONS;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.APP_FILTER_PLACEHOLDER;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.APP_ID_LIST_PLACEHOLDER;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID;
@@ -6697,6 +6699,96 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
                 "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+    }
+
+    @Override
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByIds(int[] appIds)
+            throws IdentityApplicationManagementException {
+
+        if (appIds == null || appIds.length == 0) {
+            return Collections.emptyList();
+        }
+        String placeholders = String.join(", ", Collections.nCopies(appIds.length, "?"));
+        String query = ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_IDS
+                .replace(APP_ID_LIST_PLACEHOLDER, placeholders);
+        List<ApplicationBasicInfo> result = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            for (int i = 0; i < appIds.length; i++) {
+                ps.setInt(i + 1, appIds[i]);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(buildMinimalApplicationInfo(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error retrieving application basic info for the given IDs.", e);
+        }
+        return result;
+    }
+
+    @Override
+    public List<ApplicationBasicInfo> getApplicationBasicInfos(String filterClause, List<Object> filterParams)
+            throws IdentityApplicationManagementException {
+
+        String query = ApplicationMgtDBQueries.LOAD_APP_BASIC_INFO_BY_FILTER
+                .replace(APP_FILTER_PLACEHOLDER, filterClause);
+        List<ApplicationBasicInfo> result = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            bindFilterParams(ps, filterParams);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(buildMinimalApplicationInfo(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error retrieving application basic info for the given filter.", e);
+        }
+        return result;
+    }
+
+    /**
+     * Binds the given filter values to the statement, in the order they are held.
+     *
+     * @param ps           Statement to bind the values to.
+     * @param filterParams Filter values.
+     * @throws SQLException if a value could not be bound.
+     */
+    private static void bindFilterParams(PreparedStatement ps, List<Object> filterParams) throws SQLException {
+
+        if (filterParams == null) {
+            return;
+        }
+        int index = 1;
+        for (Object param : filterParams) {
+            if (param instanceof Long) {
+                ps.setLong(index++, (Long) param);
+            } else if (param instanceof Integer) {
+                ps.setInt(index++, (Integer) param);
+            } else {
+                ps.setString(index++, (String) param);
+            }
+        }
+    }
+
+    /**
+     * Builds the basic information of an application from the identifier, name and UUID of the current row.
+     *
+     * @param resultSet Result set positioned on the row to read.
+     * @return the basic information of the application.
+     * @throws SQLException if a column could not be read.
+     */
+    private static ApplicationBasicInfo buildMinimalApplicationInfo(ResultSet resultSet) throws SQLException {
+
+        ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
+        basicInfo.setApplicationId(resultSet.getInt(ApplicationTableColumns.ID));
+        basicInfo.setApplicationName(resultSet.getString(ApplicationTableColumns.APP_NAME));
+        basicInfo.setApplicationResourceId(resultSet.getString(ApplicationTableColumns.UUID));
+        return basicInfo;
     }
 
     private ApplicationBasicInfo buildApplicationBasicInfo(ResultSet appNameResultSet)

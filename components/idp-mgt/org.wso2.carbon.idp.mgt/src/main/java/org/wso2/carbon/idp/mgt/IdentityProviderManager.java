@@ -1209,6 +1209,12 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
+    public int getIdPIdByName(String idPName, int tenantId) throws IdentityProviderManagementException {
+
+        return dao.getIdPIdByName(idPName, tenantId);
+    }
+
+    @Override
     public IdentityProvider getIdPById(String id, String tenantDomain) throws IdentityProviderManagementException {
 
         return getIdPById(id, tenantDomain, false);

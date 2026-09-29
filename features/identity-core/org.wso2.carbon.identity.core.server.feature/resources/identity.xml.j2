@@ -73,8 +73,26 @@
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
             <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
         </PushedAuthReqCleanUp>
+        <DeviceTokenJtiCleanUp>
+            <Enable>{{device_token.cleanup.enable_expired_jti_cleanup}}</Enable>
+            <CleanUpPeriod>{{device_token.cleanup.clean_expired_jti_every}}</CleanUpPeriod>
+        </DeviceTokenJtiCleanUp>
         <SkipClaimMetadataPersistence>{{identity_data_source.skip_claim_metadata_persistence}}</SkipClaimMetadataPersistence>
     </JDBCPersistenceManager>
+
+    <!-- A property name carrying a dot has to be quoted in deployment.toml. -->
+    {% if session_storage.type is defined %}
+    <SessionStorage>
+        <Type>{{session_storage.type}}</Type>
+        {% if session_storage.properties is defined %}
+        <Properties>
+            {% for name, value in session_storage.properties.items() %}
+            <Property name="{{name}}">{{value}}</Property>
+            {% endfor %}
+        </Properties>
+        {% endif %}
+    </SessionStorage>
+    {% endif %}
 
     <!--
     This section provide the ability to configure the storage type for the features that used to store data in the
@@ -1634,6 +1652,7 @@
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
         <SAMLSPCertificateExpiryValidationEnabled>{{saml.enable_saml_sp_certificate_expiry_validation}}</SAMLSPCertificateExpiryValidationEnabled>
         <SAMLIdpInitLogoutResponseSigningEnabled>{{saml.enable_saml_idp_init_logout_response_signing}}</SAMLIdpInitLogoutResponseSigningEnabled>
+        <SAMLValidateAssertionConsumerURLForSignedRequests>{{saml.validate_assertion_consumer_url_for_signed_requests}}</SAMLValidateAssertionConsumerURLForSignedRequests>
         <SAML2AuthnRequestsSigningEnabled>{{saml.metadata.enable_authentication_requests_signing}}</SAML2AuthnRequestsSigningEnabled>
         <SAMLAssertionEncyptWithAppCert>{{saml.metadata.assertion_encrypt_with_app_cert}}</SAMLAssertionEncyptWithAppCert>
         <SendSAMLAuthFailureResponseToSP>{{saml.send_saml_auth_failure_response_to_sp}}</SendSAMLAuthFailureResponseToSP>
@@ -5325,6 +5344,7 @@
             <IncludePrimaryWhenSecondaryPresent>{{token_exchange.implicit_association.include_primary_when_secondary_present}}</IncludePrimaryWhenSecondaryPresent>
         </ImplicitAssociation>
         <LimitScopesToSubjectToken>{{token_exchange.limit_scopes_to_subject_token}}</LimitScopesToSubjectToken>
+        <UseRequestingAppSubjectAttribute>{{token_exchange.use_requesting_app_subject_attribute}}</UseRequestingAppSubjectAttribute>
     </TokenExchange>
 
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->

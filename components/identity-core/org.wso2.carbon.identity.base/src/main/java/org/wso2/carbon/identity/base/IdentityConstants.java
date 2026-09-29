@@ -134,6 +134,13 @@ public class IdentityConstants {
     public final static String COOKIE_SAME_SITE = "sameSite";
     public final static String COOKIES_TO_INVALIDATE_CONFIG = "CookiesToInvalidate";
 
+    // Session storage configuration constants.
+    public final static String SESSION_STORAGE_CONFIG = "SessionStorage";
+    public final static String SESSION_STORAGE_TYPE = "Type";
+    public final static String SESSION_STORAGE_PROPERTIES = "Properties";
+    public final static String SESSION_STORAGE_PROPERTY = "Property";
+    public final static String SESSION_STORAGE_PROPERTY_NAME = "name";
+
     // Store Procedure Based DAO Configuration Constants
     public final static String STORED_PROCEDURE_DAO_CONFIG = "StoredProcedureDAO";
     public final static String DAO_CONFIG = "DAO";
