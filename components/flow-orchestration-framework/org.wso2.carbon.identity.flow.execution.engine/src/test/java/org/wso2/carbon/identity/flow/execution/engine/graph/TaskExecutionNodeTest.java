@@ -196,7 +196,7 @@ public class TaskExecutionNodeTest {
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_COMPLETE);
-            assertEquals(context.getFlowOrganization().getOrganizationName(), "Acme");
+            assertEquals(context.getFlowOrganization().getAttribute("organizationName"), "Acme");
             assertEquals(context.getFlowOrganization().getAttribute("taxId"), "123");
         }
     }

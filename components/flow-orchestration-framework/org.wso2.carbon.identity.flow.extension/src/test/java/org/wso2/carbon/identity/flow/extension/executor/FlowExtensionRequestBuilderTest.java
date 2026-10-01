@@ -397,7 +397,10 @@ public class FlowExtensionRequestBuilderTest {
     public void testNonModifiablePathNotAdvertisedAsModifiable() throws Exception {
 
         AccessConfig accessConfig = new AccessConfig(null, Arrays.asList(
-                new ContextPath(USER_ID_CLAIM_PATH, false), new ContextPath(CLAIM_PATH, false)));
+                new ContextPath(USER_ID_CLAIM_PATH, false), new ContextPath(CLAIM_PATH, false),
+                new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH, false),
+                new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH
+                        + "/organizationName", false)));
 
         ActionExecutionRequest request = buildWithNonModifiablePaths(
                 accessConfig, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION, USER_ID_CLAIM_PATH);
@@ -406,7 +409,11 @@ public class FlowExtensionRequestBuilderTest {
         assertNotNull(replaceOp);
         assertFalse(replaceOp.getPaths().contains(USER_ID_CLAIM_PATH),
                 "A non-modifiable path must not be advertised as modifiable.");
+        assertFalse(replaceOp.getPaths().contains(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH),
+                "A core organization path must not be advertised as modifiable.");
         assertTrue(replaceOp.getPaths().contains(CLAIM_PATH));
+        assertTrue(replaceOp.getPaths().contains(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH
+                + "/organizationName"));
     }
 
     @Test

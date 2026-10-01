@@ -424,12 +424,21 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
 
     private boolean isRestrictedModifyPath(String cleanPath, String flowType) {
 
-        if (FlowExtensionUtil.isNonModifiablePath(cleanPath)) {
+        if (FlowExtensionUtil.isNonModifiablePath(cleanPath) || isReadOnlyOrganizationPath(cleanPath)) {
             return true;
         }
 
         return FlowContextPaths.USER_USERNAME_PATH.equals(cleanPath)
                 && !FlowExtensionConstants.ContextTree.FLOW_REGISTRATION.equals(flowType);
+    }
+
+    private boolean isReadOnlyOrganizationPath(String path) {
+
+        return FlowContextPaths.ORGANIZATION_ID_PATH.equals(path)
+                || FlowContextPaths.ORGANIZATION_NAME_PATH.equals(path)
+                || FlowContextPaths.ORGANIZATION_HANDLE_PATH.equals(path)
+                || FlowContextPaths.ORGANIZATION_DESCRIPTION_PATH.equals(path)
+                || FlowContextPaths.ORGANIZATION_DEPTH_PATH.equals(path);
     }
 
     private AllowedModifyExtraction extractAllowedModifyPaths(List<ContextPath> modifyPaths) {
@@ -515,14 +524,15 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             return;
         }
 
+        org.wso2.carbon.identity.core.context.model.Organization coreOrg =
+                IdentityContext.getThreadLocalIdentityContext().getOrganization();
         FlowOrganization flowOrganization = context.getFlowOrganization();
         if (hasFlowOrganizationData(flowOrganization)) {
-            eventBuilder.organization(buildFlowOrganization(flowOrganization, expose, accessConfig, certificatePEM));
+            eventBuilder.organization(buildFlowOrganization(
+                    flowOrganization, coreOrg, expose, accessConfig, certificatePEM));
             return;
         }
 
-        org.wso2.carbon.identity.core.context.model.Organization coreOrg =
-                IdentityContext.getThreadLocalIdentityContext().getOrganization();
         if (coreOrg == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Organization is not available in the IdentityContext. "
@@ -549,12 +559,19 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         eventBuilder.organization(orgBuilder.build());
     }
 
-    private FlowExtensionOrganization buildFlowOrganization(FlowOrganization flowOrganization,
-                                                            List<String> expose, AccessConfig accessConfig,
-                                                            String certificatePEM)
+    private FlowExtensionOrganization buildFlowOrganization(
+            FlowOrganization flowOrganization,
+            org.wso2.carbon.identity.core.context.model.Organization coreOrg, List<String> expose,
+            AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
         FlowExtensionOrganization.Builder organizationBuilder = new FlowExtensionOrganization.Builder();
+        if (coreOrg != null && isLeafExposed(FlowContextPaths.ORGANIZATION_ID_PATH, expose)) {
+            organizationBuilder.id(coreOrg.getId());
+        }
+        if (coreOrg != null && isLeafExposed(FlowContextPaths.ORGANIZATION_DEPTH_PATH, expose)) {
+            organizationBuilder.depth(coreOrg.getDepth());
+        }
         if (isLeafExposed(FlowContextPaths.ORGANIZATION_NAME_PATH, expose)) {
             organizationBuilder.name(encryptIfConfigured(FlowContextPaths.ORGANIZATION_NAME_PATH,
                     flowOrganization.getOrganizationName(), accessConfig, certificatePEM));

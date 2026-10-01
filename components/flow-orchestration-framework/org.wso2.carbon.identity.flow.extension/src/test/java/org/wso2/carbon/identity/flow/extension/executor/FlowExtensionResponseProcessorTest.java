@@ -206,22 +206,7 @@ public class FlowExtensionResponseProcessorTest {
 
         FlowContext actionFlowContext = actionFlowContext();
         List<PerformableOperation> ops = Collections.singletonList(
-                replace("/organization/attributes/taxId", "123"));
-
-        processor.processSuccessResponse(actionFlowContext, successContext(ops));
-
-        Map<?, ?> pending = (Map<?, ?>) actionFlowContext.getContextData()
-                .get(FlowExtensionConstants.PENDING_ORGANIZATION_ATTRIBUTES_KEY);
-        assertNotNull(pending);
-        assertEquals(pending.get("taxId"), "123");
-    }
-
-    @Test
-    public void testOrganizationCoreFieldReplaceCollectedAsPending() throws Exception {
-
-        FlowContext actionFlowContext = actionFlowContext();
-        List<PerformableOperation> ops = Collections.singletonList(
-                replace(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH, "Acme"));
+                replace("/organization/attributes/organizationName", "Acme"));
 
         processor.processSuccessResponse(actionFlowContext, successContext(ops));
 
@@ -229,6 +214,19 @@ public class FlowExtensionResponseProcessorTest {
                 .get(FlowExtensionConstants.PENDING_ORGANIZATION_ATTRIBUTES_KEY);
         assertNotNull(pending);
         assertEquals(pending.get("organizationName"), "Acme");
+    }
+
+    @Test
+    public void testOrganizationCoreFieldReplaceIsNotCollectedAsPending() throws Exception {
+
+        FlowContext actionFlowContext = actionFlowContext();
+        List<PerformableOperation> ops = Collections.singletonList(
+                replace(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH, "Acme"));
+
+        processor.processSuccessResponse(actionFlowContext, successContext(ops));
+
+        assertNull(actionFlowContext.getContextData()
+                .get(FlowExtensionConstants.PENDING_ORGANIZATION_ATTRIBUTES_KEY));
     }
 
     @Test

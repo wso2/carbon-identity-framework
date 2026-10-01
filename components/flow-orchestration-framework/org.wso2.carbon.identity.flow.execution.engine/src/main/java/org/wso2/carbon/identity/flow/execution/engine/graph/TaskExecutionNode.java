@@ -45,9 +45,6 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_WEBAUTHN;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_DESCRIPTION_KEY;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_HANDLE_KEY;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_NAME_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
@@ -231,22 +228,6 @@ public class TaskExecutionNode implements Node {
         if (updates == null || updates.isEmpty()) {
             return;
         }
-        updates.forEach((key, value) -> {
-            String stringValue = String.valueOf(value);
-            switch (key) {
-                case ORG_NAME_KEY:
-                    organization.setOrganizationName(stringValue);
-                    break;
-                case ORG_HANDLE_KEY:
-                    organization.setOrganizationHandle(stringValue);
-                    break;
-                case ORG_DESCRIPTION_KEY:
-                    organization.setOrganizationDescription(stringValue);
-                    break;
-                default:
-                    organization.setAttribute(key, stringValue);
-                    break;
-            }
-        });
+        updates.forEach((key, value) -> organization.setAttribute(key, String.valueOf(value)));
     }
 }

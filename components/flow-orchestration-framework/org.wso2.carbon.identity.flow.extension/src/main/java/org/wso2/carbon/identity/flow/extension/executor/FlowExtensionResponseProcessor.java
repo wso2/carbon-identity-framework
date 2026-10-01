@@ -64,15 +64,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_DESCRIPTION_KEY;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_HANDLE_KEY;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_NAME_KEY;
 
 /**
  * Processes responses from Flow Extension actions, applying {@code REPLACE} operations on user
  * claims, credentials, and organization attributes into pending maps on the {@link FlowContext}
  * for the executor to forward.
- * Only {@code REPLACE} is supported and {@code /flow/} paths are read-only.
+ * Only {@code REPLACE} is supported. {@code /flow/} paths and core organization fields are read-only.
  */
 public class FlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
 
@@ -133,7 +130,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             actionFlowContext.add(FlowExtensionConstants.PENDING_ORGANIZATION_ATTRIBUTES_KEY,
                     pendingOrganizationAttributes);
         }
-
         logOperationExecutionResults(results);
 
         return new SuccessStatus.Builder().setResponseContext(actionFlowContext.getContextData()).build();
@@ -174,6 +170,10 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Modifications are not allowed for the read-only paths" );
         }
+        if (isReadOnlyOrganizationPath(path)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Modifications are not allowed for core organization paths.");
+        }
 
         if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)) {
             return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
@@ -199,24 +199,10 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "Expected a string value for organization path: " + operation.getPath());
         }
 
-        String key;
-        switch (operation.getPath()) {
-            case FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH:
-                key = ORG_NAME_KEY;
-                break;
-            case FlowExtensionConstants.FlowContextPaths.ORGANIZATION_HANDLE_PATH:
-                key = ORG_HANDLE_KEY;
-                break;
-            case FlowExtensionConstants.FlowContextPaths.ORGANIZATION_DESCRIPTION_PATH:
-                key = ORG_DESCRIPTION_KEY;
-                break;
-            default:
-                key = extractOrganizationAttributeKey(operation.getPath());
-                if (key == null) {
-                    return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                            "Unknown organization path: " + operation.getPath());
-                }
-                break;
+        String key = extractOrganizationAttributeKey(operation.getPath());
+        if (key == null) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Unknown organization path: " + operation.getPath());
         }
 
         pendingOrganizationAttributes.put(key, operation.getValue());
@@ -226,10 +212,16 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
     private boolean isOrganizationPath(String path) {
 
-        return FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH.equals(path)
+        return extractOrganizationAttributeKey(path) != null;
+    }
+
+    private boolean isReadOnlyOrganizationPath(String path) {
+
+        return FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ID_PATH.equals(path)
+                || FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH.equals(path)
                 || FlowExtensionConstants.FlowContextPaths.ORGANIZATION_HANDLE_PATH.equals(path)
                 || FlowExtensionConstants.FlowContextPaths.ORGANIZATION_DESCRIPTION_PATH.equals(path)
-                || extractOrganizationAttributeKey(path) != null;
+                || FlowExtensionConstants.FlowContextPaths.ORGANIZATION_DEPTH_PATH.equals(path);
     }
 
     private String extractOrganizationAttributeKey(String path) {
