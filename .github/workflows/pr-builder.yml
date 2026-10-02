@@ -4,9 +4,10 @@
 #   JDK: Adopt JDK 21
 #
 # Build strategy:
-#   Pass 1 - compile and install every module WITHOUT tests, in parallel.
+#   Pass 1 - compile and install every module WITHOUT tests.
 #   Pass 2 - run tests only for the modules touched by the PR and their dependents.
-#   A change to the root pom.xml or to this workflow falls back to testing everything.
+#   A change to the root pom.xml, this workflow, or the module detection script
+#   falls back to testing everything.
 
 name: PR Builder
 
@@ -21,8 +22,15 @@ concurrency:
 
 env:
   MAVEN_OPTS: -Xmx4g -Xms1g
-  # Reactor parallelism. Set to 1 to fall back to a serial build.
-  MVN_THREADS: 1C
+  # Pass 1 must stay serial: carbon-p2-plugin takes its bundle list from plugin
+  # configuration rather than <dependencies>, so a feature module has no reactor
+  # edge to the components it packages. Serial builds happen to work because the
+  # root pom lists every component before every feature; under -T that ordering
+  # is not guaranteed and p2-feature-gen fails on target/classes.
+  MVN_BUILD_THREADS: 1
+  # Pass 2 is safe to parallelise: `mvn test` stops before the package phase, so
+  # p2-feature-gen never runs.
+  MVN_TEST_THREADS: 1C
 
 jobs:
   build:
@@ -53,67 +61,51 @@ jobs:
 
       - name: Determine modules changed by this PR
         id: changed
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
 
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
+          if [ "$EVENT_NAME" != "pull_request" ]; then
             echo "Not a pull request - testing everything."
             echo "modules=FULL" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          BASE_REF="${{ github.base_ref }}"
           git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
           BASE_SHA=$(git merge-base HEAD "origin/$BASE_REF")
           echo "Diffing against $BASE_REF ($BASE_SHA)"
 
-          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD)
-          echo "Changed files:"; echo "$CHANGED"
-
-          # Anything repo-wide invalidates the selective build.
-          if echo "$CHANGED" | grep -qE '^(pom\.xml|\.github/workflows/pr-builder\.yml)$'; then
-            echo "Root pom.xml or this workflow changed - testing everything."
+          # Anything that can change the build as a whole, or the selection
+          # logic itself, invalidates the selective build.
+          if git diff --name-only -z "$BASE_SHA" HEAD \
+            | tr '\0' '\n' \
+            | grep -qE '^(pom\.xml|\.github/workflows/pr-builder\.yml|\.github/scripts/changed-modules\.py)$'; then
+            echo "Root pom.xml, this workflow or the detection script changed - testing everything."
             echo "modules=FULL" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          MODULES=""
-          for f in $CHANGED; do
-            d=$(dirname "$f")
-            while [ "$d" != "." ] && [ "$d" != "/" ]; do
-              if [ -f "$d/pom.xml" ]; then
-                if grep -q '<packaging>pom</packaging>' "$d/pom.xml"; then
-                  # -pl on an aggregator builds only that pom, so expand to its modules.
-                  MODULES="$MODULES $(find "$d" -name pom.xml -not -path '*/target/*' \
-                    -exec dirname {} \; | tr '\n' ' ')"
-                else
-                  MODULES="$MODULES $d"
-                fi
-                break
-              fi
-              d=$(dirname "$d")
-            done
-          done
-
-          PL=$(echo "$MODULES" | tr ' ' '\n' | grep -v '^$' | sort -u | paste -sd, -)
+          PL=$(.github/scripts/changed-modules.py "$BASE_SHA")
           echo "Modules to test: ${PL:-<none>}"
           echo "modules=$PL" >> "$GITHUB_OUTPUT"
 
       - name: Build all modules (no tests)
         run: |
-          mvn clean install -U -B -T "$MVN_THREADS" \
+          mvn clean install -U -B -T "$MVN_BUILD_THREADS" \
             -Dmaven.test.skip=true \
             -Dmaven.javadoc.skip=true
 
       - name: Run tests for changed modules
         if: steps.changed.outputs.modules != '' && steps.changed.outputs.modules != 'FULL'
         run: |
-          mvn test -B -T "$MVN_THREADS" \
+          mvn test -B -T "$MVN_TEST_THREADS" \
             -pl '${{ steps.changed.outputs.modules }}' -amd
 
       - name: Run all tests
         if: steps.changed.outputs.modules == 'FULL'
-        run: mvn test -B -T "$MVN_THREADS"
+        run: mvn test -B -T "$MVN_TEST_THREADS"
 
       - name: Generate coverage report
         run: mvn jacoco:report
