@@ -66,10 +66,21 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     @Override
     public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
             throws EventPublisherException {
-
+        EventPublisherException firstException = null;
         for (EventPublisher publisher : retrieveActivePublishers()) {
-            log.debug("Invoking registered event publisher: " + publisher.getClass().getName());
-            publisher.publish(eventPayload, eventContext);
+            if (log.isDebugEnabled()) {
+                log.debug("Invoking registered event publisher: " + publisher.getClass().getName());
+            }
+            try {
+                publisher.publish(eventPayload, eventContext);
+            } catch (EventPublisherException e) {
+                if (firstException == null) {
+                    firstException = e;
+                }
+            }
+        }
+        if (firstException != null) {
+            throw firstException;
         }
     }
 
@@ -77,14 +88,16 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     public boolean canHandleEvent(EventContext eventContext) throws EventPublisherException {
 
         for (EventPublisher publisher : retrieveActivePublishers()) {
-            log.debug("Invoking canHandle method of event publisher: " + publisher.getClass().getName());
+            if (log.isDebugEnabled()) {
+                log.debug("Invoking canHandle method of event publisher: " + publisher.getClass().getName());
+            }
             try {
                 if (publisher.canHandleEvent(eventContext)) {
                     return true;
                 }
             } catch (EventPublisherException e) {
                 log.error("Error while checking if the event can be handled by publisher: " +
-                        publisher.getClass().getName(), e);
+                        publisher.getClass().getName());
             }
         }
         return false;
@@ -102,6 +115,9 @@ public class EventPublisherServiceImpl implements EventPublisherService {
             if (webhookAdapter.equals(publisher.getAssociatedAdapter())) {
                 activePublishers.add(publisher);
             }
+        }
+        if (activePublishers.isEmpty()) {
+            log.warn("No registered event publisher found for the active adapter: " + webhookAdapter);
         }
         return activePublishers;
     }
