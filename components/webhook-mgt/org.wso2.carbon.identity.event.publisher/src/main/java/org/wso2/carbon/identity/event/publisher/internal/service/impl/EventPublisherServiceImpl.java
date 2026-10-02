@@ -21,15 +21,14 @@ package org.wso2.carbon.identity.event.publisher.internal.service.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
-import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherException;
 import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
 import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayload;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisherService;
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
-import org.wso2.carbon.identity.event.publisher.internal.util.EventPublisherExceptionHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -68,38 +67,42 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
             throws EventPublisherException {
 
-        EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
-
-        log.debug("Invoking registered event publisher: " + adapterManager.getClass().getName());
-        adapterManager.publish(eventPayload, eventContext);
+        for (EventPublisher publisher : retrieveActivePublishers()) {
+            log.debug("Invoking registered event publisher: " + publisher.getClass().getName());
+            publisher.publish(eventPayload, eventContext);
+        }
     }
 
     @Override
     public boolean canHandleEvent(EventContext eventContext) throws EventPublisherException {
 
-        EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
-
-        log.debug("Invoking canHandle method of event publisher: " + adapterManager.getClass().getName());
-        try {
-            return adapterManager.canHandleEvent(eventContext);
-        } catch (EventPublisherException e) {
-            log.error("Error while checking if the event can be handled by publisher: " +
-                    adapterManager.getClass().getName(), e);
+        for (EventPublisher publisher : retrieveActivePublishers()) {
+            log.debug("Invoking canHandle method of event publisher: " + publisher.getClass().getName());
+            try {
+                if (publisher.canHandleEvent(eventContext)) {
+                    return true;
+                }
+            } catch (EventPublisherException e) {
+                log.error("Error while checking if the event can be handled by publisher: " +
+                        publisher.getClass().getName(), e);
+            }
         }
         return false;
     }
 
-    private EventPublisher retrieveAdapterManager(String adapter) throws EventPublisherException {
+    /**
+     * Retrieve all registered event publishers associated with the currently active webhook adapter.
+     *
+     * @return List of event publishers associated with the active adapter.
+     */
+    private List<EventPublisher> retrieveActivePublishers() {
 
-        List<EventPublisher> managers =
-                EventPublisherComponentServiceHolder.getInstance().getEventPublishers();
-
-        for (EventPublisher manager : managers) {
-            if (adapter.equals(manager.getAssociatedAdapter())) {
-                return manager;
+        List<EventPublisher> activePublishers = new ArrayList<>();
+        for (EventPublisher publisher : EventPublisherComponentServiceHolder.getInstance().getEventPublishers()) {
+            if (webhookAdapter.equals(publisher.getAssociatedAdapter())) {
+                activePublishers.add(publisher);
             }
         }
-
-        throw EventPublisherExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND);
+        return activePublishers;
     }
 }
