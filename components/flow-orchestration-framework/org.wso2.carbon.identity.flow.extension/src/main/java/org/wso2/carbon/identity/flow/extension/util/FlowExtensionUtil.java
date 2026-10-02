@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelRe
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.extension.executor.PathTypeAnnotationUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.HandoverPolicy;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
@@ -160,6 +161,9 @@ public final class FlowExtensionUtil {
                 case "portalUrl":
                     dst.setPortalUrl(src.getPortalUrl());
                     break;
+                case "flowOrganization":
+                    dst.setFlowOrganization(copyFlowOrganization(src.getFlowOrganization()));
+                    break;
                 default:
                     LOG.warn("Skipping unmapped handover context attribute: " + name
                             + ". Add a case in FlowExtensionUtil.copyFlowContext to handle it.");
@@ -208,6 +212,22 @@ public final class FlowExtensionUtil {
                             + ". Add a case in FlowExtensionUtil.copyFlowUser to handle it.");
             }
         }
+    }
+
+    private static FlowOrganization copyFlowOrganization(FlowOrganization src) {
+
+        FlowOrganization dst = new FlowOrganization();
+        if (src == null) {
+            return dst;
+        }
+        dst.setOrganizationName(src.getOrganizationName());
+        dst.setOrganizationHandle(src.getOrganizationHandle());
+        dst.setOrganizationDescription(src.getOrganizationDescription());
+        dst.setOrganizationStatus(src.getOrganizationStatus());
+        if (src.getAttributes() != null) {
+            src.getAttributes().forEach(dst::setAttribute);
+        }
+        return dst;
     }
 
 }
