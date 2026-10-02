@@ -1170,7 +1170,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         final AuthorizationDetailsType authorizationDetailsType = this.buildAuthorizationDetailsType(resultSet);
 
         if (authorizationDetailsType != null) {
-            authorizationDetailsType.setSchema(AuthorizationDetailsTypesUtil.parseSchema(resultSet
+            authorizationDetailsType.setSchema(AuthorizationDetailsTypesUtil.parseSchemaForValidation(resultSet
                     .getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_SCHEMA)));
         }
 
