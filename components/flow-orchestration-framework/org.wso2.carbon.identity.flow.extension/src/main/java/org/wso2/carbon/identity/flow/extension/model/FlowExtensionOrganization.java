@@ -34,10 +34,10 @@ public class FlowExtensionOrganization extends Organization {
     private final String description;
     private final Map<String, String> attributes;
 
-    private FlowExtensionOrganization(Builder builder) {
+    private FlowExtensionOrganization(Builder builder, Organization organization) {
 
-        super(builder.id, builder.name, builder.orgHandle);
-        this.depth = builder.depth;
+        super(organization.getId(), organization.getName(), organization.getOrgHandle());
+        this.depth = organization.getDepth();
         this.description = builder.description;
         this.attributes = builder.attributes.isEmpty() ? null : new LinkedHashMap<>(builder.attributes);
     }
@@ -75,34 +75,31 @@ public class FlowExtensionOrganization extends Organization {
      */
     public static class Builder {
 
-        private String id;
-        private String name;
-        private String orgHandle;
-        private int depth;
+        private final Organization.Builder organizationBuilder = new Organization.Builder();
         private String description;
         private final Map<String, String> attributes = new LinkedHashMap<>();
 
         public Builder id(String id) {
 
-            this.id = id;
+            organizationBuilder.id(id);
             return this;
         }
 
         public Builder name(String name) {
 
-            this.name = name;
+            organizationBuilder.name(name);
             return this;
         }
 
         public Builder orgHandle(String orgHandle) {
 
-            this.orgHandle = orgHandle;
+            organizationBuilder.orgHandle(orgHandle);
             return this;
         }
 
         public Builder depth(int depth) {
 
-            this.depth = depth;
+            organizationBuilder.depth(depth);
             return this;
         }
 
@@ -122,7 +119,7 @@ public class FlowExtensionOrganization extends Organization {
 
         public FlowExtensionOrganization build() {
 
-            return new FlowExtensionOrganization(this);
+            return new FlowExtensionOrganization(this, organizationBuilder.build());
         }
     }
 }
