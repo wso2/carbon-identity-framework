@@ -2,6 +2,11 @@
 # Uses:
 #   OS: ubuntu-latest
 #   JDK: Adopt JDK 21
+#
+# Build strategy:
+#   Pass 1 - compile and install every module WITHOUT tests, in parallel.
+#   Pass 2 - run tests only for the modules touched by the PR and their dependents.
+#   A change to the root pom.xml or to this workflow falls back to testing everything.
 
 name: PR Builder
 
@@ -16,6 +21,8 @@ concurrency:
 
 env:
   MAVEN_OPTS: -Xmx4g -Xms1g
+  # Reactor parallelism. Set to 1 to fall back to a serial build.
+  MVN_THREADS: 1C
 
 jobs:
   build:
@@ -23,6 +30,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so we can diff against the base branch.
+          fetch-depth: 0
       - name: Set up Adopt JDK 21
         uses: actions/setup-java@v2
         with:
@@ -40,8 +50,71 @@ jobs:
             ${{ runner.os }}-maven-${{ env.cache-name }}-
             ${{ runner.os }}-maven-
             ${{ runner.os }}-
-      - name: Build with Maven
-        run: mvn clean install -U -B
+
+      - name: Determine modules changed by this PR
+        id: changed
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "Not a pull request - testing everything."
+            echo "modules=FULL" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BASE_REF="${{ github.base_ref }}"
+          git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+          BASE_SHA=$(git merge-base HEAD "origin/$BASE_REF")
+          echo "Diffing against $BASE_REF ($BASE_SHA)"
+
+          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD)
+          echo "Changed files:"; echo "$CHANGED"
+
+          # Anything repo-wide invalidates the selective build.
+          if echo "$CHANGED" | grep -qE '^(pom\.xml|\.github/workflows/pr-builder\.yml)$'; then
+            echo "Root pom.xml or this workflow changed - testing everything."
+            echo "modules=FULL" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          MODULES=""
+          for f in $CHANGED; do
+            d=$(dirname "$f")
+            while [ "$d" != "." ] && [ "$d" != "/" ]; do
+              if [ -f "$d/pom.xml" ]; then
+                if grep -q '<packaging>pom</packaging>' "$d/pom.xml"; then
+                  # -pl on an aggregator builds only that pom, so expand to its modules.
+                  MODULES="$MODULES $(find "$d" -name pom.xml -not -path '*/target/*' \
+                    -exec dirname {} \; | tr '\n' ' ')"
+                else
+                  MODULES="$MODULES $d"
+                fi
+                break
+              fi
+              d=$(dirname "$d")
+            done
+          done
+
+          PL=$(echo "$MODULES" | tr ' ' '\n' | grep -v '^$' | sort -u | paste -sd, -)
+          echo "Modules to test: ${PL:-<none>}"
+          echo "modules=$PL" >> "$GITHUB_OUTPUT"
+
+      - name: Build all modules (no tests)
+        run: |
+          mvn clean install -U -B -T "$MVN_THREADS" \
+            -Dmaven.test.skip=true \
+            -Dmaven.javadoc.skip=true
+
+      - name: Run tests for changed modules
+        if: steps.changed.outputs.modules != '' && steps.changed.outputs.modules != 'FULL'
+        run: |
+          mvn test -B -T "$MVN_THREADS" \
+            -pl '${{ steps.changed.outputs.modules }}' -amd
+
+      - name: Run all tests
+        if: steps.changed.outputs.modules == 'FULL'
+        run: mvn test -B -T "$MVN_THREADS"
+
       - name: Generate coverage report
         run: mvn jacoco:report
       - name: Delete SNAPSHOT artifacts
