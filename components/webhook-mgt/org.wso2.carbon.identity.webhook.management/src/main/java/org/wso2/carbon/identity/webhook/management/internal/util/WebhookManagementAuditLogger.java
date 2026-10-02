@@ -47,7 +47,7 @@ public class WebhookManagementAuditLogger {
     public void printAuditLog(Operation operation, Webhook webhook) throws WebhookMgtException {
 
         JSONObject data = createAuditLogEntry(webhook);
-        buildAuditLog(webhook.getId(), operation, data);
+        buildAuditLog(webhook.getId(), LoggerUtils.Target.Webhook, operation, data);
     }
 
     /**
@@ -59,21 +59,45 @@ public class WebhookManagementAuditLogger {
     public void printAuditLog(Operation operation, String webhookId) {
 
         JSONObject data = createAuditLogEntry(webhookId);
-        buildAuditLog(webhookId, operation, data);
+        buildAuditLog(webhookId, LoggerUtils.Target.Webhook, operation, data);
+    }
+
+    /**
+     * Record that an organization's fanout subscriptions could not be brought into line with the
+     * standing instructions after the organization was created or deleted.
+     * <p>
+     * Organization lifecycle is not failed over a webhook fanout problem, so without this the gap
+     * would only exist in debug logs. It is recorded against the organization rather than a webhook
+     * because the affected channels may span several webhooks, or may not have been resolved at all.
+     *
+     * @param operation      Which side of the lifecycle failed.
+     * @param organizationId Organization whose subscriptions are now out of line.
+     * @param reason         Why it failed, for the audit trail.
+     */
+    public void printOrganizationSubscriptionFailureAuditLog(Operation operation, String organizationId,
+                                                             String reason) {
+
+        JSONObject data = new JSONObject();
+        data.put(LogConstants.ORGANIZATION_ID_FIELD, organizationId);
+        data.put(LogConstants.FAILURE_REASON_FIELD, reason);
+        buildAuditLog(organizationId, LoggerUtils.Target.Organization, operation, data);
     }
 
     /**
      * Build audit log using the provided data.
      *
-     * @param operation Operation to be logged.
-     * @param data      data to be logged
+     * @param targetId   ID of the entity the operation was performed on.
+     * @param targetType Type of that entity.
+     * @param operation  Operation to be logged.
+     * @param data       data to be logged
      */
-    private void buildAuditLog(String targetId, Operation operation, JSONObject data) {
+    private void buildAuditLog(String targetId, LoggerUtils.Target targetType, Operation operation,
+                               JSONObject data) {
 
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()),
                 targetId,
-                LoggerUtils.Target.Webhook.name(),
+                targetType.name(),
                 operation.getLogAction()).
                 data(jsonObjectToMap(data));
         triggerAuditLogEvent(auditLogBuilder);
@@ -164,7 +188,9 @@ public class WebhookManagementAuditLogger {
         UPDATE("update-webhook"),
         DELETE("delete-webhook"),
         ACTIVATE("activate-webhook"),
-        DEACTIVATE("deactivate-webhook");
+        DEACTIVATE("deactivate-webhook"),
+        ORGANIZATION_SUBSCRIPTION_FAILED("organization-subscription-failed"),
+        ORGANIZATION_UNSUBSCRIPTION_FAILED("organization-unsubscription-failed");
 
         private final String logAction;
 
@@ -190,6 +216,8 @@ public class WebhookManagementAuditLogger {
     private static class LogConstants {
 
         public static final String UUID_FIELD = "Id";
+        public static final String ORGANIZATION_ID_FIELD = "OrganizationId";
+        public static final String FAILURE_REASON_FIELD = "FailureReason";
         public static final String ENDPOINT_URI_FIELD = "EndpointUri";
         public static final String NAME_FIELD = "Name";
         public static final String SECRET_FIELD = "Secret";
