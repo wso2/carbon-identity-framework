@@ -60,6 +60,13 @@
         "defaultValue" : {{compatibility_setting.flow_execution.default_enable_flow_based_invited_user_registration.default_value | default("true")}}
       }
   },
+  "userOnboarding": {
+    "enableLegacyEmailVerificationScenario" : {
+        "timestampReference" : "{{compatibility_setting.user_onboarding.enable_legacy_email_verification_scenario.timestamp_reference | default('2026-11-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.user_onboarding.enable_legacy_email_verification_scenario.target_value | default("true")}},
+        "defaultValue" : {{compatibility_setting.user_onboarding.enable_legacy_email_verification_scenario.default_value | default("false")}}
+    }
+  },
   "scim2": {
     "disableBasicAuthForMeEndpoint" : {
         "timestampReference" : "{{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.timestamp_reference | default('2026-04-23T00:00:00Z')}}",
