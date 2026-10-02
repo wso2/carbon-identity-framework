@@ -47,6 +47,14 @@ public interface EventAdapterMetadataService {
     Adapter getCurrentActiveAdapter() throws WebhookMetadataException;
 
     /**
+     * Get all enabled adapters.
+     *
+     * @return List of enabled adapters
+     * @throws WebhookMetadataException If an error occurs while retrieving the adapters
+     */
+    List<Adapter> getCurrentActiveAdapters() throws WebhookMetadataException;
+
+    /**
      * Get an adapter by its name.
      *
      * @param name Name of the adapter

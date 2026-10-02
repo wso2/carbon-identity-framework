@@ -53,7 +53,9 @@ public enum ErrorMessage {
     ERROR_CODE_ADAPTER_NOT_FOUND("WEBHOOKMETA-66011", "Adapter not found",
             "The specified adapter %s does not exist or is not accessible."),
     ERROR_CODE_WEBHOOK_METADATA_UPDATE_ERROR("WEBHOOKMETA-66012", "Error occurred while updating webhook metadata",
-            "An internal server error occurred while updating the webhook metadata properties.");
+            "An internal server error occurred while updating the webhook metadata properties."),
+    ERROR_CODE_ENABLED_ADAPTERS_RETRIEVE_ERROR("WEBHOOKMETA-66013", "Error occurred while retrieving enabled adapters",
+              "An internal server error occurred while retrieving the enabled event adapters.");
 
     private final String code;
     private final String message;
