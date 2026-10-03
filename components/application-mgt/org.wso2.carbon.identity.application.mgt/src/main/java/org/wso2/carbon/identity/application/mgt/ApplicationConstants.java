@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -123,6 +123,10 @@ public class ApplicationConstants {
     public static final String DEFAULT_APPLICATIONS_CONFIG_ELEMENT = "DefaultApplications";
     public static final String APPLICATION_NAME_CONFIG_ELEMENT = "ApplicationName";
     public static final String PORTAL_NAMES_CONFIG_ELEMENT = "SystemPortals.PortalName";
+
+    // Application API Authorization Management Service Configurations.
+    public static final String APPLICATION_API_AUTHORIZATION_BLOCKED_API_RESOURCES =
+            "APIResourceManagement.ApplicationAPIAuthorization.BlockedAPIResources.Identifier";
 
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
