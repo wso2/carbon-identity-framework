@@ -1,0 +1,77 @@
+CREATE OR ALTER PROCEDURE WSO2_DEVICE_CODE_CLEANUP_DATA_RESTORATION_SP AS
+BEGIN
+
+    -- ------------------------------------------
+    -- DECLARE VARIABLES
+    -- ------------------------------------------
+    DECLARE @rowCount INT
+    DECLARE @enableLog BIT
+    DECLARE @logLevel VARCHAR(10)
+
+    -- ------------------------------------------
+    -- CONFIGURABLE ATTRIBUTES
+    -- ------------------------------------------
+    SET @enableLog = 1 -- ENABLE LOGGING [DEFAULT : 1]
+    SET @logLevel  = 'TRACE' -- SET LOG LEVELS : TRACE
+
+    IF (@enableLog = 1)
+    BEGIN
+        SELECT '[' + convert(varchar, getdate(), 121) + '] WSO2_DEVICE_CODE_CLEANUP_DATA_RESTORATION_SP STARTED ... !' AS 'INFO LOG'
+    END
+
+    -- ------------------------------------------
+    -- RESTORE IDN_OAUTH2_DEVICE_FLOW
+    -- ------------------------------------------
+    IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_OAUTH2_DEVICE_FLOW')
+        AND EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BAK_IDN_OAUTH2_DEVICE_FLOW'))
+    BEGIN
+        IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+        BEGIN
+            SELECT '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION STARTED ON IDN_OAUTH2_DEVICE_FLOW TABLE !' AS 'TRACE LOG'
+        END
+
+        INSERT INTO IDN_OAUTH2_DEVICE_FLOW
+        SELECT A.* FROM BAK_IDN_OAUTH2_DEVICE_FLOW A
+        LEFT JOIN IDN_OAUTH2_DEVICE_FLOW B ON A.CODE_ID = B.CODE_ID
+        WHERE B.CODE_ID IS NULL
+
+        SET @rowCount = @@ROWCOUNT
+
+        IF (@enableLog = 1)
+        BEGIN
+            SELECT '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION COMPLETED ON IDN_OAUTH2_DEVICE_FLOW WITH : ' + CAST(@rowCount as varchar) AS 'INFO LOG'
+        END
+    END
+
+    -- ------------------------------------------
+    -- RESTORE IDN_OAUTH2_DEVICE_FLOW_SCOPES
+    -- ------------------------------------------
+    -- ID IS AN IDENTITY COLUMN, SO THE COLUMNS ARE LISTED EXPLICITLY AND NEW IDS ARE GENERATED.
+    -- A DEVICE CODE CAN CARRY SEVERAL SCOPES, SO THE ANTI-JOIN IS ON (SCOPE_ID, SCOPE).
+    IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_OAUTH2_DEVICE_FLOW_SCOPES')
+        AND EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BAK_IDN_OAUTH2_DEVICE_FLOW_SCOPES'))
+    BEGIN
+        IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+        BEGIN
+            SELECT '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION STARTED ON IDN_OAUTH2_DEVICE_FLOW_SCOPES TABLE !' AS 'TRACE LOG'
+        END
+
+        INSERT INTO IDN_OAUTH2_DEVICE_FLOW_SCOPES (SCOPE_ID, SCOPE)
+        SELECT A.SCOPE_ID, A.SCOPE FROM BAK_IDN_OAUTH2_DEVICE_FLOW_SCOPES A
+        LEFT JOIN IDN_OAUTH2_DEVICE_FLOW_SCOPES B
+            ON A.SCOPE_ID = B.SCOPE_ID AND A.SCOPE = B.SCOPE
+        WHERE B.SCOPE_ID IS NULL
+
+        SET @rowCount = @@ROWCOUNT
+
+        IF (@enableLog = 1)
+        BEGIN
+            SELECT '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION COMPLETED ON IDN_OAUTH2_DEVICE_FLOW_SCOPES WITH : ' + CAST(@rowCount as varchar) AS 'INFO LOG'
+        END
+    END
+
+    IF (@enableLog = 1)
+    BEGIN
+        SELECT '[' + convert(varchar, getdate(), 121) + '] WSO2_DEVICE_CODE_CLEANUP_DATA_RESTORATION_SP COMPLETED .... !' AS 'INFO LOG'
+    END
+END
