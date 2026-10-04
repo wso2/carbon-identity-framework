@@ -56,17 +56,6 @@ public class FlowOrganizationTest {
     }
 
     @Test
-    public void testOrganizationIdCanBeRestored() {
-
-        FlowOrganization organization = new FlowOrganization();
-        String existingId = "11112222-3333-4444-5555-666677778888";
-
-        organization.setOrganizationId(existingId);
-
-        Assert.assertEquals(organization.getOrganizationId(), existingId);
-    }
-
-    @Test
     public void testOrganizationIdIsPreservedDuringJsonRoundTrip() throws Exception {
 
         FlowOrganization organization = new FlowOrganization();
@@ -75,6 +64,7 @@ public class FlowOrganizationTest {
         String json = objectMapper.writeValueAsString(organization);
         FlowOrganization restored = objectMapper.readValue(json, FlowOrganization.class);
 
+        Assert.assertNotSame(restored, organization);
         Assert.assertEquals(restored.getOrganizationId(), organization.getOrganizationId());
     }
 }
