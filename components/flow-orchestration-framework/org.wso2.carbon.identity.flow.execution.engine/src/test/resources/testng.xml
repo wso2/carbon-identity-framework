@@ -30,6 +30,7 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListenerTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationServiceTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadataServiceTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganizationTest"/>
         </classes>
     </test>
 </suite>
