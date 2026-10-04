@@ -91,11 +91,6 @@ public class FlowOrganization implements Serializable {
         return organizationId;
     }
 
-    public void setOrganizationId(String organizationId) {
-
-        this.organizationId = organizationId;
-    }
-
     public Map<String, String> getAttributes() {
 
         return attributes;
