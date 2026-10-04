@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.model;
 
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +31,9 @@ import java.util.Map;
  * engine, so that an executor can create or update an organization without inspecting raw user input.
  * The name, handle and description are first class fields because the engine and its executors
  * reference them directly; anything else the flow collects is kept in {@link #getAttributes()}.
+ * <p>
+ * An organization ID is assigned when this object is constructed. The assigned ID does not indicate
+ * that an organization has been provisioned.
  */
 public class FlowOrganization implements Serializable {
 
@@ -38,7 +43,7 @@ public class FlowOrganization implements Serializable {
     private String organizationHandle;
     private String organizationDescription;
     private String organizationStatus;
-    private String organizationId;
+    private String organizationId = Utils.generateUniqueID();
     private Map<String, String> attributes = new HashMap<>();
 
     public String getOrganizationName() {
@@ -84,11 +89,6 @@ public class FlowOrganization implements Serializable {
     public String getOrganizationId() {
 
         return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-
-        this.organizationId = organizationId;
     }
 
     public Map<String, String> getAttributes() {
