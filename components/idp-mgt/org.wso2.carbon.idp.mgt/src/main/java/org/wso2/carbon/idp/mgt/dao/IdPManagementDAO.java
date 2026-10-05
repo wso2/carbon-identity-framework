@@ -3525,8 +3525,9 @@ public class IdPManagementDAO {
 
         if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
                 federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+            boolean isTenantFlowRequired = isTenantFlowRequiredForSecretResolving(tenantDomain);
             try {
-                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                if (isTenantFlowRequired) {
                     PrivilegedCarbonContext.startTenantFlow();
                     PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
                     PrivilegedCarbonContext.getThreadLocalCarbonContext()
@@ -3534,7 +3535,7 @@ public class IdPManagementDAO {
                 }
                 federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
             } finally {
-                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                if (isTenantFlowRequired) {
                     PrivilegedCarbonContext.endTenantFlow();
                 }
             }
@@ -3556,8 +3557,9 @@ public class IdPManagementDAO {
 
         if (federatedIdp.getProvisioningConnectorConfigs() != null &&
                 federatedIdp.getProvisioningConnectorConfigs().length > 0) {
+            boolean isTenantFlowRequired = isTenantFlowRequiredForSecretResolving(tenantDomain);
             try {
-                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                if (isTenantFlowRequired) {
                     PrivilegedCarbonContext.startTenantFlow();
                     PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
                     PrivilegedCarbonContext.getThreadLocalCarbonContext()
@@ -3565,12 +3567,27 @@ public class IdPManagementDAO {
                 }
                 federatedIdp = idpSecretsProcessorService.decryptProvisioningConnectorSecrets(federatedIdp);
             } finally {
-                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                if (isTenantFlowRequired) {
                     PrivilegedCarbonContext.endTenantFlow();
                 }
             }
         }
         return federatedIdp;
+    }
+
+    /**
+     * Checks whether a tenant flow is required to resolve the secrets of an IDP in the given tenant domain. Secrets
+     * are resolved from the tenant in the carbon context, which can differ from the IDP's tenant domain, e.g. when a
+     * super tenant IDP shared with an organization is resolved in the organization's carbon context.
+     *
+     * @param tenantDomain Tenant domain of the IDP.
+     * @return true if a tenant flow is required, false otherwise.
+     */
+    private boolean isTenantFlowRequiredForSecretResolving(String tenantDomain) {
+
+        return !StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain) ||
+                !StringUtils.equals(tenantDomain, PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getTenantDomain());
     }
 
     /**

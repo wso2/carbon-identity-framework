@@ -311,6 +311,7 @@
                             org.wso2.carbon.identity.user.profile.mgt;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.idp.mgt.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.functions.library.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.multi.attribute.login.mgt.*;
                             version="${carbon.identity.package.import.version.range}",
