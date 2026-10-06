@@ -102,6 +102,26 @@ public class SessionDataStore {
             "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED " +
                     "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
                     "SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_MYSQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_DB2SQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_MSSQL =
+            "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_POSTGRESQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_INFORMIX =
+            "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE " +
+                    "WHERE SESSION_ID =? AND " +
+                    "SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_ORACLE =
+            "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED " +
+                    "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
+                    "SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
 
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_MYSQL =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME < ? LIMIT %d";
@@ -142,6 +162,7 @@ public class SessionDataStore {
     private String sqlDeleteTempDataTask;
     private String sqlDeleteDELETETask;
     private String sqlSelect;
+    private String sqlOperationSelect;
     private String sqlDeleteExpiredDataTask;
     private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
     private boolean sessionDataCleanupEnabled = true;
@@ -303,6 +324,42 @@ public class SessionDataStore {
         if (log.isDebugEnabled()) {
             log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type);
         }
+        return retrieveSessionContextData(key, type, null);
+    }
+
+    /**
+     * Get the latest session data for the given key, type and operation.
+     *
+     * @param key       Key
+     * @param type      Type
+     * @param operation Operation
+     * @return Session data object
+     */
+    public Object getSessionData(String key, String type, String operation) {
+
+        SessionContextDO sessionContextDO = getSessionContextData(key, type, operation);
+        return sessionContextDO != null ? sessionContextDO.getEntry() : null;
+    }
+
+    /**
+     * Get the latest session context data for the given key, type and operation.
+     *
+     * @param key       Key
+     * @param type      Type
+     * @param operation Operation
+     * @return SessionContextDO
+     */
+    public SessionContextDO getSessionContextData(String key, String type, String operation) {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Getting SessionContextData from DB by operation. Key: %s, type: %s, " +
+                    "operation: %s", key, type, operation));
+        }
+        return retrieveSessionContextData(key, type, operation);
+    }
+
+    private SessionContextDO retrieveSessionContextData(String key, String type, String operation) {
+
         if (!enablePersist) {
             return null;
         }
@@ -316,35 +373,18 @@ public class SessionDataStore {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         try {
-            if (StringUtils.isBlank(sqlSelect)) {
-                String driverName = connection.getMetaData().getDriverName();
-                if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
-                        || driverName.contains(H2_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_MYSQL;
-                } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_DB2SQL;
-                } else if (driverName.contains(MS_SQL_DATABASE)
-                        || driverName.contains(MICROSOFT_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_MSSQL;
-                } else if (driverName.contains(POSTGRESQL_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_POSTGRESQL;
-                } else if (driverName.contains(INFORMIX_DATABASE)) {
-                    // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_INFORMIX;
-                } else {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_ORACLE;
-                }
-            }
-            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlSelect, type));
+            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(getSelectQuery(connection,
+                    operation != null), type));
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
+            if (operation != null) {
+                preparedStatement.setString(3, operation);
+            }
             resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                String operation = resultSet.getString(1);
+            // Without an operation filter, the entry is returned only if the latest operation is STORE.
+            if (resultSet.next() && (operation != null || OPERATION_STORE.equals(resultSet.getString(1)))) {
                 long nanoTime = resultSet.getLong(3);
-                if ((OPERATION_STORE.equals(operation))) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
-                }
+                return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
             }
         } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
                 IdentityApplicationManagementException e) {
@@ -355,6 +395,49 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
         return null;
+    }
+
+    private String getSelectQuery(Connection connection, boolean byOperation) throws SQLException {
+
+        if (byOperation) {
+            if (StringUtils.isBlank(sqlOperationSelect)) {
+                sqlOperationSelect = resolveSelectQuery(connection, true);
+            }
+            return sqlOperationSelect;
+        }
+        if (StringUtils.isBlank(sqlSelect)) {
+            sqlSelect = resolveSelectQuery(connection, false);
+        }
+        return sqlSelect;
+    }
+
+    private String resolveSelectQuery(Connection connection, boolean byOperation) throws SQLException {
+
+        String[] queries = getSelectQueries(connection);
+        return queries[byOperation ? 1 : 0];
+    }
+
+    private String[] getSelectQueries(Connection connection) throws SQLException {
+
+        String driverName = connection.getMetaData().getDriverName();
+        if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
+                || driverName.contains(H2_DATABASE)) {
+            return new String[]{SQL_DESERIALIZE_OBJECT_MYSQL, SQL_DESERIALIZE_OBJECT_BY_OPERATION_MYSQL};
+        }
+        if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
+            return new String[]{SQL_DESERIALIZE_OBJECT_DB2SQL, SQL_DESERIALIZE_OBJECT_BY_OPERATION_DB2SQL};
+        }
+        if (driverName.contains(MS_SQL_DATABASE) || driverName.contains(MICROSOFT_DATABASE)) {
+            return new String[]{SQL_DESERIALIZE_OBJECT_MSSQL, SQL_DESERIALIZE_OBJECT_BY_OPERATION_MSSQL};
+        }
+        if (driverName.contains(POSTGRESQL_DATABASE)) {
+            return new String[]{SQL_DESERIALIZE_OBJECT_POSTGRESQL, SQL_DESERIALIZE_OBJECT_BY_OPERATION_POSTGRESQL};
+        }
+        if (driverName.contains(INFORMIX_DATABASE)) {
+            // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
+            return new String[]{SQL_DESERIALIZE_OBJECT_INFORMIX, SQL_DESERIALIZE_OBJECT_BY_OPERATION_INFORMIX};
+        }
+        return new String[]{SQL_DESERIALIZE_OBJECT_ORACLE, SQL_DESERIALIZE_OBJECT_BY_OPERATION_ORACLE};
     }
 
     public void storeSessionData(String key, String type, Object entry) {

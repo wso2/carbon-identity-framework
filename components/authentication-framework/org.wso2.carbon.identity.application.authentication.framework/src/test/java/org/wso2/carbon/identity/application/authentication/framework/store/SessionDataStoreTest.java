@@ -46,6 +46,9 @@ import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 /**
  * Test class that includes unit tests of Session Data Store.
@@ -102,6 +105,61 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         mockCarbonContext();
         mockIdentityUtils();
         SessionDataStore.getInstance().removeExpiredSessionData();
+    }
+
+    @Test
+    public void testGetSessionDataByOperationAfterDelete() throws Exception {
+
+        String key = "grant-cache-00000002";
+        String type = "AuthorizationGrantCache";
+        String entry = "user-attributes-of-previous-token";
+        mockSessionDataStoreDependencies();
+
+        SessionDataStore.getInstance().persistSessionData(key, type, entry, 1000L, 1);
+        SessionDataStore.getInstance().removeSessionData(key, type, 2000L);
+
+        assertNull(SessionDataStore.getInstance().getSessionData(key, type));
+        assertEquals(SessionDataStore.getInstance().getSessionData(key, type, "STORE"), entry);
+    }
+
+    @Test
+    public void testGetSessionContextDataByOperationReturnsLatestStore() throws Exception {
+
+        String key = "grant-cache-00000003";
+        String type = "AuthorizationGrantCache";
+        mockSessionDataStoreDependencies();
+
+        SessionDataStore.getInstance().persistSessionData(key, type, "first-entry", 3000L, 1);
+        SessionDataStore.getInstance().persistSessionData(key, type, "second-entry", 4000L, 1);
+        SessionDataStore.getInstance().removeSessionData(key, type, 5000L);
+
+        SessionContextDO sessionContextDO =
+                SessionDataStore.getInstance().getSessionContextData(key, type, "STORE");
+        assertNotNull(sessionContextDO);
+        assertEquals(sessionContextDO.getEntry(), "second-entry");
+        assertEquals(sessionContextDO.getNanoTime(), 4000L);
+    }
+
+    @Test
+    public void testGetSessionDataByOperationForUnknownKey() throws Exception {
+
+        mockSessionDataStoreDependencies();
+
+        assertNull(SessionDataStore.getInstance().getSessionData("unknown-key", "AuthorizationGrantCache", "STORE"));
+        assertNull(SessionDataStore.getInstance().getSessionContextData("unknown-key", "AuthorizationGrantCache",
+                "STORE"));
+    }
+
+    private void mockSessionDataStoreDependencies() throws Exception {
+
+        Connection connection = spy(getConnection(DB_NAME));
+        doNothing().when(connection).close();
+        mockStatic(IdentityDatabaseUtil.class);
+        when(IdentityDatabaseUtil.getSessionDBConnection(true)).thenReturn(connection);
+        when(IdentityDatabaseUtil.getSessionDBConnection(false)).thenReturn(connection);
+        mockCarbonContext();
+        mockIdentityUtils();
+        mockDataHolder();
     }
 
     private void mockCarbonContext() {
