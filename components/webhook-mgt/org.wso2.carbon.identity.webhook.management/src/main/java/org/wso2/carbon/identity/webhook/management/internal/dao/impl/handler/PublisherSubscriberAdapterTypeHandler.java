@@ -110,6 +110,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
                         .eventsSubscribed(subscriptions)
+                        .properties(webhook.getProperties())
                         .build();
             }
         } else {
@@ -411,6 +412,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(base.getCreatedAt())
                 .updatedAt(base.getUpdatedAt())
                 .eventsSubscribed(updatedSubs)
+                .properties(base.getProperties())
                 .build();
     }
 

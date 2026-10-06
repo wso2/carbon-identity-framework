@@ -105,6 +105,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .properties(webhook.getProperties())
                 .build();
         dao.activateWebhook(activatedWebhook, tenantId);
     }
@@ -124,6 +125,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .properties(webhook.getProperties())
                 .build();
         dao.deactivateWebhook(deactivatedWebhook, tenantId);
     }
@@ -162,6 +164,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .properties(webhook.getProperties())
                 .build();
         dao.updateWebhook(updatedWebhook, tenantId);
     }

@@ -102,6 +102,6 @@ public abstract class AdapterTypeHandler implements WebhookManagementDAO {
                 .eventProfileUri(webhook.getEventProfileUri()).eventProfileVersion(webhook.getEventProfileVersion())
                 .status(webhook.getStatus())
                 .createdAt(webhook.getCreatedAt()).updatedAt(webhook.getUpdatedAt())
-                .eventsSubscribed(webhook.getEventsSubscribed()).build();
+                .eventsSubscribed(webhook.getEventsSubscribed()).properties(webhook.getProperties()).build();
     }
 }
