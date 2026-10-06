@@ -21,12 +21,14 @@ package org.wso2.carbon.identity.event.publisher.internal.service.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
+import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherException;
 import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
 import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayload;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisherService;
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
+import org.wso2.carbon.identity.event.publisher.internal.util.EventPublisherExceptionHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,8 +109,10 @@ public class EventPublisherServiceImpl implements EventPublisherService {
      * Retrieve all registered event publishers associated with the currently active webhook adapter.
      *
      * @return List of event publishers associated with the active adapter.
+     * @throws EventPublisherException If no registered event publisher is associated with the
+     *                                  active adapter.
      */
-    private List<EventPublisher> retrieveActivePublishers() {
+    private List<EventPublisher> retrieveActivePublishers() throws EventPublisherException {
 
         List<EventPublisher> activePublishers = new ArrayList<>();
         for (EventPublisher publisher : EventPublisherComponentServiceHolder.getInstance().getEventPublishers()) {
@@ -118,6 +122,8 @@ public class EventPublisherServiceImpl implements EventPublisherService {
         }
         if (activePublishers.isEmpty()) {
             log.warn("No registered event publisher found for the active adapter: " + webhookAdapter);
+            throw EventPublisherExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND);
         }
         return activePublishers;
     }
