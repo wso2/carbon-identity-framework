@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Modifier;
 import java.util.UUID;
 
 /**
@@ -38,6 +39,13 @@ public class FlowOrganizationTest {
         Assert.assertNotNull(organizationId);
         Assert.assertEquals(UUID.fromString(organizationId).toString(), organizationId);
         Assert.assertEquals(organization.getOrganizationId(), organizationId);
+    }
+
+    @Test
+    public void testOrganizationIdFieldIsFinal() throws NoSuchFieldException {
+
+        Assert.assertTrue(Modifier.isFinal(FlowOrganization.class.getDeclaredField("organizationId").getModifiers()),
+                "The organization ID must not be reassigned during flow execution.");
     }
 
     @Test

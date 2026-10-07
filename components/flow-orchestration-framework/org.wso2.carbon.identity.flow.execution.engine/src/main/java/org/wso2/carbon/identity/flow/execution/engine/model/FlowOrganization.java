@@ -43,7 +43,7 @@ public class FlowOrganization implements Serializable {
     private String organizationHandle;
     private String organizationDescription;
     private String organizationStatus;
-    private String organizationId = Utils.generateUniqueID();
+    private final String organizationId = Utils.generateUniqueID();
     private Map<String, String> attributes = new HashMap<>();
 
     public String getOrganizationName() {
