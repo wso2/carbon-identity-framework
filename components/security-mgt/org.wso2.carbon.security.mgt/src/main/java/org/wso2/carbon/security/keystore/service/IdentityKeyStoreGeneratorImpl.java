@@ -27,6 +27,7 @@ import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.osgi.annotation.bundle.Capability;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -101,10 +102,15 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
      * If the KeyStore does not exist, it creates a new one, initializes it, generates the necessary
      * key pairs, and persists it.
      * </p>
+     * <p>
+     * The key algorithm and key size come from {@code [keystore.tenant] key_algorithm} and
+     * {@code [keystore.tenant] key_size}. They apply only to KeyStores generated after they are set.
+     * </p>
      *
      * @param tenantDomain the tenant domain for which the KeyStore is to be generated.
      * @param context      the specific context for which the KeyStore is to be generated.
-     * @throws KeyStoreManagementException if an error occurs during the KeyStore creation or initialization.
+     * @throws KeyStoreManagementException if an error occurs during the KeyStore creation or initialization, or if
+     *                                     the configured key algorithm or key size is invalid.
      */
     public void generateKeyStore(String tenantDomain, String context) throws KeyStoreManagementException {
 
@@ -116,13 +122,18 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
             if (isContextKeyStoreExists(context, tenantDomain, keyStoreManager)) {
                 return; // KeyStore already exists, no need to create again
             }
+            // Resolve the key configuration first, so that an invalid value fails before any keystore is created.
+            String keyAlgorithm = KeystoreUtils.getTenantKeyAlgorithm();
+            int keySize = KeystoreUtils.getTenantKeySize();
             // Create the KeyStore
             String password = generatePassword();
             KeyStore keyStore = KeystoreUtils.getKeystoreInstance(
                     KeystoreUtils.getKeyStoreFileType(tenantDomain));
             keyStore.load(null, password.toCharArray());
-            generateContextKeyPair(keyStore, context, tenantDomain, password);
+            generateContextKeyPair(keyStore, context, tenantDomain, password, keyAlgorithm, keySize);
             persistContextKeyStore(keyStore, context, tenantDomain, password, keyStoreManager);
+        } catch (CarbonException e) {
+            throw new KeyStoreManagementException(e.getMessage(), e);
         } catch (Exception e) {
             String msg = "Error while instantiating a keystore";
             throw new KeyStoreManagementException(msg, e);
@@ -222,16 +233,18 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
      * @param context        the specific context for which the KeyStore is being persisted.
      * @param tenantDomain   the tenant domain associated with the KeyStore.
      * @param password       the password used to protect the KeyStore.
+     * @param keyAlgorithm   the key algorithm of the key pair.
+     * @param keySize        the key size of the key pair in bits.
      * @throws KeyStoreManagementException Error when generating key pair
      */
-    private void generateContextKeyPair(KeyStore keyStore, String context, String tenantDomain, String password)
-            throws KeyStoreManagementException {
+    private void generateContextKeyPair(KeyStore keyStore, String context, String tenantDomain, String password,
+                                        String keyAlgorithm, int keySize) throws KeyStoreManagementException {
 
         try {
             CryptoUtil.getDefaultCryptoUtil();
             // Generate key pair
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm);
+            keyPairGenerator.initialize(keySize);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
             // Common Name and alias for the generated certificate
