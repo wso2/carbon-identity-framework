@@ -49,6 +49,8 @@ public class RuleBuilder {
     private static final int MAX_RULES_COMBINED_WITH_OR = 10;
     private static final String IN = "in";
     private static final String NOT_IN = "notIn";
+    private static final String FIELD = "Field ";
+    private static final String OPERATOR = "Operator ";
 
     private final ORCombinedRule.Builder orCombinedRuleBuilder = new ORCombinedRule.Builder();
     private ANDCombinedRule.Builder andCombinedRuleBuilder = new ANDCombinedRule.Builder();
@@ -201,7 +203,7 @@ public class RuleBuilder {
     private boolean isValidFieldDefinition(FieldDefinition fieldDefinition, String field) {
 
         if (fieldDefinition == null) {
-            setValidationError("Field " + field + " is not supported");
+            setValidationError(FIELD + field + " is not supported");
             return false;
         }
         return true;
@@ -212,7 +214,7 @@ public class RuleBuilder {
         if (fieldDefinition.getOperators().stream()
                 .noneMatch(op -> op.getName().equals(operator))) {
             setValidationError(
-                    "Operator " + operator + " is not supported for field " + fieldDefinition.getField().getName());
+                    OPERATOR + operator + " is not supported for field " + fieldDefinition.getField().getName());
             return false;
         }
         return true;
@@ -227,8 +229,8 @@ public class RuleBuilder {
         boolean qualified = fieldDefinition.getField().getQualifier() != null;
         if (qualified == isBlank(qualifier)) {
             setValidationError(qualified
-                    ? "Field " + field + " needs a qualifier to say which of its values to read."
-                    : "Field " + field + " names a single value and takes no qualifier.");
+                    ? FIELD + field + " needs a qualifier to say which of its values to read."
+                    : FIELD + field + " names a single value and takes no qualifier.");
             return false;
         }
         return true;
@@ -243,11 +245,11 @@ public class RuleBuilder {
 
         boolean membership = IN.equals(operator) || NOT_IN.equals(operator);
         if (value.getType() == Value.Type.LIST && !membership) {
-            setValidationError("Operator " + operator + " of field " + field + " does not take a list of values.");
+            setValidationError(OPERATOR + operator + " of field " + field + " does not take a list of values.");
             return false;
         }
         if (membership && value.getType() != Value.Type.LIST && value.getType() != Value.Type.FIELD) {
-            setValidationError("Operator " + operator + " of field " + field
+            setValidationError(OPERATOR + operator + " of field " + field
                     + " needs a list of values or another field to compare with.");
             return false;
         }
@@ -354,16 +356,16 @@ public class RuleBuilder {
         }
         ValueFieldOptions valueFieldOptions = fieldDefinition.getValueFieldOptions();
         if (valueFieldOptions == null || !valueFieldOptions.getNames().contains(reference.getName())) {
-            setValidationError("Field " + fieldName + " cannot be compared with field " + reference.getName());
+            setValidationError(FIELD + fieldName + " cannot be compared with field " + reference.getName());
             return value;
         }
         FieldDefinition referencedDefinition = expressionMetadataFieldsMap.get(reference.getName());
         if (referencedDefinition == null) {
-            setValidationError("Field " + reference.getName() + " is not supported");
+            setValidationError(FIELD + reference.getName() + " is not supported");
             return value;
         }
         if (!hasSameValueType(fieldDefinition, referencedDefinition)) {
-            setValidationError("Field " + fieldName + " cannot be compared with field " + reference.getName()
+            setValidationError(FIELD + fieldName + " cannot be compared with field " + reference.getName()
                     + " as their values are of different types.");
             return value;
         }

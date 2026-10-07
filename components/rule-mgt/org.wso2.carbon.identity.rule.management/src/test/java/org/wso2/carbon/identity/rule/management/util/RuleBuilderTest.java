@@ -24,6 +24,7 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementClientException;
@@ -65,6 +66,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 
 public class RuleBuilderTest {
 
@@ -746,34 +748,30 @@ public class RuleBuilderTest {
         assertEquals(built.getValue().getFieldReference().getName(), "stored");
     }
 
-    @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Rule validation failed: Field collected cannot be compared with field "
-                    + "plain")
-    public void testFieldValueNamingAFieldNotListedIsRejected() throws Exception {
+    @DataProvider(name = "rejectedFieldReferences")
+    public Object[][] rejectedFieldReferences() {
 
-        RuleBuilder ruleBuilder = builderWithComparableFields();
-        ruleBuilder.addAndExpression(comparedWith(new FieldReference("plain", null)));
-        ruleBuilder.build();
+        return new Object[][]{
+                // A field the expression's field is not listed as comparable with.
+                {new FieldReference("plain", null), "Field collected cannot be compared with field plain"},
+                // A field naming a family of values, without the qualifier that picks one.
+                {new FieldReference("stored", null),
+                        "Field stored needs a qualifier to say which of its values to read."},
+                // A field whose values are of a different type.
+                {new FieldReference("score", null),
+                        "Field collected cannot be compared with field score as their values are of different types."}
+        };
     }
 
-    @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Rule validation failed: Field stored needs a qualifier to say "
-                    + "which of its values to read.")
-    public void testFieldValueWithoutTheQualifierItsFieldNeedsIsRejected() throws Exception {
+    @Test(dataProvider = "rejectedFieldReferences")
+    public void testFieldValueReferringToAnUnsuitableFieldIsRejected(FieldReference reference, String reason)
+            throws Exception {
 
         RuleBuilder ruleBuilder = builderWithComparableFields();
-        ruleBuilder.addAndExpression(comparedWith(new FieldReference("stored", null)));
-        ruleBuilder.build();
-    }
+        ruleBuilder.addAndExpression(comparedWith(reference));
 
-    @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Rule validation failed: Field collected cannot be compared with field "
-                    + "score as their values are of different types.")
-    public void testFieldValueOfADifferentTypeIsRejected() throws Exception {
-
-        RuleBuilder ruleBuilder = builderWithComparableFields();
-        ruleBuilder.addAndExpression(comparedWith(new FieldReference("score", null)));
-        ruleBuilder.build();
+        RuleManagementClientException e = expectThrows(RuleManagementClientException.class, ruleBuilder::build);
+        assertEquals(e.getMessage(), "Rule validation failed: " + reason);
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,

@@ -137,6 +137,10 @@ public class RuleEvaluator {
         }
 
         if (value != null && value.getType() == Value.Type.LIST && !fieldValue.getValueType().equals(LIST)) {
+            if (value.getFieldValues() == null) {
+                // A missing set holds for no operator, negated ones included.
+                return false;
+            }
             // A set of the field's own type: its entries are read the way a single value of that type would be.
             return operator.apply(fieldValue.getValue(), typedEntries(fieldValue.getValueType(),
                     value.getFieldValues()));
@@ -206,13 +210,10 @@ public class RuleEvaluator {
      *
      * @param valueType Value type of the field.
      * @param entries   Entries of the LIST value.
-     * @return The converted entries, or null when there are none.
+     * @return The converted entries.
      */
     private static List<Object> typedEntries(ValueType valueType, List<String> entries) {
 
-        if (entries == null) {
-            return null;
-        }
         List<Object> typed = new ArrayList<>(entries.size());
         for (String entry : entries) {
             if (valueType.equals(NUMBER)) {
