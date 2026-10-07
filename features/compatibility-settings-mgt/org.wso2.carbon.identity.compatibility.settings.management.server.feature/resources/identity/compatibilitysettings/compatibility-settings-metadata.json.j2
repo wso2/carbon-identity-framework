@@ -60,6 +60,13 @@
         "defaultValue" : {{compatibility_setting.flow_execution.default_enable_flow_based_invited_user_registration.default_value | default("true")}}
       }
   },
+  "userOnboarding": {
+    "enableLegacyEmailVerificationScenario" : {
+        "timestampReference" : "{{compatibility_setting.user_onboarding.enable_legacy_email_verification_scenario.timestamp_reference | default('2026-11-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.user_onboarding.enable_legacy_email_verification_scenario.target_value | default("true")}},
+        "defaultValue" : {{compatibility_setting.user_onboarding.enable_legacy_email_verification_scenario.default_value | default("false")}}
+    }
+  },
   "scim2": {
     "disableBasicAuthForMeEndpoint" : {
         "timestampReference" : "{{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.timestamp_reference | default('2026-04-23T00:00:00Z')}}",
@@ -84,6 +91,18 @@
         "timestampReference" : "{{compatibility_setting.dcr.decode_redirect_uris_in_response.timestamp_reference | default('2026-08-01T00:00:00Z')}}",
         "targetValue" : {{compatibility_setting.dcr.decode_redirect_uris_in_response.target_value | default("false")}},
         "defaultValue" : {{compatibility_setting.dcr.decode_redirect_uris_in_response.default_value | default("true")}}
+    }
+  },
+  "tokenExchange": {
+    "limitScopesToSubjectToken" : {
+        "timestampReference" : "{{compatibility_setting.token_exchange.limit_scopes_to_subject_token.timestamp_reference | default('2026-10-15T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.token_exchange.limit_scopes_to_subject_token.target_value | default("true")}},
+        "defaultValue" : {{compatibility_setting.token_exchange.limit_scopes_to_subject_token.default_value | default("true")}}
+    },
+    "defaultRestrictScopeIssuanceForFederatedTokens" : {
+        "timestampReference" : "{{compatibility_setting.token_exchange.default_restrict_scope_issuance_for_federated_tokens.timestamp_reference | default('2026-10-15T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.token_exchange.default_restrict_scope_issuance_for_federated_tokens.target_value | default("false")}},
+        "defaultValue" : {{compatibility_setting.token_exchange.default_restrict_scope_issuance_for_federated_tokens.default_value | default("false")}}
     }
   }
 }

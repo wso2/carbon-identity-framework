@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -659,6 +659,34 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementException If an error occurred while retrieving groups list.
      */
     public List<GroupBasicInfo> getGroups(String tenantDomain, String domainName, Node filter)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Retrieve the basic information of the applications of the given identifiers, of any tenant.
+     *
+     * @param appIds Application identifiers.
+     * @return the basic information of the matching applications.
+     * @throws IdentityApplicationManagementException if the applications could not be retrieved.
+     */
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByIds(int[] appIds)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Retrieve the basic information of the applications of the given tenant, and of the SaaS applications,
+     * whose name matches the given filter.
+     *
+     * @param filterClause Filter clause of the query, with {@code ?} placeholders for its values.
+     * @param filterParams Values of the filter clause, in the order of their placeholders.
+     * @return the basic information of the matching applications.
+     * @throws IdentityApplicationManagementException if the applications could not be retrieved.
+     */
+    public List<ApplicationBasicInfo> getApplicationBasicInfos(String filterClause, List<Object> filterParams)
             throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();

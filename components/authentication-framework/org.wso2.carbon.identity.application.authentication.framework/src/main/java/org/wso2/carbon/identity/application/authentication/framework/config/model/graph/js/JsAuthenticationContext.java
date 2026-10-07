@@ -80,6 +80,8 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
                 return getCurrentSubjectIdentifierStep() != null;
             case FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE:
                 return getWrapped().isPasswordResetComplete();
+            case FrameworkConstants.JSAttributes.JS_DEVICE_DATA:
+                return getWrapped().getProperty(FrameworkConstants.DEVICE_DATA) instanceof Map;
             default:
                 return super.hasMember(name);
         }
@@ -125,6 +127,13 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
                         .createJsWritableParameters(getContext().getEndpointParams());
             case FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE:
                 return getWrapped().isPasswordResetComplete();
+            case FrameworkConstants.JSAttributes.JS_DEVICE_DATA:
+                Object deviceData = getWrapped().getProperty(FrameworkConstants.DEVICE_DATA);
+                if (deviceData instanceof Map) {
+                    return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                            .createJsWritableParameters((Map) deviceData);
+                }
+                return null;
             default:
                 return super.getMember(name);
         }
@@ -143,7 +152,8 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
                 FrameworkConstants.JSAttributes.JS_CURRENT_STEP,
                 FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT,
                 FrameworkConstants.JSAttributes.JS_RETRY_STEP,
-                FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE
+                FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE,
+                FrameworkConstants.JSAttributes.JS_DEVICE_DATA
         };
     }
 

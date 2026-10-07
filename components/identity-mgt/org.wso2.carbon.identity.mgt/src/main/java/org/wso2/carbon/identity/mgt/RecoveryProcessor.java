@@ -75,11 +75,6 @@ public class RecoveryProcessor {
     private static final String USE_HASHED_USERNAME_PROPERTY = "UserInfoRecovery.UseHashedUserNames";
     private static final String USERNAME_HASH_ALG_PROPERTY = "UserInfoRecovery.UsernameHashAlg";
 
-    /*
-     *  Delimiter that will be used to store the registry resource entries. Must be valid characters.
-     *  If this changed the split regex also need to changed in getUserExternalCodeStr method.
-     */
-    private final String REG_DELIMITER = "___";
     private Map<String, NotificationSendingModule> modules =
             new HashMap<String, NotificationSendingModule>();
     private NotificationSendingModule defaultModule;
@@ -205,12 +200,8 @@ public class RecoveryProcessor {
             notificationData.setNotification(notification);
             if (IdentityMgtConstants.Notification.PASSWORD_RESET_RECOVERY.equals(notification) ||
                     IdentityMgtConstants.Notification.RESEND_NOTIFICATION.equals(notification)) {
-                internalCode = generateUserCode(2, userId);
-                try {
-                    confirmationKey = getUserExternalCodeStr(internalCode);
-                } catch (Exception e) {
-                    throw IdentityException.error("Error while getting user's external code string.", e);
-                }
+                confirmationKey = UUID.randomUUID().toString();
+                internalCode = getUserInternalCodeStr(2, userId, confirmationKey);
                 secretKey = UUIDGenerator.generateUUID();
                 emailNotificationData.setTagData(CONFIRMATION_CODE, confirmationKey);
                 emailTemplate = config.getProperty(notification);
@@ -247,12 +238,8 @@ public class RecoveryProcessor {
                 if (firstName == null || firstName.isEmpty()) {
                     emailNotificationData.setTagData(FIRST_NAME, userId);
                 }
-                internalCode = generateUserCode(2, userId);
-                try {
-                    confirmationKey = getUserExternalCodeStr(internalCode);
-                } catch (Exception e) {
-                    throw IdentityException.error("Error while with recovering with password.", e);
-                }
+                confirmationKey = UUID.randomUUID().toString();
+                internalCode = getUserInternalCodeStr(2, userId, confirmationKey);
                 secretKey = UUIDGenerator.generateUUID();
                 emailNotificationData.setTagData(CONFIRMATION_CODE, confirmationKey);
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ASK_PASSWORD);
@@ -376,10 +363,26 @@ public class RecoveryProcessor {
 
     }
 
+    /**
+     * Issues a new confirmation code for the given user and persists it.
+     *
+     * <p>Any code previously issued to the user is invalidated first, except for the sequences that are allowed to
+     * hold several codes at once. The code returned to the caller is a standalone UUID; what is stored is the internal
+     * form {@code sequence + REG_DELIMITER + username + REG_DELIMITER + code}, derived from it by concatenation. The
+     * two must never be recovered from each other by splitting, because a username may itself contain the
+     * delimiter.</p>
+     *
+     * @param sequence operation sequence the code is issued for.
+     * @param username user the code is issued to.
+     * @param tenantId tenant of the user.
+     * @return bean carrying the username and the confirmation code to hand to the user.
+     * @throws IdentityException if invalidating the previous code or storing the new one fails.
+     */
     public VerificationBean updateConfirmationCode(int sequence, String username, int tenantId)
             throws IdentityException {
 
-        String confirmationKey = generateUserCode(sequence, username);
+        String externalCode = UUID.randomUUID().toString();
+        String confirmationKey = getUserInternalCodeStr(sequence, username, externalCode);
         String secretKey = UUIDGenerator.generateUUID();
 
         UserRecoveryDataDO recoveryDataDO = new UserRecoveryDataDO(username,
@@ -389,13 +392,6 @@ public class RecoveryProcessor {
             dataStore.invalidate(username, tenantId);
         }
         dataStore.store(recoveryDataDO);
-        String externalCode = null;
-        try {
-            externalCode = getUserExternalCodeStr(confirmationKey);
-        } catch (Exception e) {
-            throw IdentityException.error("Error occurred while getting external code for user : "
-                    + username, e);
-        }
 
         return new VerificationBean(username, externalCode);
     }
@@ -450,7 +446,8 @@ public class RecoveryProcessor {
             }
 
             if (success) {
-                String internalCode = generateUserCode(sequence, userId);
+                String externalCode = UUID.randomUUID().toString();
+                String internalCode = getUserInternalCodeStr(sequence, userId, externalCode);
                 String key = UUID.randomUUID().toString();
                 UserRecoveryDataDO dataDO =
                         new UserRecoveryDataDO(userId, tenantId, internalCode, key);
@@ -461,7 +458,7 @@ public class RecoveryProcessor {
                 log.info("User verification successful for user : " + userId +
                         " from tenant domain :" + userDTO.getTenantDomain());
 
-                bean = new VerificationBean(userId, getUserExternalCodeStr(internalCode));
+                bean = new VerificationBean(userId, externalCode);
             }
         } catch (Exception e) {
             String errorMessage = "Error verifying user : " + userId;
@@ -629,46 +626,6 @@ public class RecoveryProcessor {
     }
 
     /**
-     * Generates the code specific to user and operations sequence value.
-     *
-     * @param sequence
-     * @param username
-     * @return
-     */
-    private String generateUserCode(int sequence, String username) throws IdentityException {
-
-        String genCode = null;
-
-        if (username != null) {
-
-            StringBuilder userCode = new StringBuilder();
-            userCode.append(sequence);
-            userCode.append(REG_DELIMITER);
-
-            String useHashedUserName =
-                    IdentityMgtConfig.getInstance().getProperty(USE_HASHED_USERNAME_PROPERTY);
-            if (Boolean.parseBoolean(useHashedUserName)) {
-                String hashAlg = IdentityMgtConfig.getInstance().getProperty(USERNAME_HASH_ALG_PROPERTY);
-                try {
-                    userCode.append(hashString(username, hashAlg));
-                } catch (NoSuchAlgorithmException e) {
-                    throw IdentityException.error("Invalid hash algorithm " + hashAlg, e);
-                }
-            } else {
-                userCode.append(stripSpecialChars(username));
-            }
-
-            userCode.append(REG_DELIMITER);
-            userCode.append(UUID.randomUUID().toString());
-
-            genCode = userCode.toString();
-        }
-
-        return genCode;
-    }
-
-
-    /**
      * Creates the user specific code  by the given sequence, username and code to be search in
      * the datastore.
      *
@@ -685,7 +642,7 @@ public class RecoveryProcessor {
 
             StringBuilder userCode = new StringBuilder();
             userCode.append(sequence);
-            userCode.append(REG_DELIMITER);
+            userCode.append(IdentityMgtConstants.REG_DELIMITER);
             String useHashedUserName =
                     IdentityMgtConfig.getInstance().getProperty(USE_HASHED_USERNAME_PROPERTY);
             if (Boolean.parseBoolean(useHashedUserName)) {
@@ -699,36 +656,13 @@ public class RecoveryProcessor {
                 userCode.append(stripSpecialChars(username));
             }
 
-            userCode.append(REG_DELIMITER);
+            userCode.append(IdentityMgtConstants.REG_DELIMITER);
             userCode.append(code);
 
             searchCode = userCode.toString();
         }
 
         return searchCode;
-    }
-
-    /**
-     * @param internalCode - code with the format "sequence_username_usercode".
-     * @return
-     */
-    private String getUserExternalCodeStr(String internalCode) throws IdentityMgtServiceException {
-
-        String userCode = null;
-
-        if (internalCode != null) {
-            String[] codeParts = internalCode.split("_{3}", 3);
-            // Must have 3 elements and 3rd one must have code.
-            if (codeParts.length == 3) {
-                userCode = codeParts[2];
-            } else {
-                throw new IdentityMgtServiceException("Invalid code");
-            }
-        } else {
-            throw new IdentityMgtServiceException("Code not found");
-        }
-
-        return userCode;
     }
 
     /**

@@ -3737,4 +3737,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
                         Boolean.parseBoolean(property.getValue()));
     }
+
+    @Override
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByIds(int[] appIds)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationBasicInfosByIds(appIds);
+    }
+
+    @Override
+    public List<ApplicationBasicInfo> getApplicationBasicInfos(String filterClause, List<Object> filterParams)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationBasicInfos(filterClause, filterParams);
+    }
 }

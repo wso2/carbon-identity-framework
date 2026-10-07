@@ -21,6 +21,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
+import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
+import org.wso2.carbon.identity.mgt.util.Utils;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
@@ -91,10 +93,10 @@ public class ArtifactDeleteThread implements Runnable {
                 String[] resources = collection.getChildren();
                 List<Resource> userResources = new ArrayList();
                 for (String resource : resources) {
-                    String[] splittedResource = resource.split("___");
-                    if (splittedResource.length == 3) {
+                    String userNameSegment = Utils.extractUserNameFromCodeResource(resource);
+                    if (userNameSegment != null) {
                         //PRIMARY USER STORE
-                        if (resource.contains("___" + userNameToValidate.toLowerCase() + "___")) {
+                        if (userNameSegment.equals(userNameToValidate.toLowerCase())) {
                             if (!isDeleteAll) {
                                 //add resources belong to particular user to a list
                                 userResources.add(registry.get(resource));
@@ -104,7 +106,7 @@ public class ArtifactDeleteThread implements Runnable {
                             }
 
                         }
-                    } else if (splittedResource.length == 2) {
+                    } else if (resource.contains(IdentityMgtConstants.REG_DELIMITER)) {
                         //SECONDARY USER STORE. Resource is a collection.
                         deleteOldResourcesIfFound();
                     }

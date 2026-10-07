@@ -55,6 +55,11 @@ public class IdPManagementFacade {
         return dao.getIdPs(dbConnection, tenantId, tenantDomain);
     }
 
+    public int getIdPIdByName(String idPName, int tenantId) throws IdentityProviderManagementException {
+
+        return dao.getIdPIdByName(idPName, tenantId);
+    }
+
     public List<IdentityProvider> getIdPsSearch(int tenantId, List<ExpressionNode> expressionConditions,
                                                 int limit, int offset, String sortOrder, String sortBy,
                                                 List<String> requiredAttributes)
