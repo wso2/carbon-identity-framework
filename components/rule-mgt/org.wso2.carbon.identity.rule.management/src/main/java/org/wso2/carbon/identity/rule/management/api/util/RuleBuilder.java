@@ -47,6 +47,8 @@ import java.util.Map;
 public class RuleBuilder {
 
     private static final int MAX_RULES_COMBINED_WITH_OR = 10;
+    private static final String IN = "in";
+    private static final String NOT_IN = "notIn";
 
     private final ORCombinedRule.Builder orCombinedRuleBuilder = new ORCombinedRule.Builder();
     private ANDCombinedRule.Builder andCombinedRuleBuilder = new ANDCombinedRule.Builder();
@@ -175,6 +177,14 @@ public class RuleBuilder {
             return expression;
         }
 
+        if (!isValidQualifier(fieldDefinition, expression.getField(), expression.getFieldQualifier())) {
+            return expression;
+        }
+
+        if (!isValidValueForOperator(expression.getField(), expression.getOperator(), expression.getValue())) {
+            return expression;
+        }
+
         Value resolvedValue = validateAndResolveValue(fieldDefinition, expression.getValue());
         if (isError) {
             return expression;
@@ -203,6 +213,42 @@ public class RuleBuilder {
                 .noneMatch(op -> op.getName().equals(operator))) {
             setValidationError(
                     "Operator " + operator + " is not supported for field " + fieldDefinition.getField().getName());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * A field that names a family of values -- a claim, for instance -- needs a qualifier to say which of them a
+     * condition means, and a field that names a single value takes none.
+     */
+    private boolean isValidQualifier(FieldDefinition fieldDefinition, String field, String qualifier) {
+
+        boolean qualified = fieldDefinition.getField().getQualifier() != null;
+        if (qualified == isBlank(qualifier)) {
+            setValidationError(qualified
+                    ? "Field " + field + " needs a qualifier to say which of its values to read."
+                    : "Field " + field + " names a single value and takes no qualifier.");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * A LIST is the right-hand side of a membership check and of nothing else: under any other operator it would
+     * be compared as one value against the field's value and, for a negated operator, hold every time. A
+     * membership check in turn needs a set to look in, given as a list or read from another field.
+     */
+    private boolean isValidValueForOperator(String field, String operator, Value value) {
+
+        boolean membership = IN.equals(operator) || NOT_IN.equals(operator);
+        if (value.getType() == Value.Type.LIST && !membership) {
+            setValidationError("Operator " + operator + " of field " + field + " does not take a list of values.");
+            return false;
+        }
+        if (membership && value.getType() != Value.Type.LIST && value.getType() != Value.Type.FIELD) {
+            setValidationError("Operator " + operator + " of field " + field
+                    + " needs a list of values or another field to compare with.");
             return false;
         }
         return true;
@@ -316,13 +362,21 @@ public class RuleBuilder {
             setValidationError("Field " + reference.getName() + " is not supported");
             return value;
         }
-        boolean qualified = referencedDefinition.getField().getQualifier() != null;
-        if (qualified == isBlank(reference.getQualifier())) {
-            setValidationError(qualified
-                    ? "Field " + reference.getName() + " needs a qualifier to say which of its values to read."
-                    : "Field " + reference.getName() + " names a single value and takes no qualifier.");
+        if (!hasSameValueType(fieldDefinition, referencedDefinition)) {
+            setValidationError("Field " + fieldName + " cannot be compared with field " + reference.getName()
+                    + " as their values are of different types.");
+            return value;
         }
+        isValidQualifier(referencedDefinition, reference.getName(), reference.getQualifier());
         return value;
+    }
+
+    private static boolean hasSameValueType(FieldDefinition fieldDefinition, FieldDefinition referencedDefinition) {
+
+        if (fieldDefinition.getValue() == null || referencedDefinition.getValue() == null) {
+            return false;
+        }
+        return fieldDefinition.getValue().getValueType() == referencedDefinition.getValue().getValueType();
     }
 
     private static boolean isBlank(String text) {

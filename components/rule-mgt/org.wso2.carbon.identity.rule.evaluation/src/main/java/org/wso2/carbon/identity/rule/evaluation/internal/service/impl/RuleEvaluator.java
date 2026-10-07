@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationExce
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
+import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
@@ -120,10 +121,25 @@ public class RuleEvaluator {
         }
 
         Operator operator = operatorRegistry.getOperator(expression.getOperator());
+        Value value = expression.getValue();
 
-        if (expression.getValue() != null && expression.getValue().getType() == Value.Type.FIELD) {
-            return evaluateAgainstField(operator, fieldValue, expression.getValue().getFieldReference(),
-                    evaluationData);
+        if (value != null && value.getType() == null) {
+            /*
+             * Stored rules are read with unknown value types as null, so a type added by a newer node arrives here
+             * without one. What its value means is unknown, so the condition fails closed rather than being read
+             * as a plain value.
+             */
+            return false;
+        }
+
+        if (value != null && value.getType() == Value.Type.FIELD) {
+            return evaluateAgainstField(operator, fieldValue, value.getFieldReference(), evaluationData);
+        }
+
+        if (value != null && value.getType() == Value.Type.LIST && !fieldValue.getValueType().equals(LIST)) {
+            // A set of the field's own type: its entries are read the way a single value of that type would be.
+            return operator.apply(fieldValue.getValue(), typedEntries(fieldValue.getValueType(),
+                    value.getFieldValues()));
         }
 
         // Evaluate based on the value type of the field
@@ -182,6 +198,32 @@ public class RuleEvaluator {
 
         Value value = expression.getValue();
         return value.getType() == Value.Type.LIST ? value.getFieldValues() : value.getFieldValue();
+    }
+
+    /**
+     * The entries of a LIST value, converted to the type of the field they are compared with, so that a number
+     * or a boolean is matched against numbers or booleans rather than against their text.
+     *
+     * @param valueType Value type of the field.
+     * @param entries   Entries of the LIST value.
+     * @return The converted entries, or null when there are none.
+     */
+    private static List<Object> typedEntries(ValueType valueType, List<String> entries) {
+
+        if (entries == null) {
+            return null;
+        }
+        List<Object> typed = new ArrayList<>(entries.size());
+        for (String entry : entries) {
+            if (valueType.equals(NUMBER)) {
+                typed.add(Double.parseDouble(entry));
+            } else if (valueType.equals(BOOLEAN)) {
+                typed.add(Boolean.parseBoolean(entry));
+            } else {
+                typed.add(entry);
+            }
+        }
+        return typed;
     }
 
     private boolean applyOperatorForList(Operator operator, Object fieldValue, Object expressionValue) {

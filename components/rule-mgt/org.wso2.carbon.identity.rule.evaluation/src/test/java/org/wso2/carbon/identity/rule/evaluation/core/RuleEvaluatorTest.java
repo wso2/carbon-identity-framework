@@ -494,6 +494,52 @@ public class RuleEvaluatorTest {
         assertTrue(ruleEvaluator.evaluate(rule, data).isRuleSatisfied());
     }
 
+    /**
+     * A list for a number field holds numbers: its entries are read as numbers, as a single value would be, rather
+     * than handed to the number conversion as one value.
+     */
+    @Test
+    public void testInOnANumberFieldReadsTheListAsNumbers() throws Exception {
+
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("riskScore", new FieldValue("riskScore", 3));
+
+        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "in",
+                new Value(Arrays.asList("1", "3"))), data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "in",
+                new Value(Arrays.asList("1", "2"))), data).isRuleSatisfied());
+        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "notIn",
+                new Value(Arrays.asList("1", "2"))), data).isRuleSatisfied());
+    }
+
+    @Test
+    public void testInOnABooleanFieldReadsTheListAsBooleans() throws Exception {
+
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("consented", new FieldValue("consented", true));
+
+        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("consented", "in",
+                new Value(Arrays.asList("true"))), data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("consented", "in",
+                new Value(Arrays.asList("false"))), data).isRuleSatisfied());
+    }
+
+    /**
+     * A value type this node does not know is read as null. Its value means something this node cannot tell, so
+     * the condition fails closed -- for a negated operator too -- rather than being read as a plain value.
+     */
+    @Test
+    public void testValueOfAnUnknownTypeFailsClosed() throws Exception {
+
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("email", new FieldValue("email", "a@x.com", ValueType.STRING));
+
+        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("email", "equals",
+                new Value(null, "a@x.com")), data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("email", "notEquals",
+                new Value(null, "b@x.com")), data).isRuleSatisfied());
+    }
+
     private Rule comparedWithStored(String operator) {
 
         return ruleWithSingleExpression("collected", operator, new Value(new FieldReference("stored", null)));

@@ -766,19 +766,97 @@ public class RuleBuilderTest {
         ruleBuilder.build();
     }
 
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: Field collected cannot be compared with field "
+                    + "score as their values are of different types.")
+    public void testFieldValueOfADifferentTypeIsRejected() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(comparedWith(new FieldReference("score", null)));
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: Field collected needs a qualifier to say "
+                    + "which of its values to read.")
+    public void testConditionWithoutTheQualifierItsFieldNeedsIsRejected() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(new Expression.Builder().field("collected").operator("equals")
+                .value(new Value(Value.Type.STRING, "LK")).build());
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: Field plain names a single value and takes no "
+                    + "qualifier.")
+    public void testQualifierOnAFieldThatTakesNoneIsRejected() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(new Expression.Builder().field("plain").fieldQualifier("anything")
+                .operator("equals").value(new Value(Value.Type.STRING, "LK")).build());
+        ruleBuilder.build();
+    }
+
+    @Test
+    public void testListValueUnderAMembershipOperatorIsAccepted() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(listCondition("in"));
+
+        Expression built = ((ORCombinedRule) ruleBuilder.build()).getRules().get(0).getExpressions().get(0);
+        assertEquals(built.getValue().getType(), Value.Type.LIST);
+        assertEquals(built.getValue().getFieldValues(), Arrays.asList("LK", "IN"));
+    }
+
+    /**
+     * Under any other operator a list would be compared as a single value, and a negated operator would then hold
+     * every time.
+     */
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: Operator equals of field collected does not "
+                    + "take a list of values.")
+    public void testListValueUnderANonMembershipOperatorIsRejected() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(listCondition("equals"));
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: Operator notIn of field collected needs a list "
+                    + "of values or another field to compare with.")
+    public void testMembershipWithoutAListIsRejected() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(new Expression.Builder().field("collected")
+                .fieldQualifier("http://wso2.org/claims/country").operator("notIn")
+                .value(new Value(Value.Type.STRING, "LK")).build());
+        ruleBuilder.build();
+    }
+
+    private Expression listCondition(String operator) {
+
+        return new Expression.Builder().field("collected").fieldQualifier("http://wso2.org/claims/country")
+                .operator(operator).value(new Value(Arrays.asList("LK", "IN"))).build();
+    }
+
     private RuleBuilder builderWithComparableFields() throws Exception {
 
-        List<Operator> operators = Arrays.asList(new Operator("equals", "equals"));
+        List<Operator> operators = Arrays.asList(new Operator("equals", "equals"), new Operator("in", "in"),
+                new Operator("notIn", "not in"));
         List<FieldDefinition> definitions = new ArrayList<>();
         definitions.add(new FieldDefinition(new Field("collected", "collected", new InputValue(
                 org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)), operators,
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING),
-                new ValueFieldOptions(Collections.singletonList("stored"))));
+                new ValueFieldOptions(Arrays.asList("stored", "score"))));
         definitions.add(new FieldDefinition(new Field("stored", "stored", new InputValue(
                 org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)), operators,
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)));
         definitions.add(new FieldDefinition(new Field("plain", "plain"), operators,
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)));
+        definitions.add(new FieldDefinition(new Field("score", "score"), operators,
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.NUMBER)));
         when(ruleMetadataService.getExpressionMeta(
                 org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(definitions);
