@@ -26,10 +26,14 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.model.Value;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +57,8 @@ public class RuleEvaluator {
     private static final String EQUALS = "equals";
     private static final String NOT_EQUALS = "notEquals";
     private static final String CONTAINS = "contains";
+    private static final String IN = "in";
+    private static final String NOT_IN = "notIn";
 
     public RuleEvaluator(OperatorRegistry operatorRegistry) {
 
@@ -107,33 +113,97 @@ public class RuleEvaluator {
     private boolean evaluateExpression(Expression expression, Map<String, FieldValue> evaluationData)
             throws RuleEvaluationException {
 
-        FieldValue fieldValue = evaluationData.get(expression.getField());
+        FieldValue fieldValue = evaluationData.get(
+                FieldLookup.token(expression.getField(), expression.getFieldQualifier()));
         if (fieldValue == null) {
             throw new RuleEvaluationException("Field value not found for the field: " + expression.getField());
         }
 
         Operator operator = operatorRegistry.getOperator(expression.getOperator());
 
+        if (expression.getValue() != null && expression.getValue().getType() == Value.Type.FIELD) {
+            return evaluateAgainstField(operator, fieldValue, expression.getValue().getFieldReference(),
+                    evaluationData);
+        }
+
         // Evaluate based on the value type of the field
         if (fieldValue.getValueType().equals(STRING)) {
-            return operator.apply(fieldValue.getValue(), expression.getValue().getFieldValue());
+            return operator.apply(fieldValue.getValue(), rightOperand(expression));
         } else if (fieldValue.getValueType().equals(BOOLEAN)) {
             return operator.apply(fieldValue.getValue(),
                     Boolean.parseBoolean(expression.getValue().getFieldValue()));
         } else if (fieldValue.getValueType().equals(NUMBER)) {
             return operator.apply(fieldValue.getValue(), Double.parseDouble(expression.getValue().getFieldValue()));
         } else if (fieldValue.getValueType().equals(REFERENCE)) {
-            return operator.apply(fieldValue.getValue(), expression.getValue().getFieldValue());
+            return operator.apply(fieldValue.getValue(), rightOperand(expression));
         } else if (fieldValue.getValueType().equals(LIST)) {
-            return applyOperatorForList(operator, fieldValue.getValue(), expression.getValue().getFieldValue());
+            return applyOperatorForList(operator, fieldValue.getValue(), rightOperand(expression));
         }
 
         throw new IllegalStateException("Unsupported value type: " + fieldValue.getValueType());
     }
 
+    /**
+     * Compares a field with another field read from the same context, rather than with a value given in the rule.
+     * <p>
+     * A comparison with a side that has no value does not hold, for any operator, negated ones included: an
+     * absent value is not known to differ from anything.
+     *
+     * @param operator       Operator of the expression.
+     * @param left           Value of the expression's own field.
+     * @param reference      The field the expression is compared against.
+     * @param evaluationData Values resolved for the rule.
+     * @return Whether the comparison holds.
+     */
+    private boolean evaluateAgainstField(Operator operator, FieldValue left, FieldReference reference,
+                                         Map<String, FieldValue> evaluationData) {
+
+        if (reference == null || left.getValue() == null) {
+            return false;
+        }
+        FieldValue right = evaluationData.get(FieldLookup.token(reference.getName(), reference.getQualifier()));
+        if (right == null || right.getValue() == null) {
+            return false;
+        }
+        if (left.getValueType().equals(LIST)) {
+            return applyOperatorForList(operator, left.getValue(), right.getValue());
+        }
+        return operator.apply(left.getValue(), right.getValue());
+    }
+
+    /**
+     * The right-hand side of an expression. A LIST carries its values separately from the single
+     * value every other type uses, so which one to read is decided by the declared type.
+     *
+     * @param expression Expression being evaluated.
+     * @return The values for a LIST, otherwise the single value.
+     */
+    private static Object rightOperand(Expression expression) {
+
+        Value value = expression.getValue();
+        return value.getType() == Value.Type.LIST ? value.getFieldValues() : value.getFieldValue();
+    }
+
     private boolean applyOperatorForList(Operator operator, Object fieldValue, Object expressionValue) {
 
         List<?> list = (List<?>) fieldValue;
+        if (list == null) {
+            // A missing set holds for no operator, negated ones included.
+            return false;
+        }
+
+        if (operator.getName().equals(IN) || operator.getName().equals(NOT_IN)) {
+            /*
+             * Both sides are sets here, so membership is intersection: in holds when they share a
+             * value. A right-hand side that is not a set cannot be intersected, and neither operator
+             * holds in that case -- a malformed expression fails closed rather than passing by
+             * negation.
+             */
+            if (!(expressionValue instanceof Collection)) {
+                return false;
+            }
+            return operator.getName().equals(IN) != Collections.disjoint(list, (Collection<?>) expressionValue);
+        }
 
         if (operator.getName().equals(EQUALS)) {
             return list.contains(expressionValue);

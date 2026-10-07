@@ -27,37 +27,62 @@ import java.util.List;
 public class FieldValue {
 
     private final String name;
+    private final String qualifier;
     private final ValueType valueType;
     private final Object value;
 
     public FieldValue(String name, String value, ValueType valueType) {
+
+        this(name, null, value, valueType);
+    }
+
+    public FieldValue(String name, String qualifier, String value, ValueType valueType) {
 
         if (!(valueType == ValueType.STRING || valueType instanceof ValueType.ReferenceValueType)) {
             throw new IllegalArgumentException("Value type should be STRING or REFERENCE to set a string value");
         }
 
         this.name = name;
+        this.qualifier = qualifier;
         this.valueType = valueType;
         this.value = value;
     }
 
     public FieldValue(String name, Boolean value) {
 
+        this(name, null, value);
+    }
+
+    public FieldValue(String name, String qualifier, Boolean value) {
+
         this.name = name;
+        this.qualifier = qualifier;
         this.valueType = ValueType.BOOLEAN;
         this.value = value;
     }
 
     public FieldValue(String name, Number value) {
 
+        this(name, null, value);
+    }
+
+    public FieldValue(String name, String qualifier, Number value) {
+
         this.name = name;
+        this.qualifier = qualifier;
         this.valueType = ValueType.NUMBER;
         this.value = Double.valueOf(value.toString());
     }
 
     public FieldValue(String name, List<String> value) {
 
+        this(name, null, value);
+    }
+
+    public FieldValue(String name, String qualifier, List<String> value) {
+
         this.name = name;
+        this.qualifier = qualifier;
         this.valueType = ValueType.LIST;
         this.value = value;
     }
@@ -65,6 +90,16 @@ public class FieldValue {
     public String getName() {
 
         return name;
+    }
+
+    /**
+     * Qualifier this value was resolved for, echoing the qualifier of the field it answers.
+     *
+     * @return The qualifier, or null when the field is not qualified.
+     */
+    public String getQualifier() {
+
+        return qualifier;
     }
 
     public ValueType getValueType() {

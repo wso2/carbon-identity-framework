@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementExce
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementServerException;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.FlowType;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
@@ -32,6 +33,7 @@ import org.wso2.carbon.identity.rule.management.internal.util.RuleManagementConf
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.ValueFieldOptions;
 
 import java.util.List;
 import java.util.Map;
@@ -180,6 +182,7 @@ public class RuleBuilder {
 
         return new Expression.Builder()
                 .field(expression.getField())
+                .fieldQualifier(expression.getFieldQualifier())
                 .operator(expression.getOperator())
                 .value(resolvedValue)
                 .build();
@@ -239,6 +242,13 @@ public class RuleBuilder {
 
     private Value validateAndResolveValue(FieldDefinition fieldDefinition, Value value) {
 
+        if (value.getType() == Value.Type.LIST) {
+            return validateListValue(fieldDefinition, value);
+        }
+        if (value.getType() == Value.Type.FIELD) {
+            return validateFieldValue(fieldDefinition, value);
+        }
+
         String rawValue = value.getFieldValue();
 
         if (!isValidValueType(fieldDefinition, value)) {
@@ -255,6 +265,69 @@ public class RuleBuilder {
             setValidationError(e.getMessage());
             return value;
         }
+    }
+
+    /**
+     * A LIST is a set of values of the field's own type rather than a type of its own, so each entry
+     * is checked the way a single value would be and the list is kept as it was authored.
+     */
+    private Value validateListValue(FieldDefinition fieldDefinition, Value value) {
+
+        if (value.getFieldValues() == null || value.getFieldValues().isEmpty()) {
+            setValidationError("A list value for field " + fieldDefinition.getField().getName()
+                    + " must have at least one entry.");
+            return value;
+        }
+
+        for (String entry : value.getFieldValues()) {
+            if (!isValidOptionsInputValue(fieldDefinition, entry)) {
+                return value;
+            }
+            try {
+                resolveValue(fieldDefinition, entry);
+            } catch (RuleManagementClientException e) {
+                setValidationError(e.getMessage());
+                return value;
+            }
+        }
+        return value;
+    }
+
+    /**
+     * A FIELD value is read from another field when the rule is evaluated, so there is nothing to resolve here.
+     * What is checked is that the field may be compared with that one at all, and that the reference picks a value
+     * within it exactly when that field names a family of values.
+     */
+    private Value validateFieldValue(FieldDefinition fieldDefinition, Value value) {
+
+        FieldReference reference = value.getFieldReference();
+        String fieldName = fieldDefinition.getField().getName();
+        if (reference == null || isBlank(reference.getName())) {
+            setValidationError("A value of field " + fieldName + " read from another field must name that field.");
+            return value;
+        }
+        ValueFieldOptions valueFieldOptions = fieldDefinition.getValueFieldOptions();
+        if (valueFieldOptions == null || !valueFieldOptions.getNames().contains(reference.getName())) {
+            setValidationError("Field " + fieldName + " cannot be compared with field " + reference.getName());
+            return value;
+        }
+        FieldDefinition referencedDefinition = expressionMetadataFieldsMap.get(reference.getName());
+        if (referencedDefinition == null) {
+            setValidationError("Field " + reference.getName() + " is not supported");
+            return value;
+        }
+        boolean qualified = referencedDefinition.getField().getQualifier() != null;
+        if (qualified == isBlank(reference.getQualifier())) {
+            setValidationError(qualified
+                    ? "Field " + reference.getName() + " needs a qualifier to say which of its values to read."
+                    : "Field " + reference.getName() + " names a single value and takes no qualifier.");
+        }
+        return value;
+    }
+
+    private static boolean isBlank(String text) {
+
+        return text == null || text.trim().isEmpty();
     }
 
     private Value resolveValue(FieldDefinition fieldDefinition,
@@ -285,7 +358,9 @@ public class RuleBuilder {
                 fieldDefinition.getValue().getValueType();
         Value.Type valueType = value.getType();
 
-        if (valueType != Value.Type.RAW && !valueType.name().equals(fieldDefinitionValueType.name())) {
+        // A LIST carries values of the field's type, so it is checked entry by entry instead.
+        if (valueType != Value.Type.RAW && valueType != Value.Type.LIST
+                && !valueType.name().equals(fieldDefinitionValueType.name())) {
             setValidationError(
                     "Value type " + valueType + " is not supported for field " + fieldDefinition.getField().getName());
             return false;

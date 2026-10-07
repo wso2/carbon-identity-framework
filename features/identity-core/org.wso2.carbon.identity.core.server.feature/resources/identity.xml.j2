@@ -5467,6 +5467,21 @@
         <DevicePolicy>
             <MaxExpressionsCombinedWithAnd>{{rules.device_policy.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
         </DevicePolicy>
+        {% if rules.registration.max_expressions_combined_with_and is defined %}
+        <Registration>
+            <MaxExpressionsCombinedWithAnd>{{rules.registration.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+        </Registration>
+        {% endif %}
+        {% if rules.password_recovery.max_expressions_combined_with_and is defined %}
+        <PasswordRecovery>
+            <MaxExpressionsCombinedWithAnd>{{rules.password_recovery.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+        </PasswordRecovery>
+        {% endif %}
+        {% if rules.invited_user_registration.max_expressions_combined_with_and is defined %}
+        <InvitedUserRegistration>
+            <MaxExpressionsCombinedWithAnd>{{rules.invited_user_registration.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+        </InvitedUserRegistration>
+        {% endif %}
     </Rules>
 
     {% if openid4vp is defined %}

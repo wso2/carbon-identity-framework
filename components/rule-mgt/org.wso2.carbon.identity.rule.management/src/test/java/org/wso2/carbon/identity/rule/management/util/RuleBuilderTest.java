@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementClie
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementServerException;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.FlowType;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
@@ -45,6 +46,7 @@ import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.ValueFieldOptions;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
@@ -731,5 +733,61 @@ public class RuleBuilderTest {
         assertNotNull(orCombinedRule.getRules());
         assertEquals(orCombinedRule.getRules().size(), expectedRulesSize);
         return orCombinedRule;
+    }
+    @Test
+    public void testFieldValueNamingAnAllowedFieldIsAccepted() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(comparedWith(new FieldReference("stored", "http://wso2.org/claims/country")));
+
+        Expression built = ((ORCombinedRule) ruleBuilder.build()).getRules().get(0).getExpressions().get(0);
+        assertEquals(built.getFieldQualifier(), "http://wso2.org/claims/country");
+        assertEquals(built.getValue().getType(), Value.Type.FIELD);
+        assertEquals(built.getValue().getFieldReference().getName(), "stored");
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: Field collected cannot be compared with field "
+                    + "plain")
+    public void testFieldValueNamingAFieldNotListedIsRejected() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(comparedWith(new FieldReference("plain", null)));
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: Field stored needs a qualifier to say "
+                    + "which of its values to read.")
+    public void testFieldValueWithoutTheQualifierItsFieldNeedsIsRejected() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(comparedWith(new FieldReference("stored", null)));
+        ruleBuilder.build();
+    }
+
+    private RuleBuilder builderWithComparableFields() throws Exception {
+
+        List<Operator> operators = Arrays.asList(new Operator("equals", "equals"));
+        List<FieldDefinition> definitions = new ArrayList<>();
+        definitions.add(new FieldDefinition(new Field("collected", "collected", new InputValue(
+                org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)), operators,
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING),
+                new ValueFieldOptions(Collections.singletonList("stored"))));
+        definitions.add(new FieldDefinition(new Field("stored", "stored", new InputValue(
+                org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)), operators,
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)));
+        definitions.add(new FieldDefinition(new Field("plain", "plain"), operators,
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)));
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(definitions);
+        return RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+    }
+
+    private Expression comparedWith(FieldReference reference) {
+
+        return new Expression.Builder().field("collected").fieldQualifier("http://wso2.org/claims/country")
+                .operator("equals").value(new Value(reference)).build();
     }
 }

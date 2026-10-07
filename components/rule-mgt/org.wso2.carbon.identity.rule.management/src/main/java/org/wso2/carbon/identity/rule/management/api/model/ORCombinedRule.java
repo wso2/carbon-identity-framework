@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.rule.management.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -32,6 +34,7 @@ import java.util.concurrent.ConcurrentMap;
  * Represents an OR combined rule.
  * This class extends the Rule class and has a list of ANDCombinedRules.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonDeserialize(builder = ORCombinedRule.Builder.class)
 public class ORCombinedRule extends Rule {
 
@@ -80,6 +83,7 @@ public class ORCombinedRule extends Rule {
      * Builder for the ORCombinedRule.
      */
     @JsonPOJOBuilder(withPrefix = "set")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Builder {
 
         private String id;
