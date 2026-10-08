@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtClientException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
@@ -82,6 +83,7 @@ public class FlowRuleValidatorTest {
 
     private MockedStatic<RuleMetadataConfigFactory> configFactoryMock;
     private MockedStatic<IdentityConfigParser> identityConfigParserMock;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
 
     @BeforeClass
     public void setUpClass() throws Exception {
@@ -98,14 +100,20 @@ public class FlowRuleValidatorTest {
         identityConfigParserMock = mockStatic(IdentityConfigParser.class);
         identityConfigParserMock.when(IdentityConfigParser::getInstance).thenReturn(identityConfigParser);
 
+        // A tenant with two user stores, for the domains a condition on the user's domain may name.
+        identityTenantUtilMock = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtilMock.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(-1234);
+        FlowMgtServiceDataHolder.getInstance().setRealmService(
+                UserStoreMocks.realmWithUserStores("PRIMARY", new String[]{"LDAP"}, null));
+
         /*
-         * The metadata the flow really publishes, so the test validates against the shipped contract.
-         * Built before stubbing begins: constructing a field definition reads the mocked operator
-         * config, and Mockito will not tolerate that happening inside an unfinished when().
+         * The metadata the flow really publishes, so the test validates against the shipped contract. Password
+         * recovery offers every flow field. Built before stubbing begins: constructing a field definition reads
+         * the mocked operator config, and Mockito will not tolerate that happening inside an unfinished when().
          */
         List<org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition> publishedFields =
                 new FlowRuleMetadataProvider().getExpressionMeta(
-                        org.wso2.carbon.identity.rule.metadata.api.model.FlowType.REGISTRATION, TENANT_DOMAIN);
+                        org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PASSWORD_RECOVERY, TENANT_DOMAIN);
 
         RuleMetadataService ruleMetadataService = mock(RuleMetadataService.class);
         when(ruleMetadataService.getExpressionMeta(any(), anyString())).thenReturn(publishedFields);
@@ -124,6 +132,8 @@ public class FlowRuleValidatorTest {
 
         configFactoryMock.close();
         identityConfigParserMock.close();
+        identityTenantUtilMock.close();
+        FlowMgtServiceDataHolder.getInstance().setRealmService(null);
     }
 
     @Test
@@ -233,48 +243,87 @@ public class FlowRuleValidatorTest {
         FlowRuleValidator.validate(flow, TENANT_DOMAIN);
     }
 
+    /**
+     * A field that names a single value takes no qualifier: one given would be stored and never read.
+     */
     @Test
-    public void testFlowPropertyWithoutAKeyIsRejected() {
+    public void testQualifierOnAFieldThatTakesNoneIsRejected() {
 
-        Expression noKey = new Expression.Builder()
-                .field(FlowRuleMetadataProvider.FLOW_PROPERTIES)
+        Expression qualifiedApplication = new Expression.Builder()
+                .field(FlowRuleMetadataProvider.APPLICATION)
+                .fieldQualifier("anything")
                 .operator("equals")
-                .value(scalar("high"))
+                .value(new Value(Value.Type.REFERENCE, "app-1"))
                 .build();
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
-                () -> FlowRuleValidator.validate(flowWith(noKey), TENANT_DOMAIN));
-        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_QUALIFIER_REQUIRED));
+                () -> FlowRuleValidator.validate(flowWith(qualifiedApplication), TENANT_DOMAIN));
+        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_QUALIFIER_NOT_ALLOWED));
     }
 
     @Test
-    public void testFlowPropertyWithAKeyIsAccepted() throws Exception {
+    public void testApplicationConditionIsAccepted() throws Exception {
 
-        Expression property = new Expression.Builder()
-                .field(FlowRuleMetadataProvider.FLOW_PROPERTIES)
-                .fieldQualifier("riskLevel")
-                .operator("equals")
-                .value(scalar("high"))
+        Expression application = new Expression.Builder()
+                .field(FlowRuleMetadataProvider.APPLICATION)
+                .operator("notEquals")
+                .value(new Value(Value.Type.REFERENCE, "app-1"))
                 .build();
 
-        FlowRuleValidator.validate(flowWith(property), TENANT_DOMAIN);
+        FlowRuleValidator.validate(flowWith(application), TENANT_DOMAIN);
     }
 
     /**
      * The list and operator have to agree on every field, not only on claims.
      */
     @Test
-    public void testListValueOnAFlowPropertyIsRejected() {
+    public void testListValueOnTheApplicationIsRejected() {
 
-        Expression property = new Expression.Builder()
-                .field(FlowRuleMetadataProvider.FLOW_PROPERTIES)
-                .fieldQualifier("riskLevel")
+        Expression application = new Expression.Builder()
+                .field(FlowRuleMetadataProvider.APPLICATION)
                 .operator("equals")
-                .value(new Value(Arrays.asList("high", "medium")))
+                .value(new Value(Arrays.asList("app-1", "app-2")))
                 .build();
 
-        assertThrows(FlowMgtClientException.class,
-                () -> FlowRuleValidator.validate(flowWith(property), TENANT_DOMAIN));
+        FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
+                () -> FlowRuleValidator.validate(flowWith(application), TENANT_DOMAIN));
+        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_LIST_VALUE_MISMATCH));
+    }
+
+    @Test
+    public void testMembershipInGroupsAndRolesIsAccepted() throws Exception {
+
+        for (String field : new String[]{FlowRuleMetadataProvider.USER_GROUPS, FlowRuleMetadataProvider.USER_ROLES}) {
+            Expression membership = new Expression.Builder()
+                    .field(field)
+                    .operator("notIn")
+                    .value(new Value(Arrays.asList("id-1", "id-2")))
+                    .build();
+
+            FlowRuleValidator.validate(flowWith(membership), TENANT_DOMAIN);
+        }
+    }
+
+    /**
+     * The domain is one of the tenant's user stores; any other name could never match.
+     */
+    @Test
+    public void testUserDomainMustNameAUserStoreOfTheTenant() throws Exception {
+
+        FlowRuleValidator.validate(flowWith(userDomain("LDAP")), TENANT_DOMAIN);
+
+        FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
+                () -> FlowRuleValidator.validate(flowWith(userDomain("UNKNOWN")), TENANT_DOMAIN));
+        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_INVALID_BRANCH_RULE));
+    }
+
+    private static Expression userDomain(String domain) {
+
+        return new Expression.Builder()
+                .field(FlowRuleMetadataProvider.USER_DOMAIN)
+                .operator("equals")
+                .value(new Value(Value.Type.STRING, domain))
+                .build();
     }
 
     /**
@@ -418,7 +467,7 @@ public class FlowRuleValidatorTest {
                 .build();
 
         FlowDTO flow = new FlowDTO();
-        flow.setFlowType(Constants.FlowTypes.REGISTRATION.getType());
+        flow.setFlowType(Constants.FlowTypes.PASSWORD_RECOVERY.getType());
         flow.setSteps(Collections.singletonList(step));
         return flow;
     }

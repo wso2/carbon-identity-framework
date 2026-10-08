@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -53,6 +54,7 @@ public class FlowExecutionEngineDataHolder {
     private IdentityEventService identityEventService;
     private OrganizationManager organizationManager;
     private RuleEvaluationService ruleEvaluationService;
+    private RoleManagementService roleManagementService;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
     private FlowExecutionEngineDataHolder() {
@@ -121,6 +123,21 @@ public class FlowExecutionEngineDataHolder {
     public void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
 
         this.ruleEvaluationService = ruleEvaluationService;
+    }
+
+    /**
+     * Role management, used to read the roles a user is assigned when a flow condition names them.
+     *
+     * @return The role management service, or null when it is not yet available.
+     */
+    public RoleManagementService getRoleManagementService() {
+
+        return roleManagementService;
+    }
+
+    public void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        this.roleManagementService = roleManagementService;
     }
 
     /**

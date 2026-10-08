@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider;
 import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of flow management service.
@@ -86,6 +87,22 @@ public class FlowMgtServiceComponent {
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         FlowMgtServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
+    protected void setRealmService(RealmService realmService) {
+
+        FlowMgtServiceDataHolder.getInstance().setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        FlowMgtServiceDataHolder.getInstance().setRealmService(null);
     }
 
     @Reference(

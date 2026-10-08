@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySetting
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * A singleton class to hold the data of the flow management service.
@@ -34,6 +35,7 @@ public class FlowMgtServiceDataHolder {
     private ConfigurationManager configurationManager;
     private CompatibilitySettingsManager compatibilitySettingsManager;
     private ClaimMetadataManagementService claimMetadataManagementService;
+    private RealmService realmService;
 
     private static final FlowMgtServiceDataHolder INSTANCE = new FlowMgtServiceDataHolder();
 
@@ -60,6 +62,21 @@ public class FlowMgtServiceDataHolder {
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * The realm service, used to list the user stores a condition on the user's domain may name.
+     *
+     * @return The realm service, or null when it is not yet available.
+     */
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
     }
 
     public OrganizationManager getOrganizationManager() {

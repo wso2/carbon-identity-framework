@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationDataProviderException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
@@ -38,12 +40,16 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -58,6 +64,11 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     private static final Log LOG = LogFactory.getLog(AbstractFlowRuleEvaluationDataProvider.class);
 
     /**
+     * The application the flow runs for, by id.
+     */
+    public static final String APPLICATION = "application";
+
+    /**
      * What is stored for the user. Keyed by claim URI. Reachable only once the user exists, which in
      * a registration flow is not until onboarding.
      */
@@ -70,10 +81,19 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     public static final String USER_COLLECTED_CLAIMS = "user.collectedClaims";
 
     /**
-     * Values executors put on the flow context. Keyed by property name, which nothing declares in
-     * advance, so the qualifier is free text.
+     * The user store the user belongs to.
      */
-    public static final String FLOW_PROPERTIES = "flow.properties";
+    public static final String USER_DOMAIN = "user.domain";
+
+    /**
+     * The groups the user is assigned to, by group id.
+     */
+    public static final String USER_GROUPS = "user.groups";
+
+    /**
+     * The roles the user is assigned, directly or through a group, by role id.
+     */
+    public static final String USER_ROLES = "user.roles";
 
     /**
      * Key under which the engine places its execution context for evaluation.
@@ -109,12 +129,18 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     protected FieldValue resolve(Field field, FlowExecutionContext context, String tenantDomain) {
 
         switch (field.getName()) {
+            case APPLICATION:
+                return application(field, context);
             case USER_COLLECTED_CLAIMS:
                 return collectedClaim(field, context);
             case USER_CLAIMS:
                 return persistedClaim(field, context, tenantDomain);
-            case FLOW_PROPERTIES:
-                return flowProperty(field, context);
+            case USER_DOMAIN:
+                return userDomain(field, context, tenantDomain);
+            case USER_GROUPS:
+                return userGroups(field, context, tenantDomain);
+            case USER_ROLES:
+                return userRoles(field, context, tenantDomain);
             default:
                 LOG.debug("No value available for condition field: " + field.getName() + ".");
                 return absent(field);
@@ -131,13 +157,101 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                 context.getTenantDomain());
     }
 
-    private FieldValue flowProperty(Field field, FlowExecutionContext context) {
+    private FieldValue application(Field field, FlowExecutionContext context) {
 
-        if (context.getProperties() == null) {
+        String applicationId = context.getApplicationId();
+        return new FieldValue(field.getName(), StringUtils.isNotBlank(applicationId) ? applicationId : null,
+                ValueType.REFERENCE);
+    }
+
+    /**
+     * The user store of the user, once the user exists. A user whose domain is not recorded belongs to the
+     * primary store, named as the tenant names it.
+     */
+    private FieldValue userDomain(Field field, FlowExecutionContext context, String tenantDomain) {
+
+        FlowUser user = context.getFlowUser();
+        if (user == null || StringUtils.isBlank(user.getUserId())) {
             return absent(field);
         }
-        Object value = context.getProperties().get(field.getQualifier());
-        return stringValue(field, value == null ? null : String.valueOf(value));
+        if (StringUtils.isNotBlank(user.getUserStoreDomain())) {
+            return stringValue(field, user.getUserStoreDomain().toUpperCase());
+        }
+        try {
+            String primaryDomain = userStoreManager(tenantDomain).getRealmConfiguration()
+                    .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            return stringValue(field, StringUtils.isNotBlank(primaryDomain)
+                    ? primaryDomain.toUpperCase() : UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+        } catch (UserStoreException e) {
+            LOG.warn("Could not read the primary user store of tenant " + tenantDomain
+                    + ". The condition on the user's domain will not hold.", e);
+            return absent(field);
+        }
+    }
+
+    /**
+     * The ids of the groups the user is assigned to. Yields no set until the user exists, so that neither
+     * {@code in} nor {@code notIn} holds for a user the flow has not identified.
+     */
+    private FieldValue userGroups(Field field, FlowExecutionContext context, String tenantDomain) {
+
+        FlowUser user = context.getFlowUser();
+        if (user == null || StringUtils.isBlank(user.getUserId())) {
+            return absentSet(field);
+        }
+        try {
+            return new FieldValue(field.getName(), groupIds(user.getUserId(), tenantDomain));
+        } catch (UserStoreException e) {
+            LOG.warn("Could not read the groups of the user in tenant " + tenantDomain
+                    + ". The condition on them will not hold.", e);
+            return absentSet(field);
+        }
+    }
+
+    /**
+     * The ids of the roles the user is assigned, whether directly or through one of the user's groups.
+     */
+    private FieldValue userRoles(Field field, FlowExecutionContext context, String tenantDomain) {
+
+        FlowUser user = context.getFlowUser();
+        RoleManagementService roleManagementService =
+                FlowExecutionEngineDataHolder.getInstance().getRoleManagementService();
+        if (user == null || StringUtils.isBlank(user.getUserId()) || roleManagementService == null) {
+            return absentSet(field);
+        }
+        try {
+            Set<String> roleIds = new LinkedHashSet<>(
+                    roleManagementService.getRoleIdListOfUser(user.getUserId(), tenantDomain));
+            List<String> groupIds = groupIds(user.getUserId(), tenantDomain);
+            if (!groupIds.isEmpty()) {
+                roleIds.addAll(roleManagementService.getRoleIdListOfGroups(groupIds, tenantDomain));
+            }
+            return new FieldValue(field.getName(), new ArrayList<>(roleIds));
+        } catch (UserStoreException | IdentityRoleManagementException e) {
+            LOG.warn("Could not read the roles of the user in tenant " + tenantDomain
+                    + ". The condition on them will not hold.", e);
+            return absentSet(field);
+        }
+    }
+
+    private List<String> groupIds(String userId, String tenantDomain) throws UserStoreException {
+
+        List<Group> groups = userStoreManager(tenantDomain).getGroupListOfUser(userId, null, null);
+        List<String> groupIds = new ArrayList<>();
+        if (groups != null) {
+            for (Group group : groups) {
+                if (StringUtils.isNotBlank(group.getGroupID())) {
+                    groupIds.add(group.getGroupID());
+                }
+            }
+        }
+        return groupIds;
+    }
+
+    private AbstractUserStoreManager userStoreManager(String tenantDomain) throws UserStoreException {
+
+        return (AbstractUserStoreManager) FlowExecutionEngineDataHolder.getInstance().getRealmService()
+                .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain)).getUserStoreManager();
     }
 
     /**
@@ -154,10 +268,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         }
 
         try {
-            AbstractUserStoreManager userStoreManager =
-                    (AbstractUserStoreManager) FlowExecutionEngineDataHolder.getInstance().getRealmService()
-                            .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain)).getUserStoreManager();
-            Map<String, String> claims = userStoreManager.getUserClaimValuesWithID(
+            Map<String, String> claims = userStoreManager(tenantDomain).getUserClaimValuesWithID(
                     user.getUserId(), new String[]{field.getQualifier()}, null);
             return claimValue(field, claims == null ? null : claims.get(field.getQualifier()),
                     user.getUserStoreDomain(), tenantDomain);
@@ -237,5 +348,14 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     private FieldValue absent(Field field) {
 
         return stringValue(field, null);
+    }
+
+    /**
+     * A set that is not there, rather than an empty one: no membership operator holds on it, {@code notIn}
+     * included.
+     */
+    private FieldValue absentSet(Field field) {
+
+        return new FieldValue(field.getName(), field.getQualifier(), (List<String>) null);
     }
 }

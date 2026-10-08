@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.identity.flow.execution.engine.rule.InvitedUserRegistrationFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.flow.execution.engine.rule.PasswordRecoveryFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.flow.execution.engine.rule.RegistrationFlowRuleEvaluationDataProvider;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -129,6 +130,24 @@ public class FlowExecutionEngineServiceComponent {
 
         LOG.debug("Unsetting the Rule Evaluation Service in the Flow Engine service component.");
         FlowExecutionEngineDataHolder.getInstance().setRuleEvaluationService(null);
+    }
+
+    @Reference(
+            name = "role.management.service",
+            service = RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementService")
+    protected void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        LOG.debug("Setting the Role Management Service in the Flow Engine service component.");
+        FlowExecutionEngineDataHolder.getInstance().setRoleManagementService(roleManagementService);
+    }
+
+    protected void unsetRoleManagementService(RoleManagementService roleManagementService) {
+
+        LOG.debug("Unsetting the Role Management Service in the Flow Engine service component.");
+        FlowExecutionEngineDataHolder.getInstance().setRoleManagementService(null);
     }
 
     @Reference(

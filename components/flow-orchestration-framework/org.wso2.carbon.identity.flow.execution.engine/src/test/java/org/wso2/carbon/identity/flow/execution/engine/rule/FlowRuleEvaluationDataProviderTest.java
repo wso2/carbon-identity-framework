@@ -30,13 +30,17 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.UserRealm;
 
@@ -104,6 +108,7 @@ public class FlowRuleEvaluationDataProviderTest {
         identityTenantUtil.close();
         FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
         FlowExecutionEngineDataHolder.getInstance().setRealmService(null);
+        FlowExecutionEngineDataHolder.getInstance().setRoleManagementService(null);
     }
 
     @Test
@@ -174,15 +179,99 @@ public class FlowRuleEvaluationDataProviderTest {
     }
 
     @Test
-    public void testFlowPropertyIsReadFromTheContext() throws Exception {
+    public void testApplicationIsTheIdOfTheApplicationTheFlowRunsFor() throws Exception {
 
         FlowExecutionContext context = context(new FlowUser());
-        context.setProperty("riskLevel", "high");
+        context.setApplicationId("app-1");
 
-        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.FLOW_PROPERTIES, "riskLevel"),
-                context);
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.APPLICATION, null), context);
 
-        assertEquals(value.getValue(), "high");
+        assertEquals(value.getValueType(), ValueType.REFERENCE);
+        assertEquals(value.getValue(), "app-1");
+    }
+
+    @Test
+    public void testUserDomainIsTheUsersOwnStore() throws Exception {
+
+        FlowUser user = existingUser();
+        user.setUserStoreDomain("ldap");
+
+        assertEquals(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null), context(user))
+                .getValue(), "LDAP");
+    }
+
+    /**
+     * A user with no recorded domain is in the primary store, named as the tenant names it -- DEFAULT on
+     * Asgardeo, for instance.
+     */
+    @Test
+    public void testUserDomainFallsBackToThePrimaryStore() throws Exception {
+
+        RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
+        when(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME))
+                .thenReturn("default");
+        when(userStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
+
+        assertEquals(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null),
+                context(existingUser())).getValue(), "DEFAULT");
+    }
+
+    @Test
+    public void testUserDomainIsAbsentUntilTheUserIsKnown() throws Exception {
+
+        assertNull(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null),
+                context(new FlowUser())).getValue());
+    }
+
+    @Test
+    public void testGroupsAreTheIdsOfTheUsersGroups() throws Exception {
+
+        List<Group> groups = Arrays.asList(group("group-1"), group("group-2"));
+        when(userStoreManager.getGroupListOfUser("user-1", null, null)).thenReturn(groups);
+
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_GROUPS, null),
+                context(existingUser()));
+
+        assertEquals(value.getValueType(), ValueType.LIST);
+        assertEquals(value.getValue(), Arrays.asList("group-1", "group-2"));
+    }
+
+    /**
+     * A role reached through a group is as assigned as one given directly, and each role is counted once.
+     */
+    @Test
+    public void testRolesIncludeThoseAssignedThroughGroups() throws Exception {
+
+        List<Group> groups = Collections.singletonList(group("group-1"));
+        when(userStoreManager.getGroupListOfUser("user-1", null, null)).thenReturn(groups);
+        RoleManagementService roleService = mock(RoleManagementService.class);
+        when(roleService.getRoleIdListOfUser("user-1", TENANT)).thenReturn(Collections.singletonList("role-1"));
+        when(roleService.getRoleIdListOfGroups(Collections.singletonList("group-1"), TENANT))
+                .thenReturn(Arrays.asList("role-2", "role-1"));
+        FlowExecutionEngineDataHolder.getInstance().setRoleManagementService(roleService);
+
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_ROLES, null),
+                context(existingUser()));
+
+        assertEquals(value.getValueType(), ValueType.LIST);
+        assertEquals(value.getValue(), Arrays.asList("role-1", "role-2"));
+    }
+
+    /**
+     * Before the user exists there is no set to look in, rather than an empty one: notIn must not hold for a
+     * user the flow has not identified.
+     */
+    @Test
+    public void testGroupsAndRolesAreAbsentUntilTheUserExists() throws Exception {
+
+        FlowExecutionEngineDataHolder.getInstance().setRoleManagementService(mock(RoleManagementService.class));
+
+        for (String name : new String[]{AbstractFlowRuleEvaluationDataProvider.USER_GROUPS,
+                AbstractFlowRuleEvaluationDataProvider.USER_ROLES}) {
+            FieldValue value = resolve(field(name, null), context(new FlowUser()));
+            assertEquals(value.getValueType(), ValueType.LIST);
+            assertNull(value.getValue(), name + " should have no set before the user exists.");
+        }
     }
 
     @Test
@@ -216,6 +305,20 @@ public class FlowRuleEvaluationDataProviderTest {
     private static Field field(String name, String key) {
 
         return new Field(name, key, ValueType.STRING);
+    }
+
+    private static FlowUser existingUser() {
+
+        FlowUser user = new FlowUser();
+        user.setUserId("user-1");
+        return user;
+    }
+
+    private static Group group(String id) {
+
+        Group group = mock(Group.class);
+        when(group.getGroupID()).thenReturn(id);
+        return group;
     }
 
     private static LocalClaim claim(String uri, boolean multiValued) {

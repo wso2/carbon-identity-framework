@@ -119,6 +119,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.role.v2.mgt.core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -201,6 +205,8 @@
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                             org.wso2.carbon.identity.rule.evaluation.api.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.role.v2.mgt.core.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.api.*;
                             version="${carbon.identity.package.import.version.range}"
