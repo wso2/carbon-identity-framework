@@ -152,6 +152,10 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.ORGANIZATION_DELETE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ORGANIZATION_ACTIVATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ORGANIZATION_DISABLE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
     }
 
@@ -242,7 +246,9 @@ public class Flow {
         // ---------Organization management flows------------
         ORGANIZATION_CREATE,
         ORGANIZATION_UPDATE,
-        ORGANIZATION_DELETE
+        ORGANIZATION_DELETE,
+        ORGANIZATION_ACTIVATE,
+        ORGANIZATION_DISABLE
         // --------------------------------------------------
     }
 
