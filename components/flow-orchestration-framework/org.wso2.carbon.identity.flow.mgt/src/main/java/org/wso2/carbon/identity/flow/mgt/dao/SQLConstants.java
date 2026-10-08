@@ -67,6 +67,25 @@ public class SQLConstants {
             " ON fp.FLOW_NODE_ID = fn.ID JOIN IDN_FLOW f ON fn.FLOW_ID = f.ID WHERE fn.IS_FIRST_NODE = ? AND" +
             " f.TENANT_ID = ? AND f.TYPE = ?";
 
+    public static final String INSERT_FLOW_NODE_BRANCH =
+            "INSERT INTO IDN_FLOW_NODE_BRANCH (FLOW_NODE_ID, BRANCH_KEY, BRANCH_NAME, BRANCH_ORDER, RULE_CONTENT) " +
+                    "VALUES (?, ?, ?, ?, ?)";
+
+    /**
+     * The branches of every rule evaluation node in a flow, in evaluation order, each with the target of the edge
+     * it triggers.
+     */
+    public static final String GET_FLOW_NODE_BRANCHES =
+            "SELECT n.NODE_ID, b.BRANCH_KEY, b.BRANCH_NAME, b.RULE_CONTENT, nextNode.NODE_ID AS NEXT_NODE_ACTUAL_ID " +
+                    "FROM IDN_FLOW f " +
+                    "JOIN IDN_FLOW_NODE n ON f.ID = n.FLOW_ID " +
+                    "JOIN IDN_FLOW_NODE_BRANCH b ON n.ID = b.FLOW_NODE_ID " +
+                    "LEFT JOIN IDN_FLOW_NODE_MAPPING nm ON n.ID = nm.FLOW_NODE_ID " +
+                    "AND nm.TRIGGERING_ELEMENT = b.BRANCH_KEY " +
+                    "LEFT JOIN IDN_FLOW_NODE nextNode ON nm.NEXT_NODE_ID = nextNode.ID " +
+                    "WHERE f.TENANT_ID = ? AND f.IS_DEFAULT = ? AND f.TYPE = ? " +
+                    "ORDER BY n.NODE_ID, b.BRANCH_ORDER";
+
     public static final String GET_NODE_EXECUTOR_META =
             "SELECT METADATA_NAME, METADATA_VALUE FROM IDN_FLOW_NODE_EXECUTOR_META WHERE EXECUTOR_ID = ?";
 
@@ -94,6 +113,9 @@ public class SQLConstants {
         public static final String DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID = "EXECUTOR_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_METADATA_NAME = "METADATA_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_METADATA_VALUE = "METADATA_VALUE";
+        public static final String DB_SCHEMA_COLUMN_NAME_BRANCH_KEY = "BRANCH_KEY";
+        public static final String DB_SCHEMA_COLUMN_NAME_BRANCH_NAME = "BRANCH_NAME";
+        public static final String DB_SCHEMA_COLUMN_NAME_RULE_CONTENT = "RULE_CONTENT";
 
         public static final String DB_SCHEMA_ALIAS_FLOW_ID = "FLOW_ID";
         public static final String DB_SCHEMA_ALIAS_NEXT_NODE_ID = "NEXT_NODE_ACTUAL_ID";

@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.flow.mgt.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * DTO class for Action.
@@ -29,6 +30,7 @@ public class ActionDTO implements Serializable {
     private String type;
     private ExecutorDTO executor;
     private String nextId;
+    private List<BranchDTO> branches;
 
     public ActionDTO() {
 
@@ -39,6 +41,7 @@ public class ActionDTO implements Serializable {
         this.type = builder.type;
         this.executor = builder.executor;
         this.nextId = builder.nextId;
+        this.branches = builder.branches;
     }
 
     public String getType() {
@@ -72,6 +75,22 @@ public class ActionDTO implements Serializable {
     }
 
     /**
+     * Outgoing branches of a rule decision, in evaluation order. Null for every other action type,
+     * which goes to a single {@link #getNextId()} instead.
+     *
+     * @return The branches, or null when this action does not decide.
+     */
+    public List<BranchDTO> getBranches() {
+
+        return branches;
+    }
+
+    public void setBranches(List<BranchDTO> branches) {
+
+        this.branches = branches;
+    }
+
+    /**
      * Builder class to build {@link ActionDTO} objects.
      */
     public static class Builder {
@@ -79,6 +98,13 @@ public class ActionDTO implements Serializable {
         private String type;
         private ExecutorDTO executor;
         private String nextId;
+        private List<BranchDTO> branches;
+
+        public Builder branches(List<BranchDTO> branches) {
+
+            this.branches = branches;
+            return this;
+        }
 
         public Builder type(String type) {
 

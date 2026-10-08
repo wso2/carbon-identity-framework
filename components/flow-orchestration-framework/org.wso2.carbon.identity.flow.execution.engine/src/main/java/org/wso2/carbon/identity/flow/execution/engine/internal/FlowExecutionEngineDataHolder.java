@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -51,6 +52,7 @@ public class FlowExecutionEngineDataHolder {
     private FederatedAssociationManager federatedAssociationManager;
     private IdentityEventService identityEventService;
     private OrganizationManager organizationManager;
+    private RuleEvaluationService ruleEvaluationService;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
     private FlowExecutionEngineDataHolder() {
@@ -104,6 +106,21 @@ public class FlowExecutionEngineDataHolder {
             return;
         }
         executors.remove(name, executor);
+    }
+
+    /**
+     * Evaluates the rules guarding the branches of a rule decision.
+     *
+     * @return The rule evaluation service, or null when it is not yet available.
+     */
+    public RuleEvaluationService getRuleEvaluationService() {
+
+        return ruleEvaluationService;
+    }
+
+    public void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        this.ruleEvaluationService = ruleEvaluationService;
     }
 
     /**

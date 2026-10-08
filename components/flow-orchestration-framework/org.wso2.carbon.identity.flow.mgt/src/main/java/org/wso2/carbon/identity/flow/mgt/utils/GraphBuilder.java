@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtClientException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
+import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
@@ -58,6 +59,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CO
 import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
+import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.RULE_EVALUATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
@@ -111,6 +113,9 @@ public class GraphBuilder {
                 case USER_ONBOARD:
                     processUserOnboardStep(step);
                     break;
+                case Constants.StepTypes.RULE_EVALUATION:
+                    processRuleEvaluationStep(step);
+                    break;
                 case END:
                     // Handle the explicitly defined end step.
                     processEndStep(step);
@@ -158,6 +163,91 @@ public class GraphBuilder {
         NodeConfig executionNodeConfig = createTaskExecutionNode(step.getId(), action.getExecutor());
         nodeMap.put(executionNodeConfig.getId(), executionNodeConfig);
         nodeEdges.add(new NodeEdge(executionNodeConfig.getId(), action.getNextId(), null));
+    }
+
+    /**
+     * A rule evaluation has one outgoing edge per branch rather than a single next step.
+     * <p>
+     * Each edge is triggered by its branch, the way a user-choice decision's edges are triggered by the
+     * element pressed, so the edge carries the branch id. That is what ties a stored branch to its target,
+     * and the database catches a target that does not exist.
+     *
+     * @param step The rule evaluation step.
+     * @throws FlowMgtClientException If the step carries no action or no branches.
+     */
+    private void processRuleEvaluationStep(StepDTO step) throws FlowMgtClientException {
+
+        if (step.getData() == null) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
+        }
+        ActionDTO action = step.getData().getAction();
+        if (action == null) {
+            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
+        }
+        if (action.getBranches() == null || action.getBranches().isEmpty()) {
+            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
+        }
+        validateBranches(step.getId(), action.getBranches());
+
+        // Evaluating the branches is what the node type itself does, so there is no executor to name.
+        if (action.getExecutor() != null) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_DECISION_INVALID_EXECUTOR,
+                    step.getId(), action.getExecutor().getName());
+        }
+
+        NodeConfig ruleEvaluationNode = createRuleEvaluationNode(step.getId());
+        nodeMap.put(ruleEvaluationNode.getId(), ruleEvaluationNode);
+        for (BranchDTO branch : action.getBranches()) {
+            nodeEdges.add(new NodeEdge(ruleEvaluationNode.getId(), branch.getNextId(), branch.getId()));
+        }
+    }
+
+    /**
+     * Reject a decision that cannot work, while the author can still see what they configured.
+     * <p>
+     * These are the mistakes that would otherwise be silent: without a default branch the flow has
+     * nowhere to go when nothing matches, and with two there is no saying which one wins. Both only
+     * show up when a user walks the flow, long after the mistake was made.
+     *
+     * @param stepId   Id of the decision step, for the message.
+     * @param branches Branches to check.
+     * @throws FlowMgtClientException If the decision cannot be evaluated as configured.
+     */
+    private void validateBranches(String stepId, List<BranchDTO> branches) throws FlowMgtClientException {
+
+        Set<String> branchIds = new HashSet<>();
+        int defaults = 0;
+
+        for (BranchDTO branch : branches) {
+            if (StringUtils.isBlank(branch.getId())) {
+                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INCOMPLETE_BRANCH, stepId, "id");
+            }
+            if (StringUtils.isBlank(branch.getName())) {
+                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INCOMPLETE_BRANCH, stepId, "name");
+            }
+            if (StringUtils.isBlank(branch.getNextId())) {
+                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INCOMPLETE_BRANCH, stepId,
+                        "next step");
+            }
+            if (stepId.equals(branch.getNextId())) {
+                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_SELF_REFERENCING_BRANCH,
+                        branch.getName(), stepId);
+            }
+            if (!branchIds.add(branch.getId())) {
+                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_DUPLICATE_BRANCH_ID, stepId,
+                        branch.getId());
+            }
+            if (branch.isDefault()) {
+                defaults++;
+            }
+        }
+
+        if (defaults == 0) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_NO_DEFAULT_BRANCH, stepId);
+        }
+        if (defaults > 1) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_MULTIPLE_DEFAULT_BRANCHES, stepId);
+        }
     }
 
     private void processUserOnboardStep(StepDTO step) {
@@ -329,6 +419,18 @@ public class GraphBuilder {
                 .build();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Created a task execution node " + id + " with executor " + executorDTO.getName() + ".");
+        }
+        return node;
+    }
+
+    private NodeConfig createRuleEvaluationNode(String id) {
+
+        NodeConfig node = new NodeConfig.Builder()
+                .id(id)
+                .type(RULE_EVALUATION)
+                .build();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created a rule evaluation node " + id + ".");
         }
         return node;
     }

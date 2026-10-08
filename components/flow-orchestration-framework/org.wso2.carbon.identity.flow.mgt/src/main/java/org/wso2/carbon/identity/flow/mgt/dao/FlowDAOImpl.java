@@ -19,11 +19,14 @@
 package org.wso2.carbon.identity.flow.mgt.dao;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
@@ -31,6 +34,8 @@ import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
+import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
+import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
@@ -38,26 +43,34 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
+import static org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.RULE_EVALUATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW_NODE_BRANCHES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODE_EXECUTOR_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_VIEW_PAGES_IN_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_INTO_IDN_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_INFO;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_BRANCH;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_INFO;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EDGES;
@@ -77,6 +90,9 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_TYPE;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_RULE_CONTENT;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_BRANCH_KEY;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_BRANCH_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
@@ -88,7 +104,9 @@ import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerE
 public class FlowDAOImpl implements FlowDAO {
 
     private static final Log LOG = LogFactory.getLog(FlowDAOImpl.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    // Configured once here: a shared mapper is only safe to use concurrently once it stops changing.
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public void updateFlow(String flowType, GraphConfig graphConfig, int tenantId, String flowName)
@@ -177,6 +195,9 @@ public class FlowDAOImpl implements FlowDAO {
                     StepDTO stepDTO = entry.getValue();
                     Optional<byte[]> pageContent = serializeStepData(stepDTO, tenantId);
                     int regNodeId = nodeIdToNodeIdMap.get(entry.getKey());
+                    if (RULE_EVALUATION.equals(stepDTO.getType())) {
+                        insertBranches(template, regNodeId, stepDTO, tenantId);
+                    }
 
                     int pageAutoIncId = template.executeInsert(INSERT_FLOW_PAGE_INFO,
                             preparedStatement -> {
@@ -248,6 +269,7 @@ public class FlowDAOImpl implements FlowDAO {
                 steps.remove(firstStep);
             }
             flowDTO.getSteps().addAll(steps);
+            attachBranches(jdbcTemplate, flowType, tenantId, flowDTO.getSteps());
             return flowDTO;
         } catch (DataAccessException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantId);
@@ -284,7 +306,10 @@ public class FlowDAOImpl implements FlowDAO {
             // Step 3: Fetch Page Content with JOIN (Updated Query).
             Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(graphConfig.getId(),tenantId, jdbcTemplate);
 
-            // Step 4: Set the page mappings.
+            // Step 4: Put the branches of each rule evaluation back on its step.
+            attachBranches(jdbcTemplate, flowType, tenantId, nodePageMappings.values());
+
+            // Step 5: Set the page mappings.
             graphConfig.setNodePageMappings(nodePageMappings);
             return graphConfig;
         } catch (DataAccessException e) {
@@ -335,48 +360,52 @@ public class FlowDAOImpl implements FlowDAO {
             throws DataAccessException {
 
         Map<String, StepDTO> nodePageMappings = new HashMap<>();
-        jdbcTemplate.executeQuery(GET_VIEW_PAGES_IN_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
-            StepDTO stepDTO = new StepDTO.Builder()
-                    .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
-                    .type(VIEW)
-                    .build();
-            resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
-            nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
-            return null;
-        })), preparedStatement -> {
-            preparedStatement.setString(1, flowId);
-            preparedStatement.setString(2, VIEW);
-        });
 
-        // Fetch execution steps with page content.
-        jdbcTemplate.executeQuery(GET_VIEW_PAGES_IN_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
-            StepDTO stepDTO = new StepDTO.Builder()
-                    .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
-                    .type(EXECUTION)
-                    .build();
-            resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
-            if (stepDTO.getData() != null && stepDTO.getData().getComponents() != null) {
-                nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
-            }
-            return null;
-        })), preparedStatement -> {
-            preparedStatement.setString(1, flowId);
-            preparedStatement.setString(2, EXECUTION);
-        });
+        addStepsOfType(jdbcTemplate, flowId, tenantId, VIEW, stepDTO -> true, nodePageMappings);
+        // An execution only counts as a page when it carries components; the rest run and move on.
+        addStepsOfType(jdbcTemplate, flowId, tenantId, EXECUTION,
+                stepDTO -> stepDTO.getData() != null && stepDTO.getData().getComponents() != null,
+                nodePageMappings);
+        addStepsOfType(jdbcTemplate, flowId, tenantId, END, stepDTO -> true, nodePageMappings);
+        // A rule evaluation renders nothing, but the node reads its branches from its step, which
+        // attachBranches fills in from IDN_FLOW_NODE_BRANCH.
+        addStepsOfType(jdbcTemplate, flowId, tenantId, RULE_EVALUATION, stepDTO -> true, nodePageMappings);
 
-        jdbcTemplate.executeQuery(GET_VIEW_PAGES_IN_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
-            StepDTO stepDTO = new StepDTO.Builder()
-                    .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
-                    .type(END)
-                    .build();
-            resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
-            nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
-            return null;
-        })), preparedStatement -> {
-            preparedStatement.setString(1, flowId);
-            preparedStatement.setString(2, END);
-        });
         return nodePageMappings;
+    }
+
+    /**
+     * Reads the stored steps of one type into the node to step mapping.
+     *
+     * @param jdbcTemplate     Template to query with.
+     * @param flowId           Flow being loaded.
+     * @param tenantId         Tenant of the flow.
+     * @param stepType         Type of step to read.
+     * @param include          Decides whether a step that was read belongs in the mapping.
+     * @param nodePageMappings Mapping to add to.
+     * @throws DataAccessException If the query fails.
+     */
+    private void addStepsOfType(JdbcTemplate jdbcTemplate, String flowId, int tenantId, String stepType,
+                                Predicate<StepDTO> include, Map<String, StepDTO> nodePageMappings)
+            throws DataAccessException {
+
+        jdbcTemplate.executeQuery(GET_VIEW_PAGES_IN_FLOW, LambdaExceptionUtils.rethrowRowMapper(
+                (resultSet, rowNumber) -> {
+                    StepDTO stepDTO = new StepDTO.Builder()
+                            .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
+                            .type(stepType)
+                            .build();
+
+                    resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+                    if (include.test(stepDTO)) {
+                        nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
+                    }
+
+                    return null;
+                }), preparedStatement -> {
+                    preparedStatement.setString(1, flowId);
+                    preparedStatement.setString(2, stepType);
+                });
     }
 
     private GraphConfig buildGraph(JdbcTemplate jdbcTemplate, List<Map<String, Object>> rows) throws DataAccessException {
@@ -445,7 +474,6 @@ public class FlowDAOImpl implements FlowDAO {
                 stepDTO.setData(new DataDTO.Builder().build());
                 return;
             }
-            OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             DataDTO dataDTO = OBJECT_MAPPER.readValue(pageContent, DataDTO.class);
             if (dataDTO != null) {
                 stepDTO.setData(dataDTO);
@@ -455,6 +483,107 @@ public class FlowDAOImpl implements FlowDAO {
             }
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepDTO.getId(),
+                    tenantId);
+        }
+    }
+
+    /**
+     * Stores the branches of a rule evaluation step, one row each, in evaluation order, each with its rule.
+     * <p>
+     * Where a branch leads is not stored here: that is the target of the edge it triggers in
+     * IDN_FLOW_NODE_MAPPING, whose triggering element is the branch key.
+     */
+    private void insertBranches(Template<?> template, int flowNodeId,
+                                StepDTO stepDTO, int tenantId) throws FlowMgtFrameworkException, DataAccessException {
+
+        ActionDTO action = stepDTO.getData() == null ? null : stepDTO.getData().getAction();
+        if (action == null || action.getBranches() == null) {
+            return;
+        }
+        List<BranchDTO> branches = action.getBranches();
+        for (int order = 0; order < branches.size(); order++) {
+            BranchDTO branch = branches.get(order);
+            byte[] content = serializeRule(branch.getRule(), stepDTO.getId(), tenantId);
+            int ruleOrder = order;
+            template.executeInsert(INSERT_FLOW_NODE_BRANCH,
+                    preparedStatement -> {
+                        preparedStatement.setInt(1, flowNodeId);
+                        preparedStatement.setString(2, branch.getId());
+                        preparedStatement.setString(3, branch.getName());
+                        preparedStatement.setInt(4, ruleOrder);
+                        preparedStatement.setBytes(5, content);
+                    }, null, false);
+        }
+    }
+
+    /**
+     * Puts the stored branches of each rule evaluation step back on the step, as the branches of its action.
+     * <p>
+     * A branch with no edge leads to the end of the flow: an edge to END is not recorded when the flow has no
+     * explicit end step.
+     */
+    private void attachBranches(JdbcTemplate jdbcTemplate, String flowType, int tenantId, Collection<StepDTO> steps)
+            throws DataAccessException {
+
+        Map<String, List<BranchDTO>> branchesByNode = new HashMap<>();
+        jdbcTemplate.executeQuery(GET_FLOW_NODE_BRANCHES, LambdaExceptionUtils.rethrowRowMapper(
+                (resultSet, rowNumber) -> {
+                    String nodeId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID);
+                    String nextNodeId = resultSet.getString(DB_SCHEMA_ALIAS_NEXT_NODE_ID);
+                    BranchDTO branch = new BranchDTO.Builder()
+                            .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_BRANCH_KEY))
+                            .name(resultSet.getString(DB_SCHEMA_COLUMN_NAME_BRANCH_NAME))
+                            .nextId(nextNodeId == null ? END_NODE_ID : nextNodeId)
+                            .rule(deserializeRule(resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_RULE_CONTENT), nodeId,
+                                    tenantId))
+                            .build();
+                    branchesByNode.computeIfAbsent(nodeId, key -> new ArrayList<>()).add(branch);
+                    return null;
+                }), preparedStatement -> {
+                    preparedStatement.setInt(1, tenantId);
+                    preparedStatement.setBoolean(2, true);
+                    preparedStatement.setString(3, flowType);
+                });
+
+        for (StepDTO step : steps) {
+            List<BranchDTO> branches = branchesByNode.get(step.getId());
+            if (branches == null || !RULE_EVALUATION.equals(step.getType())) {
+                continue;
+            }
+            if (step.getData() == null) {
+                step.setData(new DataDTO.Builder().build());
+            }
+            if (step.getData().getAction() == null) {
+                step.getData().setAction(new ActionDTO.Builder().type(Constants.ActionTypes.RULE_EVALUATOR).build());
+            }
+            step.getData().getAction().setBranches(branches);
+        }
+    }
+
+    private static byte[] serializeRule(ORCombinedRule rule, String stepId, int tenantId)
+            throws FlowMgtFrameworkException {
+
+        if (rule == null) {
+            // No rule: the default.
+            return null;
+        }
+        try {
+            return serializeObject(rule);
+        } catch (IOException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e, stepId, tenantId);
+        }
+    }
+
+    private static ORCombinedRule deserializeRule(byte[] content, String stepId, int tenantId)
+            throws FlowMgtServerException {
+
+        if (content == null) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.readValue(content, ORCombinedRule.class);
+        } catch (IOException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepId,
                     tenantId);
         }
     }
@@ -471,7 +600,17 @@ public class FlowDAOImpl implements FlowDAO {
             if (stepDTO.getData() == null) {
                 return Optional.empty();
             }
-            return Optional.of(serializeObject(stepDTO.getData()));
+            if (!RULE_EVALUATION.equals(stepDTO.getType())) {
+                return Optional.of(serializeObject(stepDTO.getData()));
+            }
+            // The page content is what the builder renders. The branches are stored in their own table, so they
+            // are left out here rather than kept in two places.
+            JsonNode data = OBJECT_MAPPER.valueToTree(stepDTO.getData());
+            JsonNode action = data.get("action");
+            if (action instanceof ObjectNode) {
+                ((ObjectNode) action).remove("branches");
+            }
+            return Optional.of(OBJECT_MAPPER.writeValueAsBytes(data));
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
                                         stepDTO.getId(), tenantId);
