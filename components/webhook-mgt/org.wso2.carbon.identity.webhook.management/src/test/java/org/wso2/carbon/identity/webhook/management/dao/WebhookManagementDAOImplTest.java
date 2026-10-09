@@ -18,22 +18,31 @@
 
 package org.wso2.carbon.identity.webhook.management.dao;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
+import org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOImpl;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -57,6 +66,22 @@ public class WebhookManagementDAOImplTest {
     public static final int TENANT_ID = 1;
     private Webhook createdWebhook;
     WebhookManagementDAOImpl webhookManagementDAOImpl = new WebhookManagementDAOImpl();
+
+    private MockedStatic<IdentityUtil> identityUtil;
+
+    @BeforeMethod
+    public void setUp() {
+
+        identityUtil = mockStatic(IdentityUtil.class, org.mockito.Mockito.CALLS_REAL_METHODS);
+        identityUtil.when(() -> IdentityUtil.getProperty(WebhookMgtConstants.WEBHOOK_PROPERTIES_ENABLED_PROPERTY))
+                .thenReturn("true");
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        identityUtil.close();
+    }
 
     @Test
     public void testAddWebhook() throws WebhookMgtException {
@@ -332,6 +357,109 @@ public class WebhookManagementDAOImplTest {
         assertNotNull(activeWebhooks);
         assertTrue(activeWebhooks.stream().anyMatch(w -> w.getId().equals(activeWebhook.getId())));
         assertFalse(activeWebhooks.stream().anyMatch(w -> w.getId().equals(inactiveWebhook.getId())));
+    }
+
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testCreateWebhookWithProperties() throws WebhookMgtException {
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("aud", Arrays.asList(
+                "https://test-receiver.example.com", "https://test-receiver.example2.com"));
+        properties.put("secretAlias", "abc123");
+        
+        Webhook webhookWithProps = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint("https://example.com/webhook-props")
+                .name("Webhook with properties")
+                .secret(WEBHOOK_SECRET)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .properties(properties)
+                .build();
+
+        webhookManagementDAOImpl.createWebhook(webhookWithProps, TENANT_ID);
+
+        Webhook retrieved = webhookManagementDAOImpl.getWebhook(webhookWithProps.getId(), TENANT_ID);
+        assertNotNull(retrieved.getProperties());
+        assertEquals(retrieved.getProperties().get("aud"),
+                Arrays.asList("https://test-receiver.example.com", "https://test-receiver.example2.com"));
+        assertEquals(retrieved.getProperties().get("secretAlias"), "abc123");
+    }
+
+    @Test(dependsOnMethods = {"testCreateWebhookWithProperties"})
+    public void testUpdateWebhookWithEmptyPropertiesKeepsExisting() throws WebhookMgtException {
+
+        Webhook summary = webhookManagementDAOImpl.getWebhooks(TENANT_ID).stream()
+                .filter(w -> "https://example.com/webhook-props".equals(w.getEndpoint()))
+                .findFirst().orElseThrow(() -> new AssertionError("Test webhook not found"));
+        Webhook existing = webhookManagementDAOImpl.getWebhook(summary.getId(), TENANT_ID);
+
+        Webhook updateWithoutProperties = new Webhook.Builder()
+                .uuid(existing.getId())
+                .endpoint(existing.getEndpoint())
+                .name("Renamed webhook")
+                .secret(existing.getSecret())
+                .eventProfileName(existing.getEventProfileName())
+                .eventProfileUri(existing.getEventProfileUri())
+                .status(existing.getStatus())
+                .createdAt(existing.getCreatedAt())
+                .updatedAt(existing.getUpdatedAt())
+                .properties(existing.getProperties())
+                .build();
+
+        webhookManagementDAOImpl.updateWebhook(updateWithoutProperties, TENANT_ID);
+
+        Webhook afterUpdate = webhookManagementDAOImpl.getWebhook(existing.getId(), TENANT_ID);
+        Assert.assertEquals(afterUpdate.getName(), "Renamed webhook");
+        assertEquals(afterUpdate.getProperties().get("aud"),
+                Arrays.asList("https://test-receiver.example.com", "https://test-receiver.example2.com"),
+                "aud should survive an update that doesn't touch properties");
+
+    }
+
+    @Test(dependsOnMethods = {"testGetActiveWebhooks"})
+    public void testGetActiveWebhooksIncludesProperties() throws WebhookMgtException {
+
+        String channelUri = "active-channel-with-props";
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("aud", Arrays.asList(
+                "https://test-receiver.example.com", "https://test-receiver.example2.com"));
+        properties.put("secretAlias", "abc123");
+        
+        List<Subscription> eventsSubscribed = new ArrayList<>();
+        eventsSubscribed.add(
+                Subscription.builder().channelUri(channelUri).status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED)
+                        .build());
+
+        Webhook activeWebhookWithProps = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint("https://example.com/active-webhook-props")
+                .name("Active Webhook With Properties")
+                .secret(WEBHOOK_SECRET)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
+                .eventProfileVersion("v1")
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .eventsSubscribed(eventsSubscribed)
+                .properties(properties)
+                .build();
+
+        webhookManagementDAOImpl.createWebhook(activeWebhookWithProps, TENANT_ID);
+
+        List<Webhook> activeWebhooks = webhookManagementDAOImpl.getActiveWebhooks(
+                WEBHOOK_EVENT_PROFILE_NAME, "v1", channelUri, TENANT_ID);
+
+        Webhook found = activeWebhooks.stream()
+                .filter(w -> w.getId().equals(activeWebhookWithProps.getId()))
+                .findFirst().orElseThrow(() -> new AssertionError("Webhook not found in active webhooks"));
+        assertEquals(found.getProperties().get("aud"),
+                Arrays.asList("https://test-receiver.example.com", "https://test-receiver.example2.com"));
+        assertEquals(found.getProperties().get("secretAlias"), "abc123");
     }
 
     private Webhook createTestWebhook() {

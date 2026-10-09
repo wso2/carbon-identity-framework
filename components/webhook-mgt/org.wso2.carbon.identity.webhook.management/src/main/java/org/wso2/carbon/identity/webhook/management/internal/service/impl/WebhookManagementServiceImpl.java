@@ -94,6 +94,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .properties(webhook.getProperties())
                 .build();
 
         daoFACADE.createWebhook(webhookToCreate, tenantId);

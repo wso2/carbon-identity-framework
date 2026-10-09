@@ -26,7 +26,10 @@ import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretPr
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -45,6 +48,7 @@ public class Webhook {
     private final Timestamp createdAt;
     private final Timestamp updatedAt;
     private List<Subscription> eventsSubscribed;
+    private final Map<String, Object> properties;
     private static final String EVENT_PROFILE_VERSION = "v1";
     private final WebhookSecretProcessor webhookSecretProcessor = new WebhookSecretProcessor();
 
@@ -62,6 +66,7 @@ public class Webhook {
         this.createdAt = builder.createdAt;
         this.updatedAt = builder.updatedAt;
         this.eventsSubscribed = builder.eventsSubscribed;
+        this.properties = Collections.unmodifiableMap(builder.properties);
     }
 
     public String getId() {
@@ -130,6 +135,11 @@ public class Webhook {
         return eventsSubscribed;
     }
 
+    public Map<String, Object> getProperties() {
+
+        return properties;
+    }
+
     @Override
     public boolean equals(Object o) {
 
@@ -149,14 +159,15 @@ public class Webhook {
                 status == webhook.status &&
                 Objects.equals(createdAt, webhook.createdAt) &&
                 Objects.equals(updatedAt, webhook.updatedAt) &&
-                Objects.equals(eventsSubscribed, webhook.eventsSubscribed);
+                Objects.equals(eventsSubscribed, webhook.eventsSubscribed) &&
+                Objects.equals(properties, webhook.properties);
     }
 
     @Override
     public int hashCode() {
 
         return Objects.hash(uuid, endpoint, name, secret,
-                eventProfileName, eventProfileUri, status, createdAt, updatedAt, eventsSubscribed);
+                eventProfileName, eventProfileUri, status, createdAt, updatedAt, eventsSubscribed, properties);
     }
 
     /**
@@ -175,6 +186,7 @@ public class Webhook {
         private Timestamp createdAt;
         private Timestamp updatedAt;
         private List<Subscription> eventsSubscribed = new ArrayList<>();
+        private Map<String, Object> properties = new HashMap<>();
 
         public Builder uuid(String uuid) {
 
@@ -245,6 +257,12 @@ public class Webhook {
         public Builder addEventSubscribed(Subscription event) {
 
             this.eventsSubscribed.add(event);
+            return this;
+        }
+
+        public Builder properties(Map<String, Object> properties) {
+
+            this.properties = properties != null ? new HashMap<>(properties) : new HashMap<>();
             return this;
         }
 

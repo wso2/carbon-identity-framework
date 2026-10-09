@@ -22,12 +22,14 @@ import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants;
 import org.wso2.carbon.identity.webhook.management.internal.constant.WebhookSQLConstants;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
@@ -35,7 +37,10 @@ import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManageme
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR;
 import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR;
@@ -65,6 +70,9 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
             jdbcTemplate.withTransaction(template -> {
                 int webhookId = addWebhookToDB(webhook, tenantId);
                 addWebhookEventsToDB(webhookId, webhook.getEventsSubscribed());
+                if (isWebhookPropertiesEnabled()) {
+                    addWebhookPropertiesToDB(webhookId, webhook.getProperties());
+                }
                 return null;
             });
         } catch (TransactionException e) {
@@ -83,6 +91,10 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 int webhookId = getInternalWebhookIdByUuid(webhook.getId(), tenantId);
                 deleteWebhookEventsInDB(webhookId);
                 addWebhookEventsToDB(webhookId, webhook.getEventsSubscribed());
+                if (isWebhookPropertiesEnabled()) {
+                    deleteWebhookPropertiesInDB(webhookId);
+                    addWebhookPropertiesToDB(webhookId, webhook.getProperties());
+                }
                 return null;
             });
         } catch (TransactionException e) {
@@ -129,6 +141,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
                 // Fetch events using UUID and TENANT_ID directly
                 List<Subscription> events = getWebhookEvents(webhookId, tenantId);
+                Map<String, Object> properties = isWebhookPropertiesEnabled()
+                        ? getWebhookPropertiesFromDB(webhookId, tenantId) : new HashMap<>();
 
                 // Build the Webhook without the secret
                 return new Webhook.Builder()
@@ -143,6 +157,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
                         .eventsSubscribed(events)
+                        .properties(properties)
                         .build();
             });
         } catch (TransactionException e) {
@@ -263,20 +278,21 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            return jdbcTemplate.withTransaction(template ->
-                    template.executeQuery(
-                            WebhookSQLConstants.Query.GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL,
-                            (resultSet, rowNumber) -> mapResultSetToWebhook(resultSet),
-                            statement -> {
-                                statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, channelUri);
-                                statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
-                                statement.setString(WebhookSQLConstants.Column.STATUS, WebhookStatus.ACTIVE.name());
-                                statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME, eventProfileName);
-                                statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_VERSION,
-                                        eventProfileVersion);
-                            }
-                    )
-            );
+            return jdbcTemplate.withTransaction(template -> {
+                List<Webhook> webhooks = template.executeQuery(
+                        WebhookSQLConstants.Query.GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL,
+                        (resultSet, rowNumber) -> mapResultSetToWebhook(resultSet),
+                        statement -> {
+                            statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, channelUri);
+                            statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
+                            statement.setString(WebhookSQLConstants.Column.STATUS, WebhookStatus.ACTIVE.name());
+                            statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME, eventProfileName);
+                            statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_VERSION,
+                                    eventProfileVersion);
+                        }
+                );
+                return isWebhookPropertiesEnabled() ? attachProperties(webhooks, tenantId) : webhooks;
+            });
         } catch (TransactionException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_ERROR, e, channelUri,
@@ -411,6 +427,99 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                     statement -> statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId));
             return null;
         });
+    }
+
+    private boolean isWebhookPropertiesEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(WebhookMgtConstants.WEBHOOK_PROPERTIES_ENABLED_PROPERTY));
+    }
+
+    private void addWebhookPropertiesToDB(int webhookId, Map<String, Object> properties) throws TransactionException {
+
+        if (properties == null || properties.isEmpty()) {
+            return;
+        }
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.withTransaction(template -> {
+            template.executeBatchInsert(WebhookSQLConstants.Query.ADD_WEBHOOK_PROPERTY,
+                    statement -> {
+                        statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
+                        for (Map.Entry<String, Object> property : properties.entrySet()) {
+                            Object value = property.getValue();
+                            if (value instanceof List) {
+                                for (Object item : (List<?>) value) {
+                                    statement.setString(WebhookSQLConstants.Column.PROPERTY_NAME, property.getKey());
+                                    statement.setString(WebhookSQLConstants.Column.PROPERTY_VALUE,
+                                        String.valueOf(item));
+                                    statement.addBatch();
+                                }
+                            } else {
+                                statement.setString(WebhookSQLConstants.Column.PROPERTY_NAME, property.getKey());
+                                statement.setString(WebhookSQLConstants.Column.PROPERTY_VALUE, String.valueOf(value));
+                                statement.addBatch();
+                            }
+                        }
+                    }, null);
+            return null;
+        });
+    }
+
+    private Map<String, Object> getWebhookPropertiesFromDB(String webhookId, int tenantId) throws TransactionException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        List<String[]> rows = jdbcTemplate.withTransaction(template -> template.executeQuery(
+                WebhookSQLConstants.Query.GET_WEBHOOK_PROPERTIES_BY_UUID,
+                (resultSet, rowNumber) -> new String[]{
+                        resultSet.getString(WebhookSQLConstants.Column.PROPERTY_NAME),
+                        resultSet.getString(WebhookSQLConstants.Column.PROPERTY_VALUE)},
+                statement -> {
+                    statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
+                    statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
+                }));
+
+        Map<String, List<String>> grouped = new HashMap<>();
+        for (String[] row : rows) {
+            grouped.computeIfAbsent(row[0], key -> new ArrayList<>()).add(row[1]);
+        }
+
+        Map<String, Object> properties = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : grouped.entrySet()) {
+            List<String> values = entry.getValue();
+            properties.put(entry.getKey(), values.size() == 1 ? values.get(0) : values);
+        }
+        return properties;
+    }
+
+
+    private void deleteWebhookPropertiesInDB(int webhookId) throws TransactionException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.withTransaction(template -> {
+            template.executeUpdate(WebhookSQLConstants.Query.DELETE_WEBHOOK_PROPERTIES,
+                    statement -> statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId));
+            return null;
+        });
+    }
+
+    private List<Webhook> attachProperties(List<Webhook> webhooks, int tenantId) throws TransactionException {
+
+        List<Webhook> enrichedWebhooks = new ArrayList<>();
+        for (Webhook webhook : webhooks) {
+            enrichedWebhooks.add(new Webhook.Builder()
+                    .uuid(webhook.getId())
+                    .endpoint(webhook.getEndpoint())
+                    .name(webhook.getName())
+                    .secret(webhook.getSecret())
+                    .eventProfileName(webhook.getEventProfileName())
+                    .eventProfileUri(webhook.getEventProfileUri())
+                    .eventProfileVersion(webhook.getEventProfileVersion())
+                    .status(webhook.getStatus())
+                    .createdAt(webhook.getCreatedAt())
+                    .updatedAt(webhook.getUpdatedAt())
+                    .properties(getWebhookPropertiesFromDB(webhook.getId(), tenantId))
+                    .build());
+        }
+        return enrichedWebhooks;
     }
 
     private void processWebhookStatusUpdate(String webhookId, int tenantId, List<Subscription> channels,

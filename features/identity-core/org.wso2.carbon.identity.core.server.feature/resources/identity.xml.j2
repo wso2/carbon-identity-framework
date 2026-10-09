@@ -2667,6 +2667,11 @@
             </DisabledChannels>
         </EventProfiles>
         {% endif %}
+        {% if webhooks.properties.enable is defined %}
+        <Properties>
+            <Enable>{{webhooks.properties.enable}}</Enable>
+        </Properties>
+        {% endif %}
     </Webhooks>
 
     <LocalAuthenticators>
