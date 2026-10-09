@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.flow.mgt.internal;
 
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySettingsManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * A singleton class to hold the data of the flow management service.
@@ -32,6 +34,8 @@ public class FlowMgtServiceDataHolder {
     private OrgResourceResolverService orgResourceResolverService;
     private ConfigurationManager configurationManager;
     private CompatibilitySettingsManager compatibilitySettingsManager;
+    private ClaimMetadataManagementService claimMetadataManagementService;
+    private RealmService realmService;
 
     private static final FlowMgtServiceDataHolder INSTANCE = new FlowMgtServiceDataHolder();
 
@@ -42,6 +46,37 @@ public class FlowMgtServiceDataHolder {
     public static FlowMgtServiceDataHolder getInstance() {
 
         return INSTANCE;
+    }
+
+    /**
+     * Claim metadata, used to check that a condition names a real claim and uses an operator that
+     * claim actually allows.
+     *
+     * @return The claim metadata service, or null when it is not yet available.
+     */
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * The realm service, used to list the user stores a condition on the user's domain may name.
+     *
+     * @return The realm service, or null when it is not yet available.
+     */
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
     }
 
     public OrganizationManager getOrganizationManager() {

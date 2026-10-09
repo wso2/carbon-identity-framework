@@ -75,6 +75,8 @@ public class Constants {
                 "Unexpected server error while deleting the flow for tenant, %s"),
         ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW("65014", "Error while loading system default flow.",
                 "Unexpected error while loading system default flow for flow type, %s"),
+        ERROR_CODE_GET_CLAIM_METADATA("65015", "Error while retrieving claim metadata.",
+                "Could not read the claims of tenant %s to validate the conditions of the flow."),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -105,6 +107,38 @@ public class Constants {
                         "first nodes are present."),
         ERROR_CODE_UNSUPPORTED_NODE_ID("60013", "Node id is not supported.", "%s cannot be " +
                 "used as a Node ID."),
+        ERROR_CODE_NO_DEFAULT_BRANCH("60014", "No default branch defined.",
+                "The decision step %s has no branch without a rule. A decision needs one so that the " +
+                        "flow has somewhere to go when no condition matches."),
+        ERROR_CODE_MULTIPLE_DEFAULT_BRANCHES("60015", "Multiple default branches defined.",
+                "The decision step %s has more than one branch without a rule. Only one branch may be " +
+                        "the default."),
+        ERROR_CODE_INCOMPLETE_BRANCH("60016", "Incomplete branch configuration.",
+                "A branch of the decision step %s is missing its %s."),
+        ERROR_CODE_SELF_REFERENCING_BRANCH("60017", "Branch targets its own step.",
+                "The branch %s of the decision step %s points back at the same step, which cannot make " +
+                        "progress."),
+        ERROR_CODE_DUPLICATE_BRANCH_ID("60018", "Duplicate branch id.",
+                "More than one branch of the decision step %s uses the id %s."),
+        ERROR_CODE_INVALID_BRANCH_RULE("60019", "Invalid condition.",
+                "The condition on branch %s of the decision step %s is not valid: %s"),
+        ERROR_CODE_DECISION_INVALID_EXECUTOR("60020", "Executor not allowed on a decision step.",
+                "The decision step %s names the executor %s. A decision only evaluates its branches, " +
+                        "so it carries no executor."),
+        ERROR_CODE_RULES_NOT_SUPPORTED_FOR_FLOW("60025", "Conditions are not supported for this flow.",
+                "The %s flow does not publish condition fields, so the decision step %s cannot be evaluated."),
+        ERROR_CODE_CLAIM_QUALIFIER_REQUIRED("60021", "Claim not selected.",
+                "A condition on %s in branch %s does not say which claim it compares."),
+        ERROR_CODE_UNKNOWN_CLAIM("60022", "Unknown claim.",
+                "The condition in branch %s compares the claim %s, which is not a claim of this organisation."),
+        ERROR_CODE_OPERATOR_NOT_ALLOWED_FOR_CLAIM("60023", "Operator not allowed for this claim.",
+                "The operator %s cannot be used with the claim %s in branch %s. %s"),
+        ERROR_CODE_LIST_VALUE_MISMATCH("60024", "Value does not match the operator.",
+                "The operator %s in branch %s %s a list of values."),
+        ERROR_CODE_QUALIFIER_REQUIRED("60026", "Qualifier not provided.",
+                "A condition on %s in branch %s does not say which value of that field it compares."),
+        ERROR_CODE_QUALIFIER_NOT_ALLOWED("60027", "Qualifier not allowed.",
+                "The field %s in branch %s names a single value and takes no qualifier."),
         ;
 
         private static final String ERROR_PREFIX = "RFM";
@@ -190,6 +224,11 @@ public class Constants {
         public static final String DECISION = "DECISION";
         public static final String TASK_EXECUTION = "TASK_EXECUTION";
         public static final String PROMPT_ONLY = "PROMPT_ONLY";
+        /**
+         * A decision made by evaluating rules against the flow context, as opposed to
+         * {@link #DECISION}, which is a decision made by the user pressing something.
+         */
+        public static final String RULE_EVALUATION = "RULE_EVALUATION";
 
         private NodeTypes() {
 
@@ -208,6 +247,7 @@ public class Constants {
         public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
         public static final String END = "END";
+        public static final String RULE_EVALUATION = "RULE_EVALUATION";
 
         private StepTypes() {
 
@@ -235,6 +275,7 @@ public class Constants {
 
         public static final String EXECUTOR = "EXECUTOR";
         public static final String NEXT = "NEXT";
+        public static final String RULE_EVALUATOR = "RULE_EVALUATOR";
 
         private ActionTypes() {
 

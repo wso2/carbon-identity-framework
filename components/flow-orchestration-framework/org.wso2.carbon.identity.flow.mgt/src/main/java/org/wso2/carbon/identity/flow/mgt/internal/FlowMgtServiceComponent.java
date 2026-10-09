@@ -31,9 +31,13 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySettingsManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.flow.mgt.FlowAIService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
+import org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider;
+import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of flow management service.
@@ -53,6 +57,8 @@ public class FlowMgtServiceComponent {
             bundleContext.registerService(FlowMgtService.class.getName(),
                     FlowMgtService.getInstance(), null);
             bundleContext.registerService(FlowAIService.class, FlowAIService.getInstance(), null);
+            bundleContext.registerService(RuleMetadataProvider.class.getName(),
+                    new FlowRuleMetadataProvider(), null);
             LOG.debug("Flow Management bundle is activated.");
         } catch (Throwable e) {
             LOG.error("Error occurred while activating Flow Management bundle.", e);
@@ -65,6 +71,38 @@ public class FlowMgtServiceComponent {
         BundleContext bundleCtx = context.getBundleContext();
         bundleCtx.ungetService(bundleCtx.getServiceReference(FlowMgtService.class));
         LOG.debug("Flow Management bundle is deactivated.");
+    }
+
+    @Reference(
+            name = "claim.metadata.management.service",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService")
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        FlowMgtServiceDataHolder.getInstance().setClaimMetadataManagementService(claimMetadataManagementService);
+    }
+
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        FlowMgtServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
+    protected void setRealmService(RealmService realmService) {
+
+        FlowMgtServiceDataHolder.getInstance().setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        FlowMgtServiceDataHolder.getInstance().setRealmService(null);
     }
 
     @Reference(

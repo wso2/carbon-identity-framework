@@ -39,6 +39,12 @@ import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.flow.execution.engine.rule.InvitedUserRegistrationFlowRuleEvaluationDataProvider;
+import org.wso2.carbon.identity.flow.execution.engine.rule.PasswordRecoveryFlowRuleEvaluationDataProvider;
+import org.wso2.carbon.identity.flow.execution.engine.rule.RegistrationFlowRuleEvaluationDataProvider;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
+import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.Comparator;
@@ -80,6 +86,16 @@ public class FlowExecutionEngineServiceComponent {
                     FlowExecutionService.getInstance(), null);
             bundleContext.registerService(FlowExecutionListener.class.getName(), new InputProcessingListener(),
                     null);
+            /*
+             * One provider per flow type: the evaluation data manager keys providers by the single
+             * flow type each declares, so three flow types need three registrations.
+             */
+            bundleContext.registerService(RuleEvaluationDataProvider.class.getName(),
+                    new RegistrationFlowRuleEvaluationDataProvider(), null);
+            bundleContext.registerService(RuleEvaluationDataProvider.class.getName(),
+                    new PasswordRecoveryFlowRuleEvaluationDataProvider(), null);
+            bundleContext.registerService(RuleEvaluationDataProvider.class.getName(),
+                    new InvitedUserRegistrationFlowRuleEvaluationDataProvider(), null);
             LOG.debug("Flow Engine service successfully activated.");
         } catch (Throwable e) {
             LOG.error("Error while initiating Flow Engine service", e);
@@ -96,6 +112,42 @@ public class FlowExecutionEngineServiceComponent {
         } catch (Throwable e) {
             LOG.error("Error while deactivating Flow Engine service.", e);
         }
+    }
+
+    @Reference(
+            name = "rule.evaluation.service",
+            service = RuleEvaluationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRuleEvaluationService")
+    protected void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        LOG.debug("Setting the Rule Evaluation Service in the Flow Engine service component.");
+        FlowExecutionEngineDataHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
+    }
+
+    protected void unsetRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        LOG.debug("Unsetting the Rule Evaluation Service in the Flow Engine service component.");
+        FlowExecutionEngineDataHolder.getInstance().setRuleEvaluationService(null);
+    }
+
+    @Reference(
+            name = "role.management.service",
+            service = RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementService")
+    protected void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        LOG.debug("Setting the Role Management Service in the Flow Engine service component.");
+        FlowExecutionEngineDataHolder.getInstance().setRoleManagementService(roleManagementService);
+    }
+
+    protected void unsetRoleManagementService(RoleManagementService roleManagementService) {
+
+        LOG.debug("Unsetting the Role Management Service in the Flow Engine service component.");
+        FlowExecutionEngineDataHolder.getInstance().setRoleManagementService(null);
     }
 
     @Reference(

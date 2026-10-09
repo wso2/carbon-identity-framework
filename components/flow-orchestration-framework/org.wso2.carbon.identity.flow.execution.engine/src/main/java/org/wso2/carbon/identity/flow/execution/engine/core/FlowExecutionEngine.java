@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.PagePromptNode;
+import org.wso2.carbon.identity.flow.execution.engine.graph.RuleEvaluationNode;
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.graph.UserChoiceDecisionNode;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
@@ -223,6 +224,8 @@ public class FlowExecutionEngine {
                 return new TaskExecutionNode().execute(context, nodeConfig);
             case Constants.NodeTypes.PROMPT_ONLY:
                 return new PagePromptNode().execute(context, nodeConfig);
+            case Constants.NodeTypes.RULE_EVALUATION:
+                return new RuleEvaluationNode().execute(context, nodeConfig);
             default:
                 throw handleServerException(context.getFlowType(), ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(),
                         context.getFlowType(),
