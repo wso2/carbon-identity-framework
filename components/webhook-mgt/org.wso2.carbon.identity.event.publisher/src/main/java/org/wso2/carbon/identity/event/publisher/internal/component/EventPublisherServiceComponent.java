@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.event.publisher.internal.service.impl.EventPubli
 import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 
+import java.util.List;
+
 /**
  * EventPublisherServiceComponent is responsible for registering the event publisher service
  * in the OSGi runtime.
@@ -57,10 +59,10 @@ public class EventPublisherServiceComponent {
         try {
             BundleContext bundleContext = context.getBundleContext();
 
-            Adapter adapter = EventPublisherComponentServiceHolder.getInstance().getEventAdapterMetadataService()
-                    .getCurrentActiveAdapter();
+            List<Adapter> currentActiveAdapters = EventPublisherComponentServiceHolder.getInstance()
+                    .getEventAdapterMetadataService().getCurrentActiveAdapters();
             EventPublisherComponentServiceHolder.getInstance()
-                    .setWebhookAdapter(adapter);
+                    .setCurrentActiveAdapters(currentActiveAdapters);
 
             // Register the EventPublisherService
             bundleContext.registerService(EventPublisherService.class.getName(),

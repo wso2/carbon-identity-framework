@@ -36,6 +36,7 @@ public class EventPublisherComponentServiceHolder {
     private List<EventPublisher> eventPublishers = new ArrayList<>();
     private EventAdapterMetadataService eventAdapterMetadataService;
     private Adapter webhookAdapter;
+    private List<Adapter> currentActiveAdapters = new ArrayList<>();
 
     private EventPublisherComponentServiceHolder() {
 
@@ -125,4 +126,25 @@ public class EventPublisherComponentServiceHolder {
 
         this.webhookAdapter = webhookAdapter;
     }
+
+    /**
+     * Get the current active event adapters.
+     *
+     * @return List of current active adapters.
+     */
+    public List<Adapter> getCurrentActiveAdapters() {
+
+        return currentActiveAdapters;
+    }
+
+    /**
+     * Set the current active event adapters.
+     *
+     * @param currentActiveAdapters List of current active adapters.
+     */
+    public void setCurrentActiveAdapters(List<Adapter> currentActiveAdapters) {
+
+        this.currentActiveAdapters = currentActiveAdapters;
+    }
+
 }

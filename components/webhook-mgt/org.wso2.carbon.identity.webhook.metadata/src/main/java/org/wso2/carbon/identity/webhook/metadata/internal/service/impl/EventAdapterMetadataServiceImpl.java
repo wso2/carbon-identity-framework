@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_ADAPTERS_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_ADAPTER_NOT_FOUND;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_CONFIG_FILE_READ_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_ENABLED_ADAPTERS_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_ENABLED_ADAPTER_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_NO_ENABLED_ADAPTER;
 
@@ -115,6 +116,18 @@ public class EventAdapterMetadataServiceImpl implements EventAdapterMetadataServ
                 .findFirst()
                 .orElseThrow(() -> WebhookMetadataExceptionHandler.handleServerException(
                         ERROR_CODE_NO_ENABLED_ADAPTER));
+    }
+
+    @Override
+    public List<Adapter> getCurrentActiveAdapters() throws WebhookMetadataException {
+
+        if (!initialized) {
+            throw WebhookMetadataExceptionHandler.handleServerException(
+                    ERROR_CODE_ENABLED_ADAPTERS_RETRIEVE_ERROR);
+        }
+        return adapters.stream()
+                .filter(Adapter::isEnabled)
+                .collect(Collectors.toList());
     }
 
     @Override
