@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>async-operation-status-mgt-feature</artifactId>
-        <version>7.11.221</version>
+        <version>7.11.222-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
