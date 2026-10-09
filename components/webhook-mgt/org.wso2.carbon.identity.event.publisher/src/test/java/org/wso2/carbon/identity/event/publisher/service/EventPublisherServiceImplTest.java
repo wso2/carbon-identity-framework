@@ -213,7 +213,7 @@ public class EventPublisherServiceImplTest {
                 .iss("issuer")
                 .jti("jti123")
                 .iat(123456789L)
-                .aud("audience")
+                .aud(Arrays.asList("audience"))
                 .txn("transaction")
                 .rci("rci123")
                 .events(eventMap)
@@ -222,7 +222,7 @@ public class EventPublisherServiceImplTest {
         Assert.assertEquals(payload.getIss(), "issuer");
         Assert.assertEquals(payload.getJti(), "jti123");
         Assert.assertEquals(payload.getIat(), 123456789L);
-        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getAud(), Arrays.asList("audience"));
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
         Assert.assertNotNull(payload.getEvents());
@@ -236,7 +236,7 @@ public class EventPublisherServiceImplTest {
                 .iss("issuer")
                 .jti("jti123")
                 .iat(123456789L)
-                .aud("audience")
+                .aud(Arrays.asList("audience"))
                 .txn("transaction")
                 .rci("rci123")
                 .events(null)
@@ -245,7 +245,7 @@ public class EventPublisherServiceImplTest {
         Assert.assertEquals(payload.getIss(), "issuer");
         Assert.assertEquals(payload.getJti(), "jti123");
         Assert.assertEquals(payload.getIat(), 123456789L);
-        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getAud(), Arrays.asList("audience"));
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
         Assert.assertNull(payload.getEvents());
@@ -258,7 +258,7 @@ public class EventPublisherServiceImplTest {
                 .iss("issuer")
                 .jti("jti123")
                 .iat(123456789L)
-                .aud("audience")
+                .aud(Arrays.asList("audience"))
                 .txn("transaction")
                 .rci("rci123")
                 .events(new HashMap<>())
@@ -267,7 +267,7 @@ public class EventPublisherServiceImplTest {
         Assert.assertEquals(payload.getIss(), "issuer");
         Assert.assertEquals(payload.getJti(), "jti123");
         Assert.assertEquals(payload.getIat(), 123456789L);
-        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getAud(), Arrays.asList("audience"));
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
         Assert.assertNotNull(payload.getEvents());
@@ -287,7 +287,7 @@ public class EventPublisherServiceImplTest {
                 .iss("issuer")
                 .jti("jti123")
                 .iat(123456789L)
-                .aud("audience")
+                .aud(Arrays.asList("audience"))
                 .txn("transaction")
                 .rci("rci123")
                 .subId(subId)
@@ -297,7 +297,7 @@ public class EventPublisherServiceImplTest {
         Assert.assertEquals(payload.getIss(), "issuer");
         Assert.assertEquals(payload.getJti(), "jti123");
         Assert.assertEquals(payload.getIat(), 123456789L);
-        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getAud(), Arrays.asList("audience"));
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
         Assert.assertEquals(payload.getSubId(), subId);
@@ -316,7 +316,7 @@ public class EventPublisherServiceImplTest {
                 .iss("issuer")
                 .jti("jti123")
                 .iat(123456789L)
-                .aud("audience")
+                .aud(Arrays.asList("audience"))
                 .txn("transaction")
                 .rci("rci123")
                 .subId(null)
@@ -326,7 +326,7 @@ public class EventPublisherServiceImplTest {
         Assert.assertEquals(payload.getIss(), "issuer");
         Assert.assertEquals(payload.getJti(), "jti123");
         Assert.assertEquals(payload.getIat(), 123456789L);
-        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getAud(), Arrays.asList("audience"));
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
         Assert.assertNull(payload.getSubId());
@@ -347,7 +347,7 @@ public class EventPublisherServiceImplTest {
                 .iss("issuer")
                 .jti("jti123")
                 .iat(123456789L)
-                .aud("audience")
+                .aud(Arrays.asList("audience"))
                 .txn("transaction")
                 .rci("rci123")
                 .subId(subId)
@@ -357,7 +357,7 @@ public class EventPublisherServiceImplTest {
         Assert.assertEquals(payload.getIss(), "issuer");
         Assert.assertEquals(payload.getJti(), "jti123");
         Assert.assertEquals(payload.getIat(), 123456789L);
-        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getAud(), Arrays.asList("audience"));
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
         Assert.assertEquals(payload.getSubId(), subId);
