@@ -46,10 +46,16 @@ public final class WebhookSQLConstants {
         public static final String TENANT_ID = "TENANT_ID";
         public static final String CREATED_AT = "CREATED_AT";
         public static final String UPDATED_AT = "UPDATED_AT";
+        public static final String CHANNEL_UUID = "CHANNEL_UUID";
         public static final String CHANNEL_URI = "CHANNEL_URI";
         public static final String CHANNEL_SUBSCRIPTION_STATUS = "CHANNEL_SUBSCRIPTION_STATUS";
         public static final String WEBHOOK_ID = "WEBHOOK_ID";
+        public static final String SUBSCRIBED_ORG_TENANT_ID = "SUBSCRIBED_ORG_TENANT_ID";
+        public static final String SUBSCRIBED_ORG_ID = "SUBSCRIBED_ORG_ID";
+        public static final String TOPIC_UUID = "TOPIC_UUID";
+        public static final String TOPIC = "TOPIC";
         public static final String WEBHOOK_COUNT = "WEBHOOK_COUNT";
+        public static final String ORG_SUBSCRIPTION_COUNT = "ORG_SUBSCRIPTION_COUNT";
 
         private Column() {
 
@@ -99,6 +105,11 @@ public final class WebhookSQLConstants {
                 "INSERT INTO IDN_WEBHOOK_CHANNELS (WEBHOOK_ID, CHANNEL_URI, CHANNEL_SUBSCRIPTION_STATUS) VALUES " +
                         "(:WEBHOOK_ID;, :CHANNEL_URI;, :CHANNEL_SUBSCRIPTION_STATUS;)";
 
+        public static final String ADD_WEBHOOK_EVENT_WITH_UUID =
+                "INSERT INTO IDN_WEBHOOK_CHANNELS (UUID, WEBHOOK_ID, CHANNEL_URI, " +
+                        "CHANNEL_SUBSCRIPTION_STATUS) VALUES " +
+                        "(:CHANNEL_UUID;, :WEBHOOK_ID;, :CHANNEL_URI;, :CHANNEL_SUBSCRIPTION_STATUS;)";
+
         public static final String UPDATE_WEBHOOK_EVENT_STATUS =
                 "UPDATE IDN_WEBHOOK_CHANNELS SET CHANNEL_SUBSCRIPTION_STATUS = :CHANNEL_SUBSCRIPTION_STATUS; " +
                         "WHERE WEBHOOK_ID = :WEBHOOK_ID; AND CHANNEL_URI = :CHANNEL_URI;";
@@ -111,8 +122,92 @@ public final class WebhookSQLConstants {
         public static final String DELETE_WEBHOOK_EVENTS =
                 "DELETE FROM IDN_WEBHOOK_CHANNELS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
 
+        public static final String LIST_WEBHOOK_CHANNEL_URIS_BY_WEBHOOK_ID =
+                "SELECT CHANNEL_URI FROM IDN_WEBHOOK_CHANNELS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
+
+        public static final String DELETE_WEBHOOK_EVENT_BY_CHANNEL_URI =
+                "DELETE FROM IDN_WEBHOOK_CHANNELS WHERE WEBHOOK_ID = :WEBHOOK_ID; " +
+                        "AND CHANNEL_URI = :CHANNEL_URI;";
+
         public static final String COUNT_WEBHOOKS_BY_TENANT =
                 "SELECT COUNT(*) AS WEBHOOK_COUNT FROM IDN_WEBHOOK WHERE TENANT_ID = :TENANT_ID;";
+
+        // ---------------------------------------------------------------------------------------
+        // Organization-level subscription. IDN_WEBHOOK_CHANNEL_ORG_SUB records which descendant
+        // organizations feed a webhook channel. The intent those rows were materialised from lives
+        // in UM_RESOURCE_SHARING_POLICY, keyed by ResourceType.WEBHOOK_CHANNEL and the channel UUID.
+        // ---------------------------------------------------------------------------------------
+
+        public static final String ADD_CHANNEL_ORG_SUBSCRIPTION =
+                "INSERT INTO IDN_WEBHOOK_CHANNEL_ORG_SUB (CHANNEL_UUID, SUBSCRIBED_ORG_TENANT_ID, " +
+                        "SUBSCRIBED_ORG_ID, TOPIC_UUID, TOPIC) VALUES " +
+                        "(:CHANNEL_UUID;, :SUBSCRIBED_ORG_TENANT_ID;, :SUBSCRIBED_ORG_ID;, :TOPIC_UUID;, :TOPIC;)";
+
+        public static final String LIST_CHANNEL_ORG_SUBSCRIPTIONS =
+                "SELECT CHANNEL_UUID, SUBSCRIBED_ORG_TENANT_ID, SUBSCRIBED_ORG_ID, TOPIC_UUID, TOPIC " +
+                        "FROM IDN_WEBHOOK_CHANNEL_ORG_SUB WHERE CHANNEL_UUID = :CHANNEL_UUID; " +
+                        // Paging over this list is applied by the caller, so the order must be
+                        // stable across calls. The primary key gives that for free.
+                        "ORDER BY SUBSCRIBED_ORG_TENANT_ID";
+
+        public static final String LIST_CHANNEL_ORG_SUBSCRIPTION_TENANTS =
+                "SELECT SUBSCRIBED_ORG_TENANT_ID FROM IDN_WEBHOOK_CHANNEL_ORG_SUB " +
+                        "WHERE CHANNEL_UUID = :CHANNEL_UUID;";
+
+        public static final String COUNT_CHANNEL_ORG_SUBSCRIPTIONS =
+                "SELECT COUNT(*) AS ORG_SUBSCRIPTION_COUNT FROM IDN_WEBHOOK_CHANNEL_ORG_SUB " +
+                        "WHERE CHANNEL_UUID = :CHANNEL_UUID;";
+
+        public static final String DELETE_CHANNEL_ORG_SUBSCRIPTIONS_BY_ORG =
+                "DELETE FROM IDN_WEBHOOK_CHANNEL_ORG_SUB WHERE SUBSCRIBED_ORG_ID = :SUBSCRIBED_ORG_ID;";
+
+        public static final String DELETE_CHANNEL_ORG_SUBSCRIPTIONS_BY_CHANNEL =
+                "DELETE FROM IDN_WEBHOOK_CHANNEL_ORG_SUB WHERE CHANNEL_UUID = :CHANNEL_UUID;";
+
+        public static final String LIST_CHANNEL_UUIDS_BY_WEBHOOK =
+                "SELECT CH.UUID FROM IDN_WEBHOOK_CHANNELS CH " +
+                        "INNER JOIN IDN_WEBHOOK W ON CH.WEBHOOK_ID = W.ID " +
+                        "WHERE W.UUID = :UUID; AND W.TENANT_ID = :TENANT_ID;";
+
+        public static final String GET_OWNING_TENANT_ID_BY_CHANNEL_UUID =
+                "SELECT W.TENANT_ID FROM IDN_WEBHOOK_CHANNELS CH " +
+                        "INNER JOIN IDN_WEBHOOK W ON CH.WEBHOOK_ID = W.ID " +
+                        "WHERE CH.UUID = :CHANNEL_UUID;";
+
+        public static final String GET_CHANNEL_URI_BY_CHANNEL_UUID =
+                "SELECT CH.CHANNEL_URI FROM IDN_WEBHOOK_CHANNELS CH WHERE CH.UUID = :CHANNEL_UUID;";
+
+        public static final String GET_CHANNEL_UUID_BY_WEBHOOK_AND_URI =
+                "SELECT CH.UUID FROM IDN_WEBHOOK_CHANNELS CH " +
+                        "INNER JOIN IDN_WEBHOOK W ON CH.WEBHOOK_ID = W.ID " +
+                        "WHERE W.UUID = :UUID; AND W.TENANT_ID = :TENANT_ID; " +
+                        "AND CH.CHANNEL_URI = :CHANNEL_URI;";
+
+        /**
+         * Active webhooks for an event raised in a given tenant, including webhooks owned by an
+         * ancestor organization that has opted this tenant in for the channel.
+         * <p>
+         * The first branch is the pre-existing behaviour: a webhook configured in the tenant the
+         * event was raised in. The EXISTS branch is the organization fanout: a webhook owned
+         * elsewhere whose channel carries a subscription row for this tenant. The subscription
+         * table is the materialised answer to "which organizations does this channel reach", so no
+         * hierarchy walk happens on the publishing path.
+         * <p>
+         * TENANT_ID and SUBSCRIBED_ORG_TENANT_ID are both bound to the tenant of the event. They
+         * are separate parameter names rather than one name used twice, so that the query does not
+         * depend on repeated named parameters being supported.
+         */
+        public static final String GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_WITH_SUBSCRIBED_CHILD_ORGS =
+                "SELECT WEBHOOK.* FROM IDN_WEBHOOK WEBHOOK " +
+                        "INNER JOIN IDN_WEBHOOK_CHANNELS CHANNEL ON WEBHOOK.ID = CHANNEL.WEBHOOK_ID " +
+                        "WHERE CHANNEL.CHANNEL_URI = :CHANNEL_URI; " +
+                        "AND WEBHOOK.STATUS = :STATUS; " +
+                        "AND WEBHOOK.EVENT_PROFILE_NAME = :EVENT_PROFILE_NAME; " +
+                        "AND WEBHOOK.EVENT_PROFILE_VERSION = :EVENT_PROFILE_VERSION; " +
+                        "AND (WEBHOOK.TENANT_ID = :TENANT_ID; " +
+                        "OR EXISTS (SELECT 1 FROM IDN_WEBHOOK_CHANNEL_ORG_SUB SUB " +
+                        "WHERE SUB.CHANNEL_UUID = CHANNEL.UUID " +
+                        "AND SUB.SUBSCRIBED_ORG_TENANT_ID = :SUBSCRIBED_ORG_TENANT_ID;))";
 
         public static final String GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL =
                 "SELECT WEBHOOK.* FROM IDN_WEBHOOK WEBHOOK " +
