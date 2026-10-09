@@ -1,0 +1,54 @@
+{
+  "profile": "CAEP",
+  "uri": "https://schemas.openid.net/secevent/caep",
+  "channels": [
+    {
+      "name": "Session Established",
+      "description": "Notify when a session is established",
+      "uri": "https://schemas.openid.net/secevent/caep/session-established",
+      "events": [
+        {
+          "eventName": "Session established",
+          "eventDescription": "Notify if a session is established",
+          "eventUri": "https://schemas.openid.net/secevent/caep/event-type/session-established"
+        }
+      ]
+    },
+    {
+      "name": "Session Presented",
+      "description": "Notify when a session is presented",
+      "uri": "https://schemas.openid.net/secevent/caep/session-presented",
+      "events": [
+        {
+          "eventName": "Session presented",
+          "eventDescription": "Notify if a session is presented",
+          "eventUri": "https://schemas.openid.net/secevent/caep/event-type/session-presented"
+        }
+      ]
+    },
+    {
+      "name": "Session Revoked",
+      "description": "Notify when a session is revoked",
+      "uri": "https://schemas.openid.net/secevent/caep/session-revoked",
+      "events": [
+        {
+          "eventName": "Session revoked",
+          "eventDescription": "Notify if a session is revoked",
+          "eventUri": "https://schemas.openid.net/secevent/caep/event-type/session-revoked"
+        }
+      ]
+    },
+    {
+      "name": "Credential Change",
+      "description": "Notify when a credential is changed",
+      "uri": "https://schemas.openid.net/secevent/caep/credential",
+      "events": [
+        {
+          "eventName": "Credential change",
+          "eventDescription": "Notify if a credential is changed",
+          "eventUri": "https://schemas.openid.net/secevent/caep/event-type/credential-change"
+        }
+      ]
+    }
+  ]
+}

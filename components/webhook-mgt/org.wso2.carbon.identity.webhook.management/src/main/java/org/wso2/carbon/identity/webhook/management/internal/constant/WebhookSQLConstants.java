@@ -50,6 +50,8 @@ public final class WebhookSQLConstants {
         public static final String CHANNEL_SUBSCRIPTION_STATUS = "CHANNEL_SUBSCRIPTION_STATUS";
         public static final String WEBHOOK_ID = "WEBHOOK_ID";
         public static final String WEBHOOK_COUNT = "WEBHOOK_COUNT";
+        public static final String PROPERTY_NAME = "PROPERTY_NAME";
+        public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
 
         private Column() {
 
@@ -110,6 +112,18 @@ public final class WebhookSQLConstants {
 
         public static final String DELETE_WEBHOOK_EVENTS =
                 "DELETE FROM IDN_WEBHOOK_CHANNELS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
+
+        public static final String ADD_WEBHOOK_PROPERTY =
+                "INSERT INTO IDN_WEBHOOK_PROPERTIES (WEBHOOK_ID, PROPERTY_NAME, PROPERTY_VALUE) VALUES " +
+                "(:WEBHOOK_ID;, :PROPERTY_NAME;, :PROPERTY_VALUE;)";
+
+        public static final String GET_WEBHOOK_PROPERTIES_BY_UUID = "SELECT P.PROPERTY_NAME, " +
+                "P.PROPERTY_VALUE FROM IDN_WEBHOOK_PROPERTIES P " +
+                "INNER JOIN IDN_WEBHOOK W ON P.WEBHOOK_ID = W.ID " +
+                "WHERE W.UUID = :UUID; AND W.TENANT_ID = :TENANT_ID;";
+
+        public static final String DELETE_WEBHOOK_PROPERTIES =
+                "DELETE FROM IDN_WEBHOOK_PROPERTIES WHERE WEBHOOK_ID = :WEBHOOK_ID;";
 
         public static final String COUNT_WEBHOOKS_BY_TENANT =
                 "SELECT COUNT(*) AS WEBHOOK_COUNT FROM IDN_WEBHOOK WHERE TENANT_ID = :TENANT_ID;";
