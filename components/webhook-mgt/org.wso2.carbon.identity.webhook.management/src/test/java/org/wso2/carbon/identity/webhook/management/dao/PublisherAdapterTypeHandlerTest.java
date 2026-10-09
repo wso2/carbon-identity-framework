@@ -228,4 +228,27 @@ public class PublisherAdapterTypeHandlerTest {
                 .eventsSubscribed(eventsSubscribed)
                 .build();
     }
+
+    /**
+     * The tenant-only lookup stays on the original query. The lookup that includes subscribed child
+     * organizations must reach the webhooks of ancestors that subscribed the raising organization.
+     */
+    @Test
+    public void testActiveWebhookLookupsRouteToMatchingQueries() throws WebhookMgtException {
+
+        WebhookManagementDAO dao = mock(WebhookManagementDAO.class);
+        PublisherAdapterTypeHandler publisherHandler = new PublisherAdapterTypeHandler(dao);
+        List<Webhook> tenantOnly = new ArrayList<>();
+        tenantOnly.add(mock(Webhook.class));
+        List<Webhook> withChildOrgs = new ArrayList<>();
+        withChildOrgs.add(mock(Webhook.class));
+        withChildOrgs.add(mock(Webhook.class));
+        when(dao.getActiveWebhooks("profile", "v1", "channel", 1)).thenReturn(tenantOnly);
+        when(dao.getActiveWebhooksWithSubscribedChildOrgs("profile", "v1", "channel", 1)).thenReturn(withChildOrgs);
+
+        Assert.assertEquals(publisherHandler.getActiveWebhooks("profile", "v1", "channel", 1), tenantOnly);
+        Assert.assertEquals(
+                publisherHandler.getActiveWebhooksWithSubscribedChildOrgs("profile", "v1", "channel", 1),
+                withChildOrgs);
+    }
 }
