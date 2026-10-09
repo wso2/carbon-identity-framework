@@ -275,6 +275,61 @@ public class EventPublisherServiceImplTest {
     }
 
     @Test
+    public void testSecurityEventTokenPayloadToBuilderCarriesEveryClaim() {
+
+        Map<String, EventPayload> eventMap = new HashMap<>();
+        eventMap.put("key1", new EventPayload() {
+        });
+        Subject subId = SimpleSubject.createOpaqueSubject("subId123");
+
+        SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
+                .iss("issuer")
+                .jti("jti123")
+                .iat(123456789L)
+                .aud("audience")
+                .txn("transaction")
+                .rci("rci123")
+                .subId(subId)
+                .events(eventMap)
+                .build();
+
+        SecurityEventTokenPayload copy = payload.toBuilder()
+                .iss("another-issuer")
+                .build();
+
+        // The claim set on the copy is the copy's own.
+        Assert.assertEquals(copy.getIss(), "another-issuer");
+        // Every other claim is carried over.
+        Assert.assertEquals(copy.getJti(), "jti123");
+        Assert.assertEquals(copy.getIat(), 123456789L);
+        Assert.assertEquals(copy.getAud(), "audience");
+        Assert.assertEquals(copy.getTxn(), "transaction");
+        Assert.assertEquals(copy.getRci(), "rci123");
+        Assert.assertEquals(copy.getSubId(), subId);
+        // The event map is shared rather than copied, which is what makes the copy cheap.
+        Assert.assertSame(copy.getEvents(), payload.getEvents());
+        // The payload the copy was made from is left as it was.
+        Assert.assertEquals(payload.getIss(), "issuer");
+    }
+
+    @Test
+    public void testSecurityEventTokenPayloadToBuilderWithoutClaims() {
+
+        SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder().build();
+
+        SecurityEventTokenPayload copy = payload.toBuilder().build();
+
+        Assert.assertNull(copy.getIss());
+        Assert.assertNull(copy.getJti());
+        Assert.assertEquals(copy.getIat(), 0L);
+        Assert.assertNull(copy.getAud());
+        Assert.assertNull(copy.getTxn());
+        Assert.assertNull(copy.getRci());
+        Assert.assertNull(copy.getSubId());
+        Assert.assertNull(copy.getEvents());
+    }
+
+    @Test
     public void testSecurityEventTokenPayloadWithSubId() {
 
         Map<String, EventPayload> eventMap = new HashMap<>();
