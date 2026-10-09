@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.wso2.carbon.identity.event.publisher.api.model.common.Subject;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,7 +34,7 @@ public class SecurityEventTokenPayload {
     private final String iss;
     private final String jti;
     private final long iat;
-    private final String aud;
+    private final List<String> aud;
     private final String txn;
     private final String rci;
 
@@ -69,7 +70,7 @@ public class SecurityEventTokenPayload {
         return iat;
     }
 
-    public String getAud() {
+    public List<String> getAud() {
 
         return aud;
     }
@@ -107,7 +108,7 @@ public class SecurityEventTokenPayload {
         private String iss;
         private String jti;
         private long iat;
-        private String aud;
+        private List<String> aud;
         private String txn;
         private String rci;
         private Subject subId;
@@ -131,7 +132,7 @@ public class SecurityEventTokenPayload {
             return this;
         }
 
-        public Builder aud(String aud) {
+        public Builder aud(List<String> aud) {
 
             this.aud = aud;
             return this;

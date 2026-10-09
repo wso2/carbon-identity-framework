@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.event.publisher.api.service.EventPublisherServic
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
 import org.wso2.carbon.identity.event.publisher.internal.util.EventPublisherExceptionHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,39 +68,63 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     @Override
     public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
             throws EventPublisherException {
-
-        EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
-
-        log.debug("Invoking registered event publisher: " + adapterManager.getClass().getName());
-        adapterManager.publish(eventPayload, eventContext);
+        EventPublisherException firstException = null;
+        for (EventPublisher publisher : retrieveActivePublishers()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invoking registered event publisher: " + publisher.getClass().getName());
+            }
+            try {
+                publisher.publish(eventPayload, eventContext);
+            } catch (EventPublisherException e) {
+                if (firstException == null) {
+                    firstException = e;
+                }
+            }
+        }
+        if (firstException != null) {
+            throw firstException;
+        }
     }
 
     @Override
     public boolean canHandleEvent(EventContext eventContext) throws EventPublisherException {
 
-        EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
-
-        log.debug("Invoking canHandle method of event publisher: " + adapterManager.getClass().getName());
-        try {
-            return adapterManager.canHandleEvent(eventContext);
-        } catch (EventPublisherException e) {
-            log.error("Error while checking if the event can be handled by publisher: " +
-                    adapterManager.getClass().getName(), e);
+        for (EventPublisher publisher : retrieveActivePublishers()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invoking canHandle method of event publisher: " + publisher.getClass().getName());
+            }
+            try {
+                if (publisher.canHandleEvent(eventContext)) {
+                    return true;
+                }
+            } catch (EventPublisherException e) {
+                log.error("Error while checking if the event can be handled by publisher: " +
+                        publisher.getClass().getName());
+            }
         }
         return false;
     }
 
-    private EventPublisher retrieveAdapterManager(String adapter) throws EventPublisherException {
+    /**
+     * Retrieve all registered event publishers associated with the currently active webhook adapter.
+     *
+     * @return List of event publishers associated with the active adapter.
+     * @throws EventPublisherException If no registered event publisher is associated with the
+     *                                  active adapter.
+     */
+    private List<EventPublisher> retrieveActivePublishers() throws EventPublisherException {
 
-        List<EventPublisher> managers =
-                EventPublisherComponentServiceHolder.getInstance().getEventPublishers();
-
-        for (EventPublisher manager : managers) {
-            if (adapter.equals(manager.getAssociatedAdapter())) {
-                return manager;
+        List<EventPublisher> activePublishers = new ArrayList<>();
+        for (EventPublisher publisher : EventPublisherComponentServiceHolder.getInstance().getEventPublishers()) {
+            if (webhookAdapter.equals(publisher.getAssociatedAdapter())) {
+                activePublishers.add(publisher);
             }
         }
-
-        throw EventPublisherExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND);
+        if (activePublishers.isEmpty()) {
+            log.warn("No registered event publisher found for the active adapter: " + webhookAdapter);
+            throw EventPublisherExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND);
+        }
+        return activePublishers;
     }
 }
