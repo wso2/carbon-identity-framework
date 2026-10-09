@@ -504,7 +504,7 @@
     "POST_DELETE_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.OrganizationManagementEventHook.module_index": "76",
-  "identity_mgt.events.schemes.OrganizationManagementEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.OrganizationManagementEventHook.properties.enable": true,
   "identity_mgt.events.schemes.OrganizationManagementEventHook.subscriptions": [
     "POST_ADD_ORGANIZATION",
     "POST_PATCH_ORGANIZATION",
