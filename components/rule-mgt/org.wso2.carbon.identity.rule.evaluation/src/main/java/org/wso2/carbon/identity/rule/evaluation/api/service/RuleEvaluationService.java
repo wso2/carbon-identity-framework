@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.rule.evaluation.api.service;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
 /**
  * Rule evaluation service interface.
@@ -38,6 +39,22 @@ public interface RuleEvaluationService {
      * @throws RuleEvaluationException If an error occurs while evaluating the rule.
      */
     RuleEvaluationResult evaluate(String ruleId, FlowContext flowContext, String tenantDomain)
+            throws RuleEvaluationException;
+
+    /**
+     * Evaluate a rule that is held by its caller rather than by rule management.
+     * <p>
+     * Some callers own their rules inside their own configuration and never register them, so there
+     * is no id to look up. The caller is responsible for the rule having been validated when it was
+     * authored -- the id based method gets that guarantee from rule management, this one cannot.
+     *
+     * @param rule         Rule to evaluate.
+     * @param flowContext  Flow context.
+     * @param tenantDomain Tenant domain.
+     * @return Rule evaluation result.
+     * @throws RuleEvaluationException If an error occurs while evaluating the rule.
+     */
+    RuleEvaluationResult evaluate(Rule rule, FlowContext flowContext, String tenantDomain)
             throws RuleEvaluationException;
 
 }

@@ -29,13 +29,28 @@ public class Field {
 
     private final String name;
     private final String displayName;
+    private final Value qualifier;
 
     @JsonCreator
     public Field(@JsonProperty("name") String name, @JsonProperty("displayName") String displayName) {
 
+        this(name, displayName, null);
+    }
+
+    /**
+     * A field that names a family of values rather than one -- a claim, for instance -- and so needs a qualifier
+     * to say which of its values a rule means.
+     *
+     * @param name        The field name.
+     * @param displayName The name shown for the field.
+     * @param qualifier   How the qualifier is entered, or null for a field naming a single value.
+     */
+    public Field(String name, String displayName, Value qualifier) {
+
         validate(name);
         this.name = name;
         this.displayName = displayName;
+        this.qualifier = qualifier;
     }
 
     public String getName() {
@@ -46,6 +61,17 @@ public class Field {
     public String getDisplayName() {
 
         return displayName;
+    }
+
+    /**
+     * How a qualifier is chosen for this field, for fields that name a family of values rather than one --
+     * a claim, for instance, where the qualifier is the claim URI. Absent on fields that name one value.
+     *
+     * @return Meta describing how to supply the qualifier, or null when the field is not qualified.
+     */
+    public Value getQualifier() {
+
+        return qualifier;
     }
 
     private void validate(String name) {

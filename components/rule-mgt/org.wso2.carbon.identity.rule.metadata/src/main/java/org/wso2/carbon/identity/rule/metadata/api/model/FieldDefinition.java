@@ -30,13 +30,29 @@ public class FieldDefinition {
     private final Field field;
     private final List<Operator> operators;
     private final Value value;
+    private final ValueFieldOptions valueFieldOptions;
 
     public FieldDefinition(Field field, List<Operator> operators, Value value) {
+
+        this(field, operators, value, null);
+    }
+
+    /**
+     * A field whose value may also be read from other fields, named by {@code valueFieldOptions}, instead of being
+     * given in the rule.
+     *
+     * @param field             The field, carrying its qualifier when it names a family of values.
+     * @param operators         The operators the field takes.
+     * @param value             How a value given in the rule is entered.
+     * @param valueFieldOptions The fields a value may be read from, or null when a value can only be given.
+     */
+    public FieldDefinition(Field field, List<Operator> operators, Value value, ValueFieldOptions valueFieldOptions) {
 
         validateOperators(operators);
         this.field = field;
         this.operators = operators;
         this.value = value;
+        this.valueFieldOptions = valueFieldOptions;
     }
 
     public Field getField() {
@@ -52,6 +68,16 @@ public class FieldDefinition {
     public Value getValue() {
 
         return value;
+    }
+
+    /**
+     * The fields a value of this field may be read from when the rule is evaluated.
+     *
+     * @return The value field options, or null when a value can only be given in the rule.
+     */
+    public ValueFieldOptions getValueFieldOptions() {
+
+        return valueFieldOptions;
     }
 
     private void validateOperators(List<Operator> operators) {

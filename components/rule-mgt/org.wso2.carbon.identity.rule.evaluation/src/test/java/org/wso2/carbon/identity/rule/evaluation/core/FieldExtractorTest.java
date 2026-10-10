@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.FieldExtractor;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
@@ -106,6 +107,86 @@ public class FieldExtractorTest {
 
         // Extract fields (should throw exception)
         fieldExtractor.extractFields(mockRule);
+    }
+
+    /**
+     * A qualified field names a family of values, so two expressions over it with different qualifiers are two
+     * different values. De-duplicating on the field name alone would return one field here and the
+     * second expression would be evaluated against the wrong value -- silently, with nothing thrown.
+     */
+    @Test
+    public void testExtractFieldsDistinguishesQualifiersOnTheSameField() throws RuleEvaluationException {
+
+        Expression country = new Expression.Builder().field("userClaim")
+                .fieldQualifier("http://wso2.org/claims/country").operator("equals")
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.STRING, "LK")).build();
+        Expression email = new Expression.Builder().field("userClaim")
+                .fieldQualifier("http://wso2.org/claims/emailaddress").operator("equals")
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.STRING, "a@x.com")).build();
+        // Same field and same qualifier as the first: this one is a genuine duplicate and must collapse.
+        Expression countryAgain = new Expression.Builder().field("userClaim")
+                .fieldQualifier("http://wso2.org/claims/country").operator("notEquals")
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.STRING, "IN")).build();
+
+        Rule keyedRule = mock(Rule.class);
+        when(keyedRule.getExpressions()).thenReturn(Arrays.asList(country, email, countryAgain));
+
+        List<FieldDefinition> definitions = new ArrayList<>();
+        definitions.add(new FieldDefinition(
+                new org.wso2.carbon.identity.rule.metadata.api.model.Field("userClaim", "user claim"),
+                Arrays.asList(new Operator("equals", "equals"), new Operator("notEquals", "not equals")),
+                new InputValue(Value.ValueType.STRING)));
+
+        List<Field> fields = new FieldExtractor(definitions).extractFields(keyedRule);
+
+        assertEquals(fields.size(), 2, "Expressions differing only by qualifier must each yield a field.");
+        assertEquals(fields.get(0).getName(), "userClaim");
+        assertEquals(fields.get(0).getQualifier(), "http://wso2.org/claims/country");
+        assertEquals(fields.get(1).getName(), "userClaim");
+        assertEquals(fields.get(1).getQualifier(), "http://wso2.org/claims/emailaddress");
+    }
+
+    /**
+     * A field with no qualifier keeps identifying by name alone, so nothing that existed before qualifiers moves.
+     */
+    @Test
+    public void testExtractFieldsCollapsesRepeatsOfAnUnkeyedField() throws RuleEvaluationException {
+
+        List<Field> fields = new FieldExtractor(getMockedFieldDefinitions()).extractFields(mockRule);
+
+        assertEquals(fields.size(), 4);
+        assertEquals(fields.get(0).getQualifier(), null);
+    }
+
+    /**
+     * A value read from another field needs that field resolved as well, or there is nothing to compare with.
+     */
+    @Test
+    public void testExtractFieldsIncludesTheFieldAValueIsReadFrom() throws RuleEvaluationException {
+
+        Expression compared = new Expression.Builder().field("userClaim")
+                .fieldQualifier("http://wso2.org/claims/country").operator("notEquals")
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        new FieldReference("storedClaim", "http://wso2.org/claims/country"))).build();
+        Rule rule = mock(Rule.class);
+        when(rule.getExpressions()).thenReturn(Arrays.asList(compared));
+
+        List<FieldDefinition> definitions = new ArrayList<>();
+        for (String name : Arrays.asList("userClaim", "storedClaim")) {
+            definitions.add(new FieldDefinition(
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Field(name, name),
+                    Arrays.asList(new Operator("equals", "equals"), new Operator("notEquals", "not equals")),
+                    new InputValue(Value.ValueType.STRING)));
+        }
+
+        List<Field> fields = new FieldExtractor(definitions).extractFields(rule);
+
+        assertEquals(fields.size(), 2);
+        assertEquals(fields.get(1).getName(), "storedClaim");
+        assertEquals(fields.get(1).getQualifier(), "http://wso2.org/claims/country");
     }
 
     private List<FieldDefinition> getMockedFieldDefinitions() {

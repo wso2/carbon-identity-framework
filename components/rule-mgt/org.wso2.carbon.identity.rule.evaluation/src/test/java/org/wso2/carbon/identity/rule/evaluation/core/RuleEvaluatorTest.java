@@ -31,8 +31,11 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.OperatorRegistry;
 import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.RuleEvaluator;
+import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.FlowType;
+import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.model.Value;
 import org.wso2.carbon.identity.rule.management.api.util.RuleBuilder;
@@ -357,6 +360,207 @@ public class RuleEvaluatorTest {
         ruleBuilder.addAndExpression(expression2);
 
         return ruleBuilder.build();
+    }
+
+    @Test
+    public void testInHoldsWhenTheTwoSetsIntersect() throws Exception {
+
+        Rule rule = ruleWithSingleExpression("claim", "in", new Value(Arrays.asList("b@x.com", "c@x.com")));
+
+        assertTrue(ruleEvaluator.evaluate(rule, createEvaluationData(Arrays.asList("a@x.com", "b@x.com")))
+                .isRuleSatisfied());
+    }
+
+    @Test
+    public void testInDoesNotHoldWhenTheSetsAreDisjoint() throws Exception {
+
+        Rule rule = ruleWithSingleExpression("claim", "in", new Value(Arrays.asList("z@x.com")));
+
+        assertFalse(ruleEvaluator.evaluate(rule, createEvaluationData(Arrays.asList("a@x.com", "b@x.com")))
+                .isRuleSatisfied());
+    }
+
+    /**
+     * The trap membership exists to avoid. A multi-valued claim compared with contains matches
+     * "b@x.com" against "ab@x.com", because one is a substring of the other. Membership does not.
+     */
+    @Test
+    public void testInDistinguishesAValueFromASubstringOfAnother() throws Exception {
+
+        Rule rule = ruleWithSingleExpression("claim", "in", new Value(Arrays.asList("b@x.com")));
+
+        assertFalse(ruleEvaluator.evaluate(rule, createEvaluationData(Arrays.asList("a@x.com", "ab@x.com")))
+                .isRuleSatisfied());
+    }
+
+    @Test
+    public void testNotInHoldsOnlyWhenTheSetsAreDisjoint() throws Exception {
+
+        Rule disjoint = ruleWithSingleExpression("claim", "notIn", new Value(Arrays.asList("z@x.com")));
+        Rule overlapping = ruleWithSingleExpression("claim", "notIn", new Value(Arrays.asList("a@x.com")));
+        Map<String, FieldValue> data = createEvaluationData(Arrays.asList("a@x.com", "b@x.com"));
+
+        assertTrue(ruleEvaluator.evaluate(disjoint, data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(overlapping, data).isRuleSatisfied());
+    }
+
+    /**
+     * A right-hand side that is not a set cannot be intersected. Neither operator may hold in that
+     * case -- in particular notIn must not pass by negation, which would turn a malformed expression
+     * into a branch that always fires.
+     */
+    @Test
+    public void testInAndNotInBothFailClosedWhenTheRightSideIsNotASet() throws Exception {
+
+        Rule inRule = ruleWithSingleExpression("claim", "in", new Value(Value.Type.STRING, "a@x.com"));
+        Rule notInRule = ruleWithSingleExpression("claim", "notIn", new Value(Value.Type.STRING, "a@x.com"));
+        Map<String, FieldValue> data = createEvaluationData(Arrays.asList("a@x.com"));
+
+        assertFalse(ruleEvaluator.evaluate(inRule, data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(notInRule, data).isRuleSatisfied(),
+                "notIn must not hold by negation when the expression is malformed.");
+    }
+
+    /**
+     * A value that was never there must not satisfy a negated operator either, or a condition on
+     * a claim the user never provided would take its branch instead of falling to the default.
+     */
+    @Test
+    public void testInAndNotInDoNotHoldOnAMissingValue() throws Exception {
+
+        Rule inRule = ruleWithSingleExpression("email", "in", new Value(Arrays.asList("a@x.com")));
+        Rule notInRule = ruleWithSingleExpression("email", "notIn", new Value(Arrays.asList("a@x.com")));
+        Map<String, FieldValue> data = createEvaluationData((String) null);
+
+        assertFalse(ruleEvaluator.evaluate(inRule, data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(notInRule, data).isRuleSatisfied(),
+                "notIn must not hold for a missing value.");
+    }
+
+    @Test
+    public void testFieldComparisonHoldsWhenBothFieldsAgree() throws Exception {
+
+        Map<String, FieldValue> data = twoFields("LK", "LK");
+
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("equals"), data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("notEquals"), data).isRuleSatisfied());
+    }
+
+    @Test
+    public void testFieldComparisonNotEqualsHoldsWhenTheFieldsDiffer() throws Exception {
+
+        Map<String, FieldValue> data = twoFields("LK", "IN");
+
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("equals"), data).isRuleSatisfied());
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("notEquals"), data).isRuleSatisfied());
+    }
+
+    /**
+     * A field with no value is not known to differ from anything, so not even a negated operator holds.
+     */
+    @Test
+    public void testFieldComparisonDoesNotHoldWhenEitherSideIsMissing() throws Exception {
+
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("notEquals"), twoFields("LK", null))
+                .isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("notEquals"), twoFields(null, "LK"))
+                .isRuleSatisfied());
+        Map<String, FieldValue> noStoredValue = new HashMap<>();
+        noStoredValue.put("collected", new FieldValue("collected", "LK", ValueType.STRING));
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("notEquals"), noStoredValue).isRuleSatisfied());
+    }
+
+    @Test
+    public void testFieldComparisonInIntersectsTwoSets() throws Exception {
+
+        Rule rule = ruleWithSingleExpression("collected", "in",
+                new Value(new FieldReference("stored", null)));
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("collected", new FieldValue("collected", Arrays.asList("a@x.com", "b@x.com")));
+        data.put("stored", new FieldValue("stored", Arrays.asList("b@x.com", "c@x.com")));
+
+        assertTrue(ruleEvaluator.evaluate(rule, data).isRuleSatisfied());
+    }
+
+    @Test
+    public void testFieldComparisonInChecksAValueAgainstASet() throws Exception {
+
+        Rule rule = ruleWithSingleExpression("collected", "in",
+                new Value(new FieldReference("stored", null)));
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("collected", new FieldValue("collected", "b@x.com", ValueType.STRING));
+        data.put("stored", new FieldValue("stored", Arrays.asList("b@x.com", "c@x.com")));
+
+        assertTrue(ruleEvaluator.evaluate(rule, data).isRuleSatisfied());
+    }
+
+    /**
+     * A list for a number field holds numbers: its entries are read as numbers, as a single value would be, rather
+     * than handed to the number conversion as one value.
+     */
+    @Test
+    public void testInOnANumberFieldReadsTheListAsNumbers() throws Exception {
+
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("riskScore", new FieldValue("riskScore", 3));
+
+        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "in",
+                new Value(Arrays.asList("1", "3"))), data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "in",
+                new Value(Arrays.asList("1", "2"))), data).isRuleSatisfied());
+        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "notIn",
+                new Value(Arrays.asList("1", "2"))), data).isRuleSatisfied());
+    }
+
+    @Test
+    public void testInOnABooleanFieldReadsTheListAsBooleans() throws Exception {
+
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("consented", new FieldValue("consented", true));
+
+        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("consented", "in",
+                new Value(Arrays.asList("true"))), data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("consented", "in",
+                new Value(Arrays.asList("false"))), data).isRuleSatisfied());
+    }
+
+    /**
+     * A value type this node does not know is read as null. Its value means something this node cannot tell, so
+     * the condition fails closed -- for a negated operator too -- rather than being read as a plain value.
+     */
+    @Test
+    public void testValueOfAnUnknownTypeFailsClosed() throws Exception {
+
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("email", new FieldValue("email", "a@x.com", ValueType.STRING));
+
+        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("email", "equals",
+                new Value(null, "a@x.com")), data).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("email", "notEquals",
+                new Value(null, "b@x.com")), data).isRuleSatisfied());
+    }
+
+    private Rule comparedWithStored(String operator) {
+
+        return ruleWithSingleExpression("collected", operator, new Value(new FieldReference("stored", null)));
+    }
+
+    private Map<String, FieldValue> twoFields(String collected, String stored) {
+
+        Map<String, FieldValue> data = new HashMap<>();
+        data.put("collected", new FieldValue("collected", collected, ValueType.STRING));
+        data.put("stored", new FieldValue("stored", stored, ValueType.STRING));
+        return data;
+    }
+
+    private Rule ruleWithSingleExpression(String field, String operator, Value value) {
+
+        return new ORCombinedRule.Builder()
+                .addRule(new ANDCombinedRule.Builder()
+                        .addExpression(new Expression.Builder()
+                                .field(field).operator(operator).value(value).build())
+                        .build())
+                .build();
     }
 
     private Map<String, FieldValue> createEvaluationData(String applicationValue, String grantTypeValue) {

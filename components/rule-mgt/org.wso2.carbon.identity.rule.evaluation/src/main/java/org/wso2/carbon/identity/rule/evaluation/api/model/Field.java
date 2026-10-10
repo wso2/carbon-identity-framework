@@ -25,17 +25,35 @@ package org.wso2.carbon.identity.rule.evaluation.api.model;
 public class Field {
 
     private final String name;
+    private final String qualifier;
     private final ValueType valueType;
 
     public Field(String name, ValueType valueType) {
 
+        this(name, null, valueType);
+    }
+
+    public Field(String name, String qualifier, ValueType valueType) {
+
         this.name = name;
+        this.qualifier = qualifier;
         this.valueType = valueType;
     }
 
     public String getName() {
 
         return name;
+    }
+
+    /**
+     * Qualifier selecting a value within the field. A data provider needs it to know which value to
+     * resolve -- which claim, for instance -- for fields that name a family rather than one value.
+     *
+     * @return The qualifier, or null when the field is not qualified.
+     */
+    public String getQualifier() {
+
+        return qualifier;
     }
 
     public ValueType getValueType() {

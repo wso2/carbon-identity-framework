@@ -97,6 +97,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -251,7 +252,8 @@ public class ActionExecutorServiceImplTest {
         when(action.getActionVersion()).thenReturn("v1");
         when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         when(action.getActionRule()).thenReturn(ActionRule.create("ruleId", "tenantDomain"));
-        when(ruleEvaluationService.evaluate(any(), any(), any())).thenReturn(new RuleEvaluationResult("ruleId", false));
+        when(ruleEvaluationService.evaluate(anyString(), any(), any()))
+                .thenReturn(new RuleEvaluationResult("ruleId", false));
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
 
@@ -324,7 +326,7 @@ public class ActionExecutorServiceImplTest {
         when(action.getActionRule()).thenReturn(ActionRule.create("ruleId", "tenantDomain"));
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
-        when(ruleEvaluationService.evaluate(any(), any(), any())).thenThrow(new RuleEvaluationException("Error"));
+        when(ruleEvaluationService.evaluate(anyString(), any(), any())).thenThrow(new RuleEvaluationException("Error"));
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
 
@@ -546,7 +548,8 @@ public class ActionExecutorServiceImplTest {
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
 
-        when(ruleEvaluationService.evaluate(any(), any(), any())).thenReturn(new RuleEvaluationResult("ruleId", true));
+        when(ruleEvaluationService.evaluate(anyString(), any(), any()))
+                .thenReturn(new RuleEvaluationResult("ruleId", true));
 
         actionExecutionRequestBuilderFactory.when(
                         () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))

@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.rule.management.internal.dao.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -320,7 +321,13 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
     private ORCombinedRule convertJsonToRule(String ruleJson) throws RuleManagementServerException {
 
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
+            /*
+             * Unknown enum constants are tolerated so that a rule written by a newer node, carrying a
+             * value type this node does not know, degrades to a null type rather than failing the read.
+             * Unknown *properties* are handled separately, by @JsonIgnoreProperties on the models.
+             */
+            ObjectMapper objectMapper = new ObjectMapper()
+                    .configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
             return objectMapper.readValue(ruleJson, ORCombinedRule.class);
         } catch (JsonProcessingException e) {
             throw new RuleManagementServerException("Failed to convert JSON to rule.", e);

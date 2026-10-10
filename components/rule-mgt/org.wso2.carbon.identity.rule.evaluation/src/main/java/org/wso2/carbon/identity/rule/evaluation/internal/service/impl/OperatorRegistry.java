@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
 import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
@@ -45,6 +46,8 @@ public class OperatorRegistry {
         supportedOperators.put("endsWith", stringPredicate(String::endsWith));
         supportedOperators.put("greaterThan", comparablePredicate(result -> result > 0));
         supportedOperators.put("lessThan", comparablePredicate(result -> result < 0));
+        supportedOperators.put("in", membershipPredicate(true));
+        supportedOperators.put("notIn", membershipPredicate(false));
     }
 
     private OperatorRegistry() {
@@ -99,5 +102,10 @@ public class OperatorRegistry {
     private static BiPredicate<Object, Object> stringPredicate(BiPredicate<String, String> predicate) {
 
         return (a, b) -> a instanceof String && b instanceof String && predicate.test((String) a, (String) b);
+    }
+
+    private static BiPredicate<Object, Object> membershipPredicate(boolean expected) {
+
+        return (a, b) -> a != null && b instanceof Collection && ((Collection<?>) b).contains(a) == expected;
     }
 }
