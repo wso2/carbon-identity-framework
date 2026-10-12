@@ -574,6 +574,25 @@ public class RuleEvaluatorTest {
         assertTrue(ruleEvaluator.evaluate(comparedWithStored("in"), setOnTheRight).isRuleSatisfied());
     }
 
+    /**
+     * A missing value on either side holds for no operator, and is not an error.
+     */
+    @Test
+    public void testMissingValueOnEitherSideDoesNotHold() throws Exception {
+
+        Map<String, FieldValue> noFieldValue = new HashMap<>();
+        noFieldValue.put("email", new FieldValue("email", (String) null, ValueType.STRING));
+        Map<String, FieldValue> riskScore = new HashMap<>();
+        riskScore.put("riskScore", new FieldValue("riskScore", 3));
+
+        for (String operator : Arrays.asList("equals", "notEquals")) {
+            assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("email", operator,
+                    new Value(Value.Type.STRING, "a@x.com")), noFieldValue).isRuleSatisfied());
+            assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", operator,
+                    new Value(Value.Type.NUMBER, null)), riskScore).isRuleSatisfied());
+        }
+    }
+
     private Rule comparedWithStored(String operator) {
 
         return ruleWithSingleExpression("collected", operator, new Value(new FieldReference("stored", null)));

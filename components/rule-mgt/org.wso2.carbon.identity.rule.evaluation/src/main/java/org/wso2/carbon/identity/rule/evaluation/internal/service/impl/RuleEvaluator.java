@@ -123,19 +123,20 @@ public class RuleEvaluator {
         Operator operator = operatorRegistry.getOperator(expression.getOperator());
         Value value = expression.getValue();
 
-        // A value type unknown to this node is read as null; such a condition never holds.
-        if (value != null && value.getType() == null) {
+        // A condition with a missing value on either side, or a value type unknown to this node, never holds.
+        if (value.getType() == null || fieldValue.getValue() == null) {
             return false;
         }
 
-        if (value != null && value.getType() == Value.Type.FIELD) {
+        if (value.getType() == Value.Type.FIELD) {
             return evaluateAgainstField(operator, fieldValue, value.getFieldReference(), evaluationData);
         }
 
-        if (value != null && value.getType() == Value.Type.LIST && !fieldValue.getValueType().equals(LIST)) {
-            if (value.getFieldValues() == null) {
-                return false;
-            }
+        if (rightOperand(expression) == null) {
+            return false;
+        }
+
+        if (value.getType() == Value.Type.LIST && !fieldValue.getValueType().equals(LIST)) {
             return operator.apply(fieldValue.getValue(), typedEntries(fieldValue.getValueType(),
                     value.getFieldValues()));
         }
