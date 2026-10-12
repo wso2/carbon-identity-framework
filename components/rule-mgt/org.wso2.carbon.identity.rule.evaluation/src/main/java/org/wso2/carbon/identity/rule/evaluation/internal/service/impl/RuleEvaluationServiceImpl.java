@@ -58,11 +58,20 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
     public RuleEvaluationResult evaluate(String ruleId, FlowContext flowContext, String tenantDomain)
             throws RuleEvaluationException {
 
-        Rule rule = getRuleFromRuleManagementService(ruleId, tenantDomain);
+        return evaluate(getRuleFromRuleManagementService(ruleId, tenantDomain), flowContext, tenantDomain);
+    }
+
+    @Override
+    public RuleEvaluationResult evaluate(Rule rule, FlowContext flowContext, String tenantDomain)
+            throws RuleEvaluationException {
+
+        if (rule == null) {
+            throw new RuleEvaluationException("Rule to evaluate cannot be null.");
+        }
 
         if (!rule.isActive()) {
             LOG.debug("Rule: " + rule.getId() + " is inactive. Skip evaluation of rule.");
-            return new RuleEvaluationResult(ruleId, false, null);
+            return new RuleEvaluationResult(rule.getId(), false, null);
         }
 
         LOG.debug("Starting to evaluate rule: " + rule.getId() + ".");
@@ -72,7 +81,7 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
         List<Field> fieldsInRule = fieldExtractor.extractFields(rule);
 
         Map<String, FieldValue> evaluationData =
-                getEvaluationData(ruleId, flowContext, tenantDomain, fieldsInRule);
+                getEvaluationData(rule.getId(), flowContext, tenantDomain, fieldsInRule);
 
         RuleEvaluator ruleEvaluator = new RuleEvaluator(RuleEvaluationComponentServiceHolder.getInstance()
                 .getOperatorRegistry());
@@ -95,7 +104,9 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
 
         return (evaluationDataList == null || evaluationDataList.isEmpty())
                 ? Collections.emptyMap()
-                : evaluationDataList.stream().collect(Collectors.toMap(FieldValue::getName, fieldValue -> fieldValue));
+                : evaluationDataList.stream().collect(Collectors.toMap(
+                        fieldValue -> FieldLookup.token(fieldValue.getName(), fieldValue.getQualifier()),
+                        fieldValue -> fieldValue));
     }
 
     private Rule getRuleFromRuleManagementService(String ruleId, String tenantDomain)

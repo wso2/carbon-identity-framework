@@ -25,17 +25,34 @@ package org.wso2.carbon.identity.rule.evaluation.api.model;
 public class Field {
 
     private final String name;
+    private final String qualifier;
     private final ValueType valueType;
 
     public Field(String name, ValueType valueType) {
 
+        this(name, null, valueType);
+    }
+
+    public Field(String name, String qualifier, ValueType valueType) {
+
         this.name = name;
+        this.qualifier = qualifier;
         this.valueType = valueType;
     }
 
     public String getName() {
 
         return name;
+    }
+
+    /**
+     * Qualifier selecting one value of the field, such as a claim URI.
+     *
+     * @return The qualifier, or null when the field is not qualified.
+     */
+    public String getQualifier() {
+
+        return qualifier;
     }
 
     public ValueType getValueType() {

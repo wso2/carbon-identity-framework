@@ -24,6 +24,11 @@
             <class name="org.wso2.carbon.identity.rule.management.service.RuleManagementServiceImplTest"/>
         </classes>
     </test>
+    <test name="rule-management-model-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.rule.management.model.RuleSerializationCompatibilityTest"/>
+        </classes>
+    </test>
     <test name="rule-management-util-test">
         <classes>
             <class name="org.wso2.carbon.identity.rule.management.util.RuleBuilderTest"/>

@@ -80,6 +80,15 @@ public class RuleManagementConfig {
             case DEVICE_POLICY:
                 propertyKey = "Rules.DevicePolicy.MaxExpressionsCombinedWithAnd";
                 break;
+            case REGISTRATION:
+                propertyKey = "Rules.Registration.MaxExpressionsCombinedWithAnd";
+                break;
+            case PASSWORD_RECOVERY:
+                propertyKey = "Rules.PasswordRecovery.MaxExpressionsCombinedWithAnd";
+                break;
+            case INVITED_USER_REGISTRATION:
+                propertyKey = "Rules.InvitedUserRegistration.MaxExpressionsCombinedWithAnd";
+                break;
             default:
                 return DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND;
         }
