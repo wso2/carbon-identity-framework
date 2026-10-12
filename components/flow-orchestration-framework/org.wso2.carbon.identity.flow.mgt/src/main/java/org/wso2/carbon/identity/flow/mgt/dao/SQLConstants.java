@@ -72,8 +72,8 @@ public class SQLConstants {
                     "VALUES (?, ?, ?, ?, ?)";
 
     /**
-     * The branches of every rule evaluation node in a flow, in evaluation order, each with the target of the edge
-     * it triggers.
+     * The branches of every rule evaluation node in a flow, in evaluation order, each with the target of the edge it
+     * triggers.
      */
     public static final String GET_FLOW_NODE_BRANCHES =
             "SELECT n.NODE_ID, b.BRANCH_KEY, b.BRANCH_NAME, b.RULE_CONTENT, nextNode.NODE_ID AS NEXT_NODE_ACTUAL_ID " +

@@ -50,14 +50,6 @@ import java.util.Set;
 
 /**
  * Declares what a condition in an orchestration flow may be written against.
- * <p>
- * Claims are published as two qualified fields rather than one field per claim. A tenant can hold
- * hundreds of claims, and expanding them would put all of them in one dropdown and grow this
- * response with the claim count; a qualifier picks the claim instead. The two exist because a claim in
- * flight is not the claim on file -- see the field descriptions below.
- * <p>
- * Each flow type offers only the fields that mean something in it: a registration has no stored user to
- * read claims, groups or roles from, for instance.
  */
 public class FlowRuleMetadataProvider implements RuleMetadataProvider {
 
@@ -67,8 +59,7 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     public static final String APPLICATION = "application";
 
     /**
-     * What is stored for the user, read from the user store. Only meaningful once the user exists,
-     * which in a registration flow is not until onboarding.
+     * What is stored for the user, read from the user store.
      */
     public static final String USER_CLAIMS = "user.claims";
 
@@ -99,8 +90,8 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
             Arrays.asList(USER_CLAIMS, USER_COLLECTED_CLAIMS)));
 
     /**
-     * The fields a claim condition's value may be read from instead of being given, such as a claim collected
-     * in this flow compared with the one already stored for the user. Narrowed to the fields a flow offers.
+     * The fields a claim condition's value may be read from instead of being given, such as a claim collected in this
+     * flow compared with the one already stored for the user.
      */
     private static final List<String> COMPARABLE_FIELDS = Collections.unmodifiableList(
             Arrays.asList(USER_CLAIMS, USER_COLLECTED_CLAIMS));
@@ -144,9 +135,7 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     private static final Operator NOT_IN = new Operator("notIn", "not in");
 
     /**
-     * Everything a claim could ever accept. What is actually legal depends on the claim the author
-     * picks, which this entry cannot know -- that is narrowed when the qualifier is chosen and enforced
-     * when the flow is saved.
+     * Everything a claim could ever accept.
      */
     private static final List<Operator> CLAIM_OPERATORS = Collections.unmodifiableList(Arrays.asList(
             EQUALS,
@@ -219,9 +208,7 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     }
 
     /**
-     * A claim field. The qualifier is picked from the claim dialect, so an author chooses a claim rather
-     * than typing a URI; the value itself is free text, because a claim's value is not enumerable. Its value
-     * may also be read from the other claim fields the flow offers.
+     * A claim field.
      */
     private FieldDefinition claimField(String name, String displayName, List<String> flowFields) {
 
@@ -253,9 +240,6 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
 
     /**
      * The user stores of the tenant, offered as the values a domain condition may name.
-     * <p>
-     * The primary store is named as the deployment names it -- {@code PRIMARY} by default, {@code DEFAULT} on
-     * Asgardeo -- followed by every enabled secondary store.
      *
      * @param tenantDomain Tenant domain.
      * @return The user store domains.

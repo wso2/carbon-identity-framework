@@ -104,7 +104,6 @@ import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerE
 public class FlowDAOImpl implements FlowDAO {
 
     private static final Log LOG = LogFactory.getLog(FlowDAOImpl.class);
-    // Configured once here: a shared mapper is only safe to use concurrently once it stops changing.
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -306,10 +305,8 @@ public class FlowDAOImpl implements FlowDAO {
             // Step 3: Fetch Page Content with JOIN (Updated Query).
             Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(graphConfig.getId(),tenantId, jdbcTemplate);
 
-            // Step 4: Put the branches of each rule evaluation back on its step.
             attachBranches(jdbcTemplate, flowType, tenantId, nodePageMappings.values());
 
-            // Step 5: Set the page mappings.
             graphConfig.setNodePageMappings(nodePageMappings);
             return graphConfig;
         } catch (DataAccessException e) {
@@ -362,13 +359,10 @@ public class FlowDAOImpl implements FlowDAO {
         Map<String, StepDTO> nodePageMappings = new HashMap<>();
 
         addStepsOfType(jdbcTemplate, flowId, tenantId, VIEW, stepDTO -> true, nodePageMappings);
-        // An execution only counts as a page when it carries components; the rest run and move on.
         addStepsOfType(jdbcTemplate, flowId, tenantId, EXECUTION,
                 stepDTO -> stepDTO.getData() != null && stepDTO.getData().getComponents() != null,
                 nodePageMappings);
         addStepsOfType(jdbcTemplate, flowId, tenantId, END, stepDTO -> true, nodePageMappings);
-        // A rule evaluation renders nothing, but the node reads its branches from its step, which
-        // attachBranches fills in from IDN_FLOW_NODE_BRANCH.
         addStepsOfType(jdbcTemplate, flowId, tenantId, RULE_EVALUATION, stepDTO -> true, nodePageMappings);
 
         return nodePageMappings;
@@ -489,9 +483,6 @@ public class FlowDAOImpl implements FlowDAO {
 
     /**
      * Stores the branches of a rule evaluation step, one row each, in evaluation order, each with its rule.
-     * <p>
-     * Where a branch leads is not stored here: that is the target of the edge it triggers in
-     * IDN_FLOW_NODE_MAPPING, whose triggering element is the branch key.
      */
     private void insertBranches(Template<?> template, int flowNodeId,
                                 StepDTO stepDTO, int tenantId) throws FlowMgtFrameworkException, DataAccessException {
@@ -518,9 +509,6 @@ public class FlowDAOImpl implements FlowDAO {
 
     /**
      * Puts the stored branches of each rule evaluation step back on the step, as the branches of its action.
-     * <p>
-     * A branch with no edge leads to the end of the flow: an edge to END is not recorded when the flow has no
-     * explicit end step.
      */
     private void attachBranches(JdbcTemplate jdbcTemplate, String flowType, int tenantId, Collection<StepDTO> steps)
             throws DataAccessException {
@@ -564,7 +552,6 @@ public class FlowDAOImpl implements FlowDAO {
             throws FlowMgtFrameworkException {
 
         if (rule == null) {
-            // No rule: the default.
             return null;
         }
         try {
@@ -603,8 +590,7 @@ public class FlowDAOImpl implements FlowDAO {
             if (!RULE_EVALUATION.equals(stepDTO.getType())) {
                 return Optional.of(serializeObject(stepDTO.getData()));
             }
-            // The page content is what the builder renders. The branches are stored in their own table, so they
-            // are left out here rather than kept in two places.
+            // Branches are stored in IDN_FLOW_NODE_BRANCH, not in the page content.
             JsonNode data = OBJECT_MAPPER.valueToTree(stepDTO.getData());
             JsonNode action = data.get("action");
             if (action instanceof ObjectNode) {

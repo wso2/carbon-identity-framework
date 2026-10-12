@@ -75,8 +75,7 @@ public class ActionDTO implements Serializable {
     }
 
     /**
-     * Outgoing branches of a rule decision, in evaluation order. Null for every other action type,
-     * which goes to a single {@link #getNextId()} instead.
+     * Outgoing branches of a rule decision, in evaluation order; null for every other action type.
      *
      * @return The branches, or null when this action does not decide.
      */

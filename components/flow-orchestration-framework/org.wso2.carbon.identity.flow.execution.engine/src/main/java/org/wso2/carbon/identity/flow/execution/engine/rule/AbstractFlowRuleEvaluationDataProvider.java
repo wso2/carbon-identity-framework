@@ -54,10 +54,6 @@ import java.util.regex.Pattern;
 
 /**
  * Supplies the values a flow condition is evaluated against.
- * <p>
- * The providers are registered one per flow type, because the evaluation data manager keys them that
- * way. Each concrete provider says which flow type it serves and may answer differently; everything
- * they share lives here.
  */
 public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEvaluationDataProvider {
 
@@ -69,14 +65,12 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     public static final String APPLICATION = "application";
 
     /**
-     * What is stored for the user. Keyed by claim URI. Reachable only once the user exists, which in
-     * a registration flow is not until onboarding.
+     * What is stored for the user.
      */
     public static final String USER_CLAIMS = "user.claims";
 
     /**
-     * What this run of the flow has gathered so far, whether the user entered it or an executor
-     * produced it. Keyed by claim URI.
+     * What this run of the flow has gathered so far, whether the user entered it or an executor produced it.
      */
     public static final String USER_COLLECTED_CLAIMS = "user.collectedClaims";
 
@@ -115,11 +109,6 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
 
     /**
      * Resolve one field.
-     * <p>
-     * Every requested field gets an answer, even when there is no value to give: evaluation treats a
-     * missing entry as an error, whereas a present but empty one simply does not satisfy the
-     * expression. A condition placed before the step that produces its value should send the flow
-     * down the default branch, not fail it.
      *
      * @param field        Field to resolve, carrying its qualifier where it has one.
      * @param context      Flow execution context.
@@ -165,8 +154,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     }
 
     /**
-     * The user store of the user, once the user exists. A user whose domain is not recorded belongs to the
-     * primary store, named as the tenant names it.
+     * The user store of the user, once the user exists.
      */
     private FieldValue userDomain(Field field, FlowExecutionContext context, String tenantDomain) {
 
@@ -190,8 +178,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     }
 
     /**
-     * The ids of the groups the user is assigned to. Yields no set until the user exists, so that neither
-     * {@code in} nor {@code notIn} holds for a user the flow has not identified.
+     * The ids of the groups the user is assigned to.
      */
     private FieldValue userGroups(Field field, FlowExecutionContext context, String tenantDomain) {
 
@@ -255,9 +242,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     }
 
     /**
-     * Read a claim from the user store. Yields nothing until the user exists, which is why a
-     * condition on stored claims placed before onboarding takes the default branch rather than
-     * failing.
+     * Read a claim from the user store.
      */
     private FieldValue persistedClaim(Field field, FlowExecutionContext context, String tenantDomain) {
 
@@ -273,7 +258,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
             return claimValue(field, claims == null ? null : claims.get(field.getQualifier()),
                     user.getUserStoreDomain(), tenantDomain);
         } catch (UserStoreException e) {
-            // Failing soft: a store that cannot answer should not take the whole flow down.
+            // A user store that cannot answer must not fail the flow.
             LOG.warn("Could not read claim " + field.getQualifier() + " for the user in tenant " + tenantDomain
                     + ". The condition on it will not hold.", e);
             return absent(field);
@@ -294,11 +279,6 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
 
     /**
      * A claim value, as a set when the claim holds more than one value.
-     * <p>
-     * A multi-valued claim is stored joined on the multi-attribute separator. Compared as one string,
-     * {@code in} would test the joined form for membership and never match, so it is split here and
-     * evaluated as a set. A missing value stays a missing scalar whatever the claim, so that no
-     * operator -- {@code notIn} included -- holds on it.
      *
      * @param field           Field being resolved.
      * @param rawValue        Value as stored or collected.
@@ -351,8 +331,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     }
 
     /**
-     * A set that is not there, rather than an empty one: no membership operator holds on it, {@code notIn}
-     * included.
+     * A set that is not there, rather than an empty one: no membership operator holds on it, {@code notIn} included.
      */
     private FieldValue absentSet(Field field) {
 

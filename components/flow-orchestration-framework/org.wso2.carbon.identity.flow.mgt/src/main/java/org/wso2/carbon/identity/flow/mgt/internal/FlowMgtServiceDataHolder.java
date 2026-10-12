@@ -49,8 +49,8 @@ public class FlowMgtServiceDataHolder {
     }
 
     /**
-     * Claim metadata, used to check that a condition names a real claim and uses an operator that
-     * claim actually allows.
+     * Claim metadata, used to check that a condition names a real claim and uses an operator that claim actually
+     * allows.
      *
      * @return The claim metadata service, or null when it is not yet available.
      */

@@ -167,10 +167,6 @@ public class GraphBuilder {
 
     /**
      * A rule evaluation has one outgoing edge per branch rather than a single next step.
-     * <p>
-     * Each edge is triggered by its branch, the way a user-choice decision's edges are triggered by the
-     * element pressed, so the edge carries the branch id. That is what ties a stored branch to its target,
-     * and the database catches a target that does not exist.
      *
      * @param step The rule evaluation step.
      * @throws FlowMgtClientException If the step carries no action or no branches.
@@ -189,7 +185,6 @@ public class GraphBuilder {
         }
         validateBranches(step.getId(), action.getBranches());
 
-        // Evaluating the branches is what the node type itself does, so there is no executor to name.
         if (action.getExecutor() != null) {
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_DECISION_INVALID_EXECUTOR,
                     step.getId(), action.getExecutor().getName());
@@ -204,10 +199,6 @@ public class GraphBuilder {
 
     /**
      * Reject a decision that cannot work, while the author can still see what they configured.
-     * <p>
-     * These are the mistakes that would otherwise be silent: without a default branch the flow has
-     * nowhere to go when nothing matches, and with two there is no saying which one wins. Both only
-     * show up when a user walks the flow, long after the mistake was made.
      *
      * @param stepId   Id of the decision step, for the message.
      * @param branches Branches to check.

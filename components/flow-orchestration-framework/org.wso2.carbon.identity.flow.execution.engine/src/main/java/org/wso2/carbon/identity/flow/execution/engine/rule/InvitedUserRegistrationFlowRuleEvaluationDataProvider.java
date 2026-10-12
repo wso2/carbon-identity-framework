@@ -22,11 +22,6 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 
 /**
  * Supplies condition values for the invited user registration flow.
- * <p>
- * Providers are registered one per flow type, so each flow type needs its own instance even where
- * the behaviour is shared. Keeping that behaviour in the base class is what lets these diverge
- * later -- a registration flow has no persisted user until onboarding, for instance -- without the
- * divergence arriving by accident.
  */
 public class InvitedUserRegistrationFlowRuleEvaluationDataProvider extends AbstractFlowRuleEvaluationDataProvider {
 

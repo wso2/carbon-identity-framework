@@ -24,11 +24,6 @@ import java.io.Serializable;
 
 /**
  * One outgoing branch of a rule decision.
- * <p>
- * Branches are evaluated in the order they appear, and the first whose rule holds selects the next
- * step. The branch with no rule is the default: it is what makes a decision total, so exactly one
- * branch must be without one. Its position in the list is not what makes it the default -- the
- * absence of a rule is -- but it is written back last so the stored order reads as evaluation order.
  */
 public class BranchDTO implements Serializable {
 
@@ -62,8 +57,7 @@ public class BranchDTO implements Serializable {
     }
 
     /**
-     * Label for this branch, shown on the canvas and cited in validation messages. An author reads
-     * "branch 'Internal staff'" and knows what to fix; an array index tells them nothing.
+     * Label for this branch, shown on the canvas and cited in validation messages.
      *
      * @return The branch name.
      */
@@ -88,7 +82,7 @@ public class BranchDTO implements Serializable {
     }
 
     /**
-     * The guard on this branch. Null marks the default branch, which always holds.
+     * The guard on this branch; null on the default branch.
      *
      * @return The rule, or null when this is the default branch.
      */

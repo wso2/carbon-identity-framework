@@ -86,10 +86,6 @@ public class FlowExecutionEngineServiceComponent {
                     FlowExecutionService.getInstance(), null);
             bundleContext.registerService(FlowExecutionListener.class.getName(), new InputProcessingListener(),
                     null);
-            /*
-             * One provider per flow type: the evaluation data manager keys providers by the single
-             * flow type each declares, so three flow types need three registrations.
-             */
             bundleContext.registerService(RuleEvaluationDataProvider.class.getName(),
                     new RegistrationFlowRuleEvaluationDataProvider(), null);
             bundleContext.registerService(RuleEvaluationDataProvider.class.getName(),

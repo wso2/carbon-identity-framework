@@ -53,11 +53,6 @@ import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerE
 
 /**
  * Checks the conditions on a flow's decisions against what the flow actually publishes.
- * <p>
- * The check is the one rule management applies to any rule: the field has to exist, the operator has
- * to be one that field accepts, and the value has to match the field's type. Replaying the condition
- * through the same builder is what keeps a flow condition and an action condition rejecting for the
- * same reasons, rather than two validators drifting apart.
  */
 public class FlowRuleValidator {
 
@@ -65,9 +60,7 @@ public class FlowRuleValidator {
     private static final String NOT_IN = "notIn";
 
     /**
-     * The only operators a multi-valued claim accepts. Anything else compares against the joined
-     * form of the values, which matches substrings of neighbouring values and is wrong in a way
-     * nothing reports at runtime.
+     * The only operators a multi-valued claim accepts.
      */
     private static final Set<String> MEMBERSHIP_OPERATORS =
             Collections.unmodifiableSet(new HashSet<>(Arrays.asList(IN, NOT_IN)));
@@ -76,8 +69,8 @@ public class FlowRuleValidator {
             Arrays.asList("equals", "notEquals", "greaterThan", "lessThan")));
 
     /**
-     * Everything that is not a number is compared as text, dates and booleans included: nothing
-     * validates their format on write, so ordering them would compare strings.
+     * Everything that is not a number is compared as text, dates and booleans included: nothing validates their format
+     * on write, so ordering them would compare strings.
      */
     private static final Set<String> TEXT_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList("equals", "notEquals", "contains", "notContains", "startsWith", "endsWith")));
@@ -127,11 +120,7 @@ public class FlowRuleValidator {
                     flowType, stepId);
         }
 
-        /*
-         * The rule builder checks these too, but reports every failure as one generic invalid condition. Checking
-         * them first gives the author the specific reason: a missing or stray qualifier, or a list under the wrong
-         * operator.
-         */
+        // Checked before the rule builder, so the error names the specific problem.
         for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
             for (Expression expression : andCombinedRule.getExpressions()) {
                 validateKey(branch, expression);
@@ -144,7 +133,6 @@ public class FlowRuleValidator {
             boolean firstGroup = true;
             for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
                 if (!firstGroup) {
-                    // Closes the group before it and opens the next.
                     ruleBuilder.addOrCondition();
                 }
                 for (Expression expression : andCombinedRule.getExpressions()) {
@@ -158,11 +146,6 @@ public class FlowRuleValidator {
                     branch.getName(), stepId, e.getMessage());
         }
 
-        /*
-         * The builder checks the operator against what the *field* declares, and a claim field
-         * declares everything any claim could accept. Which operators are legal depends on the claim
-         * the qualifier names, so that check can only happen once the qualifier is known.
-         */
         for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
             for (Expression expression : andCombinedRule.getExpressions()) {
                 if (isClaimField(expression.getField())) {
@@ -224,8 +207,7 @@ public class FlowRuleValidator {
     }
 
     /**
-     * Membership needs a set on the right; everything else needs a single value. Checked for every
-     * field, since a mismatch on any of them evaluates to something the author did not write.
+     * Membership needs a set on the right; everything else needs a single value.
      */
     /**
      * A value read from a claim field must name a claim that exists, as the expression's own claim must.
@@ -246,7 +228,6 @@ public class FlowRuleValidator {
     private static void validateValueShape(BranchDTO branch, Expression expression) throws FlowMgtClientException {
 
         if (expression.getValue() != null && expression.getValue().getType() == Value.Type.FIELD) {
-            // Read from another field: whether that holds one value or several is only known at evaluation.
             return;
         }
         boolean membership = MEMBERSHIP_OPERATORS.contains(expression.getOperator());
@@ -268,8 +249,8 @@ public class FlowRuleValidator {
     }
 
     /**
-     * The local claims of a tenant, read once per save however many conditions refer to them, and
-     * only when some condition does.
+     * The local claims of a tenant, read once per save however many conditions refer to them, and only when some
+     * condition does.
      */
     private static final class ClaimLookup {
 
@@ -294,7 +275,6 @@ public class FlowRuleValidator {
             ClaimMetadataManagementService claimService =
                     FlowMgtServiceDataHolder.getInstance().getClaimMetadataManagementService();
             if (claimService == null) {
-                // Not the author's mistake, so not reported as an unknown claim.
                 throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_METADATA, tenantDomain);
             }
             try {

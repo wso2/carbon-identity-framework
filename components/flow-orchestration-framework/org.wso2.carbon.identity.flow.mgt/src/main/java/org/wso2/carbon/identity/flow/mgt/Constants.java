@@ -225,8 +225,8 @@ public class Constants {
         public static final String TASK_EXECUTION = "TASK_EXECUTION";
         public static final String PROMPT_ONLY = "PROMPT_ONLY";
         /**
-         * A decision made by evaluating rules against the flow context, as opposed to
-         * {@link #DECISION}, which is a decision made by the user pressing something.
+         * A decision made by evaluating rules against the flow context, as opposed to {@link #DECISION}, which is a
+         * decision made by the user pressing something.
          */
         public static final String RULE_EVALUATION = "RULE_EVALUATION";
 

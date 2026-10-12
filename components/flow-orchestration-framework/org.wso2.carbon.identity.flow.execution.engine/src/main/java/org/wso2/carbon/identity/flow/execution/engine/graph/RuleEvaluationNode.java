@@ -42,10 +42,6 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.RULE_EVALUAT
 
 /**
  * A step that decides where the flow goes by evaluating rules against the context.
- * <p>
- * Distinct from the user-choice decision node, which branches on what the user pressed. This one
- * never pauses: it evaluates, picks a successor and completes within the same request. Evaluating
- * the branches is what the node type itself means, so it runs no executor.
  */
 public class RuleEvaluationNode implements Node {
 
@@ -62,11 +58,6 @@ public class RuleEvaluationNode implements Node {
 
         BranchDTO selected = selectBranch(context, branchesOf(context, nodeConfig));
         if (selected == null) {
-            /*
-             * Every decision must be total: the branch without a rule always holds, so reaching here
-             * means the flow was stored without one. Validation rejects that on save, which is why
-             * this is a server error rather than something to route around.
-             */
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE,
                     nodeConfig.getType(), context.getFlowType(),
                     context.getGraphConfig().getId(), context.getTenantDomain());
@@ -82,15 +73,11 @@ public class RuleEvaluationNode implements Node {
     @Override
     public NodeResponse rollback(FlowExecutionContext context, NodeConfig nodeConfig) throws FlowEngineException {
 
-        // A decision changes nothing, so there is nothing to undo.
         return new NodeResponse.Builder().status(Constants.STATUS_COMPLETE).build();
     }
 
     /**
      * The first branch whose rule holds, or the default.
-     * <p>
-     * Order is the order the branches were authored in. The default is the branch carrying no rule,
-     * which is what makes a decision total -- it is taken whatever the context says.
      *
      * @param context  Flow execution context.
      * @param branches Branches of the decision, in evaluation order.
@@ -101,7 +88,6 @@ public class RuleEvaluationNode implements Node {
         BranchDTO defaultBranch = null;
         for (BranchDTO branch : branches) {
             if (branch.isDefault()) {
-                // Held back: a default earlier in the list must not pre-empt a guarded branch.
                 defaultBranch = branch;
                 continue;
             }
@@ -131,11 +117,7 @@ public class RuleEvaluationNode implements Node {
             return evaluationService.evaluate(branch.getRule(), flowContext, context.getTenantDomain())
                     .isRuleSatisfied();
         } catch (Exception e) {
-            /*
-             * A branch that cannot be evaluated does not hold, so the decision falls through to the
-             * next branch and ultimately to the default. Failing the flow instead would turn a
-             * misconfigured condition into an outage.
-             */
+            // A branch that fails to evaluate does not hold, so the flow falls through to the default.
             LOG.warn("Could not evaluate branch '" + branch.getName() + "'. It will not hold.", e);
             return false;
         }
