@@ -93,7 +93,7 @@ public class FieldValue {
     }
 
     /**
-     * Qualifier this value was resolved for, echoing the qualifier of the field it answers.
+     * Qualifier of the field this value was resolved for.
      *
      * @return The qualifier, or null when the field is not qualified.
      */

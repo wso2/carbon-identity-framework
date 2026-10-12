@@ -38,12 +38,11 @@ public class Field {
     }
 
     /**
-     * A field that names a family of values rather than one -- a claim, for instance -- and so needs a qualifier
-     * to say which of its values a rule means.
+     * A field that takes a qualifier, such as a claim.
      *
      * @param name        The field name.
      * @param displayName The name shown for the field.
-     * @param qualifier   How the qualifier is entered, or null for a field naming a single value.
+     * @param qualifier   How the qualifier is entered, or null when the field takes none.
      */
     public Field(String name, String displayName, Value qualifier) {
 
@@ -64,10 +63,9 @@ public class Field {
     }
 
     /**
-     * How a qualifier is chosen for this field, for fields that name a family of values rather than one --
-     * a claim, for instance, where the qualifier is the claim URI. Absent on fields that name one value.
+     * How the qualifier is entered.
      *
-     * @return Meta describing how to supply the qualifier, or null when the field is not qualified.
+     * @return The qualifier meta, or null when the field takes no qualifier.
      */
     public Value getQualifier() {
 

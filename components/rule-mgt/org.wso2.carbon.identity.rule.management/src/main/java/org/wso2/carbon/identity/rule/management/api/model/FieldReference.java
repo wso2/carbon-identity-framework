@@ -26,10 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 /**
- * A reference to a field whose value is read when the rule is evaluated, rather than given in the rule.
- * <p>
- * Named the same way the left-hand side of an expression is: a field, and for a field that names a family of
- * values, the qualifier that picks one of them.
+ * A field, and its qualifier when it takes one, whose value is read when the rule is evaluated.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)

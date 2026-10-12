@@ -540,6 +540,40 @@ public class RuleEvaluatorTest {
                 new Value(null, "b@x.com")), data).isRuleSatisfied());
     }
 
+    /**
+     * A single value on the other side counts as a set of one, so in / notIn behave as equals / notEquals.
+     */
+    @Test
+    public void testFieldComparisonInTreatsASingleValueAsASetOfOne() throws Exception {
+
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("in"), twoFields("LK", "LK")).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("notIn"), twoFields("LK", "LK")).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("in"), twoFields("LK", "IN")).isRuleSatisfied());
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("notIn"), twoFields("LK", "IN")).isRuleSatisfied());
+    }
+
+    /**
+     * equals and notEquals are not defined when either side holds several values, so neither holds; notEquals in
+     * particular must not hold every time.
+     */
+    @Test
+    public void testFieldComparisonWithASetOnEitherSideHoldsOnlyForMembership() throws Exception {
+
+        Map<String, FieldValue> bothSets = new HashMap<>();
+        bothSets.put("collected", new FieldValue("collected", Arrays.asList("a@x.com", "b@x.com")));
+        bothSets.put("stored", new FieldValue("stored", Arrays.asList("c@x.com")));
+        Map<String, FieldValue> setOnTheRight = new HashMap<>();
+        setOnTheRight.put("collected", new FieldValue("collected", "a@x.com", ValueType.STRING));
+        setOnTheRight.put("stored", new FieldValue("stored", Arrays.asList("a@x.com")));
+
+        for (Map<String, FieldValue> data : Arrays.asList(bothSets, setOnTheRight)) {
+            assertFalse(ruleEvaluator.evaluate(comparedWithStored("equals"), data).isRuleSatisfied());
+            assertFalse(ruleEvaluator.evaluate(comparedWithStored("notEquals"), data).isRuleSatisfied());
+        }
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("notIn"), bothSets).isRuleSatisfied());
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("in"), setOnTheRight).isRuleSatisfied());
+    }
+
     private Rule comparedWithStored(String operator) {
 
         return ruleWithSingleExpression("collected", operator, new Value(new FieldReference("stored", null)));

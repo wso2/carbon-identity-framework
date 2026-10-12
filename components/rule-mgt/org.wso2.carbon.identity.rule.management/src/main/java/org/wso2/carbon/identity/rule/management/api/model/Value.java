@@ -67,13 +67,8 @@ public class Value implements Serializable {
     }
 
     /**
-     * Reads every stored shape: a single value, a LIST's values, or a FIELD's reference. A value stored before
-     * LIST and FIELD existed carries neither and reads exactly as it did.
-     * <p>
-     * Only LIST and FIELD are checked for their shape. A scalar has always been accepted with a null value, so
-     * requiring one now would make rules stored earlier unreadable. A null type is not rejected either: the
-     * stored rules are read with unknown enum constants as null, so that a value type added by a newer node
-     * reads here as null and fails closed on evaluation instead of making the whole rule unreadable.
+     * Reads every stored shape: a single value, a LIST or a FIELD. Only LIST and FIELD are checked; a null type is
+     * allowed, so that a type unknown to this node fails closed on evaluation.
      */
     @JsonCreator
     public Value(@JsonProperty("type") Type type, @JsonProperty("value") String fieldValue,
@@ -114,8 +109,7 @@ public class Value implements Serializable {
     }
 
     /**
-     * The values of a LIST valued expression. Null for every other type, where {@link #getFieldValue()}
-     * carries the single value instead.
+     * The values of a LIST.
      *
      * @return The values, or null when this is not a LIST.
      */
@@ -125,7 +119,7 @@ public class Value implements Serializable {
     }
 
     /**
-     * The field a FIELD valued expression is compared against. Null for every other type.
+     * The field a FIELD value is read from.
      *
      * @return The referenced field, or null when this is not a FIELD.
      */

@@ -63,10 +63,7 @@ public class FieldExtractor {
         Set<String> extractedFields = new HashSet<>();
 
         for (Expression expression : rule.getExpressions()) {
-            // The qualifier takes part in identity: two expressions over the same field with different qualifiers
-            // are different values, and de-duplicating on the name alone would drop the second.
             if (extractedFields.add(FieldLookup.token(expression.getField(), expression.getFieldQualifier()))) {
-                // Metadata is held per field, not per qualifier, so the definition is still looked up by name.
                 FieldDefinition fieldDefinition = expressionMetadataFieldsMap.get(expression.getField());
                 if (fieldDefinition == null) {
                     throw new RuleEvaluationException(
@@ -76,7 +73,6 @@ public class FieldExtractor {
                 fieldList.add(new Field(expression.getField(), expression.getFieldQualifier(),
                         resolveValueType(fieldDefinition.getValue())));
             }
-            // A value read from another field needs that field resolved too.
             FieldReference reference = expression.getValue() == null ? null
                     : expression.getValue().getFieldReference();
             if (reference != null && expression.getValue().getType()

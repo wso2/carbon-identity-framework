@@ -123,12 +123,8 @@ public class RuleEvaluator {
         Operator operator = operatorRegistry.getOperator(expression.getOperator());
         Value value = expression.getValue();
 
+        // A value type unknown to this node is read as null; such a condition never holds.
         if (value != null && value.getType() == null) {
-            /*
-             * Stored rules are read with unknown value types as null, so a type added by a newer node arrives here
-             * without one. What its value means is unknown, so the condition fails closed rather than being read
-             * as a plain value.
-             */
             return false;
         }
 
@@ -138,10 +134,8 @@ public class RuleEvaluator {
 
         if (value != null && value.getType() == Value.Type.LIST && !fieldValue.getValueType().equals(LIST)) {
             if (value.getFieldValues() == null) {
-                // A missing set holds for no operator, negated ones included.
                 return false;
             }
-            // A set of the field's own type: its entries are read the way a single value of that type would be.
             return operator.apply(fieldValue.getValue(), typedEntries(fieldValue.getValueType(),
                     value.getFieldValues()));
         }
@@ -164,14 +158,14 @@ public class RuleEvaluator {
     }
 
     /**
-     * Compares a field with another field read from the same context, rather than with a value given in the rule.
+     * Compares a field with another field. A side without a value never holds.
      * <p>
-     * A comparison with a side that has no value does not hold, for any operator, negated ones included: an
-     * absent value is not known to differ from anything.
+     * {@code in} and {@code notIn} compare the two sides as sets, a single value counting as a set of one. Any
+     * other operator holds only between two single values.
      *
      * @param operator       Operator of the expression.
-     * @param left           Value of the expression's own field.
-     * @param reference      The field the expression is compared against.
+     * @param left           Value of the expression's field.
+     * @param reference      The field compared against.
      * @param evaluationData Values resolved for the rule.
      * @return Whether the comparison holds.
      */
@@ -185,18 +179,31 @@ public class RuleEvaluator {
         if (right == null || right.getValue() == null) {
             return false;
         }
-        if (left.getValueType().equals(LIST)) {
-            return applyOperatorForList(operator, left.getValue(), right.getValue());
+        if (isMembership(operator)) {
+            return operator.getName().equals(IN) != Collections.disjoint(asCollection(left.getValue()),
+                    asCollection(right.getValue()));
+        }
+        if (left.getValue() instanceof Collection || right.getValue() instanceof Collection) {
+            return false;
         }
         return operator.apply(left.getValue(), right.getValue());
     }
 
+    private static boolean isMembership(Operator operator) {
+
+        return IN.equals(operator.getName()) || NOT_IN.equals(operator.getName());
+    }
+
+    private static Collection<?> asCollection(Object value) {
+
+        return value instanceof Collection ? (Collection<?>) value : Collections.singletonList(value);
+    }
+
     /**
-     * The right-hand side of an expression. A LIST carries its values separately from the single
-     * value every other type uses, so which one to read is decided by the declared type.
+     * The right-hand side of an expression: the values of a LIST, otherwise the single value.
      *
      * @param expression Expression being evaluated.
-     * @return The values for a LIST, otherwise the single value.
+     * @return The right-hand side.
      */
     private static Object rightOperand(Expression expression) {
 
@@ -205,8 +212,7 @@ public class RuleEvaluator {
     }
 
     /**
-     * The entries of a LIST value, converted to the type of the field they are compared with, so that a number
-     * or a boolean is matched against numbers or booleans rather than against their text.
+     * The entries of a LIST value, converted to the value type of the field they are compared with.
      *
      * @param valueType Value type of the field.
      * @param entries   Entries of the LIST value.
@@ -231,17 +237,11 @@ public class RuleEvaluator {
 
         List<?> list = (List<?>) fieldValue;
         if (list == null) {
-            // A missing set holds for no operator, negated ones included.
             return false;
         }
 
-        if (operator.getName().equals(IN) || operator.getName().equals(NOT_IN)) {
-            /*
-             * Both sides are sets here, so membership is intersection: in holds when they share a
-             * value. A right-hand side that is not a set cannot be intersected, and neither operator
-             * holds in that case -- a malformed expression fails closed rather than passing by
-             * negation.
-             */
+        if (isMembership(operator)) {
+            // Membership between two sets holds when they share a value; a right side that is not a set never holds.
             if (!(expressionValue instanceof Collection)) {
                 return false;
             }

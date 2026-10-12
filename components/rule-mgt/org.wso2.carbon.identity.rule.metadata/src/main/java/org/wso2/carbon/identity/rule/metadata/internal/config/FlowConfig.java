@@ -140,7 +140,6 @@ public class FlowConfig {
             throw new IllegalArgumentException("Field 'name' cannot be overridden");
         }
 
-        // Only the display name is overridden, so the qualifier carries over unchanged.
         return new Field(fieldDefinition.getField().getName(),
                 Objects.requireNonNull(overriddenAttributes.get("displayName")).toString(),
                 fieldDefinition.getField().getQualifier());

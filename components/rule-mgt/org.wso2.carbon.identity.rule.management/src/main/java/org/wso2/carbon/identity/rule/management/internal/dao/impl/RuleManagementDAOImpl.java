@@ -49,6 +49,9 @@ import java.nio.charset.StandardCharsets;
 public class RuleManagementDAOImpl implements RuleManagementDAO {
 
     private static final String V1 = "1.0.0";
+    // Unknown enum values read as null, so a value type added by a newer node fails closed instead of the read.
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
 
     /**
      * This method will add the Rule to the database and add the Rule Value References to the database.
@@ -311,8 +314,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
     private InputStream convertRuleToJson(Rule rule) throws RuleManagementServerException {
 
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return new ByteArrayInputStream(objectMapper.writeValueAsString(rule).getBytes(StandardCharsets.UTF_8));
+            return new ByteArrayInputStream(OBJECT_MAPPER.writeValueAsString(rule).getBytes(StandardCharsets.UTF_8));
         } catch (JsonProcessingException e) {
             throw new RuleManagementServerException("Failed to convert rule to JSON.", e);
         }
@@ -321,14 +323,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
     private ORCombinedRule convertJsonToRule(String ruleJson) throws RuleManagementServerException {
 
         try {
-            /*
-             * Unknown enum constants are tolerated so that a rule written by a newer node, carrying a
-             * value type this node does not know, degrades to a null type rather than failing the read.
-             * Unknown *properties* are handled separately, by @JsonIgnoreProperties on the models.
-             */
-            ObjectMapper objectMapper = new ObjectMapper()
-                    .configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
-            return objectMapper.readValue(ruleJson, ORCombinedRule.class);
+            return OBJECT_MAPPER.readValue(ruleJson, ORCombinedRule.class);
         } catch (JsonProcessingException e) {
             throw new RuleManagementServerException("Failed to convert JSON to rule.", e);
         }

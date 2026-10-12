@@ -46,8 +46,7 @@ public class Field {
     }
 
     /**
-     * Qualifier selecting a value within the field. A data provider needs it to know which value to
-     * resolve -- which claim, for instance -- for fields that name a family rather than one value.
+     * Qualifier selecting one value of the field, such as a claim URI.
      *
      * @return The qualifier, or null when the field is not qualified.
      */

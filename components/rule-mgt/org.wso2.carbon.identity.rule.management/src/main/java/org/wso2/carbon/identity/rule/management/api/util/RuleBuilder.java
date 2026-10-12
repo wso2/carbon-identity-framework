@@ -51,6 +51,7 @@ public class RuleBuilder {
     private static final String NOT_IN = "notIn";
     private static final String FIELD = "Field ";
     private static final String OPERATOR = "Operator ";
+    private static final String NOT_SUPPORTED_FOR_FIELD = " is not supported for field ";
 
     private final ORCombinedRule.Builder orCombinedRuleBuilder = new ORCombinedRule.Builder();
     private ANDCombinedRule.Builder andCombinedRuleBuilder = new ANDCombinedRule.Builder();
@@ -214,15 +215,14 @@ public class RuleBuilder {
         if (fieldDefinition.getOperators().stream()
                 .noneMatch(op -> op.getName().equals(operator))) {
             setValidationError(
-                    OPERATOR + operator + " is not supported for field " + fieldDefinition.getField().getName());
+                    OPERATOR + operator + NOT_SUPPORTED_FOR_FIELD + fieldDefinition.getField().getName());
             return false;
         }
         return true;
     }
 
     /**
-     * A field that names a family of values -- a claim, for instance -- needs a qualifier to say which of them a
-     * condition means, and a field that names a single value takes none.
+     * A qualified field, such as a claim, needs a qualifier; any other field takes none.
      */
     private boolean isValidQualifier(FieldDefinition fieldDefinition, String field, String qualifier) {
 
@@ -237,9 +237,7 @@ public class RuleBuilder {
     }
 
     /**
-     * A LIST is the right-hand side of a membership check and of nothing else: under any other operator it would
-     * be compared as one value against the field's value and, for a negated operator, hold every time. A
-     * membership check in turn needs a set to look in, given as a list or read from another field.
+     * A LIST value is allowed only with in / notIn, and in / notIn need a LIST or a FIELD value.
      */
     private boolean isValidValueForOperator(String field, String operator, Value value) {
 
@@ -316,8 +314,7 @@ public class RuleBuilder {
     }
 
     /**
-     * A LIST is a set of values of the field's own type rather than a type of its own, so each entry
-     * is checked the way a single value would be and the list is kept as it was authored.
+     * Each entry of a LIST value is checked as a single value of the field's type.
      */
     private Value validateListValue(FieldDefinition fieldDefinition, Value value) {
 
@@ -342,9 +339,8 @@ public class RuleBuilder {
     }
 
     /**
-     * A FIELD value is read from another field when the rule is evaluated, so there is nothing to resolve here.
-     * What is checked is that the field may be compared with that one at all, and that the reference picks a value
-     * within it exactly when that field names a family of values.
+     * A FIELD value must name a field listed as comparable, of the same value type, with a qualifier exactly
+     * when that field takes one.
      */
     private Value validateFieldValue(FieldDefinition fieldDefinition, Value value) {
 
@@ -414,11 +410,10 @@ public class RuleBuilder {
                 fieldDefinition.getValue().getValueType();
         Value.Type valueType = value.getType();
 
-        // A LIST carries values of the field's type, so it is checked entry by entry instead.
         if (valueType != Value.Type.RAW && valueType != Value.Type.LIST
                 && !valueType.name().equals(fieldDefinitionValueType.name())) {
             setValidationError(
-                    "Value type " + valueType + " is not supported for field " + fieldDefinition.getField().getName());
+                    "Value type " + valueType + NOT_SUPPORTED_FOR_FIELD + fieldDefinition.getField().getName());
             return false;
         }
         return true;
@@ -430,7 +425,7 @@ public class RuleBuilder {
                 ((OptionsInputValue) fieldDefinition.getValue()).getValues().stream()
                         .noneMatch(optionsValue -> optionsValue.getName().equals(fieldValue))) {
             setValidationError(
-                    "Value " + fieldValue + " is not supported for field " + fieldDefinition.getField().getName());
+                    "Value " + fieldValue + NOT_SUPPORTED_FOR_FIELD + fieldDefinition.getField().getName());
             return false;
         }
 

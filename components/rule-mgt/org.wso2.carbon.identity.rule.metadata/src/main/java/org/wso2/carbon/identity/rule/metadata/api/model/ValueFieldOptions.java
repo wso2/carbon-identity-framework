@@ -23,10 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The other fields a field's value may be read from when the rule is evaluated, instead of being given in the rule.
- * <p>
- * Kept apart from {@link Value}, which describes how a value given in the rule is entered: a field that can be
- * compared with others takes both, so the two sit side by side on the {@link FieldDefinition}.
+ * The fields a value may be read from when the rule is evaluated.
  */
 public class ValueFieldOptions {
 

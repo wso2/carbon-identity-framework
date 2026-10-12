@@ -56,8 +56,7 @@ public class Expression implements Serializable {
     }
 
     /**
-     * Qualifier selecting a value within the field, for fields that name a family of values rather than a
-     * single one -- a claim URI, for instance. Null for fields that name a single value.
+     * Qualifier selecting one value of the field, such as a claim URI.
      *
      * @return The qualifier, or null when the field is not qualified.
      */

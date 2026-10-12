@@ -38,13 +38,12 @@ public class FieldDefinition {
     }
 
     /**
-     * A field whose value may also be read from other fields, named by {@code valueFieldOptions}, instead of being
-     * given in the rule.
+     * A field whose value may also be read from other fields.
      *
-     * @param field             The field, carrying its qualifier when it names a family of values.
+     * @param field             The field.
      * @param operators         The operators the field takes.
      * @param value             How a value given in the rule is entered.
-     * @param valueFieldOptions The fields a value may be read from, or null when a value can only be given.
+     * @param valueFieldOptions The fields a value may be read from, or null.
      */
     public FieldDefinition(Field field, List<Operator> operators, Value value, ValueFieldOptions valueFieldOptions) {
 
@@ -71,7 +70,7 @@ public class FieldDefinition {
     }
 
     /**
-     * The fields a value of this field may be read from when the rule is evaluated.
+     * The fields a value may be read from.
      *
      * @return The value field options, or null when a value can only be given in the rule.
      */

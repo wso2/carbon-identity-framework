@@ -42,11 +42,7 @@ public interface RuleEvaluationService {
             throws RuleEvaluationException;
 
     /**
-     * Evaluate a rule that is held by its caller rather than by rule management.
-     * <p>
-     * Some callers own their rules inside their own configuration and never register them, so there
-     * is no id to look up. The caller is responsible for the rule having been validated when it was
-     * authored -- the id based method gets that guarantee from rule management, this one cannot.
+     * Evaluate a rule held by the caller rather than by rule management. The caller must have validated it.
      *
      * @param rule         Rule to evaluate.
      * @param flowContext  Flow context.

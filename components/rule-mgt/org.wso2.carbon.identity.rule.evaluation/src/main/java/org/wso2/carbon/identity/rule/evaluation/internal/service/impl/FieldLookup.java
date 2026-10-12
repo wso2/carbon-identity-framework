@@ -19,17 +19,12 @@
 package org.wso2.carbon.identity.rule.evaluation.internal.service.impl;
 
 /**
- * Identifies a field within one evaluation.
- * <p>
- * A field name alone stops being enough once a field is qualified: two expressions over the same field
- * with different qualifiers are different values, and collapsing them would silently drop one. A field with
- * no qualifier tokenises to its bare name, so every field that existed before qualifiers behaves as it always did.
+ * Builds the key identifying a field, with its qualifier, within one evaluation.
  */
 final class FieldLookup {
 
     /**
-     * Separator between a field name and its qualifier. A unit separator is used because neither a field
-     * name nor a qualifier may contain a control character, so the token cannot be ambiguous.
+     * Unit separator: neither a field name nor a qualifier contains control characters.
      */
     private static final char SEPARATOR = (char) 0x1F;
 
@@ -38,11 +33,11 @@ final class FieldLookup {
     }
 
     /**
-     * Build the token identifying a field within one evaluation.
+     * Build the key identifying a field within one evaluation.
      *
-     * @param name Field name.
-     * @param qualifier  Qualifier selecting a value within that field, or null when the field is not qualified.
-     * @return Token that distinguishes this field from every other in the same rule.
+     * @param name      Field name.
+     * @param qualifier Qualifier of the field, or null when the field is not qualified.
+     * @return The field name, followed by the qualifier when there is one.
      */
     static String token(String name, String qualifier) {
 
