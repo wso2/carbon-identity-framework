@@ -21,6 +21,7 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -34,6 +35,7 @@ import java.sql.SQLException;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 /**
@@ -202,6 +204,17 @@ public class ConfigurationUtilsTest {
 
         boolean result = ConfigurationUtils.isCreatedTimeFieldExists();
         Assert.assertFalse(result, "Should return false when database connection fails");
+    }
+
+    @Test
+    public void testIsCreatedTimeFieldExists_DBTypeCheckException() {
+
+        jdbcUtilsMockedStatic.when(JdbcUtils::isMSSqlDB).thenThrow(new DataAccessException("DB type check failed"));
+
+        boolean result = ConfigurationUtils.isCreatedTimeFieldExists();
+        Assert.assertFalse(result, "Should return false when the DB type cannot be resolved");
+        // The DB type is resolved before the connection is taken, so a failure there takes no connection.
+        identityDatabaseUtilMockedStatic.verify(() -> IdentityDatabaseUtil.getDBConnection(false), never());
     }
 
     @Test

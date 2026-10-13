@@ -698,10 +698,21 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             DataAccessException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        // Resolve the DB type before the transaction so the checks inside it do not borrow another connection.
+        String driverName;
+        String databaseProductName;
+        try {
+            driverName = jdbcTemplate.getDriverName();
+            databaseProductName = jdbcTemplate.getDatabaseProductName();
+        } catch (DataAccessException e) {
+            throw new DataAccessException("Error while resolving the session database type to store application " +
+                    "data of session id: " + sessionId + ", subject: " + subject + ", app Id: " + appID +
+                    ", protocol: " + inboundAuth + ".", e);
+        }
         try {
             jdbcTemplate.withTransaction(template -> {
                 String query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2;
-                if (JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)) {
+                if (JdbcUtils.isOracleDB(driverName) || JdbcUtils.isOracleDB(databaseProductName)) {
                     query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
                     template.executeUpdate(query, preparedStatement -> {
                         preparedStatement.setString(1, sessionId);
@@ -714,16 +725,16 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                         preparedStatement.setString(8, inboundAuth);
                     });
                 } else {
-                    if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION)) {
+                    if (JdbcUtils.isMSSqlDB(driverName) || JdbcUtils.isMSSqlDB(databaseProductName)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL;
-                    } else if (JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)) {
+                    } else if (JdbcUtils.isDB2DB(driverName) || JdbcUtils.isDB2DB(databaseProductName)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_DB2;
-                    } else if (JdbcUtils.isMySQLDB(JdbcUtils.Database.SESSION) ||
-                            JdbcUtils.isMariaDB(JdbcUtils.Database.SESSION)) {
+                    } else if (JdbcUtils.isMySQLDB(driverName) || JdbcUtils.isMySQLDB(databaseProductName) ||
+                            JdbcUtils.isMariaDB(driverName) || JdbcUtils.isMariaDB(databaseProductName)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB;
-                    } else if (JdbcUtils.isPostgreSQLDB(JdbcUtils.Database.SESSION)) {
+                    } else if (JdbcUtils.isPostgreSQLDB(driverName) || JdbcUtils.isPostgreSQLDB(databaseProductName)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES;
-                    } else if (JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)) {
+                    } else if (JdbcUtils.isOracleDB(driverName) || JdbcUtils.isOracleDB(databaseProductName)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
                     }
                     template.executeUpdate(query, preparedStatement -> {
