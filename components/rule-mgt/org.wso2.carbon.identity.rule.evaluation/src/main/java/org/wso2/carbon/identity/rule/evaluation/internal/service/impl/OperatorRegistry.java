@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.rule.evaluation.internal.service.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
 import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
@@ -35,7 +38,9 @@ import java.util.function.BiPredicate;
  */
 public class OperatorRegistry {
 
-    private static final Map<String, Operator> operators = new HashMap<>();
+    private static final Log LOG = LogFactory.getLog(OperatorRegistry.class);
+
+    private static volatile Map<String, Operator> operators = Collections.emptyMap();
     private static final Map<String, OperatorDefinition> definitions = new HashMap<>();
 
     static {
@@ -84,6 +89,10 @@ public class OperatorRegistry {
 
     /**
      * Instantiate OperatorRegistry loading operators from metadata service.
+     * <p>
+     * An operator without an implementation, or configured with a value input its implementation does not take, is
+     * logged and left out, so only rules using it fail to evaluate. The operators are published together once all
+     * of them are read.
      *
      * @return OperatorRegistry instance.
      */
@@ -94,20 +103,28 @@ public class OperatorRegistry {
         if (ruleMetadataService == null) {
             return new OperatorRegistry();
         }
-        ruleMetadataService.getApplicableOperatorsInExpressions()
-                .forEach(operator -> {
-                    String name = operator.getName();
-                    OperatorDefinition definition = definitions.get(name);
-                    if (definition == null) {
-                        throw new IllegalArgumentException("Unsupported operator: " + name);
-                    }
-                    if (operator.getValueInput() != definition.valueInput) {
-                        throw new IllegalArgumentException("Operator " + name + " is configured with value input "
-                                + operator.getValueInput().getValue() + ", but its implementation takes "
-                                + definition.valueInput.getValue() + ".");
-                    }
-                    operators.put(name, new Operator(name, definition.predicate, definition.valueInput));
-                });
+        Map<String, Operator> loaded = new HashMap<>();
+        for (org.wso2.carbon.identity.rule.metadata.api.model.Operator operator
+                : ruleMetadataService.getApplicableOperatorsInExpressions()) {
+            if (operator == null) {
+                LOG.error("An operator is configured with no definition. It is not loaded.");
+                continue;
+            }
+            String name = operator.getName();
+            OperatorDefinition definition = definitions.get(name);
+            if (definition == null) {
+                LOG.error("Operator " + name + " is configured, but has no implementation. It is not loaded.");
+                continue;
+            }
+            if (operator.getValueInput() != definition.valueInput) {
+                LOG.error("Operator " + name + " is configured with value input "
+                        + operator.getValueInput().getValue() + ", but its implementation takes "
+                        + definition.valueInput.getValue() + ". It is not loaded.");
+                continue;
+            }
+            loaded.put(name, new Operator(name, definition.predicate, definition.valueInput));
+        }
+        operators = Collections.unmodifiableMap(loaded);
 
         return new OperatorRegistry();
     }
@@ -153,7 +170,7 @@ public class OperatorRegistry {
         if (value instanceof Collection) {
             return ((Collection<?>) value).stream().allMatch(OperatorRegistry::isBlank);
         }
-        return value == null || (value instanceof String && ((String) value).trim().isEmpty());
+        return value == null || (value instanceof String && value.toString().trim().isEmpty());
     }
 
     /**

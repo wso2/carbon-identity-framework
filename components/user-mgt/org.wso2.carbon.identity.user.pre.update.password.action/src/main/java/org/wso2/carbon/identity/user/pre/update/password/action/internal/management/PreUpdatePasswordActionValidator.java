@@ -67,7 +67,7 @@ public class PreUpdatePasswordActionValidator extends DefaultActionValidator {
                 action.getActionRule() != null && action.getActionRule().getRule() != null) {
             Rule rule = action.getActionRule().getRule();
             for (Expression expression : rule.getExpressions()) {
-                if (fieldValesToExcludeForV1.stream()
+                if (expression.getValue() != null && fieldValesToExcludeForV1.stream()
                         .anyMatch(value -> value.equals(expression.getValue().getFieldValue()))) {
                     ErrorMessage error =  ErrorMessage.ERROR_INVALID_RULE_FOR_ACTION_VERSION;
                     throw new ActionMgtClientException(error.getMessage(),

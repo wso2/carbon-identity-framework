@@ -21,10 +21,13 @@ package org.wso2.carbon.identity.rule.metadata.api.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Represents a value meta of a field of input type.
  */
+@JsonDeserialize(using = JsonDeserializer.None.class)
 public class InputValue extends Value {
 
     @JsonIgnore

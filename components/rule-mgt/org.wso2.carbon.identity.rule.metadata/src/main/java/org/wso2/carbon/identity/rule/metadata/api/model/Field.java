@@ -19,22 +19,19 @@
 package org.wso2.carbon.identity.rule.metadata.api.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.StringUtils;
 
 /**
  * Represents a field in a rule.
  */
-@JsonIgnoreProperties(value = {"qualifier"}, allowGetters = true)
 public class Field {
 
     private final String name;
     private final String displayName;
     private final Value qualifier;
 
-    @JsonCreator
-    public Field(@JsonProperty("name") String name, @JsonProperty("displayName") String displayName) {
+    public Field(String name, String displayName) {
 
         this(name, displayName, null);
     }
@@ -46,7 +43,9 @@ public class Field {
      * @param displayName The name shown for the field.
      * @param qualifier   How the qualifier is entered, or null when the field takes none.
      */
-    public Field(String name, String displayName, Value qualifier) {
+    @JsonCreator
+    public Field(@JsonProperty("name") String name, @JsonProperty("displayName") String displayName,
+                 @JsonProperty("qualifier") Value qualifier) {
 
         validate(name);
         this.name = name;

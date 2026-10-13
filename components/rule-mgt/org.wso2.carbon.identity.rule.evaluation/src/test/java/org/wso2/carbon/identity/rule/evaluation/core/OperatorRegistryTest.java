@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfig
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
 
 import static org.mockito.Mockito.mock;
@@ -44,7 +43,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -210,11 +208,33 @@ public class OperatorRegistryTest {
     }
 
     /**
-     * The value input of an operator is fixed by its implementation, so configuration cannot change what value a
-     * condition using it takes.
+     * An operator configured with no definition is left out, and the others still load.
      */
     @Test
-    public void testOperatorConfiguredAgainstItsImplementationIsRejected() {
+    public void testOperatorWithNoDefinitionIsLeftOut() {
+
+        RuleMetadataService original = RuleEvaluationComponentServiceHolder.getInstance().getRuleMetadataService();
+        try {
+            RuleMetadataService service = mock(RuleMetadataService.class);
+            when(service.getApplicableOperatorsInExpressions()).thenReturn(Arrays.asList(null,
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Operator("contains", "contains")));
+
+            RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(service);
+
+            OperatorRegistry registry = RuleEvaluationComponentServiceHolder.getInstance().getOperatorRegistry();
+            assertNotNull(registry);
+            assertNotNull(registry.getOperator("contains"));
+        } finally {
+            RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(original);
+        }
+    }
+
+    /**
+     * The value input of an operator is fixed by its implementation, so an operator configured otherwise, or one
+     * without an implementation, is left out. The other operators still load, so only rules using the bad one fail.
+     */
+    @Test
+    public void testOperatorConfiguredAgainstItsImplementationIsLeftOut() {
 
         RuleMetadataService original = RuleEvaluationComponentServiceHolder.getInstance().getRuleMetadataService();
         try {
@@ -225,12 +245,18 @@ public class OperatorRegistryTest {
                             ValueInput.NONE),
                     new org.wso2.carbon.identity.rule.metadata.api.model.Operator("in", "in", ValueInput.SINGLE),
                     new org.wso2.carbon.identity.rule.metadata.api.model.Operator("equals", "equals",
-                            ValueInput.LIST))) {
+                            ValueInput.LIST),
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Operator("between", "between"))) {
                 RuleMetadataService service = mock(RuleMetadataService.class);
-                when(service.getApplicableOperatorsInExpressions()).thenReturn(Collections.singletonList(
-                        misconfigured));
-                assertThrows(IllegalArgumentException.class,
-                        () -> RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(service));
+                when(service.getApplicableOperatorsInExpressions()).thenReturn(Arrays.asList(misconfigured,
+                        new org.wso2.carbon.identity.rule.metadata.api.model.Operator("contains", "contains")));
+
+                RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(service);
+
+                OperatorRegistry registry = RuleEvaluationComponentServiceHolder.getInstance().getOperatorRegistry();
+                assertNotNull(registry);
+                assertNull(registry.getOperator(misconfigured.getName()), misconfigured.getName());
+                assertNotNull(registry.getOperator("contains"));
             }
         } finally {
             RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(original);

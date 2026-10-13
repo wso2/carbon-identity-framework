@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.List;
 
@@ -29,6 +31,7 @@ import java.util.List;
  * Represents a value meta of a field of options input type.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonDeserialize(using = JsonDeserializer.None.class)
 public class OptionsInputValue extends Value {
 
     @JsonIgnore

@@ -51,6 +51,11 @@ public class OperatorConfig {
                     file,
                     mapper.getTypeFactory().constructMapType(Map.class, String.class, Operator.class)
                                                               );
+            for (Map.Entry<String, Operator> entry : operators.entrySet()) {
+                if (entry.getValue() == null) {
+                    throw new IllegalArgumentException("Operator " + entry.getKey() + " has no definition.");
+                }
+            }
             return new OperatorConfig(operators);
         } catch (Exception e) {
             throw new RuleMetadataConfigException("Error while loading operators from file: " + file.getAbsolutePath(),

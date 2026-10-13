@@ -53,6 +53,7 @@ public class FieldDefinition {
         this.operators = withConfiguredValueInput(operators);
         this.value = value;
         this.valueFieldOptions = valueFieldOptions;
+        validateValue();
     }
 
     public Field getField() {
@@ -104,5 +105,16 @@ public class FieldDefinition {
             configured.add(new Operator(operator.getName(), operator.getDisplayName(), definition.getValueInput()));
         }
         return Collections.unmodifiableList(configured);
+    }
+
+    /**
+     * A field always needs a value definition. Besides describing the value a rule gives, it carries the field's
+     * value type, which evaluation needs even for an operator that checks the field alone, such as isBlank.
+     */
+    private void validateValue() {
+
+        if (value == null) {
+            throw new IllegalArgumentException("Field " + field.getName() + " needs a value definition.");
+        }
     }
 }

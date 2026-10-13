@@ -601,6 +601,8 @@ public class RuleEvaluatorTest {
         expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
                 ruleWithSingleExpression("claim", "in", new Value(Arrays.asList("a@x.com", null))), data));
         expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
+                ruleWithSingleExpression("claim", "startsWith", new Value(Value.Type.STRING, "a")), data));
+        expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
                 ruleWithSingleExpression("riskScore", "equals", new Value(Value.Type.NUMBER, "five")), data));
         expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
                 ruleWithSingleExpression("consented", "equals", new Value(Value.Type.BOOLEAN, "yes")), data));

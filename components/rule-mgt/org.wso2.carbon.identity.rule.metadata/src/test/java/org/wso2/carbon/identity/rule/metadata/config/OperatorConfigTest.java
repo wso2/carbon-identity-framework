@@ -74,6 +74,7 @@ public class OperatorConfigTest {
                 {"configs/invalid-operators-missing-operator-name.json"},
                 {"configs/invalid-operators-missing-operator-displayname.json"},
                 {"configs/invalid-operators-unknown-value-input.json"},
+                {"configs/invalid-operators-null-operator.json"},
                 {"unavailable-file.json"}
         };
     }
