@@ -304,6 +304,7 @@ public class UserSessionDAOImplTest extends IdentityBaseTest {
             jdbcUtils.verify(() -> JdbcUtils.getNewTemplate(any(JdbcUtils.Database.class)), times(1));
         }
         InOrder inOrder = inOrder(jdbcTemplate);
+        inOrder.verify(jdbcTemplate).getDriverName();
         inOrder.verify(jdbcTemplate).getDatabaseProductName();
         inOrder.verify(jdbcTemplate).withTransaction(any(ExecuteCallable.class));
         verify(template).executeUpdate(eq(expectedQuery), any(QueryFilter.class));
