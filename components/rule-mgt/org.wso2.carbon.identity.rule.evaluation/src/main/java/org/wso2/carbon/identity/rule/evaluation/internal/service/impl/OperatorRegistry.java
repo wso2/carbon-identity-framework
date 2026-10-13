@@ -20,11 +20,16 @@ package org.wso2.carbon.identity.rule.evaluation.internal.service.impl;
 
 import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
 import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
 /**
@@ -33,6 +38,17 @@ import java.util.function.BiPredicate;
  * instantiating its functionality for evaluation.
  */
 public class OperatorRegistry {
+
+    private static final String IS_BLANK = "isBlank";
+    private static final String IS_NOT_BLANK = "isNotBlank";
+    private static final String IS_EMPTY = "isEmpty";
+    private static final String IS_NOT_EMPTY = "isNotEmpty";
+    private static final Set<String> VALUE_LESS_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
+            Arrays.asList(IS_BLANK, IS_NOT_BLANK, IS_EMPTY, IS_NOT_EMPTY)));
+    private static final Set<String> LIST_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
+            Arrays.asList("in", "notIn")));
+    private static final Set<String> MULTI_VALUED_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
+            Arrays.asList(IS_EMPTY, IS_NOT_EMPTY)));
 
     private static final Map<String, Operator> operators = new HashMap<>();
     private static final Map<String, BiPredicate<Object, Object>> supportedOperators = new HashMap<>();
@@ -48,6 +64,10 @@ public class OperatorRegistry {
         supportedOperators.put("lessThan", comparablePredicate(result -> result < 0));
         supportedOperators.put("in", membershipPredicate(true));
         supportedOperators.put("notIn", membershipPredicate(false));
+        supportedOperators.put(IS_BLANK, (a, b) -> isBlank(a));
+        supportedOperators.put(IS_NOT_BLANK, (a, b) -> !isBlank(a));
+        supportedOperators.put(IS_EMPTY, (a, b) -> isEmpty(a));
+        supportedOperators.put(IS_NOT_EMPTY, (a, b) -> !isEmpty(a));
     }
 
     private OperatorRegistry() {
@@ -84,10 +104,25 @@ public class OperatorRegistry {
                     if (predicate == null) {
                         throw new IllegalArgumentException("Unsupported operator: " + name);
                     }
-                    operators.put(name, new Operator(name, predicate));
+                    ValueInput valueInput = valueInputOf(name);
+                    if (operator.getValueInput() != valueInput) {
+                        throw new IllegalArgumentException("Operator " + name + " is configured with value input "
+                                + operator.getValueInput().getValue() + ", but its implementation takes "
+                                + valueInput.getValue() + ".");
+                    }
+                    operators.put(name, new Operator(name, predicate, valueInput,
+                            MULTI_VALUED_OPERATORS.contains(name)));
                 });
 
         return new OperatorRegistry();
+    }
+
+    private static ValueInput valueInputOf(String name) {
+
+        if (VALUE_LESS_OPERATORS.contains(name)) {
+            return ValueInput.NONE;
+        }
+        return LIST_OPERATORS.contains(name) ? ValueInput.LIST : ValueInput.SINGLE;
     }
 
     @SuppressWarnings("unchecked")
@@ -107,5 +142,24 @@ public class OperatorRegistry {
     private static BiPredicate<Object, Object> membershipPredicate(boolean expected) {
 
         return (a, b) -> a != null && b instanceof Collection && ((Collection<?>) b).contains(a) == expected;
+    }
+
+    /**
+     * Null, or a collection without entries.
+     */
+    private static boolean isEmpty(Object value) {
+
+        return value == null || (value instanceof Collection && ((Collection<?>) value).isEmpty());
+    }
+
+    /**
+     * Null, a string of whitespace alone, or a collection whose entries are all blank.
+     */
+    private static boolean isBlank(Object value) {
+
+        if (value instanceof Collection) {
+            return ((Collection<?>) value).stream().allMatch(OperatorRegistry::isBlank);
+        }
+        return value == null || (value instanceof String && ((String) value).trim().isEmpty());
     }
 }

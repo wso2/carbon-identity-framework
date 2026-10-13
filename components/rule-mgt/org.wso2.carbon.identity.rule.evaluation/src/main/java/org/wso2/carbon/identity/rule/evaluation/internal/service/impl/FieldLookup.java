@@ -41,6 +41,6 @@ final class FieldLookup {
      */
     static String token(String name, String qualifier) {
 
-        return qualifier == null ? name : name + SEPARATOR + qualifier;
+        return qualifier == null || qualifier.trim().isEmpty() ? name : name + SEPARATOR + qualifier;
     }
 }

@@ -20,11 +20,15 @@ package org.wso2.carbon.identity.rule.management.util;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Value;
 import org.wso2.carbon.identity.rule.management.api.util.AuditLogBuilderForRule;
+
+import java.util.Arrays;
 
 public class AuditLogBuilderForRuleTest {
 
@@ -58,5 +62,22 @@ public class AuditLogBuilderForRuleTest {
     private ORCombinedRule buildMockORCombinedRule() {
         return new ORCombinedRule.Builder().addRule(buildMockANDCombinedRule()).addRule(buildMockANDCombinedRule())
                 .build();
+    }
+
+    @Test
+    public void testCreateRuleValueForEveryKindOfValue() {
+
+        ORCombinedRule rule = new ORCombinedRule.Builder().addRule(new ANDCombinedRule.Builder()
+                .addExpression(new Expression.Builder().field("user.claims").operator("isBlank").build())
+                .addExpression(new Expression.Builder().field("grantType").operator("in")
+                        .value(new Value(Arrays.asList("authorization_code", "refresh_token"))).build())
+                .addExpression(new Expression.Builder().field("user.collectedClaims").operator("notEquals")
+                        .value(new Value(new FieldReference("user.claims", "country"))).build())
+                .build()).build();
+
+        Assert.assertEquals(AuditLogBuilderForRule.buildRuleValue(rule), "( user.claims isBlank and grantType in ["
+                + LoggerUtils.getMaskedContent("authorization_code") + ", "
+                + LoggerUtils.getMaskedContent("refresh_token")
+                + "] and user.collectedClaims notEquals field user.claims )");
     }
 }

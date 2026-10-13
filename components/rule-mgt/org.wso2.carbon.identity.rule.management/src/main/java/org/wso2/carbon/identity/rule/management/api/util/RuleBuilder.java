@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.rule.management.internal.component.RuleManagemen
 import org.wso2.carbon.identity.rule.management.internal.util.RuleManagementConfig;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.ValueFieldOptions;
 
@@ -47,11 +48,10 @@ import java.util.Map;
 public class RuleBuilder {
 
     private static final int MAX_RULES_COMBINED_WITH_OR = 10;
-    private static final String IN = "in";
-    private static final String NOT_IN = "notIn";
     private static final String FIELD = "Field ";
     private static final String OPERATOR = "Operator ";
     private static final String NOT_SUPPORTED_FOR_FIELD = " is not supported for field ";
+    private static final String OF_FIELD = " of field ";
 
     private final ORCombinedRule.Builder orCombinedRuleBuilder = new ORCombinedRule.Builder();
     private ANDCombinedRule.Builder andCombinedRuleBuilder = new ANDCombinedRule.Builder();
@@ -184,7 +184,29 @@ public class RuleBuilder {
             return expression;
         }
 
-        if (!isValidValueForOperator(expression.getField(), expression.getOperator(), expression.getValue())) {
+        String qualifier = isBlank(expression.getFieldQualifier()) ? null : expression.getFieldQualifier();
+        ValueInput valueInput = valueInputOf(fieldDefinition, expression.getOperator());
+        if (valueInput == ValueInput.NONE) {
+            if (expression.getValue() != null) {
+                setValidationError(OPERATOR + expression.getOperator() + OF_FIELD + expression.getField()
+                        + " takes no value.");
+                return expression;
+            }
+            return new Expression.Builder()
+                    .field(expression.getField())
+                    .fieldQualifier(qualifier)
+                    .operator(expression.getOperator())
+                    .build();
+        }
+
+        if (expression.getValue() == null || expression.getValue().getType() == null) {
+            setValidationError(OPERATOR + expression.getOperator() + OF_FIELD + expression.getField()
+                    + " needs a value of a known type.");
+            return expression;
+        }
+
+        if (!isValidValueForOperator(expression.getField(), expression.getOperator(), valueInput,
+                expression.getValue())) {
             return expression;
         }
 
@@ -195,7 +217,7 @@ public class RuleBuilder {
 
         return new Expression.Builder()
                 .field(expression.getField())
-                .fieldQualifier(expression.getFieldQualifier())
+                .fieldQualifier(qualifier)
                 .operator(expression.getOperator())
                 .value(resolvedValue)
                 .build();
@@ -221,6 +243,15 @@ public class RuleBuilder {
         return true;
     }
 
+    private static ValueInput valueInputOf(FieldDefinition fieldDefinition, String operator) {
+
+        return fieldDefinition.getOperators().stream()
+                .filter(op -> op.getName().equals(operator))
+                .map(org.wso2.carbon.identity.rule.metadata.api.model.Operator::getValueInput)
+                .findFirst()
+                .orElse(ValueInput.SINGLE);
+    }
+
     /**
      * A qualified field, such as a claim, needs a qualifier; any other field takes none.
      */
@@ -237,17 +268,17 @@ public class RuleBuilder {
     }
 
     /**
-     * A LIST value is allowed only with in / notIn, and in / notIn need a LIST or a FIELD value.
+     * A LIST value is allowed only with an operator taking a list, which needs a LIST or a FIELD value.
      */
-    private boolean isValidValueForOperator(String field, String operator, Value value) {
+    private boolean isValidValueForOperator(String field, String operator, ValueInput valueInput, Value value) {
 
-        boolean membership = IN.equals(operator) || NOT_IN.equals(operator);
+        boolean membership = valueInput == ValueInput.LIST;
         if (value.getType() == Value.Type.LIST && !membership) {
-            setValidationError(OPERATOR + operator + " of field " + field + " does not take a list of values.");
+            setValidationError(OPERATOR + operator + OF_FIELD + field + " does not take a list of values.");
             return false;
         }
         if (membership && value.getType() != Value.Type.LIST && value.getType() != Value.Type.FIELD) {
-            setValidationError(OPERATOR + operator + " of field " + field
+            setValidationError(OPERATOR + operator + OF_FIELD + field
                     + " needs a list of values or another field to compare with.");
             return false;
         }
@@ -296,6 +327,10 @@ public class RuleBuilder {
         }
 
         String rawValue = value.getFieldValue();
+        if (rawValue == null) {
+            setValidationError("A value is required for field " + fieldDefinition.getField().getName() + ".");
+            return value;
+        }
 
         if (!isValidValueType(fieldDefinition, value)) {
             return value;
@@ -325,6 +360,11 @@ public class RuleBuilder {
         }
 
         for (String entry : value.getFieldValues()) {
+            if (isBlank(entry)) {
+                setValidationError("A list value for field " + fieldDefinition.getField().getName()
+                        + " has an empty entry.");
+                return value;
+            }
             if (!isValidOptionsInputValue(fieldDefinition, entry)) {
                 return value;
             }
@@ -365,8 +405,10 @@ public class RuleBuilder {
                     + " as their values are of different types.");
             return value;
         }
-        isValidQualifier(referencedDefinition, reference.getName(), reference.getQualifier());
-        return value;
+        if (!isValidQualifier(referencedDefinition, reference.getName(), reference.getQualifier())) {
+            return value;
+        }
+        return isBlank(reference.getQualifier()) ? new Value(new FieldReference(reference.getName(), null)) : value;
     }
 
     private static boolean hasSameValueType(FieldDefinition fieldDefinition, FieldDefinition referencedDefinition) {

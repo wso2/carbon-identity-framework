@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,7 +60,6 @@ public class RuleEvaluator {
     private static final String NOT_EQUALS = "notEquals";
     private static final String CONTAINS = "contains";
     private static final String IN = "in";
-    private static final String NOT_IN = "notIn";
 
     public RuleEvaluator(OperatorRegistry operatorRegistry) {
 
@@ -121,10 +121,39 @@ public class RuleEvaluator {
         }
 
         Operator operator = operatorRegistry.getOperator(expression.getOperator());
+        if (operator == null) {
+            throw new RuleEvaluationException("Unsupported operator: " + expression.getOperator());
+        }
         Value value = expression.getValue();
 
-        // A condition with a missing value on either side, or a value type unknown to this node, never holds.
-        if (value.getType() == null || fieldValue.getValue() == null) {
+        if (operator.getValueInput() == ValueInput.NONE) {
+            if (value != null) {
+                throw new RuleEvaluationException("Operator " + operator.getName() + " takes no value.");
+            }
+            if (operator.isMultiValuedOnly() && !ValueType.LIST.equals(fieldValue.getValueType())) {
+                throw new RuleEvaluationException("Operator " + operator.getName()
+                        + " applies to multi-valued fields only, which field " + expression.getField() + " is not.");
+            }
+            return operator.apply(fieldValue.getValue(), null);
+        }
+        if (value == null) {
+            throw new RuleEvaluationException("Operator " + operator.getName() + " needs a value.");
+        }
+        if (value.getType() == null) {
+            throw new RuleEvaluationException("Unsupported value type in the condition on field: "
+                    + expression.getField());
+        }
+        boolean listOperator = operator.getValueInput() == ValueInput.LIST;
+        if (value.getType() == Value.Type.LIST && !listOperator) {
+            throw new RuleEvaluationException("Operator " + operator.getName() + " takes no list of values.");
+        }
+        if (listOperator && value.getType() != Value.Type.LIST && value.getType() != Value.Type.FIELD) {
+            throw new RuleEvaluationException("Operator " + operator.getName()
+                    + " needs a list of values or another field.");
+        }
+
+        // A condition with a missing value on either side never holds.
+        if (fieldValue.getValue() == null) {
             return false;
         }
 
@@ -145,10 +174,9 @@ public class RuleEvaluator {
         if (fieldValue.getValueType().equals(STRING)) {
             return operator.apply(fieldValue.getValue(), rightOperand(expression));
         } else if (fieldValue.getValueType().equals(BOOLEAN)) {
-            return operator.apply(fieldValue.getValue(),
-                    Boolean.parseBoolean(expression.getValue().getFieldValue()));
+            return operator.apply(fieldValue.getValue(), parseBoolean(value.getFieldValue()));
         } else if (fieldValue.getValueType().equals(NUMBER)) {
-            return operator.apply(fieldValue.getValue(), Double.parseDouble(expression.getValue().getFieldValue()));
+            return operator.apply(fieldValue.getValue(), parseNumber(value.getFieldValue()));
         } else if (fieldValue.getValueType().equals(REFERENCE)) {
             return operator.apply(fieldValue.getValue(), rightOperand(expression));
         } else if (fieldValue.getValueType().equals(LIST)) {
@@ -159,7 +187,8 @@ public class RuleEvaluator {
     }
 
     /**
-     * Compares a field with another field. A side without a value never holds.
+     * Compares a field with another field. A side without a value never holds; a referenced field that was not
+     * resolved at all is an error.
      * <p>
      * {@code in} and {@code notIn} compare the two sides as sets, a single value counting as a set of one. Any
      * other operator holds only between two single values.
@@ -169,15 +198,19 @@ public class RuleEvaluator {
      * @param reference      The field compared against.
      * @param evaluationData Values resolved for the rule.
      * @return Whether the comparison holds.
+     * @throws RuleEvaluationException If the reference names no field, or the referenced field was not resolved.
      */
     private boolean evaluateAgainstField(Operator operator, FieldValue left, FieldReference reference,
-                                         Map<String, FieldValue> evaluationData) {
+                                         Map<String, FieldValue> evaluationData) throws RuleEvaluationException {
 
-        if (reference == null || left.getValue() == null) {
-            return false;
+        if (reference == null || reference.getName() == null) {
+            throw new RuleEvaluationException("A condition reads its value from a field it does not name.");
         }
         FieldValue right = evaluationData.get(FieldLookup.token(reference.getName(), reference.getQualifier()));
-        if (right == null || right.getValue() == null) {
+        if (right == null) {
+            throw new RuleEvaluationException("Field value not found for the field: " + reference.getName());
+        }
+        if (right.getValue() == null) {
             return false;
         }
         if (isMembership(operator)) {
@@ -192,7 +225,7 @@ public class RuleEvaluator {
 
     private static boolean isMembership(Operator operator) {
 
-        return IN.equals(operator.getName()) || NOT_IN.equals(operator.getName());
+        return operator.getValueInput() == ValueInput.LIST;
     }
 
     private static Collection<?> asCollection(Object value) {
@@ -218,20 +251,42 @@ public class RuleEvaluator {
      * @param valueType Value type of the field.
      * @param entries   Entries of the LIST value.
      * @return The converted entries.
+     * @throws RuleEvaluationException If an entry is missing or is not of the field's type.
      */
-    private static List<Object> typedEntries(ValueType valueType, List<String> entries) {
+    private static List<Object> typedEntries(ValueType valueType, List<String> entries)
+            throws RuleEvaluationException {
 
         List<Object> typed = new ArrayList<>(entries.size());
         for (String entry : entries) {
+            if (entry == null) {
+                throw new RuleEvaluationException("A list value in the condition has a missing entry.");
+            }
             if (valueType.equals(NUMBER)) {
-                typed.add(Double.parseDouble(entry));
+                typed.add(parseNumber(entry));
             } else if (valueType.equals(BOOLEAN)) {
-                typed.add(Boolean.parseBoolean(entry));
+                typed.add(parseBoolean(entry));
             } else {
                 typed.add(entry);
             }
         }
         return typed;
+    }
+
+    private static Double parseNumber(String value) throws RuleEvaluationException {
+
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            throw new RuleEvaluationException("Value " + value + " in the condition is not a valid NUMBER.");
+        }
+    }
+
+    private static Boolean parseBoolean(String value) throws RuleEvaluationException {
+
+        if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
+            throw new RuleEvaluationException("Value " + value + " in the condition is not a valid BOOLEAN.");
+        }
+        return Boolean.parseBoolean(value);
     }
 
     private boolean applyOperatorForList(Operator operator, Object fieldValue, Object expressionValue) {

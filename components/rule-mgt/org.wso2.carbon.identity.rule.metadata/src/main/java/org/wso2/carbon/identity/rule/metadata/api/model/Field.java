@@ -19,12 +19,14 @@
 package org.wso2.carbon.identity.rule.metadata.api.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.StringUtils;
 
 /**
  * Represents a field in a rule.
  */
+@JsonIgnoreProperties(value = {"qualifier"}, allowGetters = true)
 public class Field {
 
     private final String name;

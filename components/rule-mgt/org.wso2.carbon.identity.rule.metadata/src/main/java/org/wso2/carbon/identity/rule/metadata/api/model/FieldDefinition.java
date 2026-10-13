@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.rule.metadata.api.model;
 
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,9 +49,8 @@ public class FieldDefinition {
      */
     public FieldDefinition(Field field, List<Operator> operators, Value value, ValueFieldOptions valueFieldOptions) {
 
-        validateOperators(operators);
         this.field = field;
-        this.operators = operators;
+        this.operators = withConfiguredValueInput(operators);
         this.value = value;
         this.valueFieldOptions = valueFieldOptions;
     }
@@ -79,17 +80,29 @@ public class FieldDefinition {
         return valueFieldOptions;
     }
 
-    private void validateOperators(List<Operator> operators) {
+    /**
+     * Validates the operators and takes the value input of each one from the operator configuration, so a field
+     * cannot declare otherwise.
+     *
+     * @param operators Operators of the field.
+     * @return The operators, each carrying its configured value input.
+     */
+    private List<Operator> withConfiguredValueInput(List<Operator> operators) {
 
         if (operators == null || operators.isEmpty()) {
             throw new IllegalArgumentException("Operators cannot be null or empty.");
         }
 
+        List<Operator> configured = new ArrayList<>(operators.size());
         for (Operator operator : operators) {
-            if (!RuleMetadataConfigFactory.getOperatorConfig().getOperatorsMap().containsKey(operator.getName())) {
+            Operator definition = RuleMetadataConfigFactory.getOperatorConfig().getOperatorsMap()
+                    .get(operator.getName());
+            if (definition == null) {
                 throw new IllegalArgumentException(
                         "Invalid operator: " + operator.getName() + " provided for field: " + field.getName());
             }
+            configured.add(new Operator(operator.getName(), operator.getDisplayName(), definition.getValueInput()));
         }
+        return Collections.unmodifiableList(configured);
     }
 }

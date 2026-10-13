@@ -24,8 +24,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataConfigException;
+import org.wso2.carbon.identity.rule.metadata.api.model.Field;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Value;
@@ -34,11 +37,15 @@ import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -196,5 +203,41 @@ public class FieldDefinitionConfigTest {
         } catch (Exception e) {
             fail();
         }
+    }
+
+    /**
+     * A qualifier can only be published by a metadata provider. Written in the fields file, it is ignored rather
+     * than stopping the whole file from loading.
+     */
+    @Test
+    public void testQualifierInTheFieldsFileIsIgnored() throws Exception {
+
+        File file = File.createTempFile("fields-with-qualifier", ".json");
+        file.deleteOnExit();
+        Files.write(file.toPath(), ("{\"claim\": {\"field\": {\"name\": \"claim\", \"displayName\": \"claim\", "
+                + "\"qualifier\": {\"inputType\": \"input\", \"valueType\": \"string\"}}, "
+                + "\"operators\": [\"equals\"], \"value\": {\"inputType\": \"input\", \"valueType\": \"string\"}}}")
+                .getBytes(StandardCharsets.UTF_8));
+
+        FieldDefinition definition = FieldDefinitionConfig.load(file, operatorConfig).getFieldDefinitionMap()
+                .get("claim");
+
+        assertNotNull(definition);
+        assertNull(definition.getField().getQualifier());
+    }
+
+    /**
+     * The value input of an operator comes from the operator configuration, whatever a field declares.
+     */
+    @Test
+    public void testOperatorValueInputComesFromTheOperatorConfiguration() {
+
+        FieldDefinition definition = new FieldDefinition(new Field("claim", "claim"),
+                Arrays.asList(new Operator("equals", "equals", ValueInput.LIST),
+                        new Operator("isBlank", "is blank", ValueInput.SINGLE)),
+                new InputValue(Value.ValueType.STRING));
+
+        assertEquals(definition.getOperators().get(0).getValueInput(), ValueInput.SINGLE);
+        assertEquals(definition.getOperators().get(1).getValueInput(), ValueInput.NONE);
     }
 }
