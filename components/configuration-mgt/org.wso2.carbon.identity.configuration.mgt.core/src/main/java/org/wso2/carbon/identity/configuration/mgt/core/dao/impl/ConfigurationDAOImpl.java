@@ -1470,12 +1470,13 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            String databaseProductName = jdbcTemplate.getDatabaseProductName();
+            boolean isOracleOrMssql = isOracleDB(databaseProductName) || isMSSqlDB(databaseProductName);
+            String sqlStmt = isH2DB(databaseProductName) ? SQLConstants.GET_FILE_BY_ID_SQL_H2 :
+                    SQLConstants.GET_FILE_BY_ID_SQL;
             jdbcTemplate.withTransaction(template -> {
 
                 // Get resource id for the deleting file.
-                String sqlStmt = isH2DB() ? SQLConstants.GET_FILE_BY_ID_SQL_H2 : SQLConstants.GET_FILE_BY_ID_SQL;
-
                 String resourceId = template.fetchSingleRecord(sqlStmt,
                         (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_ID),
                         preparedStatement -> {
@@ -1603,6 +1604,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             String resourceTypeName = jdbcTemplate.fetchSingleRecord(SQLConstants.GET_RESOURCE_TYPE_BY_ID_SQL,
                     (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME),
                     preparedStatement -> preparedStatement.setString(1, resourceTypeId));
+            String databaseProductName = jdbcTemplate.getDatabaseProductName();
+            boolean isOracleMssqlOrDb2 = isOracleDB(databaseProductName) || isMSSqlDB(databaseProductName) ||
+                    isDB2DB(databaseProductName);
             return jdbcTemplate.executeQuery(GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL,
                     (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
                         String resourceId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
@@ -1610,7 +1614,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         String resourceLastModified = resultSet.getString(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED);
                         String resourceCreatedTime = resultSet.getString(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
                         String resourceHasFile = resultSet.getString(DB_SCHEMA_COLUMN_NAME_HAS_FILE);
-                        if (StringUtils.equals(resourceHasFile, "1") && (isOracleDB() || isMSSqlDB() || isDB2DB())) {
+                        if (StringUtils.equals(resourceHasFile, "1") && isOracleMssqlOrDb2) {
                             resourceHasFile = "true";
                         }
                         String resourceHasAttribute = resultSet.getString(DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE);
