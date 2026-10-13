@@ -31,28 +31,24 @@ public class Operator {
     private final String name;
     private final BiPredicate<Object, Object> predicate;
     private final ValueInput valueInput;
-    private final boolean multiValuedOnly;
 
     public Operator(String name, BiPredicate<Object, Object> predicate) {
 
-        this(name, predicate, ValueInput.SINGLE, false);
+        this(name, predicate, ValueInput.SINGLE);
     }
 
     /**
-     * An operator, the value it takes, and whether it applies to multi-valued fields alone.
+     * An operator, and the value it takes.
      *
-     * @param name            Operator name.
-     * @param predicate       Predicate over the field value and the expected value, which is null when none is taken.
-     * @param valueInput      Value a condition using the operator takes.
-     * @param multiValuedOnly True for an operator that applies to multi-valued fields alone, such as isEmpty.
+     * @param name       Operator name.
+     * @param predicate  Predicate over the field value and the expected value, which is null when none is taken.
+     * @param valueInput Value a condition using the operator takes.
      */
-    public Operator(String name, BiPredicate<Object, Object> predicate, ValueInput valueInput,
-                    boolean multiValuedOnly) {
+    public Operator(String name, BiPredicate<Object, Object> predicate, ValueInput valueInput) {
 
         this.name = name;
         this.predicate = predicate;
         this.valueInput = valueInput;
-        this.multiValuedOnly = multiValuedOnly;
     }
 
     public boolean apply(Object fieldValue, Object expectedValue) {
@@ -74,15 +70,5 @@ public class Operator {
     public ValueInput getValueInput() {
 
         return valueInput;
-    }
-
-    /**
-     * Whether this operator applies to multi-valued fields alone.
-     *
-     * @return True for an operator such as isEmpty, which checks a field for entries.
-     */
-    public boolean isMultiValuedOnly() {
-
-        return multiValuedOnly;
     }
 }

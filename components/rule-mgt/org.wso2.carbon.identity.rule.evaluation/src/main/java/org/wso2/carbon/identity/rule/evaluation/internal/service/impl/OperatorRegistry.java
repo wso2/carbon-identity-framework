@@ -23,13 +23,9 @@ import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluatio
 import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiPredicate;
 
 /**
@@ -39,35 +35,24 @@ import java.util.function.BiPredicate;
  */
 public class OperatorRegistry {
 
-    private static final String IS_BLANK = "isBlank";
-    private static final String IS_NOT_BLANK = "isNotBlank";
-    private static final String IS_EMPTY = "isEmpty";
-    private static final String IS_NOT_EMPTY = "isNotEmpty";
-    private static final Set<String> VALUE_LESS_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList(IS_BLANK, IS_NOT_BLANK, IS_EMPTY, IS_NOT_EMPTY)));
-    private static final Set<String> LIST_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList("in", "notIn")));
-    private static final Set<String> MULTI_VALUED_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList(IS_EMPTY, IS_NOT_EMPTY)));
-
     private static final Map<String, Operator> operators = new HashMap<>();
-    private static final Map<String, BiPredicate<Object, Object>> supportedOperators = new HashMap<>();
+    private static final Map<String, OperatorDefinition> definitions = new HashMap<>();
 
     static {
-        supportedOperators.put("equals", Object::equals);
-        supportedOperators.put("notEquals", (a, b) -> !a.equals(b));
-        supportedOperators.put("contains", stringPredicate(String::contains));
-        supportedOperators.put("notContains", stringPredicate((a, b) -> !a.contains(b)));
-        supportedOperators.put("startsWith", stringPredicate(String::startsWith));
-        supportedOperators.put("endsWith", stringPredicate(String::endsWith));
-        supportedOperators.put("greaterThan", comparablePredicate(result -> result > 0));
-        supportedOperators.put("lessThan", comparablePredicate(result -> result < 0));
-        supportedOperators.put("in", membershipPredicate(true));
-        supportedOperators.put("notIn", membershipPredicate(false));
-        supportedOperators.put(IS_BLANK, (a, b) -> isBlank(a));
-        supportedOperators.put(IS_NOT_BLANK, (a, b) -> !isBlank(a));
-        supportedOperators.put(IS_EMPTY, (a, b) -> isEmpty(a));
-        supportedOperators.put(IS_NOT_EMPTY, (a, b) -> !isEmpty(a));
+        register("equals", Object::equals, ValueInput.SINGLE, false);
+        register("notEquals", (a, b) -> !a.equals(b), ValueInput.SINGLE, false);
+        register("contains", stringPredicate(String::contains), ValueInput.SINGLE, false);
+        register("notContains", stringPredicate((a, b) -> !a.contains(b)), ValueInput.SINGLE, false);
+        register("startsWith", stringPredicate(String::startsWith), ValueInput.SINGLE, false);
+        register("endsWith", stringPredicate(String::endsWith), ValueInput.SINGLE, false);
+        register("greaterThan", comparablePredicate(result -> result > 0), ValueInput.SINGLE, false);
+        register("lessThan", comparablePredicate(result -> result < 0), ValueInput.SINGLE, false);
+        register("in", membershipPredicate(true), ValueInput.LIST, true);
+        register("notIn", membershipPredicate(false), ValueInput.LIST, true);
+        register("isBlank", (a, b) -> isBlank(a), ValueInput.NONE, false);
+        register("isNotBlank", (a, b) -> !isBlank(a), ValueInput.NONE, false);
+        register("isEmpty", (a, b) -> isEmpty(a), ValueInput.NONE, true);
+        register("isNotEmpty", (a, b) -> !isEmpty(a), ValueInput.NONE, true);
     }
 
     private OperatorRegistry() {
@@ -86,6 +71,18 @@ public class OperatorRegistry {
     }
 
     /**
+     * Whether an operator applies to multi-valued fields alone, as isEmpty and in do.
+     *
+     * @param operator Operator.
+     * @return True if the operator checks a field's entries, which only a multi-valued field has.
+     */
+    public boolean isMultiValuedOnly(Operator operator) {
+
+        OperatorDefinition definition = definitions.get(operator.getName());
+        return definition != null && definition.multiValuedOnly;
+    }
+
+    /**
      * Instantiate OperatorRegistry loading operators from metadata service.
      *
      * @return OperatorRegistry instance.
@@ -100,29 +97,25 @@ public class OperatorRegistry {
         ruleMetadataService.getApplicableOperatorsInExpressions()
                 .forEach(operator -> {
                     String name = operator.getName();
-                    BiPredicate<Object, Object> predicate = supportedOperators.get(name);
-                    if (predicate == null) {
+                    OperatorDefinition definition = definitions.get(name);
+                    if (definition == null) {
                         throw new IllegalArgumentException("Unsupported operator: " + name);
                     }
-                    ValueInput valueInput = valueInputOf(name);
-                    if (operator.getValueInput() != valueInput) {
+                    if (operator.getValueInput() != definition.valueInput) {
                         throw new IllegalArgumentException("Operator " + name + " is configured with value input "
                                 + operator.getValueInput().getValue() + ", but its implementation takes "
-                                + valueInput.getValue() + ".");
+                                + definition.valueInput.getValue() + ".");
                     }
-                    operators.put(name, new Operator(name, predicate, valueInput,
-                            MULTI_VALUED_OPERATORS.contains(name)));
+                    operators.put(name, new Operator(name, definition.predicate, definition.valueInput));
                 });
 
         return new OperatorRegistry();
     }
 
-    private static ValueInput valueInputOf(String name) {
+    private static void register(String name, BiPredicate<Object, Object> predicate, ValueInput valueInput,
+                                 boolean multiValuedOnly) {
 
-        if (VALUE_LESS_OPERATORS.contains(name)) {
-            return ValueInput.NONE;
-        }
-        return LIST_OPERATORS.contains(name) ? ValueInput.LIST : ValueInput.SINGLE;
+        definitions.put(name, new OperatorDefinition(predicate, valueInput, multiValuedOnly));
     }
 
     @SuppressWarnings("unchecked")
@@ -161,5 +154,23 @@ public class OperatorRegistry {
             return ((Collection<?>) value).stream().allMatch(OperatorRegistry::isBlank);
         }
         return value == null || (value instanceof String && ((String) value).trim().isEmpty());
+    }
+
+    /**
+     * What an operator does, the value it takes, and whether it applies to multi-valued fields alone.
+     */
+    private static final class OperatorDefinition {
+
+        private final BiPredicate<Object, Object> predicate;
+        private final ValueInput valueInput;
+        private final boolean multiValuedOnly;
+
+        private OperatorDefinition(BiPredicate<Object, Object> predicate, ValueInput valueInput,
+                                   boolean multiValuedOnly) {
+
+            this.predicate = predicate;
+            this.valueInput = valueInput;
+            this.multiValuedOnly = multiValuedOnly;
+        }
     }
 }

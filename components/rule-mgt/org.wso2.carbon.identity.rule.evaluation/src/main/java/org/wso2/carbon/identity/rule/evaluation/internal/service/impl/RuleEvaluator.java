@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationExce
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
-import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
@@ -124,15 +123,15 @@ public class RuleEvaluator {
         if (operator == null) {
             throw new RuleEvaluationException("Unsupported operator: " + expression.getOperator());
         }
+        if (operatorRegistry.isMultiValuedOnly(operator) && !LIST.equals(fieldValue.getValueType())) {
+            throw new RuleEvaluationException("Operator " + operator.getName()
+                    + " applies to multi-valued fields only, which field " + expression.getField() + " is not.");
+        }
         Value value = expression.getValue();
 
         if (operator.getValueInput() == ValueInput.NONE) {
             if (value != null) {
                 throw new RuleEvaluationException("Operator " + operator.getName() + " takes no value.");
-            }
-            if (operator.isMultiValuedOnly() && !ValueType.LIST.equals(fieldValue.getValueType())) {
-                throw new RuleEvaluationException("Operator " + operator.getName()
-                        + " applies to multi-valued fields only, which field " + expression.getField() + " is not.");
             }
             return operator.apply(fieldValue.getValue(), null);
         }
@@ -151,6 +150,10 @@ public class RuleEvaluator {
             throw new RuleEvaluationException("Operator " + operator.getName()
                     + " needs a list of values or another field.");
         }
+        if (value.getType() == Value.Type.LIST && value.getFieldValues() != null
+                && value.getFieldValues().contains(null)) {
+            throw new RuleEvaluationException("A list value in the condition has a missing entry.");
+        }
 
         // A condition with a missing value on either side never holds.
         if (fieldValue.getValue() == null) {
@@ -163,11 +166,6 @@ public class RuleEvaluator {
 
         if (rightOperand(expression) == null) {
             return false;
-        }
-
-        if (value.getType() == Value.Type.LIST && !fieldValue.getValueType().equals(LIST)) {
-            return operator.apply(fieldValue.getValue(), typedEntries(fieldValue.getValueType(),
-                    value.getFieldValues()));
         }
 
         // Evaluate based on the value type of the field
@@ -243,33 +241,6 @@ public class RuleEvaluator {
 
         Value value = expression.getValue();
         return value.getType() == Value.Type.LIST ? value.getFieldValues() : value.getFieldValue();
-    }
-
-    /**
-     * The entries of a LIST value, converted to the value type of the field they are compared with.
-     *
-     * @param valueType Value type of the field.
-     * @param entries   Entries of the LIST value.
-     * @return The converted entries.
-     * @throws RuleEvaluationException If an entry is missing or is not of the field's type.
-     */
-    private static List<Object> typedEntries(ValueType valueType, List<String> entries)
-            throws RuleEvaluationException {
-
-        List<Object> typed = new ArrayList<>(entries.size());
-        for (String entry : entries) {
-            if (entry == null) {
-                throw new RuleEvaluationException("A list value in the condition has a missing entry.");
-            }
-            if (valueType.equals(NUMBER)) {
-                typed.add(parseNumber(entry));
-            } else if (valueType.equals(BOOLEAN)) {
-                typed.add(parseBoolean(entry));
-            } else {
-                typed.add(entry);
-            }
-        }
-        return typed;
     }
 
     private static Double parseNumber(String value) throws RuleEvaluationException {

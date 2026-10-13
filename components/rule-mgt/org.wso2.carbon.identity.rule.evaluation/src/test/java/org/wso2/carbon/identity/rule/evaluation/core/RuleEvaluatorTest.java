@@ -427,9 +427,9 @@ public class RuleEvaluatorTest {
     @Test
     public void testInAndNotInDoNotHoldOnAMissingValue() throws Exception {
 
-        Rule inRule = ruleWithSingleExpression("email", "in", new Value(Arrays.asList("a@x.com")));
-        Rule notInRule = ruleWithSingleExpression("email", "notIn", new Value(Arrays.asList("a@x.com")));
-        Map<String, FieldValue> data = createEvaluationData((String) null);
+        Rule inRule = ruleWithSingleExpression("claim", "in", new Value(Arrays.asList("a@x.com")));
+        Rule notInRule = ruleWithSingleExpression("claim", "notIn", new Value(Arrays.asList("a@x.com")));
+        Map<String, FieldValue> data = createEvaluationData((List<String>) null);
 
         assertFalse(ruleEvaluator.evaluate(inRule, data).isRuleSatisfied());
         assertFalse(ruleEvaluator.evaluate(notInRule, data).isRuleSatisfied(),
@@ -479,45 +479,38 @@ public class RuleEvaluatorTest {
     }
 
     @Test
-    public void testFieldComparisonInChecksAValueAgainstASet() throws Exception {
+    public void testFieldComparisonInChecksASetAgainstAValue() throws Exception {
 
         Rule rule = ruleWithSingleExpression("collected", "in",
                 new Value(new FieldReference("stored", null)));
         Map<String, FieldValue> data = new HashMap<>();
-        data.put("collected", new FieldValue("collected", "b@x.com", ValueType.STRING));
-        data.put("stored", new FieldValue("stored", Arrays.asList("b@x.com", "c@x.com")));
+        data.put("collected", new FieldValue("collected", Arrays.asList("a@x.com", "b@x.com")));
+        data.put("stored", new FieldValue("stored", "b@x.com", ValueType.STRING));
 
         assertTrue(ruleEvaluator.evaluate(rule, data).isRuleSatisfied());
     }
 
     /**
-     * A list for a number field holds numbers: its entries are read as numbers, as a single value would be, rather
-     * than handed to the number conversion as one value.
+     * in and notIn compare the entries of a multi-valued field, so on a single-valued field, whether text, number or
+     * boolean, they are an error rather than a condition that silently does not hold.
      */
     @Test
-    public void testInOnANumberFieldReadsTheListAsNumbers() throws Exception {
+    public void testInAndNotInOnASingleValuedFieldAreErrors() {
 
-        Map<String, FieldValue> data = new HashMap<>();
+        Map<String, FieldValue> data = twoFields("LK", "LK");
         data.put("riskScore", new FieldValue("riskScore", 3));
-
-        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "in",
-                new Value(Arrays.asList("1", "3"))), data).isRuleSatisfied());
-        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "in",
-                new Value(Arrays.asList("1", "2"))), data).isRuleSatisfied());
-        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", "notIn",
-                new Value(Arrays.asList("1", "2"))), data).isRuleSatisfied());
-    }
-
-    @Test
-    public void testInOnABooleanFieldReadsTheListAsBooleans() throws Exception {
-
-        Map<String, FieldValue> data = new HashMap<>();
         data.put("consented", new FieldValue("consented", true));
 
-        assertTrue(ruleEvaluator.evaluate(ruleWithSingleExpression("consented", "in",
-                new Value(Arrays.asList("true"))), data).isRuleSatisfied());
-        assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("consented", "in",
-                new Value(Arrays.asList("false"))), data).isRuleSatisfied());
+        for (String operator : Arrays.asList("in", "notIn")) {
+            expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
+                    ruleWithSingleExpression("collected", operator, new Value(Arrays.asList("LK", "IN"))), data));
+            expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
+                    ruleWithSingleExpression("riskScore", operator, new Value(Arrays.asList("1", "3"))), data));
+            expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
+                    ruleWithSingleExpression("consented", operator, new Value(Arrays.asList("true"))), data));
+            expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
+                    comparedWithStored(operator), data));
+        }
     }
 
     /**
@@ -603,10 +596,10 @@ public class RuleEvaluatorTest {
         data.put("consented", new FieldValue("consented", true));
         data.put("collected", new FieldValue("collected", "LK", ValueType.STRING));
 
+        data.put("claim", new FieldValue("claim", Arrays.asList("a@x.com")));
+
         expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
-                ruleWithSingleExpression("riskScore", "in", new Value(Arrays.asList("5", null))), data));
-        expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
-                ruleWithSingleExpression("riskScore", "in", new Value(Arrays.asList("5", "five"))), data));
+                ruleWithSingleExpression("claim", "in", new Value(Arrays.asList("a@x.com", null))), data));
         expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
                 ruleWithSingleExpression("riskScore", "equals", new Value(Value.Type.NUMBER, "five")), data));
         expectThrows(RuleEvaluationException.class, () -> ruleEvaluator.evaluate(
@@ -641,15 +634,21 @@ public class RuleEvaluatorTest {
     }
 
     /**
-     * A single value on the other side counts as a set of one, so in / notIn behave as equals / notEquals.
+     * A single value on the right counts as a set of one, so in / notIn check whether the field holds it.
      */
     @Test
     public void testFieldComparisonInTreatsASingleValueAsASetOfOne() throws Exception {
 
-        assertTrue(ruleEvaluator.evaluate(comparedWithStored("in"), twoFields("LK", "LK")).isRuleSatisfied());
-        assertFalse(ruleEvaluator.evaluate(comparedWithStored("notIn"), twoFields("LK", "LK")).isRuleSatisfied());
-        assertFalse(ruleEvaluator.evaluate(comparedWithStored("in"), twoFields("LK", "IN")).isRuleSatisfied());
-        assertTrue(ruleEvaluator.evaluate(comparedWithStored("notIn"), twoFields("LK", "IN")).isRuleSatisfied());
+        Map<String, FieldValue> holds = new HashMap<>();
+        holds.put("collected", new FieldValue("collected", Arrays.asList("LK", "IN")));
+        holds.put("stored", new FieldValue("stored", "LK", ValueType.STRING));
+        Map<String, FieldValue> lacks = new HashMap<>(holds);
+        lacks.put("stored", new FieldValue("stored", "US", ValueType.STRING));
+
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("in"), holds).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("notIn"), holds).isRuleSatisfied());
+        assertFalse(ruleEvaluator.evaluate(comparedWithStored("in"), lacks).isRuleSatisfied());
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("notIn"), lacks).isRuleSatisfied());
     }
 
     /**
@@ -662,16 +661,16 @@ public class RuleEvaluatorTest {
         Map<String, FieldValue> bothSets = new HashMap<>();
         bothSets.put("collected", new FieldValue("collected", Arrays.asList("a@x.com", "b@x.com")));
         bothSets.put("stored", new FieldValue("stored", Arrays.asList("c@x.com")));
-        Map<String, FieldValue> setOnTheRight = new HashMap<>();
-        setOnTheRight.put("collected", new FieldValue("collected", "a@x.com", ValueType.STRING));
-        setOnTheRight.put("stored", new FieldValue("stored", Arrays.asList("a@x.com")));
+        Map<String, FieldValue> setOnTheLeft = new HashMap<>();
+        setOnTheLeft.put("collected", new FieldValue("collected", Arrays.asList("a@x.com")));
+        setOnTheLeft.put("stored", new FieldValue("stored", "a@x.com", ValueType.STRING));
 
-        for (Map<String, FieldValue> data : Arrays.asList(bothSets, setOnTheRight)) {
+        for (Map<String, FieldValue> data : Arrays.asList(bothSets, setOnTheLeft)) {
             assertFalse(ruleEvaluator.evaluate(comparedWithStored("equals"), data).isRuleSatisfied());
             assertFalse(ruleEvaluator.evaluate(comparedWithStored("notEquals"), data).isRuleSatisfied());
         }
         assertTrue(ruleEvaluator.evaluate(comparedWithStored("notIn"), bothSets).isRuleSatisfied());
-        assertTrue(ruleEvaluator.evaluate(comparedWithStored("in"), setOnTheRight).isRuleSatisfied());
+        assertTrue(ruleEvaluator.evaluate(comparedWithStored("in"), setOnTheLeft).isRuleSatisfied());
     }
 
     /**

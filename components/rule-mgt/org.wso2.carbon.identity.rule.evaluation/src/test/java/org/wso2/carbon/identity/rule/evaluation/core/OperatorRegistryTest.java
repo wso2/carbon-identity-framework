@@ -199,12 +199,13 @@ public class OperatorRegistryTest {
     }
 
     @Test
-    public void testEmptinessOperatorsApplyToMultiValuedFieldsOnly() {
+    public void testEmptinessAndMembershipOperatorsApplyToMultiValuedFieldsOnly() {
 
-        assertTrue(operatorRegistry.getOperator("isEmpty").isMultiValuedOnly());
-        assertTrue(operatorRegistry.getOperator("isNotEmpty").isMultiValuedOnly());
-        for (String name : new String[]{"isBlank", "isNotBlank", "equals", "in"}) {
-            assertFalse(operatorRegistry.getOperator(name).isMultiValuedOnly(), name);
+        for (String name : new String[]{"isEmpty", "isNotEmpty", "in", "notIn"}) {
+            assertTrue(operatorRegistry.isMultiValuedOnly(operatorRegistry.getOperator(name)), name);
+        }
+        for (String name : new String[]{"isBlank", "isNotBlank", "equals", "notEquals"}) {
+            assertFalse(operatorRegistry.isMultiValuedOnly(operatorRegistry.getOperator(name)), name);
         }
     }
 
