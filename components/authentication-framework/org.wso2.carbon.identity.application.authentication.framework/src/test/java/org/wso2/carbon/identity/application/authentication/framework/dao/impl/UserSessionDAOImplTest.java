@@ -20,16 +20,25 @@ package org.wso2.carbon.identity.application.authentication.framework.dao.impl;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.database.utils.jdbc.ExecuteCallable;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.QueryFilter;
+import org.wso2.carbon.database.utils.jdbc.Template;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.nio.file.Paths;
@@ -47,12 +56,19 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 
 @WithH2Database(files = {"dbScripts/h2.sql"})
 public class UserSessionDAOImplTest extends IdentityBaseTest {
@@ -69,6 +85,9 @@ public class UserSessionDAOImplTest extends IdentityBaseTest {
     private static final String IDP_NAME = "Federated-IdP";
     private static final String AUTHENTICATOR_ID = "OpenIDConnectAuthenticator";
     private static final String PROTOCOL_TYPE = "oidc";
+    private static final String SUBJECT = "user1";
+    // A driver name that does not identify the database, so only the product name matches.
+    private static final String WRAPPER_DRIVER = "Wrapper JDBC Driver";
 
     @BeforeMethod
     public void init() {
@@ -238,6 +257,80 @@ public class UserSessionDAOImplTest extends IdentityBaseTest {
             assertEquals(userSessionDAO.getSessions(Collections.emptyList()).size(), 0);
             assertEquals(userSessionDAO.getSessions(Arrays.asList(null, "", " ")).size(), 0);
         }
+    }
+
+    @DataProvider
+    public Object[][] storeAppSessionDataQueries() {
+
+        return new Object[][]{
+                {"Oracle JDBC driver", "Oracle", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE},
+                {WRAPPER_DRIVER, "Oracle", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE},
+                {"Microsoft JDBC Driver 12.4 for SQL Server", "Microsoft SQL Server",
+                        SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL},
+                {"jTDS Type 4 JDBC Driver for MS SQL Server and Sybase", "Microsoft SQL Server",
+                        SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL},
+                {"IBM DB2 JDBC Universal Driver Architecture", "DB2/LINUXX8664",
+                        SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_DB2},
+                {"IBM Data Server Driver for JDBC and SQLJ", "DB2/LINUXX8664",
+                        SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_DB2},
+                {"MySQL Connector/J", "MySQL", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB},
+                {"MariaDB Connector/J", "MySQL", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB},
+                {"MariaDB Connector/J", "MariaDB", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB},
+                {WRAPPER_DRIVER, "MariaDB", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB},
+                {"PostgreSQL JDBC Driver", "PostgreSQL", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES},
+                {WRAPPER_DRIVER, "PostgreSQL", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES},
+                {"H2 JDBC Driver", "H2", SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2}
+        };
+    }
+
+    /**
+     * The session DB type is read once, before the transaction, and selects the store query of the database.
+     */
+    @SuppressWarnings("unchecked")
+    @Test(dataProvider = "storeAppSessionDataQueries")
+    public void testStoreAppSessionDataQueryPerDatabase(String driverName, String databaseProductName,
+                                                        String expectedQuery) throws Exception {
+
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        Template<Object> template = mock(Template.class);
+        when(jdbcTemplate.getDriverName()).thenReturn(driverName);
+        when(jdbcTemplate.getDatabaseProductName()).thenReturn(databaseProductName);
+        when(jdbcTemplate.withTransaction(any(ExecuteCallable.class))).thenAnswer(
+                invocation -> ((ExecuteCallable<Object>) invocation.getArgument(0)).get(template));
+
+        try (MockedStatic<JdbcUtils> jdbcUtils = mockNewTemplate(jdbcTemplate)) {
+            userSessionDAO.storeAppSessionData(SESSION_CONTEXT_KEY, SUBJECT, APP_ID, PROTOCOL_TYPE);
+            // A DB type check that creates its own template would borrow a second connection.
+            jdbcUtils.verify(() -> JdbcUtils.getNewTemplate(any(JdbcUtils.Database.class)), times(1));
+        }
+        InOrder inOrder = inOrder(jdbcTemplate);
+        inOrder.verify(jdbcTemplate).getDatabaseProductName();
+        inOrder.verify(jdbcTemplate).withTransaction(any(ExecuteCallable.class));
+        verify(template).executeUpdate(eq(expectedQuery), any(QueryFilter.class));
+    }
+
+    /**
+     * A failure to read the session DB type is reported before any transaction starts.
+     */
+    @Test
+    public void testStoreAppSessionDataWhenDBTypeCannotBeResolved() throws Exception {
+
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        when(jdbcTemplate.getDriverName()).thenThrow(new DataAccessException("Database metadata unavailable."));
+
+        try (MockedStatic<JdbcUtils> jdbcUtils = mockNewTemplate(jdbcTemplate)) {
+            DataAccessException e = expectThrows(DataAccessException.class, () ->
+                    userSessionDAO.storeAppSessionData(SESSION_CONTEXT_KEY, SUBJECT, APP_ID, PROTOCOL_TYPE));
+            assertTrue(e.getMessage().startsWith("Error while resolving the session database type"));
+        }
+        verify(jdbcTemplate, never()).withTransaction(any(ExecuteCallable.class));
+    }
+
+    private static MockedStatic<JdbcUtils> mockNewTemplate(JdbcTemplate jdbcTemplate) {
+
+        // Every new template is the given mock; the DB type checks run for real.
+        return mockStatic(JdbcUtils.class, invocation -> "getNewTemplate".equals(invocation.getMethod().getName()) ?
+                jdbcTemplate : invocation.callRealMethod());
     }
 
     private void mockConnections(MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil, String dbName)

@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.dao.impl;
 
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.ExecuteCallable;
@@ -33,6 +36,8 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
+import org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementServerException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -47,18 +52,26 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertThrows;
 import static org.testng.AssertJUnit.assertEquals;
@@ -281,5 +294,100 @@ public class ConfigurationDAOImplTest {
             assertThrows(ConfigurationManagementClientException.class,
                     () -> configurationDAO.replaceResourceWithFiles(resource));
         }
+    }
+
+    @DataProvider
+    public Object[][] deleteFileByIdData() {
+
+        return new Object[][]{
+                {"H2", SQLConstants.GET_FILE_BY_ID_SQL_H2, false},
+                {"PostgreSQL", SQLConstants.GET_FILE_BY_ID_SQL, false},
+                {"Oracle", SQLConstants.GET_FILE_BY_ID_SQL, true},
+                {"Microsoft SQL Server", SQLConstants.GET_FILE_BY_ID_SQL, true}
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(description = "Test deleteFileById resolves the DB type once, before the transaction",
+            dataProvider = "deleteFileByIdData")
+    public void testDeleteFileByIdPerDatabase(String databaseProductName, String expectedFileQuery,
+                                              boolean isHasFileInteger) throws Exception {
+
+        JdbcTemplate mockJdbcTemplate = mock(JdbcTemplate.class);
+        Template<Object> mockTemplate = mock(Template.class);
+        when(mockJdbcTemplate.getDatabaseProductName()).thenReturn(databaseProductName);
+        when(mockTemplate.fetchSingleRecord(anyString(), any(RowMapper.class), any(QueryFilter.class)))
+                .thenReturn(RESOURCE_ID);
+        when(mockJdbcTemplate.withTransaction(any(ExecuteCallable.class))).thenAnswer(
+                invocation -> ((ExecuteCallable<Object>) invocation.getArgument(0)).get(mockTemplate));
+
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = mockNewTemplate(mockJdbcTemplate)) {
+            configurationDAO.deleteFileById(RESOURCE_TYPE_NAME, RESOURCE_NAME, FILE_ID);
+            // A DB type check that creates its own template would borrow a second connection.
+            mockedJdbcUtils.verify(JdbcUtils::getNewTemplate, times(1));
+            mockedJdbcUtils.verify(() -> JdbcUtils.getNewTemplate(any(JdbcUtils.Database.class)), never());
+        }
+        InOrder inOrder = inOrder(mockJdbcTemplate);
+        inOrder.verify(mockJdbcTemplate).getDatabaseProductName();
+        inOrder.verify(mockJdbcTemplate).withTransaction(any(ExecuteCallable.class));
+        verify(mockTemplate).fetchSingleRecord(eq(expectedFileQuery), any(RowMapper.class), any(QueryFilter.class));
+
+        // The last file of the resource is deleted, so HAS_FILE is cleared with the column type of the database.
+        ArgumentCaptor<QueryFilter> hasFileFilter = ArgumentCaptor.forClass(QueryFilter.class);
+        verify(mockTemplate).executeUpdate(eq(SQLConstants.UPDATE_HAS_FILE_SQL), hasFileFilter.capture());
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        hasFileFilter.getValue().filter(preparedStatement);
+        if (isHasFileInteger) {
+            verify(preparedStatement).setInt(1, 0);
+        } else {
+            verify(preparedStatement).setBoolean(1, false);
+        }
+    }
+
+    @DataProvider
+    public Object[][] getResourcesByTypeData() {
+
+        return new Object[][]{
+                {"Oracle", "1", true},
+                {"Oracle", "0", false},
+                {"Microsoft SQL Server", "1", true},
+                {"DB2/LINUXX8664", "1", true},
+                {"H2", "TRUE", true}
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(description = "Test getResourcesByType resolves the DB type once, before reading the rows",
+            dataProvider = "getResourcesByTypeData")
+    public void testGetResourcesByTypePerDatabase(String databaseProductName, String hasFileValue,
+                                                  boolean expectedHasFile) throws Exception {
+
+        JdbcTemplate mockJdbcTemplate = mock(JdbcTemplate.class);
+        ResultSet resultSet = mock(ResultSet.class);
+        when(resultSet.getString(ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_ID)).thenReturn(RESOURCE_ID);
+        when(resultSet.getString(ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_NAME)).thenReturn(RESOURCE_NAME);
+        when(resultSet.getString(ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_HAS_FILE)).thenReturn(hasFileValue);
+        when(mockJdbcTemplate.getDatabaseProductName()).thenReturn(databaseProductName);
+        when(mockJdbcTemplate.fetchSingleRecord(eq(SQLConstants.GET_RESOURCE_TYPE_BY_ID_SQL), any(RowMapper.class),
+                any(QueryFilter.class))).thenReturn(RESOURCE_TYPE_NAME);
+        when(mockJdbcTemplate.executeQuery(eq(SQLConstants.GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL), any(RowMapper.class),
+                any(QueryFilter.class))).thenAnswer(invocation -> Collections.singletonList(
+                ((RowMapper<Resource>) invocation.getArgument(1)).mapRow(resultSet, 0)));
+
+        List<Resource> resources;
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = mockNewTemplate(mockJdbcTemplate)) {
+            resources = configurationDAO.getResourcesByType(TENANT_ID, RESOURCE_TYPE_ID);
+            mockedJdbcUtils.verify(() -> JdbcUtils.getNewTemplate(any(JdbcUtils.Database.class)), never());
+        }
+        verify(mockJdbcTemplate, times(1)).getDatabaseProductName();
+        assertEquals(1, resources.size());
+        assertEquals(expectedHasFile, resources.get(0).isHasFile());
+    }
+
+    private static MockedStatic<JdbcUtils> mockNewTemplate(JdbcTemplate jdbcTemplate) {
+
+        // Every new template is the given mock; the DB type checks run for real.
+        return mockStatic(JdbcUtils.class, invocation -> "getNewTemplate".equals(invocation.getMethod().getName()) ?
+                jdbcTemplate : invocation.callRealMethod());
     }
 }
