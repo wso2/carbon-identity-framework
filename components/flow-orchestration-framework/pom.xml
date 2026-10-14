@@ -38,6 +38,7 @@
         <module>org.wso2.carbon.identity.flow.mgt</module>
         <module>org.wso2.carbon.identity.flow.execution.engine</module>
         <module>org.wso2.carbon.identity.flow.extension</module>
+        <module>org.wso2.carbon.identity.flow.executor</module>
     </modules>
 
 </project>
