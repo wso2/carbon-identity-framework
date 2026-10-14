@@ -252,12 +252,18 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void updateExternalClaim(ExternalClaim externalClaim, int tenantId)
             throws ClaimMetadataException {
 
+        String previousMappedLocalClaim = resolveMappedLocalClaim(externalClaim.getClaimDialectURI(),
+                externalClaim.getClaimURI(), tenantId);
         super.updateExternalClaim(externalClaim, tenantId);
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaim.getClaimDialectURI());
         List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
         for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
             externalClaimCache.clearCacheEntry(cacheKey, tenantIdToBeInvalidated);
             associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantIdToBeInvalidated);
+            if (StringUtils.isNotBlank(previousMappedLocalClaim)
+                    && !previousMappedLocalClaim.equals(externalClaim.getMappedLocalClaim())) {
+                associatedClaimCache.clearCacheEntry(previousMappedLocalClaim, tenantIdToBeInvalidated);
+            }
         }
         if (log.isDebugEnabled()) {
             log.debug("External claim: " + externalClaim.getClaimDialectURI() + ":" + externalClaim.getClaimURI() +
@@ -269,15 +275,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void removeExternalClaim(String externalClaimDialectURI, String externalClaimURI, int tenantId)
             throws ClaimMetadataException {
 
-        List<ExternalClaim> externalClaimsList = getExternalClaims(externalClaimDialectURI, tenantId);
-        String mappedLocalClaim = null;
-        if (externalClaimsList != null) {
-            for (ExternalClaim externalClaim : externalClaimsList) {
-                if (externalClaim.getClaimURI().equals(externalClaimURI)) {
-                    mappedLocalClaim = externalClaim.getMappedLocalClaim();
-                }
-            }
-        }
+        String mappedLocalClaim = resolveMappedLocalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
         super.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
         List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
@@ -291,6 +289,24 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
             log.debug("External claim: " + externalClaimDialectURI + ":" + externalClaimURI +
                     " is deleted in tenant: " + tenantId + ". Invalidated ExternalClaimCache.");
         }
+    }
+
+    /**
+     * Returns the local claim currently mapped to the given external claim, or null if the claim is not found.
+     */
+    private String resolveMappedLocalClaim(String externalClaimDialectURI, String externalClaimURI, int tenantId)
+            throws ClaimMetadataException {
+
+        List<ExternalClaim> externalClaimsList = getExternalClaims(externalClaimDialectURI, tenantId);
+        if (externalClaimsList == null) {
+            return null;
+        }
+        for (ExternalClaim externalClaim : externalClaimsList) {
+            if (externalClaim.getClaimURI().equals(externalClaimURI)) {
+                return externalClaim.getMappedLocalClaim();
+            }
+        }
+        return null;
     }
 
     @Override
