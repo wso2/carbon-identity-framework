@@ -19,8 +19,6 @@
 package org.wso2.carbon.identity.flow.execution.engine.rule;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -56,8 +54,6 @@ import java.util.regex.Pattern;
  * Supplies the values a flow condition is evaluated against.
  */
 public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEvaluationDataProvider {
-
-    private static final Log LOG = LogFactory.getLog(AbstractFlowRuleEvaluationDataProvider.class);
 
     /**
      * The application the flow runs for, by id.
@@ -113,9 +109,13 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
      * @param field        Field to resolve, carrying its qualifier where it has one.
      * @param context      Flow execution context.
      * @param tenantDomain Tenant domain.
-     * @return The value, never null.
+     * @return The value, never null. A value that is missing, such as a claim not collected, resolves to no value,
+     * or to an empty list for a multi-valued field.
+     * @throws RuleEvaluationDataProviderException If the value cannot be known at this point of the flow, or reading
+     *                                             it fails. Neither is read as an empty value.
      */
-    protected FieldValue resolve(Field field, FlowExecutionContext context, String tenantDomain) {
+    protected FieldValue resolve(Field field, FlowExecutionContext context, String tenantDomain)
+            throws RuleEvaluationDataProviderException {
 
         switch (field.getName()) {
             case APPLICATION:
@@ -131,19 +131,17 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
             case USER_ROLES:
                 return userRoles(field, context, tenantDomain);
             default:
-                LOG.debug("No value available for condition field: " + field.getName() + ".");
-                return absent(field);
+                throw new RuleEvaluationDataProviderException(
+                        "No value can be read for condition field: " + field.getName() + ".");
         }
     }
 
-    private FieldValue collectedClaim(Field field, FlowExecutionContext context) {
+    private FieldValue collectedClaim(Field field, FlowExecutionContext context)
+            throws RuleEvaluationDataProviderException {
 
         FlowUser user = context.getFlowUser();
-        if (user == null || user.getClaims() == null) {
-            return absent(field);
-        }
-        return claimValue(field, user.getClaims().get(field.getQualifier()), user.getUserStoreDomain(),
-                context.getTenantDomain());
+        String rawValue = user == null || user.getClaims() == null ? null : user.getClaims().get(field.getQualifier());
+        return claimValue(field, rawValue, user == null ? null : user.getUserStoreDomain(), context.getTenantDomain());
     }
 
     private FieldValue application(Field field, FlowExecutionContext context) {
@@ -156,12 +154,10 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     /**
      * The user store of the user, once the user exists.
      */
-    private FieldValue userDomain(Field field, FlowExecutionContext context, String tenantDomain) {
+    private FieldValue userDomain(Field field, FlowExecutionContext context, String tenantDomain)
+            throws RuleEvaluationDataProviderException {
 
-        FlowUser user = context.getFlowUser();
-        if (user == null || StringUtils.isBlank(user.getUserId())) {
-            return absent(field);
-        }
+        FlowUser user = identifiedUser(field, context);
         if (StringUtils.isNotBlank(user.getUserStoreDomain())) {
             return stringValue(field, user.getUserStoreDomain().toUpperCase());
         }
@@ -171,40 +167,38 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
             return stringValue(field, StringUtils.isNotBlank(primaryDomain)
                     ? primaryDomain.toUpperCase() : UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
         } catch (UserStoreException e) {
-            LOG.warn("Could not read the primary user store of tenant " + tenantDomain
-                    + ". The condition on the user's domain will not hold.", e);
-            return absent(field);
+            throw new RuleEvaluationDataProviderException("Could not read the primary user store of tenant "
+                    + tenantDomain + " for the condition on the user's domain.", e);
         }
     }
 
     /**
      * The ids of the groups the user is assigned to.
      */
-    private FieldValue userGroups(Field field, FlowExecutionContext context, String tenantDomain) {
+    private FieldValue userGroups(Field field, FlowExecutionContext context, String tenantDomain)
+            throws RuleEvaluationDataProviderException {
 
-        FlowUser user = context.getFlowUser();
-        if (user == null || StringUtils.isBlank(user.getUserId())) {
-            return absentSet(field);
-        }
+        FlowUser user = identifiedUser(field, context);
         try {
             return new FieldValue(field.getName(), groupIds(user.getUserId(), tenantDomain));
         } catch (UserStoreException e) {
-            LOG.warn("Could not read the groups of the user in tenant " + tenantDomain
-                    + ". The condition on them will not hold.", e);
-            return absentSet(field);
+            throw new RuleEvaluationDataProviderException("Could not read the groups of the user in tenant "
+                    + tenantDomain + ".", e);
         }
     }
 
     /**
      * The ids of the roles the user is assigned, whether directly or through one of the user's groups.
      */
-    private FieldValue userRoles(Field field, FlowExecutionContext context, String tenantDomain) {
+    private FieldValue userRoles(Field field, FlowExecutionContext context, String tenantDomain)
+            throws RuleEvaluationDataProviderException {
 
-        FlowUser user = context.getFlowUser();
+        FlowUser user = identifiedUser(field, context);
         RoleManagementService roleManagementService =
                 FlowExecutionEngineDataHolder.getInstance().getRoleManagementService();
-        if (user == null || StringUtils.isBlank(user.getUserId()) || roleManagementService == null) {
-            return absentSet(field);
+        if (roleManagementService == null) {
+            throw new RuleEvaluationDataProviderException(
+                    "Role management service is not available to read the roles of the user.");
         }
         try {
             Set<String> roleIds = new LinkedHashSet<>(
@@ -215,9 +209,8 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
             }
             return new FieldValue(field.getName(), new ArrayList<>(roleIds));
         } catch (UserStoreException | IdentityRoleManagementException e) {
-            LOG.warn("Could not read the roles of the user in tenant " + tenantDomain
-                    + ". The condition on them will not hold.", e);
-            return absentSet(field);
+            throw new RuleEvaluationDataProviderException("Could not read the roles of the user in tenant "
+                    + tenantDomain + ".", e);
         }
     }
 
@@ -244,13 +237,10 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     /**
      * Read a claim from the user store.
      */
-    private FieldValue persistedClaim(Field field, FlowExecutionContext context, String tenantDomain) {
+    private FieldValue persistedClaim(Field field, FlowExecutionContext context, String tenantDomain)
+            throws RuleEvaluationDataProviderException {
 
-        FlowUser user = context.getFlowUser();
-        if (user == null || StringUtils.isBlank(user.getUserId())) {
-            LOG.debug("No user exists yet in the flow. Stored claims resolve to no value.");
-            return absent(field);
-        }
+        FlowUser user = identifiedUser(field, context);
 
         try {
             Map<String, String> claims = userStoreManager(tenantDomain).getUserClaimValuesWithID(
@@ -258,10 +248,8 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
             return claimValue(field, claims == null ? null : claims.get(field.getQualifier()),
                     user.getUserStoreDomain(), tenantDomain);
         } catch (UserStoreException e) {
-            // A user store that cannot answer must not fail the flow.
-            LOG.warn("Could not read claim " + field.getQualifier() + " for the user in tenant " + tenantDomain
-                    + ". The condition on it will not hold.", e);
-            return absent(field);
+            throw new RuleEvaluationDataProviderException("Could not read claim " + field.getQualifier()
+                    + " for the user in tenant " + tenantDomain + ".", e);
         }
     }
 
@@ -278,7 +266,8 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     }
 
     /**
-     * A claim value, as a set when the claim holds more than one value.
+     * A claim value, as a set when the claim holds more than one value. An empty value counts as no value: a set
+     * that is not there rather than an empty one, so isBlank and isEmpty hold on it but notIn does not.
      *
      * @param field           Field being resolved.
      * @param rawValue        Value as stored or collected.
@@ -286,14 +275,18 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
      * @param tenantDomain    Tenant domain.
      * @return The value.
      */
-    private FieldValue claimValue(Field field, String rawValue, String userStoreDomain, String tenantDomain) {
+    private FieldValue claimValue(Field field, String rawValue, String userStoreDomain, String tenantDomain)
+            throws RuleEvaluationDataProviderException {
 
-        if (StringUtils.isEmpty(rawValue) || !isMultiValued(field.getQualifier(), tenantDomain)) {
-            return stringValue(field, rawValue);
+        if (!isMultiValued(field.getQualifier(), tenantDomain)) {
+            return stringValue(field, StringUtils.isEmpty(rawValue) ? null : rawValue);
         }
 
-        String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
+        if (StringUtils.isEmpty(rawValue)) {
+            return new FieldValue(field.getName(), field.getQualifier(), (List<String>) null);
+        }
         List<String> values = new ArrayList<>();
+        String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
         for (String value : rawValue.split(Pattern.quote(separator))) {
             if (StringUtils.isNotEmpty(value)) {
                 values.add(value);
@@ -302,21 +295,24 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         return new FieldValue(field.getName(), field.getQualifier(), values);
     }
 
-    private boolean isMultiValued(String claimUri, String tenantDomain) {
+    private boolean isMultiValued(String claimUri, String tenantDomain) throws RuleEvaluationDataProviderException {
 
+        if (StringUtils.isBlank(claimUri)) {
+            return false;
+        }
         ClaimMetadataManagementService claimService =
                 FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService();
-        if (claimService == null || StringUtils.isBlank(claimUri)) {
-            return false;
+        if (claimService == null) {
+            throw new RuleEvaluationDataProviderException(
+                    "Claim metadata service is not available to read claim " + claimUri + ".");
         }
         try {
             Optional<LocalClaim> claim = claimService.getLocalClaim(claimUri, tenantDomain);
             return claim.isPresent() && Boolean.parseBoolean(
                     claim.get().getClaimProperty(ClaimConstants.MULTI_VALUED_PROPERTY));
         } catch (ClaimMetadataException e) {
-            LOG.warn("Could not read the metadata of claim " + claimUri + " in tenant " + tenantDomain
-                    + ". Its value is compared as a single value.", e);
-            return false;
+            throw new RuleEvaluationDataProviderException("Could not read the metadata of claim " + claimUri
+                    + " in tenant " + tenantDomain + ".", e);
         }
     }
 
@@ -325,16 +321,18 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         return new FieldValue(field.getName(), field.getQualifier(), value, ValueType.STRING);
     }
 
-    private FieldValue absent(Field field) {
-
-        return stringValue(field, null);
-    }
-
     /**
-     * A set that is not there, rather than an empty one: no membership operator holds on it, {@code notIn} included.
+     * The user, once identified. Before that, what is stored for the user cannot be known, which is not the same as
+     * the user having nothing stored, so a condition on it is an error rather than a check of an empty value.
      */
-    private FieldValue absentSet(Field field) {
+    private static FlowUser identifiedUser(Field field, FlowExecutionContext context)
+            throws RuleEvaluationDataProviderException {
 
-        return new FieldValue(field.getName(), field.getQualifier(), (List<String>) null);
+        FlowUser user = context.getFlowUser();
+        if (user == null || StringUtils.isBlank(user.getUserId())) {
+            throw new RuleEvaluationDataProviderException("The condition on " + field.getName()
+                    + " is evaluated before the user is identified in the flow, so its value is not known yet.");
+        }
+        return user;
     }
 }

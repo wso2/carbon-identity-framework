@@ -186,6 +186,35 @@ public class FlowRuleValidatorTest {
         assertThrows(FlowMgtClientException.class, () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
     }
 
+    /**
+     * A single-valued claim is checked for a value with isBlank, and a multi-valued one for entries with isEmpty.
+     */
+    @Test
+    public void testValueLessOperatorsSuitTheClaim() throws Exception {
+
+        FlowRuleValidator.validate(flowWith(expression(COUNTRY, "isBlank", null)), TENANT_DOMAIN);
+        FlowRuleValidator.validate(flowWith(expression(AGE, "isNotBlank", null)), TENANT_DOMAIN);
+        FlowRuleValidator.validate(flowWith(expression(EMAILS, "isEmpty", null)), TENANT_DOMAIN);
+    }
+
+    @Test
+    public void testValueLessOperatorsThatDoNotSuitTheClaimAreRejected() {
+
+        FlowDTO emptyOnSingle = flowWith(expression(COUNTRY, "isEmpty", null));
+        FlowDTO blankOnMulti = flowWith(expression(EMAILS, "isBlank", null));
+
+        assertThrows(FlowMgtClientException.class, () -> FlowRuleValidator.validate(emptyOnSingle, TENANT_DOMAIN));
+        assertThrows(FlowMgtClientException.class, () -> FlowRuleValidator.validate(blankOnMulti, TENANT_DOMAIN));
+    }
+
+    @Test
+    public void testValueLessOperatorWithAValueIsRejected() {
+
+        FlowDTO flow = flowWith(expression(COUNTRY, "isBlank", scalar("LK")));
+
+        assertThrows(FlowMgtClientException.class, () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
+    }
+
     @Test
     public void testNumericClaimAcceptsOrdering() throws Exception {
 

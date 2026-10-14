@@ -181,6 +181,9 @@ public class Constants {
         ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE("65035",
                 "Error while validating organization details.",
                 "Error occurred while validating the organization details of tenant: %s."),
+        ERROR_CODE_BRANCH_EVALUATION_FAILURE("65036",
+                "Error while evaluating a decision.",
+                "The branch %s of the decision step %s could not be evaluated in the %s flow of tenant: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",

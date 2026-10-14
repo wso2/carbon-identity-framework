@@ -58,22 +58,31 @@ public class FlowRuleValidator {
 
     private static final String IN = "in";
     private static final String NOT_IN = "notIn";
+    private static final String IS_BLANK = "isBlank";
+    private static final String IS_NOT_BLANK = "isNotBlank";
 
     /**
-     * The only operators a multi-valued claim accepts.
+     * The operators that take a list of values.
      */
-    private static final Set<String> MEMBERSHIP_OPERATORS =
+    private static final Set<String> LIST_OPERATORS =
             Collections.unmodifiableSet(new HashSet<>(Arrays.asList(IN, NOT_IN)));
 
+    /**
+     * The only operators a multi-valued claim accepts: they check its entries.
+     */
+    private static final Set<String> MULTI_VALUED_OPERATORS =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(IN, NOT_IN, "isEmpty", "isNotEmpty")));
+
     private static final Set<String> NUMERIC_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList("equals", "notEquals", "greaterThan", "lessThan")));
+            Arrays.asList("equals", "notEquals", "greaterThan", "lessThan", IS_BLANK, IS_NOT_BLANK)));
 
     /**
      * Everything that is not a number is compared as text, dates and booleans included: nothing validates their format
      * on write, so ordering them would compare strings.
      */
     private static final Set<String> TEXT_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList("equals", "notEquals", "contains", "notContains", "startsWith", "endsWith")));
+            Arrays.asList("equals", "notEquals", "contains", "notContains", "startsWith", "endsWith", IS_BLANK,
+                    IS_NOT_BLANK)));
 
     private FlowRuleValidator() {
 
@@ -194,21 +203,18 @@ public class FlowRuleValidator {
         boolean multiValued = Boolean.parseBoolean(
                 claim.getClaimProperty(ClaimConstants.MULTI_VALUED_PROPERTY));
         Set<String> allowed = multiValued
-                ? MEMBERSHIP_OPERATORS
+                ? MULTI_VALUED_OPERATORS
                 : operatorsFor(claim.getClaimProperty(ClaimConstants.DATA_TYPE_PROPERTY));
 
         if (!allowed.contains(expression.getOperator())) {
             String reason = multiValued
-                    ? "It holds more than one value, so only in and notIn compare it by value."
-                    : "Allowed operators are: " + String.join(", ", allowed) + ".";
+                    ? "It holds more than one value, so only in, notIn, isEmpty and isNotEmpty apply."
+                    : "It holds a single value. Allowed operators are: " + String.join(", ", allowed) + ".";
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_OPERATOR_NOT_ALLOWED_FOR_CLAIM,
                     expression.getOperator(), expression.getFieldQualifier(), branch.getName(), reason);
         }
     }
 
-    /**
-     * Membership needs a set on the right; everything else needs a single value.
-     */
     /**
      * A value read from a claim field must name a claim that exists, as the expression's own claim must.
      */
@@ -225,12 +231,16 @@ public class FlowRuleValidator {
         }
     }
 
+    /**
+     * in and notIn need a list on the right, and no other operator takes one. Operators that take no value, such as
+     * isBlank, are checked by the rule builder.
+     */
     private static void validateValueShape(BranchDTO branch, Expression expression) throws FlowMgtClientException {
 
         if (expression.getValue() != null && expression.getValue().getType() == Value.Type.FIELD) {
             return;
         }
-        boolean membership = MEMBERSHIP_OPERATORS.contains(expression.getOperator());
+        boolean membership = LIST_OPERATORS.contains(expression.getOperator());
         boolean listValued = expression.getValue() != null
                 && expression.getValue().getType() == Value.Type.LIST;
         if (membership != listValued) {

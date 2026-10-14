@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngi
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationDataProviderException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
@@ -38,6 +39,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.Group;
@@ -60,6 +62,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.expectThrows;
 
 /**
  * Tests what a flow condition is evaluated against.
@@ -156,26 +159,54 @@ public class FlowRuleEvaluationDataProviderTest {
     }
 
     /**
-     * An empty set would let notIn hold for a user with no value at all, so an absent multi-valued
-     * claim has to stay an absent scalar.
+     * An absent multi-valued claim is a set that is not there rather than an empty one: isEmpty holds on it, notIn
+     * does not, and it is still read as multi-valued.
      */
     @Test
-    public void testAbsentMultiValuedClaimStaysAnAbsentScalar() throws Exception {
+    public void testAbsentMultiValuedClaimIsAnAbsentSet() throws Exception {
 
         FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, GROUPS),
                 context(new FlowUser()));
+
+        assertEquals(value.getValueType(), ValueType.LIST);
+        assertNull(value.getValue());
+    }
+
+    /**
+     * An empty value is no value, so it never matches a comparison and isBlank holds on it.
+     */
+    @Test
+    public void testEmptyCollectedClaimIsNoValue() throws Exception {
+
+        FlowUser user = new FlowUser();
+        user.addClaim(COUNTRY, "");
+
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, COUNTRY),
+                context(user));
 
         assertEquals(value.getValueType(), ValueType.STRING);
         assertNull(value.getValue());
     }
 
+    /**
+     * What is stored for a user the flow has not identified yet cannot be known, which is not the same as nothing
+     * being stored, so it is an error rather than an empty value.
+     */
     @Test
-    public void testStoredClaimBeforeTheUserExistsIsAbsent() throws Exception {
+    public void testStoredClaimBeforeTheUserIsIdentifiedIsAnError() {
 
-        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_CLAIMS, COUNTRY),
-                context(new FlowUser()));
+        expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
+                field(AbstractFlowRuleEvaluationDataProvider.USER_CLAIMS, COUNTRY), context(new FlowUser())));
+    }
 
-        assertNull(value.getValue());
+    @Test
+    public void testStoredClaimThatCannotBeReadIsAnError() throws Exception {
+
+        when(userStoreManager.getUserClaimValuesWithID(anyString(), any(), any()))
+                .thenThrow(new UserStoreException("store is down"));
+
+        expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
+                field(AbstractFlowRuleEvaluationDataProvider.USER_CLAIMS, COUNTRY), context(existingUser())));
     }
 
     @Test
@@ -217,10 +248,10 @@ public class FlowRuleEvaluationDataProviderTest {
     }
 
     @Test
-    public void testUserDomainIsAbsentUntilTheUserIsKnown() throws Exception {
+    public void testUserDomainBeforeTheUserIsIdentifiedIsAnError() {
 
-        assertNull(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null),
-                context(new FlowUser())).getValue());
+        expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
+                field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null), context(new FlowUser())));
     }
 
     @Test
@@ -258,29 +289,51 @@ public class FlowRuleEvaluationDataProviderTest {
     }
 
     /**
-     * Before the user exists there is no set to look in, rather than an empty one: notIn must not hold for a
-     * user the flow has not identified.
+     * Before the user is identified, the groups and roles cannot be known. Reading them as empty would let isEmpty
+     * hold for a user who may have many, so it is an error.
      */
     @Test
-    public void testGroupsAndRolesAreAbsentUntilTheUserExists() throws Exception {
+    public void testGroupsAndRolesBeforeTheUserIsIdentifiedAreAnError() {
 
         FlowExecutionEngineDataHolder.getInstance().setRoleManagementService(mock(RoleManagementService.class));
 
         for (String name : new String[]{AbstractFlowRuleEvaluationDataProvider.USER_GROUPS,
                 AbstractFlowRuleEvaluationDataProvider.USER_ROLES}) {
-            FieldValue value = resolve(field(name, null), context(new FlowUser()));
-            assertEquals(value.getValueType(), ValueType.LIST);
-            assertNull(value.getValue(), name + " should have no set before the user exists.");
+            expectThrows(RuleEvaluationDataProviderException.class,
+                    () -> resolve(field(name, null), context(new FlowUser())));
         }
     }
 
+    /**
+     * A user with no groups has an empty set, so isEmpty holds and notIn holds for any group.
+     */
     @Test
-    public void testUnknownFieldIsAnsweredAsAbsent() throws Exception {
+    public void testIdentifiedUserWithNoGroupsHasAnEmptySet() throws Exception {
 
-        FieldValue value = resolve(new Field("user.unknown", ValueType.STRING), context(new FlowUser()));
+        when(userStoreManager.getGroupListOfUser("user-1", null, null)).thenReturn(Collections.emptyList());
 
-        assertEquals(value.getName(), "user.unknown");
-        assertNull(value.getValue());
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_GROUPS, null),
+                context(existingUser()));
+
+        assertEquals(value.getValueType(), ValueType.LIST);
+        assertEquals(value.getValue(), Collections.emptyList());
+    }
+
+    @Test
+    public void testGroupsThatCannotBeReadAreAnError() throws Exception {
+
+        when(userStoreManager.getGroupListOfUser("user-1", null, null))
+                .thenThrow(new UserStoreException("store is down"));
+
+        expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
+                field(AbstractFlowRuleEvaluationDataProvider.USER_GROUPS, null), context(existingUser())));
+    }
+
+    @Test
+    public void testUnknownFieldIsAnError() {
+
+        expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
+                new Field("user.unknown", ValueType.STRING), context(new FlowUser())));
     }
 
     private FieldValue resolve(Field field, FlowExecutionContext context) throws Exception {

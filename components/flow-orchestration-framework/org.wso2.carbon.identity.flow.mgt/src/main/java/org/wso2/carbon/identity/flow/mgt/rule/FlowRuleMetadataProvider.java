@@ -133,9 +133,14 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     private static final Operator NOT_EQUALS = new Operator("notEquals", "not equals");
     private static final Operator IN = new Operator("in", "in");
     private static final Operator NOT_IN = new Operator("notIn", "not in");
+    private static final Operator IS_BLANK = new Operator("isBlank", "is blank");
+    private static final Operator IS_NOT_BLANK = new Operator("isNotBlank", "is not blank");
+    private static final Operator IS_EMPTY = new Operator("isEmpty", "is empty");
+    private static final Operator IS_NOT_EMPTY = new Operator("isNotEmpty", "is not empty");
 
     /**
-     * Everything a claim could ever accept.
+     * Everything a claim could ever accept. Which of these suit a claim depends on the claim, and is checked when the
+     * flow is saved.
      */
     private static final List<Operator> CLAIM_OPERATORS = Collections.unmodifiableList(Arrays.asList(
             EQUALS,
@@ -147,13 +152,17 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
             new Operator("greaterThan", "greater than"),
             new Operator("lessThan", "less than"),
             IN,
-            NOT_IN));
+            NOT_IN,
+            IS_BLANK,
+            IS_NOT_BLANK,
+            IS_EMPTY,
+            IS_NOT_EMPTY));
 
     private static final List<Operator> EQUALITY_OPERATORS = Collections.unmodifiableList(
             Arrays.asList(EQUALS, NOT_EQUALS));
 
     private static final List<Operator> MEMBERSHIP_OPERATORS = Collections.unmodifiableList(
-            Arrays.asList(IN, NOT_IN));
+            Arrays.asList(IN, NOT_IN, IS_EMPTY, IS_NOT_EMPTY));
 
     @Override
     public List<FieldDefinition> getExpressionMeta(FlowType flowType, String tenantDomain)

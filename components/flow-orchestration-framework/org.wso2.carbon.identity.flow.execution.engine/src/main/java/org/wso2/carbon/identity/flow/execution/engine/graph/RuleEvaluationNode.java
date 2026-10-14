@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.flow.execution.engine.rule.AbstractFlowRuleEvalu
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
@@ -56,7 +57,7 @@ public class RuleEvaluationNode implements Node {
     @Override
     public NodeResponse execute(FlowExecutionContext context, NodeConfig nodeConfig) throws FlowEngineException {
 
-        BranchDTO selected = selectBranch(context, branchesOf(context, nodeConfig));
+        BranchDTO selected = selectBranch(context, nodeConfig, branchesOf(context, nodeConfig));
         if (selected == null) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE,
                     nodeConfig.getType(), context.getFlowType(),
@@ -79,11 +80,14 @@ public class RuleEvaluationNode implements Node {
     /**
      * The first branch whose rule holds, or the default.
      *
-     * @param context  Flow execution context.
-     * @param branches Branches of the decision, in evaluation order.
+     * @param context    Flow execution context.
+     * @param nodeConfig The decision step.
+     * @param branches   Branches of the decision, in evaluation order.
      * @return The winning branch, or null when the decision has no default and nothing matched.
+     * @throws FlowEngineException If a branch cannot be evaluated.
      */
-    private BranchDTO selectBranch(FlowExecutionContext context, List<BranchDTO> branches) {
+    private BranchDTO selectBranch(FlowExecutionContext context, NodeConfig nodeConfig, List<BranchDTO> branches)
+            throws FlowEngineException {
 
         BranchDTO defaultBranch = null;
         for (BranchDTO branch : branches) {
@@ -91,7 +95,7 @@ public class RuleEvaluationNode implements Node {
                 defaultBranch = branch;
                 continue;
             }
-            if (holds(branch, context)) {
+            if (holds(branch, context, nodeConfig)) {
                 LOG.debug("Branch '" + branch.getName() + "' holds.");
                 return branch;
             }
@@ -99,15 +103,18 @@ public class RuleEvaluationNode implements Node {
         return defaultBranch;
     }
 
-    private boolean holds(BranchDTO branch, FlowExecutionContext context) {
+    /**
+     * Whether a branch's rule holds. A branch that cannot be evaluated fails the flow rather than counting as not
+     * holding, so a failed lookup never sends the user down another branch.
+     */
+    private boolean holds(BranchDTO branch, FlowExecutionContext context, NodeConfig nodeConfig)
+            throws FlowEngineException {
 
+        RuleEvaluationService evaluationService =
+                FlowExecutionEngineDataHolder.getInstance().getRuleEvaluationService();
         try {
-            RuleEvaluationService evaluationService =
-                    FlowExecutionEngineDataHolder.getInstance().getRuleEvaluationService();
             if (evaluationService == null) {
-                LOG.warn("Rule evaluation service is unavailable. Branch '" + branch.getName()
-                        + "' will not hold.");
-                return false;
+                throw new IllegalStateException("Rule evaluation service is not available.");
             }
             Map<String, Object> contextData = new HashMap<>();
             contextData.put(AbstractFlowRuleEvaluationDataProvider.FLOW_EXECUTION_CONTEXT, context);
@@ -116,10 +123,9 @@ public class RuleEvaluationNode implements Node {
 
             return evaluationService.evaluate(branch.getRule(), flowContext, context.getTenantDomain())
                     .isRuleSatisfied();
-        } catch (Exception e) {
-            // A branch that fails to evaluate does not hold, so the flow falls through to the default.
-            LOG.warn("Could not evaluate branch '" + branch.getName() + "'. It will not hold.", e);
-            return false;
+        } catch (RuleEvaluationException | RuntimeException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_BRANCH_EVALUATION_FAILURE, e,
+                    branch.getName(), nodeConfig.getId(), context.getFlowType(), context.getTenantDomain());
         }
     }
 

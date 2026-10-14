@@ -1,12 +1,64 @@
 {
-  "equals": { "name": "equals", "displayName": "equals" },
-  "notEquals": { "name": "notEquals", "displayName": "not equals" },
-  "contains": { "name": "contains", "displayName": "contains" },
-  "notContains": { "name": "notContains", "displayName": "not contains" },
-  "startsWith": { "name": "startsWith", "displayName": "starts with" },
-  "endsWith": { "name": "endsWith", "displayName": "ends with" },
-  "greaterThan": { "name": "greaterThan", "displayName": "greater than" },
-  "lessThan": { "name": "lessThan", "displayName": "less than" },
-  "in": { "name": "in", "displayName": "in" },
-  "notIn": { "name": "notIn", "displayName": "not in" }
+  "equals": {
+    "name": "equals",
+    "displayName": "equals"
+  },
+  "notEquals": {
+    "name": "notEquals",
+    "displayName": "not equals"
+  },
+  "contains": {
+    "name": "contains",
+    "displayName": "contains"
+  },
+  "notContains": {
+    "name": "notContains",
+    "displayName": "not contains"
+  },
+  "startsWith": {
+    "name": "startsWith",
+    "displayName": "starts with"
+  },
+  "endsWith": {
+    "name": "endsWith",
+    "displayName": "ends with"
+  },
+  "greaterThan": {
+    "name": "greaterThan",
+    "displayName": "greater than"
+  },
+  "lessThan": {
+    "name": "lessThan",
+    "displayName": "less than"
+  },
+  "in": {
+    "name": "in",
+    "displayName": "in",
+    "valueInput": "list"
+  },
+  "notIn": {
+    "name": "notIn",
+    "displayName": "not in",
+    "valueInput": "list"
+  },
+  "isBlank": {
+    "name": "isBlank",
+    "displayName": "is blank",
+    "valueInput": "none"
+  },
+  "isNotBlank": {
+    "name": "isNotBlank",
+    "displayName": "is not blank",
+    "valueInput": "none"
+  },
+  "isEmpty": {
+    "name": "isEmpty",
+    "displayName": "is empty",
+    "valueInput": "none"
+  },
+  "isNotEmpty": {
+    "name": "isNotEmpty",
+    "displayName": "is not empty",
+    "valueInput": "none"
+  }
 }

@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
@@ -119,30 +120,28 @@ public class RuleEvaluationNodeTest {
     }
 
     /**
-     * A condition that cannot be evaluated does not hold, so the decision falls through rather than
-     * failing. A misconfigured condition should cost one branch, not the whole flow.
+     * A condition that cannot be evaluated fails the flow rather than counting as not holding, so a failed lookup
+     * never sends the user down another branch.
      */
     @Test
-    public void testBranchThatFailsToEvaluateDoesNotHold() throws Exception {
+    public void testBranchThatFailsToEvaluateFailsTheFlow() throws Exception {
 
         when(ruleEvaluationService.evaluate(any(Rule.class), any(), anyString()))
-                .thenThrow(new RuntimeException("evaluation blew up"));
+                .thenThrow(new RuleEvaluationException("The groups of the user could not be read."));
         NodeConfig node = node();
+        FlowExecutionContext context = contextFor(node, guardedThenDefault());
 
-        ruleEvaluationNode.execute(contextFor(node, guardedThenDefault()), node);
-
-        assertEquals(node.getNextNodeId(), GENERIC_STEP);
+        assertThrows(FlowEngineException.class, () -> ruleEvaluationNode.execute(context, node));
     }
 
     @Test
-    public void testNoEvaluationServiceFallsThroughToTheDefault() throws Exception {
+    public void testNoEvaluationServiceFailsTheFlow() {
 
         FlowExecutionEngineDataHolder.getInstance().setRuleEvaluationService(null);
         NodeConfig node = node();
+        FlowExecutionContext context = contextFor(node, guardedThenDefault());
 
-        ruleEvaluationNode.execute(contextFor(node, guardedThenDefault()), node);
-
-        assertEquals(node.getNextNodeId(), GENERIC_STEP);
+        assertThrows(FlowEngineException.class, () -> ruleEvaluationNode.execute(context, node));
     }
 
     /**

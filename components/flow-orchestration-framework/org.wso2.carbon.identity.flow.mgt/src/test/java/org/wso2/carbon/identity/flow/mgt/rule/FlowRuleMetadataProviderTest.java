@@ -136,6 +136,8 @@ public class FlowRuleMetadataProviderTest {
                     "/claim-dialects/local/claims?exclude-hidden-claims=true");
             assertTrue(operatorNames(field).contains("in"));
             assertTrue(operatorNames(field).contains("greaterThan"));
+            assertTrue(operatorNames(field).containsAll(Arrays.asList("isBlank", "isNotBlank", "isEmpty",
+                    "isNotEmpty")));
         }
     }
 
@@ -193,12 +195,12 @@ public class FlowRuleMetadataProviderTest {
         Map<String, FieldDefinition> fields = fieldsOf(FlowType.PASSWORD_RECOVERY);
 
         FieldDefinition groups = fields.get(FlowRuleMetadataProvider.USER_GROUPS);
-        assertEquals(operatorNames(groups), Arrays.asList("in", "notIn"));
+        assertEquals(operatorNames(groups), Arrays.asList("in", "notIn", "isEmpty", "isNotEmpty"));
         assertReferenceValue(groups, "displayName", "/scim2/Groups?offset=0&count=10",
                 "/scim2/Groups?filter=&count=10");
 
         FieldDefinition roles = fields.get(FlowRuleMetadataProvider.USER_ROLES);
-        assertEquals(operatorNames(roles), Arrays.asList("in", "notIn"));
+        assertEquals(operatorNames(roles), Arrays.asList("in", "notIn", "isEmpty", "isNotEmpty"));
         assertReferenceValue(roles, "displayName", "/scim2/v2/Roles?offset=0&count=10",
                 "/scim2/v2/Roles?filter=&count=10");
     }
