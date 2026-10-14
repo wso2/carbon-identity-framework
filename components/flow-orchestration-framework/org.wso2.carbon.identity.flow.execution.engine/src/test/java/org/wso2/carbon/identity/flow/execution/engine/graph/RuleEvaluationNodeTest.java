@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -39,6 +39,10 @@ import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.mockito.MockedStatic;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,6 +55,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Tests which branch a rule evaluation takes.
@@ -64,9 +70,26 @@ public class RuleEvaluationNodeTest {
     private static final String LK_STEP = "step_lk";
     private static final String ADMIN_STEP = "step_admin";
     private static final String GENERIC_STEP = "step_generic";
+    private static final String CONDITIONAL_BRANCHING_ENABLED =
+            org.wso2.carbon.identity.flow.mgt.Constants.CONDITIONAL_BRANCHING_ENABLED;
 
     private RuleEvaluationNode ruleEvaluationNode;
     private RuleEvaluationService ruleEvaluationService;
+    private MockedStatic<IdentityUtil> identityUtilMock;
+
+    @BeforeClass
+    public void setUpClass() {
+
+        identityUtilMock = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS);
+        identityUtilMock.when(() -> IdentityUtil.getProperty(CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn("true");
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+
+        identityUtilMock.close();
+    }
 
     @BeforeMethod
     public void setUpMethod() {
@@ -132,6 +155,26 @@ public class RuleEvaluationNodeTest {
         FlowExecutionContext context = contextFor(node, guardedThenDefault());
 
         assertThrows(FlowEngineException.class, () -> ruleEvaluationNode.execute(context, node));
+    }
+
+    @Test
+    public void testDecisionFailsWhenConditionalBranchingIsDisabled() {
+
+        setConditionalBranching(false);
+        try {
+            NodeConfig node = node();
+            FlowExecutionContext context = contextFor(node, guardedThenDefault());
+
+            assertThrows(FlowEngineException.class, () -> ruleEvaluationNode.execute(context, node));
+        } finally {
+            setConditionalBranching(true);
+        }
+    }
+
+    private void setConditionalBranching(boolean enabled) {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn(String.valueOf(enabled));
     }
 
     @Test

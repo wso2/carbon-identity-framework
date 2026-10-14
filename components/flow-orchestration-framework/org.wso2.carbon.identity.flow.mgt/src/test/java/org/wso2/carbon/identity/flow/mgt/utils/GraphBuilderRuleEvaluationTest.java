@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,6 +34,10 @@ import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.mockito.MockedStatic;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +49,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Tests the graph a rule decision step builds.
@@ -52,6 +58,39 @@ import static org.testng.Assert.assertTrue;
 public class GraphBuilderRuleEvaluationTest {
 
     private static final String DECISION_STEP_ID = "step_route";
+
+    private MockedStatic<IdentityUtil> identityUtilMock;
+
+    @BeforeClass
+    public void setUpClass() {
+
+        identityUtilMock = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS);
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn("true");
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+
+        identityUtilMock.close();
+    }
+
+    @Test
+    public void testDecisionStepIsRejectedWhenConditionalBranchingIsDisabled() {
+
+        setConditionalBranching(false);
+        try {
+            assertThrows(FlowMgtClientException.class, () -> buildGraph(decisionStep(branchesWithDefaultLast())));
+        } finally {
+            setConditionalBranching(true);
+        }
+    }
+
+    private void setConditionalBranching(boolean enabled) {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn(String.valueOf(enabled));
+    }
 
     @Test
     public void testRuleEvaluationStepBecomesARuleEvaluationNode() throws Exception {
@@ -158,6 +197,26 @@ public class GraphBuilderRuleEvaluationTest {
                 .nextId(Constants.END_NODE_ID).build());
 
         assertThrows(FlowMgtClientException.class, () -> buildGraph(decisionStep(unnamed)));
+    }
+
+    /**
+     * The id and name are stored in columns of fixed width, so a longer value is rejected as a client error.
+     */
+    @Test
+    public void testBranchIdOrNameTooLongIsRejected() {
+
+        String longId = String.join("", Collections.nCopies(101, "x"));
+        String longName = String.join("", Collections.nCopies(256, "x"));
+        for (BranchDTO tooLong : Arrays.asList(
+                new BranchDTO.Builder().id(longId).name("Sri Lanka").nextId(Constants.END_NODE_ID)
+                        .rule(ruleOn("user.claims")).build(),
+                new BranchDTO.Builder().id("br_lk").name(longName).nextId(Constants.END_NODE_ID)
+                        .rule(ruleOn("user.claims")).build())) {
+            List<BranchDTO> branches = Arrays.asList(tooLong, new BranchDTO.Builder().id("br_default")
+                    .name("Everyone else").nextId(Constants.END_NODE_ID).build());
+
+            assertThrows(FlowMgtClientException.class, () -> buildGraph(decisionStep(branches)));
+        }
     }
 
     @Test

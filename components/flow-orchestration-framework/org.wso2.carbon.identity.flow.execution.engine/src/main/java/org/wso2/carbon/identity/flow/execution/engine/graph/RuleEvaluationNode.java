@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.flow.execution.engine.rule.AbstractFlowRuleEvalu
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
@@ -57,6 +58,10 @@ public class RuleEvaluationNode implements Node {
     @Override
     public NodeResponse execute(FlowExecutionContext context, NodeConfig nodeConfig) throws FlowEngineException {
 
+        if (!FlowMgtUtils.isConditionalBranchingEnabled()) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED,
+                    nodeConfig.getId(), context.getFlowType(), context.getTenantDomain());
+        }
         BranchDTO selected = selectBranch(context, nodeConfig, branchesOf(context, nodeConfig));
         if (selected == null) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE,
@@ -96,7 +101,9 @@ public class RuleEvaluationNode implements Node {
                 continue;
             }
             if (holds(branch, context, nodeConfig)) {
-                LOG.debug("Branch '" + branch.getName() + "' holds.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Branch '" + branch.getName() + "' holds.");
+                }
                 return branch;
             }
         }
@@ -118,10 +125,10 @@ public class RuleEvaluationNode implements Node {
             }
             Map<String, Object> contextData = new HashMap<>();
             contextData.put(AbstractFlowRuleEvaluationDataProvider.FLOW_EXECUTION_CONTEXT, context);
-            FlowContext flowContext = new FlowContext(
+            FlowContext ruleFlowContext = new FlowContext(
                     FlowType.valueOf(context.getFlowType()), contextData);
 
-            return evaluationService.evaluate(branch.getRule(), flowContext, context.getTenantDomain())
+            return evaluationService.evaluate(branch.getRule(), ruleFlowContext, context.getTenantDomain())
                     .isRuleSatisfied();
         } catch (RuleEvaluationException | RuntimeException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_BRANCH_EVALUATION_FAILURE, e,

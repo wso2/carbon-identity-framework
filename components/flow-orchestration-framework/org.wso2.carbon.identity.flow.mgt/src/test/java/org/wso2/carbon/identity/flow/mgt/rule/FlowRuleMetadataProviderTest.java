@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
 import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.mgt.Constants;
 
 import java.io.File;
 import java.util.Arrays;
@@ -49,6 +51,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 
 /**
  * Tests what a flow publishes for its conditions to be written against.
@@ -60,10 +63,14 @@ public class FlowRuleMetadataProviderTest {
     private final FlowRuleMetadataProvider provider = new FlowRuleMetadataProvider();
     private MockedStatic<RuleMetadataConfigFactory> configFactoryMock;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
+    private MockedStatic<IdentityUtil> identityUtilMock;
 
     @BeforeClass
     public void setUpClass() throws Exception {
 
+        identityUtilMock = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS);
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn("true");
         String operators = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("configs/valid-operators.json")).getFile();
         OperatorConfig operatorConfig = OperatorConfig.load(new File(operators));
@@ -80,6 +87,7 @@ public class FlowRuleMetadataProviderTest {
 
         configFactoryMock.close();
         identityTenantUtilMock.close();
+        identityUtilMock.close();
         FlowMgtServiceDataHolder.getInstance().setRealmService(null);
     }
 
@@ -95,6 +103,23 @@ public class FlowRuleMetadataProviderTest {
         assertEquals(fieldNamesOf(FlowType.INVITED_USER_REGISTRATION), Arrays.asList(
                 FlowRuleMetadataProvider.USER_CLAIMS, FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS,
                 FlowRuleMetadataProvider.USER_DOMAIN));
+    }
+
+    @Test
+    public void testNothingIsPublishedWhenConditionalBranchingIsDisabled() throws Exception {
+
+        setConditionalBranching(false);
+        try {
+            assertTrue(provider.getExpressionMeta(FlowType.PASSWORD_RECOVERY, "carbon.super").isEmpty());
+        } finally {
+            setConditionalBranching(true);
+        }
+    }
+
+    private void setConditionalBranching(boolean enabled) {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn(String.valueOf(enabled));
     }
 
     @Test
@@ -167,7 +192,7 @@ public class FlowRuleMetadataProviderTest {
         assertEquals(operatorNames(field), Arrays.asList("equals", "notEquals"));
         assertTrue(field.getValue() instanceof OptionsInputValue);
         assertEquals(((OptionsInputValue) field.getValue()).getValues().stream().map(OptionsValue::getName)
-                .collect(Collectors.toList()), Arrays.asList("PRIMARY", "LDAP"));
+                .toList(), Arrays.asList("PRIMARY", "LDAP"));
     }
 
     /**
@@ -182,7 +207,7 @@ public class FlowRuleMetadataProviderTest {
             FieldDefinition field =
                     fieldsOf(FlowType.INVITED_USER_REGISTRATION).get(FlowRuleMetadataProvider.USER_DOMAIN);
             assertEquals(((OptionsInputValue) field.getValue()).getValues().stream().map(OptionsValue::getName)
-                    .collect(Collectors.toList()), Collections.singletonList("DEFAULT"));
+                    .toList(), Collections.singletonList("DEFAULT"));
         } finally {
             FlowMgtServiceDataHolder.getInstance().setRealmService(
                     UserStoreMocks.realmWithUserStores("PRIMARY", new String[]{"LDAP"}, "ARCHIVED"));
@@ -232,7 +257,7 @@ public class FlowRuleMetadataProviderTest {
     private List<String> fieldNamesOf(FlowType flowType) throws Exception {
 
         return provider.getExpressionMeta(flowType, TENANT_DOMAIN).stream()
-                .map(field -> field.getField().getName()).collect(Collectors.toList());
+                .map(field -> field.getField().getName()).toList();
     }
 
     private Map<String, FieldDefinition> fieldsOf(FlowType flowType) throws Exception {
@@ -243,6 +268,6 @@ public class FlowRuleMetadataProviderTest {
 
     private static List<String> operatorNames(FieldDefinition field) {
 
-        return field.getOperators().stream().map(Operator::getName).collect(Collectors.toList());
+        return field.getOperators().stream().map(Operator::getName).toList();
     }
 }

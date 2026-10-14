@@ -97,6 +97,7 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.isConditionalBranchingEnabled;
 
 /**
  * The DAO class for the flow.
@@ -488,7 +489,7 @@ public class FlowDAOImpl implements FlowDAO {
                                 StepDTO stepDTO, int tenantId) throws FlowMgtFrameworkException, DataAccessException {
 
         ActionDTO action = stepDTO.getData() == null ? null : stepDTO.getData().getAction();
-        if (action == null || action.getBranches() == null) {
+        if (!isConditionalBranchingEnabled() || action == null || action.getBranches() == null) {
             return;
         }
         List<BranchDTO> branches = action.getBranches();
@@ -513,6 +514,10 @@ public class FlowDAOImpl implements FlowDAO {
     private void attachBranches(JdbcTemplate jdbcTemplate, String flowType, int tenantId, Collection<StepDTO> steps)
             throws DataAccessException {
 
+        // Without conditional branching the branch table is never read, so a server that has not created it works.
+        if (!isConditionalBranchingEnabled()) {
+            return;
+        }
         Map<String, List<BranchDTO>> branchesByNode = new HashMap<>();
         jdbcTemplate.executeQuery(GET_FLOW_NODE_BRANCHES, LambdaExceptionUtils.rethrowRowMapper(
                 (resultSet, rowNumber) -> {
@@ -592,8 +597,8 @@ public class FlowDAOImpl implements FlowDAO {
             }
             // Branches are stored in IDN_FLOW_NODE_BRANCH, not in the page content.
             JsonNode data = OBJECT_MAPPER.valueToTree(stepDTO.getData());
-            JsonNode action = data.get("action");
-            if (action instanceof ObjectNode) {
+            JsonNode action = data.path("action");
+            if (action.isObject()) {
                 ((ObjectNode) action).remove("branches");
             }
             return Optional.of(OBJECT_MAPPER.writeValueAsBytes(data));

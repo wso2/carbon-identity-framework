@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -54,6 +55,7 @@ import static org.testng.Assert.assertNull;
 import static org.wso2.carbon.identity.flow.mgt.TestHelperMethods.closeH2Database;
 import static org.wso2.carbon.identity.flow.mgt.TestHelperMethods.getFilePath;
 import static org.wso2.carbon.identity.flow.mgt.TestHelperMethods.initiateH2Database;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 
 /**
  * Tests that the rules of a rule evaluation step are stored in their own table and read back onto the step.
@@ -69,11 +71,16 @@ public class FlowDAOImplRuleTest {
     private BasicDataSource dataSource;
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
     private final FlowDAOImpl flowDAO = new FlowDAOImpl();
+    private MockedStatic<IdentityUtil> identityUtilMock;
 
     @BeforeClass
     public void setUp() throws Exception {
 
         dataSource = initiateH2Database(getFilePath("identity.sql"), "flow_rule_dao_db");
+        identityUtilMock = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS);
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn("true");
+
         identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
         identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
     }
@@ -82,6 +89,7 @@ public class FlowDAOImplRuleTest {
     public void tearDown() throws Exception {
 
         identityDatabaseUtil.close();
+        identityUtilMock.close();
         closeH2Database(dataSource);
     }
 
@@ -176,6 +184,29 @@ public class FlowDAOImplRuleTest {
         assertEquals(value.getType(), Value.Type.FIELD);
         assertEquals(value.getFieldReference().getName(), "user.claims");
         assertEquals(value.getFieldReference().getQualifier(), COUNTRY_CLAIM);
+    }
+
+    /**
+     * With conditional branching disabled, the branch table is not read, so a server that has not created it can
+     * still read its flows.
+     */
+    @Test
+    public void testBranchesAreNotReadWhenConditionalBranchingIsDisabled() throws Exception {
+
+        flowDAO.updateFlow(FLOW_TYPE, graphWithEndStep(), TENANT_ID, "Registration");
+        setConditionalBranching(false);
+        try {
+            assertNull(flowDAO.getGraphConfig(FLOW_TYPE, TENANT_ID).getNodePageMappings().get(STEP_ID).getData()
+                    .getAction().getBranches());
+        } finally {
+            setConditionalBranching(true);
+        }
+    }
+
+    private void setConditionalBranching(boolean enabled) {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn(String.valueOf(enabled));
     }
 
     private GraphConfig graphWithEndStep() throws Exception {

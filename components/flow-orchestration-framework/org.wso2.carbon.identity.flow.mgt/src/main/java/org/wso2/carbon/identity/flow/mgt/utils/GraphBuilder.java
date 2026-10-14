@@ -75,6 +75,9 @@ import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerE
  */
 public class GraphBuilder {
 
+    private static final int MAX_BRANCH_ID_LENGTH = 100;
+    private static final int MAX_BRANCH_NAME_LENGTH = 255;
+
     private static final Log LOG = LogFactory.getLog(GraphBuilder.class);
 
     private final GraphConfig graphConfig;
@@ -101,6 +104,9 @@ public class GraphBuilder {
     public GraphBuilder withSteps(List<StepDTO> steps) throws FlowMgtFrameworkException {
 
         for (StepDTO step : steps) {
+            if (step.getType() == null) {
+                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE, "null");
+            }
             switch (step.getType()) {
                 case VIEW:
                     processViewStep(step);
@@ -173,6 +179,10 @@ public class GraphBuilder {
      */
     private void processRuleEvaluationStep(StepDTO step) throws FlowMgtClientException {
 
+        if (!FlowMgtUtils.isConditionalBranchingEnabled()) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED,
+                    step.getId());
+        }
         if (step.getData() == null) {
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
         }
@@ -204,6 +214,19 @@ public class GraphBuilder {
      * @param branches Branches to check.
      * @throws FlowMgtClientException If the decision cannot be evaluated as configured.
      */
+    /**
+     * A branch's id and name are stored in columns of fixed width, so a longer value is rejected rather than cut
+     * short or failing at the database.
+     */
+    private static void validateLength(String stepId, String attribute, String value, int maxLength)
+            throws FlowMgtClientException {
+
+        if (value.length() > maxLength) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_BRANCH_VALUE_TOO_LONG, attribute, stepId,
+                    maxLength);
+        }
+    }
+
     private void validateBranches(String stepId, List<BranchDTO> branches) throws FlowMgtClientException {
 
         Set<String> branchIds = new HashSet<>();
@@ -216,6 +239,8 @@ public class GraphBuilder {
             if (StringUtils.isBlank(branch.getName())) {
                 throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INCOMPLETE_BRANCH, stepId, "name");
             }
+            validateLength(stepId, "id", branch.getId(), MAX_BRANCH_ID_LENGTH);
+            validateLength(stepId, "name", branch.getName(), MAX_BRANCH_NAME_LENGTH);
             if (StringUtils.isBlank(branch.getNextId())) {
                 throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INCOMPLETE_BRANCH, stepId,
                         "next step");

@@ -31,6 +31,7 @@ public class Constants {
     public static final String COMPLETE = "COMPLETE";
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
     public static final String END_NODE_ID = "END";
+    public static final String CONDITIONAL_BRANCHING_ENABLED = "FlowExecution.ConditionalBranching.Enable";
 
     public static final String IDP_NAME = "idpName";
 
@@ -139,6 +140,10 @@ public class Constants {
                 "A condition on %s in branch %s does not say which value of that field it compares."),
         ERROR_CODE_QUALIFIER_NOT_ALLOWED("60027", "Qualifier not allowed.",
                 "The field %s in branch %s names a single value and takes no qualifier."),
+        ERROR_CODE_BRANCH_VALUE_TOO_LONG("60028", "Branch value too long.",
+                "The %s of a branch of the decision step %s is longer than %d characters."),
+        ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED("60029", "Conditional branching is not enabled.",
+                "The decision step %s cannot be used because conditional branching is not enabled on this server."),
         ;
 
         private static final String ERROR_PREFIX = "RFM";

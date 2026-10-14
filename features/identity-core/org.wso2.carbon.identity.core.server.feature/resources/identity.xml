@@ -3098,6 +3098,10 @@
         <Registration>
             <DisplayClaimAvailability>false</DisplayClaimAvailability>
         </Registration>
+        <!-- Enables decision steps that route a flow by rules on its data. -->
+        <ConditionalBranching>
+            <Enable>false</Enable>
+        </ConditionalBranching>
     </FlowExecution>
 
     <NotificationChannel>

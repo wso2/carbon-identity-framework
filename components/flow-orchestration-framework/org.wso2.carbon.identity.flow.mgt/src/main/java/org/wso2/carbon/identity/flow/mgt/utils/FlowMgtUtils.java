@@ -121,6 +121,17 @@ public class FlowMgtUtils {
     }
 
     /**
+     * Whether conditional branching is enabled on the server. It guards decision steps, from saving and reading them
+     * to evaluating them, so a server without it never reads or writes the branch table.
+     *
+     * @return True if decision steps may be used.
+     */
+    public static boolean isConditionalBranchingEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED));
+    }
+
+    /**
      * Get the initiator for audit logs.
      *
      * @return Initiator id despite masking.

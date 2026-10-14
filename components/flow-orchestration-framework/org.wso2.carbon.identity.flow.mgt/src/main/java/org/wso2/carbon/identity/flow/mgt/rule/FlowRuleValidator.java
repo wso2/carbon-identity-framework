@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
@@ -98,24 +99,30 @@ public class FlowRuleValidator {
      */
     public static void validate(FlowDTO flowDTO, String tenantDomain) throws FlowMgtFrameworkException {
 
-        if (flowDTO == null || flowDTO.getSteps() == null) {
+        // Without conditional branching, the graph builder rejects decision steps, so there is nothing to validate.
+        if (flowDTO == null || flowDTO.getSteps() == null || !FlowMgtUtils.isConditionalBranchingEnabled()) {
             return;
         }
         ClaimLookup claims = new ClaimLookup(tenantDomain);
         for (StepDTO step : flowDTO.getSteps()) {
-            if (!Constants.StepTypes.RULE_EVALUATION.equals(step.getType()) || step.getData() == null) {
-                continue;
-            }
-            ActionDTO action = step.getData().getAction();
-            if (action == null || action.getBranches() == null) {
-                continue;
-            }
-            for (BranchDTO branch : action.getBranches()) {
+            for (BranchDTO branch : branchesOf(step)) {
                 if (branch.getRule() != null) {
                     validateBranchRule(step.getId(), branch, flowDTO.getFlowType(), tenantDomain, claims);
                 }
             }
         }
+    }
+
+    /**
+     * The branches of a decision step, or none for any other step.
+     */
+    private static List<BranchDTO> branchesOf(StepDTO step) {
+
+        if (!Constants.StepTypes.RULE_EVALUATION.equals(step.getType()) || step.getData() == null) {
+            return Collections.emptyList();
+        }
+        ActionDTO action = step.getData().getAction();
+        return action == null || action.getBranches() == null ? Collections.emptyList() : action.getBranches();
     }
 
     private static void validateBranchRule(String stepId, BranchDTO branch, String flowType, String tenantDomain,
@@ -138,18 +145,7 @@ public class FlowRuleValidator {
         }
 
         try {
-            RuleBuilder ruleBuilder = RuleBuilder.create(ruleFlowType, tenantDomain);
-            boolean firstGroup = true;
-            for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
-                if (!firstGroup) {
-                    ruleBuilder.addOrCondition();
-                }
-                for (Expression expression : andCombinedRule.getExpressions()) {
-                    ruleBuilder.addAndExpression(expression);
-                }
-                firstGroup = false;
-            }
-            ruleBuilder.build();
+            buildRule(branch, ruleFlowType, tenantDomain);
         } catch (RuleManagementException e) {
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INVALID_BRANCH_RULE,
                     branch.getName(), stepId, e.getMessage());
@@ -163,6 +159,26 @@ public class FlowRuleValidator {
                 validateReferencedClaim(branch, expression, claims);
             }
         }
+    }
+
+    /**
+     * Builds the branch's rule with the rule builder, which checks it against the fields the flow publishes.
+     */
+    private static void buildRule(BranchDTO branch, FlowType ruleFlowType, String tenantDomain)
+            throws RuleManagementException {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(ruleFlowType, tenantDomain);
+        boolean firstGroup = true;
+        for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
+            if (!firstGroup) {
+                ruleBuilder.addOrCondition();
+            }
+            for (Expression expression : andCombinedRule.getExpressions()) {
+                ruleBuilder.addAndExpression(expression);
+            }
+            firstGroup = false;
+        }
+        ruleBuilder.build();
     }
 
     private static boolean isClaimField(String field) {

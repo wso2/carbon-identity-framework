@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.mgt.rule;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.Field;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
@@ -169,7 +170,7 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
             throws RuleMetadataException {
 
         List<String> fieldNames = FIELDS_BY_FLOW_TYPE.get(flowType);
-        if (fieldNames == null) {
+        if (fieldNames == null || !FlowMgtUtils.isConditionalBranchingEnabled()) {
             return Collections.emptyList();
         }
 
@@ -285,10 +286,6 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
                     "The user stores of tenant " + tenantDomain + " could not be read.", e);
         }
 
-        List<OptionsValue> values = new ArrayList<>();
-        for (String domain : domains) {
-            values.add(new OptionsValue(domain, domain));
-        }
-        return values;
+        return domains.stream().map(domain -> new OptionsValue(domain, domain)).toList();
     }
 }

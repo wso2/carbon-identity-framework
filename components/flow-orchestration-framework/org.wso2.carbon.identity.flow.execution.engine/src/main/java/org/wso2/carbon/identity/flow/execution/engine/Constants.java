@@ -184,6 +184,10 @@ public class Constants {
         ERROR_CODE_BRANCH_EVALUATION_FAILURE("65036",
                 "Error while evaluating a decision.",
                 "The branch %s of the decision step %s could not be evaluated in the %s flow of tenant: %s."),
+        ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED("65037",
+                "Conditional branching is not enabled.",
+                "The decision step %s in the %s flow of tenant: %s cannot run because conditional branching is not "
+                        + "enabled on this server."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",

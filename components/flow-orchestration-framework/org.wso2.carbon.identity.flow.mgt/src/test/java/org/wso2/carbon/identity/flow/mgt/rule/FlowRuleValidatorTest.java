@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.rule.management.internal.component.RuleManagemen
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -66,6 +67,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.expectThrows;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 
 /**
  * Tests that a condition is checked against the claim it actually names.
@@ -84,10 +86,14 @@ public class FlowRuleValidatorTest {
     private MockedStatic<RuleMetadataConfigFactory> configFactoryMock;
     private MockedStatic<IdentityConfigParser> identityConfigParserMock;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
+    private MockedStatic<IdentityUtil> identityUtilMock;
 
     @BeforeClass
     public void setUpClass() throws Exception {
 
+        identityUtilMock = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS);
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn("true");
         String operators = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("configs/valid-operators.json")).getFile();
         OperatorConfig operatorConfig = OperatorConfig.load(new File(operators));
@@ -133,7 +139,28 @@ public class FlowRuleValidatorTest {
         configFactoryMock.close();
         identityConfigParserMock.close();
         identityTenantUtilMock.close();
+        identityUtilMock.close();
         FlowMgtServiceDataHolder.getInstance().setRealmService(null);
+    }
+
+    /**
+     * With conditional branching disabled, the graph builder rejects decision steps, so their rules are not checked.
+     */
+    @Test
+    public void testRulesAreNotCheckedWhenConditionalBranchingIsDisabled() throws Exception {
+
+        setConditionalBranching(false);
+        try {
+            FlowRuleValidator.validate(flowWith(expression(EMAILS, "contains", scalar("b@x.com"))), TENANT_DOMAIN);
+        } finally {
+            setConditionalBranching(true);
+        }
+    }
+
+    private void setConditionalBranching(boolean enabled) {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
+                .thenReturn(String.valueOf(enabled));
     }
 
     @Test

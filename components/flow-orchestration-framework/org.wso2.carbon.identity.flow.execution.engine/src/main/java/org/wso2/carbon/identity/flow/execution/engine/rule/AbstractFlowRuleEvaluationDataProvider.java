@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -43,6 +43,7 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.Group;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -285,13 +286,10 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         if (StringUtils.isEmpty(rawValue)) {
             return new FieldValue(field.getName(), field.getQualifier(), (List<String>) null);
         }
-        List<String> values = new ArrayList<>();
         String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
-        for (String value : rawValue.split(Pattern.quote(separator))) {
-            if (StringUtils.isNotEmpty(value)) {
-                values.add(value);
-            }
-        }
+        List<String> values = Arrays.stream(rawValue.split(Pattern.quote(separator)))
+                .filter(StringUtils::isNotEmpty)
+                .toList();
         return new FieldValue(field.getName(), field.getQualifier(), values);
     }
 
