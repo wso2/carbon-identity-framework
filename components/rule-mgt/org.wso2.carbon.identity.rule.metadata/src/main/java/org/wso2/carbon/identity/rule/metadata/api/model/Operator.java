@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.rule.metadata.api.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -29,13 +30,28 @@ public class Operator {
 
     private final String name;
     private final String displayName;
+    private final ValueInput valueInput;
 
+    public Operator(String name, String displayName) {
+
+        this(name, displayName, null);
+    }
+
+    /**
+     * An operator, and the value a condition using it takes.
+     *
+     * @param name        Operator name.
+     * @param displayName Display name.
+     * @param valueInput  Value a condition using the operator takes; a single value when absent.
+     */
     @JsonCreator
-    public Operator(@JsonProperty("name") String name, @JsonProperty("displayName") String displayName) {
+    public Operator(@JsonProperty("name") String name, @JsonProperty("displayName") String displayName,
+                    @JsonProperty("valueInput") ValueInput valueInput) {
 
         validate(name, displayName);
         this.name = name;
         this.displayName = displayName;
+        this.valueInput = valueInput == null ? ValueInput.SINGLE : valueInput;
     }
 
     public String getName() {
@@ -48,6 +64,17 @@ public class Operator {
         return displayName;
     }
 
+    /**
+     * The value a condition using this operator takes.
+     *
+     * @return NONE for an operator that checks the field alone, LIST for one that takes a list of values,
+     * otherwise SINGLE.
+     */
+    public ValueInput getValueInput() {
+
+        return valueInput;
+    }
+
     private void validate(String name, String displayName) {
 
         if (StringUtils.isBlank(name)) {
@@ -56,6 +83,44 @@ public class Operator {
 
         if (StringUtils.isBlank(displayName)) {
             throw new IllegalArgumentException("Operator 'displayName' cannot be null or empty.");
+        }
+    }
+
+    /**
+     * The value a condition using an operator takes, which decides the input shown for it.
+     */
+    public enum ValueInput {
+
+        NONE("none"), SINGLE("single"), LIST("list");
+
+        private final String value;
+
+        ValueInput(String value) {
+
+            this.value = value;
+        }
+
+        @JsonValue
+        public String getValue() {
+
+            return value;
+        }
+
+        /**
+         * Value input of the given name, in any case.
+         *
+         * @param value Name of the value input.
+         * @return The value input.
+         */
+        @JsonCreator
+        public static ValueInput fromValue(String value) {
+
+            for (ValueInput valueInput : values()) {
+                if (valueInput.value.equalsIgnoreCase(value)) {
+                    return valueInput;
+                }
+            }
+            throw new IllegalArgumentException("Unsupported value input: " + value);
         }
     }
 }

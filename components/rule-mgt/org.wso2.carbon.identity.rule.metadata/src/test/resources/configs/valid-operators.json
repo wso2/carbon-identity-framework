@@ -10,5 +10,25 @@
   "contains": {
     "name": "contains",
     "displayName": "contains"
+  },
+  "isBlank": {
+    "name": "isBlank",
+    "displayName": "is blank",
+    "valueInput": "none"
+  },
+  "isNotBlank": {
+    "name": "isNotBlank",
+    "displayName": "is not blank",
+    "valueInput": "none"
+  },
+  "isEmpty": {
+    "name": "isEmpty",
+    "displayName": "is empty",
+    "valueInput": "none"
+  },
+  "isNotEmpty": {
+    "name": "isNotEmpty",
+    "displayName": "is not empty",
+    "valueInput": "none"
   }
 }

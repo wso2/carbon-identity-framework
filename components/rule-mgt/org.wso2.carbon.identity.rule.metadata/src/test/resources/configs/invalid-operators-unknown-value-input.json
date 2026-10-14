@@ -1,0 +1,7 @@
+{
+  "isBlank": {
+    "name": "isBlank",
+    "displayName": "is blank",
+    "valueInput": "optional"
+  }
+}

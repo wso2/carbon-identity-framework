@@ -182,7 +182,7 @@ public class RuleMetadataManagerTest {
 
         List<Operator> applicableOperators = ruleMetadataManager.getApplicableOperatorsInExpressions();
         assertNotNull(applicableOperators);
-        assertEquals(applicableOperators.size(), 3);
+        assertEquals(applicableOperators.size(), 7);
 
         Operator equalsOperator = applicableOperators.get(0);
         assertEquals(equalsOperator.getName(), "equals");

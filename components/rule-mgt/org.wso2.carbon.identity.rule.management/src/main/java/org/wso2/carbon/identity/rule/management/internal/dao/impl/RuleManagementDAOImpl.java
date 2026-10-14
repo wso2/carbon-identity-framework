@@ -267,7 +267,8 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
                 statement -> {
                     for (ANDCombinedRule rule1 : orCombinedRule.getRules()) {
                         for (Expression expression : rule1.getExpressions()) {
-                            if (expression.getValue().getType() == Value.Type.REFERENCE) {
+                            if (expression.getValue() != null
+                                    && expression.getValue().getType() == Value.Type.REFERENCE) {
                                 statement.setInt(RuleSQLConstants.Column.RULE_REFERENCE_ID, internalRuleId);
                                 statement.setString(RuleSQLConstants.Column.FIELD_NAME, expression.getField());
                                 statement.setString(RuleSQLConstants.Column.FIELD_REFERENCE,

@@ -13,10 +13,32 @@
   },
   "in": {
     "name": "in",
-    "displayName": "in"
+    "displayName": "in",
+    "valueInput": "list"
   },
   "notIn": {
     "name": "notIn",
-    "displayName": "not in"
+    "displayName": "not in",
+    "valueInput": "list"
+  },
+  "isBlank": {
+    "name": "isBlank",
+    "displayName": "is blank",
+    "valueInput": "none"
+  },
+  "isNotBlank": {
+    "name": "isNotBlank",
+    "displayName": "is not blank",
+    "valueInput": "none"
+  },
+  "isEmpty": {
+    "name": "isEmpty",
+    "displayName": "is empty",
+    "valueInput": "none"
+  },
+  "isNotEmpty": {
+    "name": "isNotEmpty",
+    "displayName": "is not empty",
+    "valueInput": "none"
   }
 }

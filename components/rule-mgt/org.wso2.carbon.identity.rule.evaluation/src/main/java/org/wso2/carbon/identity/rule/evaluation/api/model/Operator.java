@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.rule.evaluation.api.model;
 
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
+
 import java.util.function.BiPredicate;
 
 /**
@@ -28,11 +30,25 @@ public class Operator {
 
     private final String name;
     private final BiPredicate<Object, Object> predicate;
+    private final ValueInput valueInput;
 
     public Operator(String name, BiPredicate<Object, Object> predicate) {
 
+        this(name, predicate, ValueInput.SINGLE);
+    }
+
+    /**
+     * An operator, and the value it takes.
+     *
+     * @param name       Operator name.
+     * @param predicate  Predicate over the field value and the expected value, which is null when none is taken.
+     * @param valueInput Value a condition using the operator takes.
+     */
+    public Operator(String name, BiPredicate<Object, Object> predicate, ValueInput valueInput) {
+
         this.name = name;
         this.predicate = predicate;
+        this.valueInput = valueInput;
     }
 
     public boolean apply(Object fieldValue, Object expectedValue) {
@@ -43,5 +59,16 @@ public class Operator {
     public String getName() {
 
         return name;
+    }
+
+    /**
+     * The value a condition using this operator takes.
+     *
+     * @return NONE for an operator that checks the field alone, LIST for one that takes a list of values,
+     * otherwise SINGLE.
+     */
+    public ValueInput getValueInput() {
+
+        return valueInput;
     }
 }

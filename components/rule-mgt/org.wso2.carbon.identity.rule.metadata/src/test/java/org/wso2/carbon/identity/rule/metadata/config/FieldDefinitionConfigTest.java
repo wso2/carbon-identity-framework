@@ -24,8 +24,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataConfigException;
+import org.wso2.carbon.identity.rule.metadata.api.model.Field;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Value;
@@ -34,11 +37,17 @@ import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -196,5 +205,134 @@ public class FieldDefinitionConfigTest {
         } catch (Exception e) {
             fail();
         }
+    }
+
+    /**
+     * A qualifier in the fields file is read like a value: how it is entered and the type it holds.
+     */
+    @Test
+    public void testQualifierInTheFieldsFileIsLoaded() throws Exception {
+
+        File file = File.createTempFile("fields-with-qualifier", ".json");
+        file.deleteOnExit();
+        Files.write(file.toPath(), ("{\"claim\": {\"field\": {\"name\": \"claim\", \"displayName\": \"claim\", "
+                + "\"qualifier\": {\"inputType\": \"input\", \"valueType\": \"string\"}}, "
+                + "\"operators\": [\"equals\"], \"value\": {\"inputType\": \"input\", \"valueType\": \"string\"}}}")
+                .getBytes(StandardCharsets.UTF_8));
+
+        FieldDefinition definition = FieldDefinitionConfig.load(file, operatorConfig).getFieldDefinitionMap()
+                .get("claim");
+
+        assertNotNull(definition);
+        assertEquals(definition.getField().getName(), "claim");
+        assertTrue(definition.getField().getQualifier() instanceof InputValue);
+        assertEquals(definition.getField().getQualifier().getValueType(), Value.ValueType.STRING);
+    }
+
+    /**
+     * The fields a value may be read from are read from the fields file, and each must be defined there.
+     */
+    @Test
+    public void testValueFieldOptionsInTheFieldsFileAreLoaded() throws Exception {
+
+        File file = writeFields("fields-with-value-field-options", "{"
+                + "\"collected\": {\"field\": {\"name\": \"collected\", \"displayName\": \"collected\"}, "
+                + "\"operators\": [\"equals\"], \"value\": {\"inputType\": \"input\", "
+                + "\"valueType\": \"string\"}, \"valueFieldOptions\": {\"names\": [\"stored\"]}}, "
+                + "\"stored\": {\"field\": {\"name\": \"stored\", \"displayName\": \"stored\"}, "
+                + "\"operators\": [\"equals\"], \"value\": {\"inputType\": \"input\", "
+                + "\"valueType\": \"string\"}}}");
+
+        Map<String, FieldDefinition> definitions = FieldDefinitionConfig.load(file, operatorConfig)
+                .getFieldDefinitionMap();
+
+        assertEquals(definitions.get("collected").getValueFieldOptions().getNames(), Arrays.asList("stored"));
+        assertNull(definitions.get("stored").getValueFieldOptions());
+    }
+
+    @Test
+    public void testValueFieldOptionNamingAnUndefinedFieldFailsTheLoad() throws Exception {
+
+        File file = writeFields("fields-with-unknown-value-field", "{"
+                + "\"collected\": {\"field\": {\"name\": \"collected\", \"displayName\": \"collected\"}, "
+                + "\"operators\": [\"equals\"], \"value\": {\"inputType\": \"input\", "
+                + "\"valueType\": \"string\"}, \"valueFieldOptions\": {\"names\": [\"stored\"]}}}");
+
+        assertThrows(RuleMetadataConfigException.class, () -> FieldDefinitionConfig.load(file, operatorConfig));
+    }
+
+    private static File writeFields(String name, String content) throws Exception {
+
+        File file = File.createTempFile(name, ".json");
+        file.deleteOnExit();
+        Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
+        return file;
+    }
+
+    @Test
+    public void testFieldWithoutAValueDefinitionFailsTheLoad() throws Exception {
+
+        File file = writeFields("fields-without-value", "{\"grantType\": {\"field\": {\"name\": \"grantType\", "
+                + "\"displayName\": \"grant type\"}, \"operators\": [\"equals\"]}}");
+
+        assertThrows(RuleMetadataConfigException.class, () -> FieldDefinitionConfig.load(file, operatorConfig));
+    }
+
+    /**
+     * A field always needs a value definition, as evaluation reads the field's value type from it, even for an
+     * operator that checks the field alone.
+     */
+    @Test
+    public void testFieldWithoutAValueDefinitionIsRejected() {
+
+        assertThrows(IllegalArgumentException.class, () -> new FieldDefinition(new Field("country", "country"),
+                Arrays.asList(new Operator("equals", "equals"), new Operator("isBlank", "is blank")), null));
+        assertThrows(IllegalArgumentException.class, () -> new FieldDefinition(new Field("country", "country"),
+                Collections.singletonList(new Operator("isBlank", "is blank")), null));
+    }
+
+    @Test
+    public void testFieldWithoutAQualifierLoadsWithNone() throws Exception {
+
+        File file = File.createTempFile("fields-without-qualifier", ".json");
+        file.deleteOnExit();
+        Files.write(file.toPath(), ("{\"grantType\": {\"field\": {\"name\": \"grantType\", "
+                + "\"displayName\": \"grant type\"}, \"operators\": [\"equals\"], "
+                + "\"value\": {\"inputType\": \"input\", \"valueType\": \"string\"}}}")
+                .getBytes(StandardCharsets.UTF_8));
+
+        FieldDefinition definition = FieldDefinitionConfig.load(file, operatorConfig).getFieldDefinitionMap()
+                .get("grantType");
+
+        assertNotNull(definition);
+        assertNull(definition.getField().getQualifier());
+    }
+
+    @Test
+    public void testQualifierOfAnUnknownInputTypeFailsTheLoad() throws Exception {
+
+        File file = File.createTempFile("fields-with-bad-qualifier", ".json");
+        file.deleteOnExit();
+        Files.write(file.toPath(), ("{\"claim\": {\"field\": {\"name\": \"claim\", \"displayName\": "
+                + "\"claim\", \"qualifier\": {\"inputType\": \"slider\", \"valueType\": \"string\"}}, "
+                + "\"operators\": [\"equals\"], \"value\": {\"inputType\": \"input\", "
+                + "\"valueType\": \"string\"}}}").getBytes(StandardCharsets.UTF_8));
+
+        assertThrows(RuleMetadataConfigException.class, () -> FieldDefinitionConfig.load(file, operatorConfig));
+    }
+
+    /**
+     * The value input of an operator comes from the operator configuration, whatever a field declares.
+     */
+    @Test
+    public void testOperatorValueInputComesFromTheOperatorConfiguration() {
+
+        FieldDefinition definition = new FieldDefinition(new Field("claim", "claim"),
+                Arrays.asList(new Operator("equals", "equals", ValueInput.LIST),
+                        new Operator("isBlank", "is blank", ValueInput.SINGLE)),
+                new InputValue(Value.ValueType.STRING));
+
+        assertEquals(definition.getOperators().get(0).getValueInput(), ValueInput.SINGLE);
+        assertEquals(definition.getOperators().get(1).getValueInput(), ValueInput.NONE);
     }
 }

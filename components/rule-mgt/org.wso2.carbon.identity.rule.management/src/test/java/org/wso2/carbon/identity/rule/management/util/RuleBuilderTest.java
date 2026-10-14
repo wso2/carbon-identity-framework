@@ -65,6 +65,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 
@@ -331,8 +332,9 @@ public class RuleBuilderTest {
         ruleBuilder.build();
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class,
-            expectedExceptionsMessageRegExp = "Either primitive value or Value with type must be provided.")
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: Operator equals of field application needs "
+                    + "a value of a known type.")
     public void testCreateRuleWithAnExpressionWithoutRequiredValue() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -839,15 +841,92 @@ public class RuleBuilderTest {
                 .operator(operator).value(new Value(Arrays.asList("LK", "IN"))).build();
     }
 
+    @DataProvider(name = "rejectedConditions")
+    public Object[][] rejectedConditions() {
+
+        String country = "http://wso2.org/claims/country";
+        return new Object[][]{
+                {plain("isBlank", new Value(Value.Type.STRING, "x")),
+                        "Operator isBlank of field plain takes no value."},
+                {new Expression.Builder().field("collected").fieldQualifier(country).operator("isEmpty")
+                        .value(new Value(new FieldReference("stored", country))).build(),
+                        "Operator isEmpty of field collected takes no value."},
+                {plain("equals", null), "Operator equals of field plain needs a value of a known type."},
+                {plain("equals", new Value(null, "x")),
+                        "Operator equals of field plain needs a value of a known type."},
+                {new Expression.Builder().field("score").operator("in").value(new Value(Arrays.asList("5", null)))
+                        .build(), "A list value for field score has an empty entry."},
+                {plain("in", new Value(Arrays.asList("a", " "))), "A list value for field plain has an empty entry."},
+                {new Expression.Builder().field("score").operator("equals").value(new Value(Value.Type.NUMBER, null))
+                        .build(), "A value is required for field score."},
+                {plain("equals", new Value(Value.Type.STRING, null)), "A value is required for field plain."},
+                {plain("equals", new Value(Arrays.asList("a"))),
+                        "Operator equals of field plain does not take a list of values."},
+                {plain("in", new Value(Value.Type.STRING, "a")),
+                        "Operator in of field plain needs a list of values or another field to compare with."}
+        };
+    }
+
+    @Test(dataProvider = "rejectedConditions")
+    public void testConditionWithAMismatchedOrEmptyValueIsRejected(Expression expression, String reason)
+            throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(expression);
+
+        RuleManagementClientException e = expectThrows(RuleManagementClientException.class, ruleBuilder::build);
+        assertEquals(e.getMessage(), "Rule validation failed: " + reason);
+    }
+
+    @Test
+    public void testValueLessOperatorIsBuiltWithoutAValue() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(plain("isBlank", null));
+        ruleBuilder.addAndExpression(new Expression.Builder().field("collected")
+                .fieldQualifier("http://wso2.org/claims/country").operator("isEmpty").build());
+
+        List<Expression> built = ((ORCombinedRule) ruleBuilder.build()).getRules().get(0).getExpressions();
+        assertEquals(built.get(0).getOperator(), "isBlank");
+        assertNull(built.get(0).getValue());
+        assertEquals(built.get(1).getFieldQualifier(), "http://wso2.org/claims/country");
+        assertNull(built.get(1).getValue());
+    }
+
+    /**
+     * A blank qualifier names no value within a field, so it is stored as none rather than as blank text that no
+     * value would be found under.
+     */
+    @Test
+    public void testBlankQualifiersAreStoredAsNone() throws Exception {
+
+        RuleBuilder ruleBuilder = builderWithComparableFields();
+        ruleBuilder.addAndExpression(new Expression.Builder().field("plain").fieldQualifier("  ").operator("equals")
+                .value(new Value(Value.Type.STRING, "x")).build());
+        ruleBuilder.addAndExpression(comparedWith(new FieldReference("other", "")));
+
+        List<Expression> built = ((ORCombinedRule) ruleBuilder.build()).getRules().get(0).getExpressions();
+        assertNull(built.get(0).getFieldQualifier());
+        assertEquals(built.get(1).getValue().getFieldReference().getName(), "other");
+        assertNull(built.get(1).getValue().getFieldReference().getQualifier());
+    }
+
+    private static Expression plain(String operator, Value value) {
+
+        return new Expression.Builder().field("plain").operator(operator).value(value).build();
+    }
+
     private RuleBuilder builderWithComparableFields() throws Exception {
 
+        // Declared without a value rule: the operator configuration decides that isBlank and isEmpty take no value.
         List<Operator> operators = Arrays.asList(new Operator("equals", "equals"), new Operator("in", "in"),
-                new Operator("notIn", "not in"));
+                new Operator("notIn", "not in"), new Operator("isBlank", "is blank"),
+                new Operator("isEmpty", "is empty"));
         List<FieldDefinition> definitions = new ArrayList<>();
         definitions.add(new FieldDefinition(new Field("collected", "collected", new InputValue(
                 org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)), operators,
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING),
-                new ValueFieldOptions(Arrays.asList("stored", "score"))));
+                new ValueFieldOptions(Arrays.asList("stored", "score", "other"))));
         definitions.add(new FieldDefinition(new Field("stored", "stored", new InputValue(
                 org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)), operators,
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)));
@@ -855,6 +934,8 @@ public class RuleBuilderTest {
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)));
         definitions.add(new FieldDefinition(new Field("score", "score"), operators,
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.NUMBER)));
+        definitions.add(new FieldDefinition(new Field("other", "other"), operators,
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING)));
         when(ruleMetadataService.getExpressionMeta(
                 org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(definitions);
