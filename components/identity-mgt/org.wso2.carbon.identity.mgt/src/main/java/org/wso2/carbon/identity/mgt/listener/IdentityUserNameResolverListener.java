@@ -111,6 +111,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             userName = authenticationResult.getAuthenticatedUser().get().getUsername();
         } else {
             userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
+            if (userName == null) {
+                return handleUserNameResolveFailure(userID, userStoreManager);
+            }
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
