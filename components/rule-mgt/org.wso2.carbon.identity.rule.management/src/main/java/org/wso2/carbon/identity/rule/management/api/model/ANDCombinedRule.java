@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.rule.management.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -29,6 +31,7 @@ import java.util.UUID;
  * Represents an AND combined rule.
  * This class extends the Rule class and has a list of expressions.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonDeserialize(builder = ANDCombinedRule.Builder.class)
 public class ANDCombinedRule extends Rule {
 
@@ -56,6 +59,7 @@ public class ANDCombinedRule extends Rule {
      * Builder for the ANDCombinedRule.
      */
     @JsonPOJOBuilder(withPrefix = "set")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Builder {
 
         private String id;

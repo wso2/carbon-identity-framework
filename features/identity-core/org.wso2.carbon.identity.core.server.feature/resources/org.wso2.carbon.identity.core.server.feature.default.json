@@ -922,7 +922,8 @@
     "/smsotpauthenticationendpoint/",
     "/totpauthenticationendpoint/",
     "/accounts/",
-    "/oid4vci/"
+    "/oid4vci/",
+    "/oid4vp/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",

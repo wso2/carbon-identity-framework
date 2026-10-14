@@ -29,13 +29,27 @@ public class Field {
 
     private final String name;
     private final String displayName;
+    private final Value qualifier;
 
     @JsonCreator
     public Field(@JsonProperty("name") String name, @JsonProperty("displayName") String displayName) {
 
+        this(name, displayName, null);
+    }
+
+    /**
+     * A field that takes a qualifier, such as a claim.
+     *
+     * @param name        The field name.
+     * @param displayName The name shown for the field.
+     * @param qualifier   How the qualifier is entered, or null when the field takes none.
+     */
+    public Field(String name, String displayName, Value qualifier) {
+
         validate(name);
         this.name = name;
         this.displayName = displayName;
+        this.qualifier = qualifier;
     }
 
     public String getName() {
@@ -46,6 +60,16 @@ public class Field {
     public String getDisplayName() {
 
         return displayName;
+    }
+
+    /**
+     * How the qualifier is entered.
+     *
+     * @return The qualifier meta, or null when the field takes no qualifier.
+     */
+    public Value getQualifier() {
+
+        return qualifier;
     }
 
     private void validate(String name) {

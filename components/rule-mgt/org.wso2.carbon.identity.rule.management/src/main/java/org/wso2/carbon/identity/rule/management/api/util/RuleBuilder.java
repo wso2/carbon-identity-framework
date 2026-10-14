@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementExce
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementServerException;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.FlowType;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
@@ -32,6 +33,7 @@ import org.wso2.carbon.identity.rule.management.internal.util.RuleManagementConf
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.ValueFieldOptions;
 
 import java.util.List;
 import java.util.Map;
@@ -45,6 +47,11 @@ import java.util.Map;
 public class RuleBuilder {
 
     private static final int MAX_RULES_COMBINED_WITH_OR = 10;
+    private static final String IN = "in";
+    private static final String NOT_IN = "notIn";
+    private static final String FIELD = "Field ";
+    private static final String OPERATOR = "Operator ";
+    private static final String NOT_SUPPORTED_FOR_FIELD = " is not supported for field ";
 
     private final ORCombinedRule.Builder orCombinedRuleBuilder = new ORCombinedRule.Builder();
     private ANDCombinedRule.Builder andCombinedRuleBuilder = new ANDCombinedRule.Builder();
@@ -173,6 +180,14 @@ public class RuleBuilder {
             return expression;
         }
 
+        if (!isValidQualifier(fieldDefinition, expression.getField(), expression.getFieldQualifier())) {
+            return expression;
+        }
+
+        if (!isValidValueForOperator(expression.getField(), expression.getOperator(), expression.getValue())) {
+            return expression;
+        }
+
         Value resolvedValue = validateAndResolveValue(fieldDefinition, expression.getValue());
         if (isError) {
             return expression;
@@ -180,6 +195,7 @@ public class RuleBuilder {
 
         return new Expression.Builder()
                 .field(expression.getField())
+                .fieldQualifier(expression.getFieldQualifier())
                 .operator(expression.getOperator())
                 .value(resolvedValue)
                 .build();
@@ -188,7 +204,7 @@ public class RuleBuilder {
     private boolean isValidFieldDefinition(FieldDefinition fieldDefinition, String field) {
 
         if (fieldDefinition == null) {
-            setValidationError("Field " + field + " is not supported");
+            setValidationError(FIELD + field + " is not supported");
             return false;
         }
         return true;
@@ -199,7 +215,40 @@ public class RuleBuilder {
         if (fieldDefinition.getOperators().stream()
                 .noneMatch(op -> op.getName().equals(operator))) {
             setValidationError(
-                    "Operator " + operator + " is not supported for field " + fieldDefinition.getField().getName());
+                    OPERATOR + operator + NOT_SUPPORTED_FOR_FIELD + fieldDefinition.getField().getName());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * A qualified field, such as a claim, needs a qualifier; any other field takes none.
+     */
+    private boolean isValidQualifier(FieldDefinition fieldDefinition, String field, String qualifier) {
+
+        boolean qualified = fieldDefinition.getField().getQualifier() != null;
+        if (qualified == isBlank(qualifier)) {
+            setValidationError(qualified
+                    ? FIELD + field + " needs a qualifier to say which of its values to read."
+                    : FIELD + field + " names a single value and takes no qualifier.");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * A LIST value is allowed only with in / notIn, and in / notIn need a LIST or a FIELD value.
+     */
+    private boolean isValidValueForOperator(String field, String operator, Value value) {
+
+        boolean membership = IN.equals(operator) || NOT_IN.equals(operator);
+        if (value.getType() == Value.Type.LIST && !membership) {
+            setValidationError(OPERATOR + operator + " of field " + field + " does not take a list of values.");
+            return false;
+        }
+        if (membership && value.getType() != Value.Type.LIST && value.getType() != Value.Type.FIELD) {
+            setValidationError(OPERATOR + operator + " of field " + field
+                    + " needs a list of values or another field to compare with.");
             return false;
         }
         return true;
@@ -239,6 +288,13 @@ public class RuleBuilder {
 
     private Value validateAndResolveValue(FieldDefinition fieldDefinition, Value value) {
 
+        if (value.getType() == Value.Type.LIST) {
+            return validateListValue(fieldDefinition, value);
+        }
+        if (value.getType() == Value.Type.FIELD) {
+            return validateFieldValue(fieldDefinition, value);
+        }
+
         String rawValue = value.getFieldValue();
 
         if (!isValidValueType(fieldDefinition, value)) {
@@ -255,6 +311,75 @@ public class RuleBuilder {
             setValidationError(e.getMessage());
             return value;
         }
+    }
+
+    /**
+     * Each entry of a LIST value is checked as a single value of the field's type.
+     */
+    private Value validateListValue(FieldDefinition fieldDefinition, Value value) {
+
+        if (value.getFieldValues() == null || value.getFieldValues().isEmpty()) {
+            setValidationError("A list value for field " + fieldDefinition.getField().getName()
+                    + " must have at least one entry.");
+            return value;
+        }
+
+        for (String entry : value.getFieldValues()) {
+            if (!isValidOptionsInputValue(fieldDefinition, entry)) {
+                return value;
+            }
+            try {
+                resolveValue(fieldDefinition, entry);
+            } catch (RuleManagementClientException e) {
+                setValidationError(e.getMessage());
+                return value;
+            }
+        }
+        return value;
+    }
+
+    /**
+     * A FIELD value must name a field listed as comparable, of the same value type, with a qualifier exactly
+     * when that field takes one.
+     */
+    private Value validateFieldValue(FieldDefinition fieldDefinition, Value value) {
+
+        FieldReference reference = value.getFieldReference();
+        String fieldName = fieldDefinition.getField().getName();
+        if (reference == null || isBlank(reference.getName())) {
+            setValidationError("A value of field " + fieldName + " read from another field must name that field.");
+            return value;
+        }
+        ValueFieldOptions valueFieldOptions = fieldDefinition.getValueFieldOptions();
+        if (valueFieldOptions == null || !valueFieldOptions.getNames().contains(reference.getName())) {
+            setValidationError(FIELD + fieldName + " cannot be compared with field " + reference.getName());
+            return value;
+        }
+        FieldDefinition referencedDefinition = expressionMetadataFieldsMap.get(reference.getName());
+        if (referencedDefinition == null) {
+            setValidationError(FIELD + reference.getName() + " is not supported");
+            return value;
+        }
+        if (!hasSameValueType(fieldDefinition, referencedDefinition)) {
+            setValidationError(FIELD + fieldName + " cannot be compared with field " + reference.getName()
+                    + " as their values are of different types.");
+            return value;
+        }
+        isValidQualifier(referencedDefinition, reference.getName(), reference.getQualifier());
+        return value;
+    }
+
+    private static boolean hasSameValueType(FieldDefinition fieldDefinition, FieldDefinition referencedDefinition) {
+
+        if (fieldDefinition.getValue() == null || referencedDefinition.getValue() == null) {
+            return false;
+        }
+        return fieldDefinition.getValue().getValueType() == referencedDefinition.getValue().getValueType();
+    }
+
+    private static boolean isBlank(String text) {
+
+        return text == null || text.trim().isEmpty();
     }
 
     private Value resolveValue(FieldDefinition fieldDefinition,
@@ -285,9 +410,10 @@ public class RuleBuilder {
                 fieldDefinition.getValue().getValueType();
         Value.Type valueType = value.getType();
 
-        if (valueType != Value.Type.RAW && !valueType.name().equals(fieldDefinitionValueType.name())) {
+        if (valueType != Value.Type.RAW && valueType != Value.Type.LIST
+                && !valueType.name().equals(fieldDefinitionValueType.name())) {
             setValidationError(
-                    "Value type " + valueType + " is not supported for field " + fieldDefinition.getField().getName());
+                    "Value type " + valueType + NOT_SUPPORTED_FOR_FIELD + fieldDefinition.getField().getName());
             return false;
         }
         return true;
@@ -299,7 +425,7 @@ public class RuleBuilder {
                 ((OptionsInputValue) fieldDefinition.getValue()).getValues().stream()
                         .noneMatch(optionsValue -> optionsValue.getName().equals(fieldValue))) {
             setValidationError(
-                    "Value " + fieldValue + " is not supported for field " + fieldDefinition.getField().getName());
+                    "Value " + fieldValue + NOT_SUPPORTED_FOR_FIELD + fieldDefinition.getField().getName());
             return false;
         }
 

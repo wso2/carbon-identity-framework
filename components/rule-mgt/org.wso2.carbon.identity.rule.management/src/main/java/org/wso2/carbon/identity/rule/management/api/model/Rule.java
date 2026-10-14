@@ -20,13 +20,16 @@ package org.wso2.carbon.identity.rule.management.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Represents a rule in Rule Management.
  * This class has an id, a condition and a status.
  */
-public abstract class Rule {
+public abstract class Rule implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     protected String id;
     protected Condition condition;

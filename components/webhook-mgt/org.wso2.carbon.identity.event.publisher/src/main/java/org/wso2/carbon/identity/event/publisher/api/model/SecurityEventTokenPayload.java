@@ -100,6 +100,43 @@ public class SecurityEventTokenPayload {
     }
 
     /**
+     * Return a new builder already holding every claim of this payload, so that a copy can be made with
+     * one or two of them changed.
+     * <p>
+     * A payload's claims cannot be reassigned, and the builder this returns is a separate object: setting a
+     * claim on the builder changes only what {@code build()} will produce, never this payload. Callers can
+     * therefore hand the same payload to several recipients and adjust it for each.
+     * <p>
+     * All eight claims are carried over -- {@code iss}, {@code jti}, {@code iat}, {@code aud}, {@code txn},
+     * {@code rci}, {@code sub_id} and {@code events}. The {@code events} map is passed by reference rather
+     * than copied, so this payload and every copy made from it share one map, which {@link #getEvents()}
+     * hands out as it is rather than as an unmodifiable view. The sharing is intended, since the event content
+     * is what stays the same between the copies, but it leaves the map the one part of a payload that is not
+     * fixed once built: a modification through it is seen by the payload it came from and by its siblings, so
+     * the map must be left alone after the payload is built.
+     * <p>
+     * It exists because a Security Event Token describes a transmission rather than an occurrence. The same
+     * occurrence delivered to two subscribers is two tokens, alike in the claims that describe the event and
+     * differing in the claims that describe the delivery -- {@code iss} above all, which names the
+     * organization transmitting it. The publisher uses this to re-stamp those claims per recipient instead of
+     * rebuilding the event content once per webhook.
+     *
+     * @return A new builder holding this payload's claims, ready to be adjusted and built.
+     */
+    public Builder toBuilder() {
+
+        return new Builder()
+                .iss(this.iss)
+                .jti(this.jti)
+                .iat(this.iat)
+                .aud(this.aud)
+                .txn(this.txn)
+                .rci(this.rci)
+                .subId(this.subId)
+                .events(this.events);
+    }
+
+    /**
      * Builder class for Security Event Token Payload.
      */
     public static class Builder {
