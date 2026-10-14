@@ -1335,7 +1335,11 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
     private String getUserNameFromUserID(String userID, AbstractUserStoreManager userStoreManager) throws
             UserStoreException {
 
-        return UserCoreUtil.removeDomainFromName(userStoreManager.getUserNameFromUserID(userID));
+        String userName = userStoreManager.getUserNameFromUserID(userID);
+        if (userName == null) {
+            return null;
+        }
+        return UserCoreUtil.removeDomainFromName(userName);
     }
 
     private boolean isNotClaimValueEncryptionListener(UserOperationEventListener listener) {

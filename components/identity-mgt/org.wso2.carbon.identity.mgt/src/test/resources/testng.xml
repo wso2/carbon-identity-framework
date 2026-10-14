@@ -38,6 +38,7 @@
     <test name="org.wso2.carbon.identity.mgt.listener" preserve-order="false" parallel="none">
         <classes>
             <class name="org.wso2.carbon.identity.mgt.listener.TenantSyncListenerTest"/>
+            <class name="org.wso2.carbon.identity.mgt.listener.IdentityUserNameResolverListenerTest"/>
         </classes>
     </test>
     <test name="org.wso2.carbon.identity.mgt.store" preserve-order="false" parallel="none">
