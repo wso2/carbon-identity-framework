@@ -26,17 +26,20 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
 import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.OperatorRegistry;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -179,6 +182,84 @@ public class OperatorRegistryTest {
             assertTrue(operator.apply(a, b));
         } else {
             assertFalse(operator.apply(a, b));
+        }
+    }
+
+    @Test
+    public void testOperatorsCarryTheValueInputTheyTake() {
+
+        for (String name : new String[]{"isBlank", "isNotBlank", "isEmpty", "isNotEmpty"}) {
+            assertEquals(operatorRegistry.getOperator(name).getValueInput(), ValueInput.NONE, name);
+        }
+        assertEquals(operatorRegistry.getOperator("in").getValueInput(), ValueInput.LIST);
+        assertEquals(operatorRegistry.getOperator("notIn").getValueInput(), ValueInput.LIST);
+        assertEquals(operatorRegistry.getOperator("equals").getValueInput(), ValueInput.SINGLE);
+    }
+
+    @Test
+    public void testEmptinessAndMembershipOperatorsApplyToMultiValuedFieldsOnly() {
+
+        for (String name : new String[]{"isEmpty", "isNotEmpty", "in", "notIn"}) {
+            assertTrue(operatorRegistry.isMultiValuedOnly(operatorRegistry.getOperator(name)), name);
+        }
+        for (String name : new String[]{"isBlank", "isNotBlank", "equals", "notEquals"}) {
+            assertFalse(operatorRegistry.isMultiValuedOnly(operatorRegistry.getOperator(name)), name);
+        }
+    }
+
+    /**
+     * An operator configured with no definition is left out, and the others still load.
+     */
+    @Test
+    public void testOperatorWithNoDefinitionIsLeftOut() {
+
+        RuleMetadataService original = RuleEvaluationComponentServiceHolder.getInstance().getRuleMetadataService();
+        try {
+            RuleMetadataService service = mock(RuleMetadataService.class);
+            when(service.getApplicableOperatorsInExpressions()).thenReturn(Arrays.asList(null,
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Operator("contains", "contains")));
+
+            RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(service);
+
+            OperatorRegistry registry = RuleEvaluationComponentServiceHolder.getInstance().getOperatorRegistry();
+            assertNotNull(registry);
+            assertNotNull(registry.getOperator("contains"));
+        } finally {
+            RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(original);
+        }
+    }
+
+    /**
+     * The value input of an operator is fixed by its implementation, so an operator configured otherwise, or one
+     * without an implementation, is left out. The other operators still load, so only rules using the bad one fail.
+     */
+    @Test
+    public void testOperatorConfiguredAgainstItsImplementationIsLeftOut() {
+
+        RuleMetadataService original = RuleEvaluationComponentServiceHolder.getInstance().getRuleMetadataService();
+        try {
+            for (org.wso2.carbon.identity.rule.metadata.api.model.Operator misconfigured : Arrays.asList(
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Operator("isBlank", "is blank",
+                            ValueInput.SINGLE),
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Operator("equals", "equals",
+                            ValueInput.NONE),
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Operator("in", "in", ValueInput.SINGLE),
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Operator("equals", "equals",
+                            ValueInput.LIST),
+                    new org.wso2.carbon.identity.rule.metadata.api.model.Operator("between", "between"))) {
+                RuleMetadataService service = mock(RuleMetadataService.class);
+                when(service.getApplicableOperatorsInExpressions()).thenReturn(Arrays.asList(misconfigured,
+                        new org.wso2.carbon.identity.rule.metadata.api.model.Operator("contains", "contains")));
+
+                RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(service);
+
+                OperatorRegistry registry = RuleEvaluationComponentServiceHolder.getInstance().getOperatorRegistry();
+                assertNotNull(registry);
+                assertNull(registry.getOperator(misconfigured.getName()), misconfigured.getName());
+                assertNotNull(registry.getOperator("contains"));
+            }
+        } finally {
+            RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(original);
         }
     }
 }

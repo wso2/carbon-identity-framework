@@ -144,10 +144,6 @@ public class Expression implements Serializable {
                 throw new IllegalArgumentException("Operator must be provided.");
             }
 
-            if (value == null && rawValue == null) {
-                throw new IllegalArgumentException("Either primitive value or Value with type must be provided.");
-            }
-
             return new Expression(this);
         }
     }

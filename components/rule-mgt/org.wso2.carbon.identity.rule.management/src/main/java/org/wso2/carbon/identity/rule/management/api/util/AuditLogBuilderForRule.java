@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.rule.management.api.util;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.model.Value;
 
 import java.util.stream.Collectors;
 
@@ -50,9 +51,24 @@ public class AuditLogBuilderForRule {
 
         return ((ORCombinedRule) rule).getRules().stream()
                 .map(andRule -> "( " + andRule.getExpressions().stream()
-                        .map(expression -> expression.getField() + " " + expression.getOperator() + " " +
-                                LoggerUtils.getMaskedContent(expression.getValue().getFieldValue()))
+                        .map(expression -> expression.getField() + " " + expression.getOperator()
+                                + describe(expression.getValue()))
                         .collect(Collectors.joining(" and ")) + " )")
                 .collect(Collectors.joining(" or "));
+    }
+
+    private static String describe(Value value) {
+
+        if (value == null) {
+            return "";
+        }
+        if (value.getType() == Value.Type.FIELD && value.getFieldReference() != null) {
+            return " field " + value.getFieldReference().getName();
+        }
+        if (value.getType() == Value.Type.LIST && value.getFieldValues() != null) {
+            return " " + value.getFieldValues().stream().map(LoggerUtils::getMaskedContent)
+                    .collect(Collectors.joining(", ", "[", "]"));
+        }
+        return " " + LoggerUtils.getMaskedContent(value.getFieldValue());
     }
 }

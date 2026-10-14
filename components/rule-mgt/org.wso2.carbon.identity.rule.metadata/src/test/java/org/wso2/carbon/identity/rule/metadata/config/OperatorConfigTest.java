@@ -22,6 +22,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataConfigException;
 import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator.ValueInput;
 import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
 
 import java.io.File;
@@ -44,7 +45,11 @@ public class OperatorConfigTest {
         Map<String, Operator> operatorsMap = operatorConfig.getOperatorsMap();
 
         assertNotNull(operatorsMap);
-        assertEquals(operatorsMap.size(), 3);
+        assertEquals(operatorsMap.size(), 7);
+        assertEquals(operatorsMap.get("equals").getValueInput(), ValueInput.SINGLE,
+                "An operator takes a single value unless it says otherwise.");
+        assertEquals(operatorsMap.get("isBlank").getValueInput(), ValueInput.NONE);
+        assertEquals(operatorsMap.get("isNotEmpty").getValueInput(), ValueInput.NONE);
 
         Operator equalsOperator = operatorsMap.get("equals");
         assertNotNull(equalsOperator);
@@ -68,6 +73,8 @@ public class OperatorConfigTest {
         return new Object[][]{
                 {"configs/invalid-operators-missing-operator-name.json"},
                 {"configs/invalid-operators-missing-operator-displayname.json"},
+                {"configs/invalid-operators-unknown-value-input.json"},
+                {"configs/invalid-operators-null-operator.json"},
                 {"unavailable-file.json"}
         };
     }

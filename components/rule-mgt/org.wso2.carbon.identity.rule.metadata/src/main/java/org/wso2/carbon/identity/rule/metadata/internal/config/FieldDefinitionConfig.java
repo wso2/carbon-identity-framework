@@ -18,24 +18,24 @@
 
 package org.wso2.carbon.identity.rule.metadata.internal.config;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataConfigException;
 import org.wso2.carbon.identity.rule.metadata.api.model.Field;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
-import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
-import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
-import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Value;
+import org.wso2.carbon.identity.rule.metadata.api.model.ValueFieldOptions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Class to load field definitions from a file.
@@ -72,16 +72,40 @@ public class FieldDefinitionConfig {
 
                 Field field = mapper.convertValue(value.get("field"), Field.class);
                 List<Operator> operators = loadOperators(value, operatorConfig, mapper);
-                Value valueMeta = convertValueObject(value, mapper);
+                Value valueMeta = mapper.convertValue(value.get("value"), Value.class);
+                ValueFieldOptions valueFieldOptions =
+                        mapper.convertValue(value.get("valueFieldOptions"), ValueFieldOptions.class);
 
-                FieldDefinition fieldDefinition = new FieldDefinition(field, operators, valueMeta);
+                FieldDefinition fieldDefinition = new FieldDefinition(field, operators, valueMeta, valueFieldOptions);
                 fieldDefinitionMap.put(key, fieldDefinition);
             }
+            validateValueFieldOptions(fieldDefinitionMap.values());
 
             return new FieldDefinitionConfig(fieldDefinitionMap);
         } catch (Exception e) {
             throw new RuleMetadataConfigException(
                     "Error while loading field definitions from file: " + file.getAbsolutePath(), e);
+        }
+    }
+
+    /**
+     * A field can only be compared with fields defined alongside it, so each field named in valueFieldOptions must
+     * be defined in the same file.
+     */
+    private static void validateValueFieldOptions(Collection<FieldDefinition> fieldDefinitions) {
+
+        Set<String> fieldNames = new HashSet<>();
+        fieldDefinitions.forEach(fieldDefinition -> fieldNames.add(fieldDefinition.getField().getName()));
+        for (FieldDefinition fieldDefinition : fieldDefinitions) {
+            if (fieldDefinition.getValueFieldOptions() == null) {
+                continue;
+            }
+            for (String name : fieldDefinition.getValueFieldOptions().getNames()) {
+                if (!fieldNames.contains(name)) {
+                    throw new IllegalArgumentException("Field " + fieldDefinition.getField().getName()
+                            + " can be compared with field " + name + ", which is not defined.");
+                }
+            }
         }
     }
 
@@ -100,23 +124,4 @@ public class FieldDefinitionConfig {
         return operators;
     }
 
-    private static Value convertValueObject(Map<String, Object> value, ObjectMapper mapper) {
-
-        Map<String, Object> valueObject =
-                mapper.convertValue(value.get("value"), new TypeReference<Map<String, Object>>() {
-                });
-
-        Value.InputType inputType = Value.InputType.valueOf(valueObject.get("inputType").toString().toUpperCase());
-        Value.ValueType valueType = Value.ValueType.valueOf(valueObject.get("valueType").toString().toUpperCase());
-
-        if (inputType == Value.InputType.OPTIONS && valueType == Value.ValueType.REFERENCE) {
-            return mapper.convertValue(valueObject, OptionsReferenceValue.class);
-        } else if (inputType == Value.InputType.OPTIONS) {
-            return mapper.convertValue(valueObject, OptionsInputValue.class);
-        } else if (inputType == Value.InputType.INPUT) {
-            return mapper.convertValue(valueObject, InputValue.class);
-        } else {
-            throw new IllegalArgumentException("Unsupported inputType or valueType");
-        }
-    }
 }

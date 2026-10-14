@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.rule.metadata.api.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +32,8 @@ public class ValueFieldOptions {
 
     private final List<String> names;
 
-    public ValueFieldOptions(List<String> names) {
+    @JsonCreator
+    public ValueFieldOptions(@JsonProperty("names") List<String> names) {
 
         if (names == null || names.isEmpty()) {
             throw new IllegalArgumentException("Value field names cannot be null or empty.");

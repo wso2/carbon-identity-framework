@@ -250,4 +250,20 @@ public class RuleSerializationCompatibilityTest {
                 () -> new Value(Value.Type.STRING, "LK", Arrays.asList("LK"), null));
         assertThrows(IllegalArgumentException.class, () -> new Value(Value.Type.STRING, "LK", null, reference));
     }
+
+    /**
+     * A condition whose operator takes no value is stored without one, and reads back without one.
+     */
+    @Test
+    public void testConditionWithoutAValueRoundTrips() throws Exception {
+
+        String json = "{\"condition\":\"OR\",\"rules\":[{\"condition\":\"AND\",\"expressions\":["
+                + "{\"field\":\"user.claims\",\"fieldQualifier\":\"http://wso2.org/claims/country\","
+                + "\"operator\":\"isBlank\"}]}]}";
+
+        ORCombinedRule rule = new ObjectMapper().readValue(json, ORCombinedRule.class);
+
+        assertNull(rule.getRules().get(0).getExpressions().get(0).getValue());
+        assertEquals(new ObjectMapper().writeValueAsString(rule), json);
+    }
 }
