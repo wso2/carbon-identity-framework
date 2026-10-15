@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngi
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.rule.AbstractFlowRuleEvaluationDataProvider;
+import org.wso2.carbon.identity.flow.execution.engine.util.RuleEvaluationDiagnosticLogger;
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
@@ -48,6 +49,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.RULE_EVALUAT
 public class RuleEvaluationNode implements Node {
 
     private static final Log LOG = LogFactory.getLog(RuleEvaluationNode.class);
+    private static final RuleEvaluationDiagnosticLogger DIAGNOSTIC_LOGGER = new RuleEvaluationDiagnosticLogger();
 
     @Override
     public String getName() {
@@ -59,11 +61,13 @@ public class RuleEvaluationNode implements Node {
     public NodeResponse execute(FlowExecutionContext context, NodeConfig nodeConfig) throws FlowEngineException {
 
         if (!FlowMgtUtils.isConditionalBranchingEnabled()) {
+            DIAGNOSTIC_LOGGER.logConditionalBranchingDisabled(context.getFlowType(), nodeConfig.getId());
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED,
                     nodeConfig.getId(), context.getFlowType(), context.getTenantDomain());
         }
         BranchDTO selected = selectBranch(context, nodeConfig, branchesOf(context, nodeConfig));
         if (selected == null) {
+            DIAGNOSTIC_LOGGER.logNoBranchSelected(context.getFlowType(), nodeConfig.getId());
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE,
                     nodeConfig.getType(), context.getFlowType(),
                     context.getGraphConfig().getId(), context.getTenantDomain());
@@ -104,8 +108,14 @@ public class RuleEvaluationNode implements Node {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Branch '" + branch.getName() + "' holds.");
                 }
+                DIAGNOSTIC_LOGGER.logBranchSelected(context.getFlowType(), nodeConfig.getId(), branch.getId(),
+                        branch.getName());
                 return branch;
             }
+        }
+        if (defaultBranch != null) {
+            DIAGNOSTIC_LOGGER.logDefaultBranchSelected(context.getFlowType(), nodeConfig.getId(),
+                    defaultBranch.getId(), defaultBranch.getName());
         }
         return defaultBranch;
     }
@@ -131,6 +141,8 @@ public class RuleEvaluationNode implements Node {
             return evaluationService.evaluate(branch.getRule(), ruleFlowContext, context.getTenantDomain())
                     .isRuleSatisfied();
         } catch (RuleEvaluationException | RuntimeException e) {
+            DIAGNOSTIC_LOGGER.logBranchEvaluationFailed(context.getFlowType(), nodeConfig.getId(), branch.getName(),
+                    e.getMessage());
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_BRANCH_EVALUATION_FAILURE, e,
                     branch.getName(), nodeConfig.getId(), context.getFlowType(), context.getTenantDomain());
         }

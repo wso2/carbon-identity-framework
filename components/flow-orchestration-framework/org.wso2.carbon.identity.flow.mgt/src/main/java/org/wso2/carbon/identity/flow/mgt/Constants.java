@@ -32,6 +32,9 @@ public class Constants {
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
     public static final String END_NODE_ID = "END";
     public static final String CONDITIONAL_BRANCHING_ENABLED = "FlowExecution.ConditionalBranching.Enable";
+    public static final String MAX_RULE_EVALUATION_NODES =
+            "FlowExecution.ConditionalBranching.MaxRuleEvaluationNodes";
+    public static final int DEFAULT_MAX_RULE_EVALUATION_NODES = 10;
 
     public static final String IDP_NAME = "idpName";
 
@@ -144,6 +147,8 @@ public class Constants {
                 "The %s of a branch of the decision step %s is longer than %d characters."),
         ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED("60029", "Conditional branching is not enabled.",
                 "The decision step %s cannot be used because conditional branching is not enabled on this server."),
+        ERROR_CODE_TOO_MANY_RULE_EVALUATION_NODES("60030", "Too many decision steps.",
+                "The flow has %d decision steps, more than the %d allowed."),
         ;
 
         private static final String ERROR_PREFIX = "RFM";

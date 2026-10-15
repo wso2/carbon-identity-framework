@@ -92,6 +92,53 @@ public class GraphBuilderRuleEvaluationTest {
                 .thenReturn(String.valueOf(enabled));
     }
 
+    /**
+     * A flow may have at most ten decision steps unless the server allows more or fewer.
+     */
+    @Test
+    public void testDecisionStepsUpToTheDefaultLimitAreAccepted() throws Exception {
+
+        assertNotNull(new GraphBuilder().withSteps(decisionSteps(Constants.DEFAULT_MAX_RULE_EVALUATION_NODES)));
+        assertThrows(FlowMgtClientException.class, () -> new GraphBuilder()
+                .withSteps(decisionSteps(Constants.DEFAULT_MAX_RULE_EVALUATION_NODES + 1)));
+    }
+
+    @Test
+    public void testDecisionStepsBeyondTheConfiguredLimitAreRejected() {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.MAX_RULE_EVALUATION_NODES)).thenReturn("2");
+        try {
+            assertThrows(FlowMgtClientException.class, () -> new GraphBuilder().withSteps(decisionSteps(3)));
+        } finally {
+            identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.MAX_RULE_EVALUATION_NODES))
+                    .thenReturn(null);
+        }
+    }
+
+    /**
+     * The given number of decision steps, each leading to the end, followed by the end step.
+     */
+    private List<StepDTO> decisionSteps(int count) {
+
+        List<StepDTO> steps = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            List<BranchDTO> branches = Arrays.asList(
+                    new BranchDTO.Builder().id("br_lk").name("Sri Lanka").nextId(Constants.END_NODE_ID)
+                            .rule(ruleOn("user.claims")).build(),
+                    new BranchDTO.Builder().id("br_default").name("Everyone else")
+                            .nextId(Constants.END_NODE_ID).build());
+            steps.add(new StepDTO.Builder()
+                    .id("step_route_" + i)
+                    .type(Constants.StepTypes.RULE_EVALUATION)
+                    .data(new DataDTO.Builder().action(new ActionDTO.Builder()
+                            .type(Constants.ActionTypes.RULE_EVALUATOR).branches(branches).build()).build())
+                    .build());
+        }
+        steps.add(new StepDTO.Builder().id(Constants.END_NODE_ID).type(Constants.StepTypes.END)
+                .data(new DataDTO.Builder().build()).build());
+        return steps;
+    }
+
     @Test
     public void testRuleEvaluationStepBecomesARuleEvaluationNode() throws Exception {
 

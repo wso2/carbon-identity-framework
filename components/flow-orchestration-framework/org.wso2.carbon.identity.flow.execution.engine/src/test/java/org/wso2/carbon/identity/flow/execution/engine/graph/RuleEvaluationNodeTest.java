@@ -18,8 +18,14 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.graph;
 
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -39,10 +45,7 @@ import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.model.Value;
-import org.mockito.MockedStatic;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,12 +54,12 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mockStatic;
 
 /**
  * Tests which branch a rule evaluation takes.
@@ -76,10 +79,13 @@ public class RuleEvaluationNodeTest {
     private RuleEvaluationNode ruleEvaluationNode;
     private RuleEvaluationService ruleEvaluationService;
     private MockedStatic<IdentityUtil> identityUtilMock;
+    private MockedStatic<LoggerUtils> loggerUtilsMock;
 
     @BeforeClass
     public void setUpClass() {
 
+        loggerUtilsMock = mockStatic(LoggerUtils.class);
+        loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
         identityUtilMock = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS);
         identityUtilMock.when(() -> IdentityUtil.getProperty(CONDITIONAL_BRANCHING_ENABLED))
                 .thenReturn("true");
@@ -89,6 +95,7 @@ public class RuleEvaluationNodeTest {
     public void tearDownClass() {
 
         identityUtilMock.close();
+        loggerUtilsMock.close();
     }
 
     @BeforeMethod
@@ -175,6 +182,72 @@ public class RuleEvaluationNodeTest {
 
         identityUtilMock.when(() -> IdentityUtil.getProperty(CONDITIONAL_BRANCHING_ENABLED))
                 .thenReturn(String.valueOf(enabled));
+    }
+
+    @Test
+    public void testDiagnosticLogRecordsTheBranchTaken() throws Exception {
+
+        stubEvaluation(true);
+        NodeConfig node = node();
+
+        DiagnosticLog log = singleDiagnosticLog(() -> ruleEvaluationNode.execute(
+                contextFor(node, guardedThenDefault()), node));
+
+        assertEquals(log.getComponentId(), "flow-execution");
+        assertEquals(log.getActionId(), "rule-evaluation");
+        assertEquals(log.getResultStatus(), DiagnosticLog.ResultStatus.SUCCESS.name());
+        assertEquals(log.getInput().get("branchId"), "br_lk");
+        assertEquals(log.getInput().get("stepId"), DECISION_NODE_ID);
+    }
+
+    @Test
+    public void testDiagnosticLogRecordsTheDefaultBranch() throws Exception {
+
+        stubEvaluation(false);
+        NodeConfig node = node();
+
+        DiagnosticLog log = singleDiagnosticLog(() -> ruleEvaluationNode.execute(
+                contextFor(node, guardedThenDefault()), node));
+
+        assertEquals(log.getResultStatus(), DiagnosticLog.ResultStatus.SUCCESS.name());
+        assertEquals(log.getInput().get("branchId"), "br_default");
+    }
+
+    @Test
+    public void testDiagnosticLogRecordsAFailedEvaluation() throws Exception {
+
+        when(ruleEvaluationService.evaluate(any(Rule.class), any(), anyString()))
+                .thenThrow(new RuleEvaluationException("The groups of the user could not be read."));
+        NodeConfig node = node();
+
+        DiagnosticLog log = singleDiagnosticLog(() -> assertThrows(FlowEngineException.class,
+                () -> ruleEvaluationNode.execute(contextFor(node, guardedThenDefault()), node)));
+
+        assertEquals(log.getResultStatus(), DiagnosticLog.ResultStatus.FAILED.name());
+        assertEquals(log.getInput().get("branchName"), "Sri Lanka");
+    }
+
+    /**
+     * Runs the action with diagnostic logs enabled and returns the one log it wrote.
+     */
+    private DiagnosticLog singleDiagnosticLog(ThrowingRunnable action) throws Exception {
+
+        loggerUtilsMock.clearInvocations();
+        loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+        try {
+            action.run();
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            loggerUtilsMock.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()));
+            return captor.getValue().build();
+        } finally {
+            loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+        }
+    }
+
+    private interface ThrowingRunnable {
+
+        void run() throws Exception;
     }
 
     @Test

@@ -132,6 +132,28 @@ public class FlowMgtUtils {
     }
 
     /**
+     * The maximum number of decision steps a flow may have. A missing or invalid value falls back to the default.
+     *
+     * @return The maximum number of rule evaluation nodes in a flow.
+     */
+    public static int getMaxRuleEvaluationNodes() {
+
+        String value = IdentityUtil.getProperty(Constants.MAX_RULE_EVALUATION_NODES);
+        if (StringUtils.isNotBlank(value)) {
+            try {
+                int max = Integer.parseInt(value.trim());
+                if (max > 0) {
+                    return max;
+                }
+            } catch (NumberFormatException e) {
+                LOG.warn("Invalid value configured for " + Constants.MAX_RULE_EVALUATION_NODES + ": " + value
+                        + ". Using the default: " + Constants.DEFAULT_MAX_RULE_EVALUATION_NODES);
+            }
+        }
+        return Constants.DEFAULT_MAX_RULE_EVALUATION_NODES;
+    }
+
+    /**
      * Get the initiator for audit logs.
      *
      * @return Initiator id despite masking.

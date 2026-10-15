@@ -103,6 +103,7 @@ public class GraphBuilder {
      */
     public GraphBuilder withSteps(List<StepDTO> steps) throws FlowMgtFrameworkException {
 
+        validateRuleEvaluationStepCount(steps);
         for (StepDTO step : steps) {
             if (step.getType() == null) {
                 throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE, "null");
@@ -214,6 +215,21 @@ public class GraphBuilder {
      * @param branches Branches to check.
      * @throws FlowMgtClientException If the decision cannot be evaluated as configured.
      */
+    /**
+     * A flow may have only as many decision steps as the server allows.
+     */
+    private static void validateRuleEvaluationStepCount(List<StepDTO> steps) throws FlowMgtClientException {
+
+        if (!FlowMgtUtils.isConditionalBranchingEnabled()) {
+            return;
+        }
+        long count = steps.stream().filter(step -> Constants.StepTypes.RULE_EVALUATION.equals(step.getType())).count();
+        int max = FlowMgtUtils.getMaxRuleEvaluationNodes();
+        if (count > max) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_TOO_MANY_RULE_EVALUATION_NODES, count, max);
+        }
+    }
+
     /**
      * A branch's id and name are stored in columns of fixed width, so a longer value is rejected rather than cut
      * short or failing at the database.

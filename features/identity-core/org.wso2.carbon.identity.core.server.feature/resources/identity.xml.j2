@@ -5418,10 +5418,15 @@
             <DisplayClaimAvailability>{{flow_execution.registration.display_claim_availability}}</DisplayClaimAvailability>
             <DefaultUserStore>{{flow_execution.registration.default_user_store}}</DefaultUserStore>
         </Registration>
-        {% if flow_execution.conditional_branching.enable is defined %}
+        {% if flow_execution.conditional_branching.enable is defined or flow_execution.conditional_branching.max_rule_evaluation_nodes is defined %}
         <!-- Enables decision steps that route a flow by rules on its data. -->
         <ConditionalBranching>
+            {% if flow_execution.conditional_branching.enable is defined %}
             <Enable>{{flow_execution.conditional_branching.enable}}</Enable>
+            {% endif %}
+            {% if flow_execution.conditional_branching.max_rule_evaluation_nodes is defined %}
+            <MaxRuleEvaluationNodes>{{flow_execution.conditional_branching.max_rule_evaluation_nodes}}</MaxRuleEvaluationNodes>
+            {% endif %}
         </ConditionalBranching>
         {% endif %}
     </FlowExecution>

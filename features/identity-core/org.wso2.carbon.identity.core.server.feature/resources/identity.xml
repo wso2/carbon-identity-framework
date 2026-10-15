@@ -3101,6 +3101,7 @@
         <!-- Enables decision steps that route a flow by rules on its data. -->
         <ConditionalBranching>
             <Enable>false</Enable>
+            <MaxRuleEvaluationNodes>10</MaxRuleEvaluationNodes>
         </ConditionalBranching>
     </FlowExecution>
 
