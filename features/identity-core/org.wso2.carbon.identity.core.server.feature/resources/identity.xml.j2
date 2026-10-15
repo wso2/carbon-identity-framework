@@ -5470,13 +5470,6 @@
         <DefaultProvisioningUserStore>{{connection_sharing.default_provisioning_user_store}}</DefaultProvisioningUserStore>
         <IDP>
             <Enable>{{connection_sharing.idp.enable}}</Enable>
-            {% if connection_sharing.idp.disabled_authenticators is defined %}
-            <DisabledAuthenticators>
-                {% for authenticator in connection_sharing.idp.disabled_authenticators %}
-                <Authenticator>{{authenticator}}</Authenticator>
-                {% endfor %}
-            </DisabledAuthenticators>
-            {% endif %}
         </IDP>
     </ConnectionSharing>
 
