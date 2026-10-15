@@ -22,12 +22,15 @@ import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.ChannelOrgSubscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookRunnable;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretProcessor;
+
+import java.util.List;
 
 import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR;
 
@@ -37,7 +40,14 @@ import static org.wso2.carbon.identity.webhook.management.internal.constant.Erro
  */
 public abstract class AdapterTypeHandler implements WebhookManagementDAO {
 
+    protected final WebhookManagementDAO dao;
+
     private final WebhookSecretProcessor webhookSecretProcessor = new WebhookSecretProcessor();
+
+    protected AdapterTypeHandler(WebhookManagementDAO dao) {
+
+        this.dao = dao;
+    }
 
     /**
      * Encrypts the webhook secret and adds it to the webhook object.
@@ -102,6 +112,73 @@ public abstract class AdapterTypeHandler implements WebhookManagementDAO {
                 .eventProfileUri(webhook.getEventProfileUri()).eventProfileVersion(webhook.getEventProfileVersion())
                 .status(webhook.getStatus())
                 .createdAt(webhook.getCreatedAt()).updatedAt(webhook.getUpdatedAt())
-                .eventsSubscribed(webhook.getEventsSubscribed()).build();
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .ownerTenantDomain(webhook.getOwnerTenantDomain()).build();
     }
+
+    // --- Organization subscriptions ---
+    // Organization subscriptions carry no adapter-specific side effect -- no topic is registered and no hub call
+    // is made -- so one implementation serves both adapter types. A handler may still override, should its
+    // adapter ever need to diverge.
+
+    @Override
+    public void addChannelOrgSubscriptions(List<ChannelOrgSubscription> subscriptions) throws WebhookMgtException {
+
+        dao.addChannelOrgSubscriptions(subscriptions);
+    }
+
+    @Override
+    public List<ChannelOrgSubscription> getChannelOrgSubscriptions(String channelUuid) throws WebhookMgtException {
+
+        return dao.getChannelOrgSubscriptions(channelUuid);
+    }
+
+    @Override
+    public List<Integer> getSubscribedOrgTenantIds(String channelUuid) throws WebhookMgtException {
+
+        return dao.getSubscribedOrgTenantIds(channelUuid);
+    }
+
+    @Override
+    public int getChannelOrgSubscriptionCount(String channelUuid) throws WebhookMgtException {
+
+        return dao.getChannelOrgSubscriptionCount(channelUuid);
+    }
+
+    @Override
+    public void deleteChannelOrgSubscriptions(String channelUuid) throws WebhookMgtException {
+
+        dao.deleteChannelOrgSubscriptions(channelUuid);
+    }
+
+    @Override
+    public void deleteChannelOrgSubscriptionsByOrgId(String subscribedOrgId) throws WebhookMgtException {
+
+        dao.deleteChannelOrgSubscriptionsByOrgId(subscribedOrgId);
+    }
+
+    @Override
+    public List<String> getChannelUuids(String webhookId, int tenantId) throws WebhookMgtException {
+
+        return dao.getChannelUuids(webhookId, tenantId);
+    }
+
+    @Override
+    public int getOwningTenantId(String channelUuid) throws WebhookMgtException {
+
+        return dao.getOwningTenantId(channelUuid);
+    }
+
+    @Override
+    public String getChannelUuid(String webhookId, String channelUri, int tenantId) throws WebhookMgtException {
+
+        return dao.getChannelUuid(webhookId, channelUri, tenantId);
+    }
+
+    @Override
+    public String getChannelUri(String channelUuid) throws WebhookMgtException {
+
+        return dao.getChannelUri(channelUuid);
+    }
+
 }
