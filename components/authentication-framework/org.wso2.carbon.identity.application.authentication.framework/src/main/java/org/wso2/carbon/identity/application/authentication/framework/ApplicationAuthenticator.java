@@ -210,4 +210,16 @@ public interface ApplicationAuthenticator extends Serializable {
 
         return true;
     }
+
+    /**
+     * Check whether an identity provider configured with this authenticator can be shared with child organizations.
+     * Authenticators that cannot function in a child organization through a shared connection should override this
+     * method and return false.
+     *
+     * @return true if the authenticator can be shared with child organizations, false otherwise.
+     */
+    default boolean isShareableWithChildOrganizations() {
+
+        return true;
+    }
 }
