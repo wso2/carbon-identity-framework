@@ -18,21 +18,29 @@
 
 package org.wso2.carbon.identity.webhook.management.service;
 
+import org.mockito.Answers;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.OrganizationSubscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
@@ -42,19 +50,26 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
@@ -64,6 +79,7 @@ public class WebhookManagementServiceImplTest {
     private WebhookManagementDAO webhookManagementDAO;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic;
+    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtilMockedStatic;
     private MockedStatic<WebhookManagementComponentServiceHolder> webhookComponentHolderMockedStatic;
     private WebhookMetadataService webhookMetadataService;
     private WebhookManagementComponentServiceHolder holder;
@@ -75,10 +91,22 @@ public class WebhookManagementServiceImplTest {
     private static final String WEBSUBHUBADAPTER = "webSubHubAdapter";
 
     @BeforeClass
-    public void setUpClass() throws WebhookMetadataException {
+    public void setUpClass() throws WebhookMetadataException, SQLException {
 
         identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+
+        /*
+         The creation path runs its identity database writes in one transaction, so a datasource has to be
+         reachable for the transaction to be opened at all. The DAO underneath it is a mock and no statement is
+         ever executed on this connection: it is acquired, committed and closed.
+         */
+        Connection connection = mock(Connection.class);
+        when(connection.getAutoCommit()).thenReturn(true);
+        DataSource dataSource = mock(DataSource.class);
+        when(dataSource.getConnection()).thenReturn(connection);
+        identityDatabaseUtilMockedStatic = mockStatic(IdentityDatabaseUtil.class);
+        identityDatabaseUtilMockedStatic.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
         webhookComponentHolderMockedStatic = mockStatic(WebhookManagementComponentServiceHolder.class);
         holder = mock(WebhookManagementComponentServiceHolder.class); // Use class field
@@ -99,6 +127,7 @@ public class WebhookManagementServiceImplTest {
     public void tearDownClass() {
 
         identityTenantUtilMockedStatic.close();
+        identityDatabaseUtilMockedStatic.close();
         webhookComponentHolderMockedStatic.close();
     }
 
@@ -324,5 +353,166 @@ public class WebhookManagementServiceImplTest {
         assertEquals(result.size(), 2);
         assertEquals(result.get(0), webhook1);
         assertEquals(result.get(1), webhook2);
+    }
+
+    @DataProvider(name = "activeWebhookLookupRouting")
+    public Object[][] activeWebhookLookupRouting() {
+
+        // childOrgSubscriptionEnabled, isSubOrganization, isSubOrganizationCheckFails, expectWidenedLookup
+        return new Object[][]{
+                {false, true, false, false},
+                {true, false, false, false},
+                {true, true, false, true},
+                {true, false, true, true}
+        };
+    }
+
+    /**
+     * Only a sub-organization can be subscribed to an ancestor's webhook, so the lookup that includes
+     * subscribed child organizations runs only for sub-organizations, and only when the feature is enabled.
+     * If the sub-organization check fails, the wider lookup is used so that no webhook is missed.
+     */
+    @Test(dataProvider = "activeWebhookLookupRouting")
+    public void testGetActiveWebhooksRouting(boolean childOrgSubscriptionEnabled, boolean isSubOrganization,
+                                             boolean isSubOrganizationCheckFails, boolean expectWidenedLookup)
+            throws Exception {
+
+        String eventProfileName = "profile";
+        String eventProfileVersion = "v1";
+        String channelUri = "schemas.identity.wso2.org/events/logins";
+        List<Webhook> tenantOnly = Collections.singletonList(mock(Webhook.class));
+        List<Webhook> withChildOrgs = new ArrayList<>();
+        withChildOrgs.add(mock(Webhook.class));
+        withChildOrgs.add(mock(Webhook.class));
+        when(webhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, TENANT_ID))
+                .thenReturn(tenantOnly);
+        when(webhookManagementDAO.getActiveWebhooksWithSubscribedChildOrgs(eventProfileName, eventProfileVersion,
+                channelUri, TENANT_ID)).thenReturn(withChildOrgs);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, Answers.CALLS_REAL_METHODS);
+             MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+            stubChildOrganizationSubscriptionEnabled(identityUtil, childOrgSubscriptionEnabled);
+            if (isSubOrganizationCheckFails) {
+                organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_ID))
+                        .thenThrow(new OrganizationManagementException("error"));
+            } else {
+                organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_ID))
+                        .thenReturn(isSubOrganization);
+            }
+
+            List<Webhook> result = webhookManagementService.getActiveWebhooks(
+                    eventProfileName, eventProfileVersion, channelUri, TENANT_DOMAIN);
+
+            if (expectWidenedLookup) {
+                assertEquals(result, withChildOrgs);
+                verify(webhookManagementDAO, never()).getActiveWebhooks(anyString(), anyString(), anyString(),
+                        anyInt());
+            } else {
+                assertEquals(result, tenantOnly);
+                verify(webhookManagementDAO, never()).getActiveWebhooksWithSubscribedChildOrgs(anyString(),
+                        anyString(), anyString(), anyInt());
+            }
+            if (!childOrgSubscriptionEnabled) {
+                organizationManagementUtil.verify(() -> OrganizationManagementUtil.isOrganization(anyInt()),
+                        never());
+            }
+        }
+    }
+
+    /**
+     * While child organization subscriptions are disabled, reading the organizations subscribed to a channel is
+     * rejected before anything is read from the subscription store.
+     */
+    @Test
+    public void testChannelOrganizationSubscriptionOperationsRejectedWhenDisabled() throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockChildOrganizationSubscriptionEnabled(false)) {
+            assertRejectedAsDisabled(() -> webhookManagementService.getChannelOrganizationSubscriptions(WEBHOOK_ID,
+                    "channel-id", TENANT_DOMAIN, 0, 10));
+        }
+        verify(webhookManagementDAO, never()).getChannelUuids(anyString(), anyInt());
+        verify(webhookManagementDAO, never()).addChannelOrgSubscriptions(any());
+        verify(webhookManagementDAO, never()).deleteChannelOrgSubscriptions(anyString());
+    }
+
+    /**
+     * A webhook that carries organization subscriptions is still created while the feature is disabled. The
+     * subscriptions are ignored rather than applied, so that the webhook APIs keep working as they did before the
+     * feature existed.
+     */
+    @Test
+    public void testCreateWebhookIgnoresOrganizationSubscriptionsWhenDisabled() throws Exception {
+
+        Webhook inputWebhook = mock(Webhook.class);
+        when(inputWebhook.getEndpoint()).thenReturn("https://test.com/webhook-org-sub");
+        when(inputWebhook.getName()).thenReturn("name");
+        when(inputWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
+        when(inputWebhook.getEventProfileName()).thenReturn("profile");
+        when(inputWebhook.getEventProfileUri()).thenReturn("uri");
+        when(inputWebhook.getEventsSubscribed()).thenReturn(Collections.singletonList(
+                Subscription.builder().channelUri("schemas.identity.wso2.org/events/logins").build()));
+        when(inputWebhook.getOrganizationSubscriptions())
+                .thenReturn(Collections.singletonList(mock(OrganizationSubscription.class)));
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockChildOrganizationSubscriptionEnabled(false)) {
+            webhookManagementService.createWebhook(inputWebhook, TENANT_DOMAIN);
+        }
+        verify(webhookManagementDAO).createWebhook(any(Webhook.class), eq(TENANT_ID));
+        verify(webhookManagementDAO, never()).addChannelOrgSubscriptions(any());
+        verify(webhookManagementDAO, never()).deleteChannelOrgSubscriptions(anyString());
+    }
+
+    /**
+     * Deleting a webhook reads its channels whether or not the feature is enabled.
+     * <p>
+     * A channel can hold a subscription policy written while the feature was on, and the configuration says
+     * whether the feature is in use rather than whether what it already wrote has been cleaned up. Nothing
+     * cascades to that policy from the identity database, so the read is unconditional and only the store
+     * behind it is spared: a webhook with no channels gives nothing to look up there.
+     */
+    @Test
+    public void testDeleteWebhookReadsChannelsWhenDisabled() throws Exception {
+
+        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(mock(Webhook.class));
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockChildOrganizationSubscriptionEnabled(false)) {
+            webhookManagementService.deleteWebhook(WEBHOOK_ID, TENANT_DOMAIN);
+        }
+        verify(webhookManagementDAO).deleteWebhook(WEBHOOK_ID, TENANT_ID);
+        verify(webhookManagementDAO).getChannelUuids(WEBHOOK_ID, TENANT_ID);
+        verify(webhookManagementDAO, never()).getSubscribedOrgTenantIds(anyString());
+    }
+
+    /**
+     * Unit tests do not load identity.xml, so the feature flag is mocked.
+     */
+    private static MockedStatic<IdentityUtil> mockChildOrganizationSubscriptionEnabled(boolean enabled) {
+
+        MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, Answers.CALLS_REAL_METHODS);
+        stubChildOrganizationSubscriptionEnabled(identityUtil, enabled);
+        return identityUtil;
+    }
+
+    private static void stubChildOrganizationSubscriptionEnabled(MockedStatic<IdentityUtil> identityUtil,
+                                                                 boolean enabled) {
+
+        identityUtil.when(IdentityUtil::isChildOrganizationSubscriptionEnabled).thenReturn(enabled);
+    }
+
+    private static void assertRejectedAsDisabled(ServiceCall call) throws WebhookMgtException {
+
+        try {
+            call.run();
+            fail("The operation must be rejected while child organization subscriptions are disabled.");
+        } catch (WebhookMgtClientException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_CHILD_ORG_SUBSCRIPTION_DISABLED.getCode());
+        }
+    }
+
+    @FunctionalInterface
+    private interface ServiceCall {
+
+        void run() throws WebhookMgtException;
     }
 }
