@@ -283,7 +283,8 @@
     "RSA1_5",
     "RSA-OAEP-256",
     "RSA-OAEP-384",
-    "RSA-OAEP-512"
+    "RSA-OAEP-512",
+    "ECDH-ES+A256KW"
   ],
   "oauth.oidc.id_token.supported_encryption_methods": [
     "A128GCM",
@@ -298,7 +299,8 @@
     "RSA1_5",
     "RSA-OAEP-256",
     "RSA-OAEP-384",
-    "RSA-OAEP-512"
+    "RSA-OAEP-512",
+    "ECDH-ES+A256KW"
   ],
   "oauth.oidc.request_object.supported_encryption_methods": "$ref{oauth.oidc.id_token.supported_encryption_methods}",
   "oauth.oidc.token_validation.logout_token_validity": "2m",
