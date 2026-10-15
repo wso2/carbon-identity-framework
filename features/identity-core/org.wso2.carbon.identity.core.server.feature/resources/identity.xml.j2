@@ -5470,13 +5470,6 @@
         <DefaultProvisioningUserStore>{{connection_sharing.default_provisioning_user_store}}</DefaultProvisioningUserStore>
         <IDP>
             <Enable>{{connection_sharing.idp.enable}}</Enable>
-            {% if connection_sharing.idp.disabled_authenticators is defined %}
-            <DisabledAuthenticators>
-                {% for authenticator in connection_sharing.idp.disabled_authenticators %}
-                <Authenticator>{{authenticator}}</Authenticator>
-                {% endfor %}
-            </DisabledAuthenticators>
-            {% endif %}
         </IDP>
     </ConnectionSharing>
 
@@ -5522,22 +5515,65 @@
     </CircuitBreaker>
 
     <Rules>
+        {% if rules.pre_issue_access_token.max_rules_combined_with_or is defined %}
+        <PreIssueAccessToken>
+            <MaxRulesCombinedWithOr>{{rules.pre_issue_access_token.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </PreIssueAccessToken>
+        {% endif %}
+        {% if rules.pre_update_password.max_rules_combined_with_or is defined %}
+        <PreUpdatePassword>
+            <MaxRulesCombinedWithOr>{{rules.pre_update_password.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </PreUpdatePassword>
+        {% endif %}
+        {% if rules.pre_update_profile.max_rules_combined_with_or is defined %}
+        <PreUpdateProfile>
+            <MaxRulesCombinedWithOr>{{rules.pre_update_profile.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </PreUpdateProfile>
+        {% endif %}
+        {% if rules.pre_issue_id_token.max_rules_combined_with_or is defined %}
+        <PreIssueIdToken>
+            <MaxRulesCombinedWithOr>{{rules.pre_issue_id_token.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </PreIssueIdToken>
+        {% endif %}
+        {% if rules.approval_workflow.max_rules_combined_with_or is defined %}
+        <ApprovalWorkflow>
+            <MaxRulesCombinedWithOr>{{rules.approval_workflow.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </ApprovalWorkflow>
+        {% endif %}
         <DevicePolicy>
             <MaxExpressionsCombinedWithAnd>{{rules.device_policy.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% if rules.device_policy.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.device_policy.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
         </DevicePolicy>
-        {% if rules.registration.max_expressions_combined_with_and is defined %}
+        {% if rules.registration.max_expressions_combined_with_and is defined or rules.registration.max_rules_combined_with_or is defined %}
         <Registration>
+            {% if rules.registration.max_expressions_combined_with_and is defined %}
             <MaxExpressionsCombinedWithAnd>{{rules.registration.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% endif %}
+            {% if rules.registration.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.registration.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
         </Registration>
         {% endif %}
-        {% if rules.password_recovery.max_expressions_combined_with_and is defined %}
+        {% if rules.password_recovery.max_expressions_combined_with_and is defined or rules.password_recovery.max_rules_combined_with_or is defined %}
         <PasswordRecovery>
+            {% if rules.password_recovery.max_expressions_combined_with_and is defined %}
             <MaxExpressionsCombinedWithAnd>{{rules.password_recovery.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% endif %}
+            {% if rules.password_recovery.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.password_recovery.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
         </PasswordRecovery>
         {% endif %}
-        {% if rules.invited_user_registration.max_expressions_combined_with_and is defined %}
+        {% if rules.invited_user_registration.max_expressions_combined_with_and is defined or rules.invited_user_registration.max_rules_combined_with_or is defined %}
         <InvitedUserRegistration>
+            {% if rules.invited_user_registration.max_expressions_combined_with_and is defined %}
             <MaxExpressionsCombinedWithAnd>{{rules.invited_user_registration.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% endif %}
+            {% if rules.invited_user_registration.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.invited_user_registration.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
         </InvitedUserRegistration>
         {% endif %}
     </Rules>
