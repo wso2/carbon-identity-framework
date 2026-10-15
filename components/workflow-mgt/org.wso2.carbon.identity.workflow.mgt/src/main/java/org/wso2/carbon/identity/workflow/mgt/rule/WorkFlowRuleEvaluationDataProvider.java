@@ -517,13 +517,12 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
             throws RuleEvaluationDataProviderException {
 
         String groupName = (String) contextData.get(GROUP_NAME);
-        String domain = (String) contextData.get(USER_STORE_DOMAIN);
-        groupName = UserCoreUtil.addDomainToName(groupName, domain);
         if (StringUtils.isBlank(groupName)) {
             log.debug("Cannot fetch group ID without Group Name in context. Adding null group ID.");
             fieldValues.add(new FieldValue(field.getName(), (String) null, ValueType.STRING));
             return;
         }
+        groupName = UserCoreUtil.addDomainToName(groupName, (String) contextData.get(USER_STORE_DOMAIN));
         try {
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext
                     .getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
