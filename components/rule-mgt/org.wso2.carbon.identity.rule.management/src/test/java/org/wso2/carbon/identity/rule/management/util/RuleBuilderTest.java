@@ -573,6 +573,75 @@ public class RuleBuilderTest {
         ruleBuilder.build();
     }
 
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Maximum number of rules combined with OR exceeded. Maximum allowed: 3 Provided: 4")
+    public void testCreateRuleWithMaxAllowedRulesCombinedWithOROverriddenPerFlowType() throws Exception {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Rules.Registration.MaxRulesCombinedWithOr", "3");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        buildRuleWithRulesCombinedWithOr(FlowType.REGISTRATION,
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.REGISTRATION, 4);
+    }
+
+    @Test
+    public void testCreateRuleWithRulesAtOverriddenMaxAllowedLimitCombinedWithOR() throws Exception {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Rules.PasswordRecovery.MaxRulesCombinedWithOr", "15");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        assertNotNull(buildRuleWithRulesCombinedWithOr(FlowType.PASSWORD_RECOVERY,
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PASSWORD_RECOVERY, 15));
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Maximum number of rules combined with OR exceeded. Maximum allowed: 2 Provided: 3")
+    public void testCreateRuleWithMaxAllowedRulesCombinedWithOROverriddenForAnAction() throws Exception {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Rules.PreIssueAccessToken.MaxRulesCombinedWithOr", "2");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        buildRuleWithRulesCombinedWithOr(FlowType.PRE_ISSUE_ACCESS_TOKEN,
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, 3);
+    }
+
+    /**
+     * The OR limit is configured per flow type, so a limit set for one flow does not apply to another.
+     */
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Maximum number of rules combined with OR exceeded. Maximum allowed: 10 Provided: 11")
+    public void testOverriddenMaxRulesCombinedWithORAppliesToItsFlowTypeOnly() throws Exception {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Rules.Registration.MaxRulesCombinedWithOr", "15");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        buildRuleWithRulesCombinedWithOr(FlowType.INVITED_USER_REGISTRATION,
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.INVITED_USER_REGISTRATION, 11);
+    }
+
+    private Rule buildRuleWithRulesCombinedWithOr(FlowType flowType,
+            org.wso2.carbon.identity.rule.metadata.api.model.FlowType metadataFlowType, int rules)
+            throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(metadataFlowType, "tenant1")).thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(flowType, "tenant1");
+        for (int i = 0; i < rules; i++) {
+            ruleBuilder.addAndExpression(new Expression.Builder().field("application").operator("equals")
+                    .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build());
+            ruleBuilder.addOrCondition();
+        }
+        return ruleBuilder.build();
+    }
+
     @Test
     public void testCreateRuleWithValidExpressionsAndOR() throws Exception {
 
