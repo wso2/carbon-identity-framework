@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>7.11.229-SNAPSHOT</version>
+        <version>7.11.233-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -311,6 +311,7 @@
                             org.wso2.carbon.identity.user.profile.mgt;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.idp.mgt.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.functions.library.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.multi.attribute.login.mgt.*;
                             version="${carbon.identity.package.import.version.range}",

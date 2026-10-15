@@ -199,6 +199,38 @@
           "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/rolePermissionsUpdated"
         }
       ]
+    },
+    {
+      "name": "Organization management",
+      "description": "Organization created, updated, deleted and enabled/disabled",
+      "uri": "https://schemas.identity.wso2.org/events/organization",
+      "events": [
+        {
+          "eventName": "Organization created",
+          "eventDescription": "Notify if an organization is created",
+          "eventUri": "https://schemas.identity.wso2.org/events/organization/event-type/organizationCreated"
+        },
+        {
+          "eventName": "Organization metadata updated",
+          "eventDescription": "Notify if an organization is updated",
+          "eventUri": "https://schemas.identity.wso2.org/events/organization/event-type/organizationUpdated"
+        },
+        {
+          "eventName": "Organization deleted",
+          "eventDescription": "Notify if an organization is deleted",
+          "eventUri": "https://schemas.identity.wso2.org/events/organization/event-type/organizationDeleted"
+        },
+        {
+          "eventName": "Organization enabled",
+          "eventDescription": "Notify if an organization is enabled",
+          "eventUri": "https://schemas.identity.wso2.org/events/organization/event-type/organizationEnabled"
+        },
+        {
+          "eventName": "Organization disabled",
+          "eventDescription": "Notify if an organization is disabled",
+          "eventUri": "https://schemas.identity.wso2.org/events/organization/event-type/organizationDisabled"
+        }
+      ]
     }
   ]
 }
