@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataP
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -521,6 +522,7 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
             fieldValues.add(new FieldValue(field.getName(), (String) null, ValueType.STRING));
             return;
         }
+        groupName = UserCoreUtil.addDomainToName(groupName, (String) contextData.get(USER_STORE_DOMAIN));
         try {
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext
                     .getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
