@@ -47,7 +47,6 @@ import java.util.Map;
  */
 public class RuleBuilder {
 
-    private static final int MAX_RULES_COMBINED_WITH_OR = 10;
     private static final String FIELD = "Field ";
     private static final String OPERATOR = "Operator ";
     private static final String NOT_SUPPORTED_FOR_FIELD = " is not supported for field ";
@@ -305,9 +304,10 @@ public class RuleBuilder {
             return;
         }
 
-        if (orRuleCount > MAX_RULES_COMBINED_WITH_OR) {
+        int maxRulesCombinedWithOr = RuleManagementConfig.getInstance().getMaxOrRuleCount(flowType);
+        if (orRuleCount > maxRulesCombinedWithOr) {
             setValidationError("Maximum number of rules combined with OR exceeded. Maximum allowed: " +
-                    MAX_RULES_COMBINED_WITH_OR + " Provided: " + orRuleCount);
+                    maxRulesCombinedWithOr + " Provided: " + orRuleCount);
         }
     }
 
