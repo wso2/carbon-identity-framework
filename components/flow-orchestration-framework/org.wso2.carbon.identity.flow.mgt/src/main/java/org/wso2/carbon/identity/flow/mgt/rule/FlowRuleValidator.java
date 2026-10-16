@@ -1,0 +1,321 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.flow.mgt.rule;
+
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtClientException;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
+import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
+import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
+import org.wso2.carbon.identity.rule.management.api.model.FlowType;
+import org.wso2.carbon.identity.rule.management.api.util.RuleBuilder;
+import org.wso2.carbon.identity.rule.management.api.model.Value;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleClientException;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
+
+/**
+ * Checks the conditions on a flow's decisions against what the flow actually publishes.
+ */
+public class FlowRuleValidator {
+
+    private static final String IN = "in";
+    private static final String NOT_IN = "notIn";
+    private static final String IS_BLANK = "isBlank";
+    private static final String IS_NOT_BLANK = "isNotBlank";
+
+    /**
+     * The operators that take a list of values.
+     */
+    private static final Set<String> LIST_OPERATORS =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(IN, NOT_IN)));
+
+    /**
+     * The only operators a multi-valued claim accepts: they check its entries.
+     */
+    private static final Set<String> MULTI_VALUED_OPERATORS =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(IN, NOT_IN, "isEmpty", "isNotEmpty")));
+
+    private static final Set<String> NUMERIC_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
+            Arrays.asList("equals", "notEquals", "greaterThan", "lessThan", IS_BLANK, IS_NOT_BLANK)));
+
+    /**
+     * Everything that is not a number is compared as text, dates and booleans included: nothing validates their format
+     * on write, so ordering them would compare strings.
+     */
+    private static final Set<String> TEXT_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
+            Arrays.asList("equals", "notEquals", "contains", "notContains", "startsWith", "endsWith", IS_BLANK,
+                    IS_NOT_BLANK)));
+
+    private FlowRuleValidator() {
+
+    }
+
+    /**
+     * Validate every condition in the flow.
+     *
+     * @param flowDTO      Flow being saved.
+     * @param tenantDomain Tenant domain, which decides what the metadata publishes.
+     * @throws FlowMgtClientException If a condition names something the flow does not publish.
+     * @throws FlowMgtServerException If the claims of the tenant cannot be read.
+     */
+    public static void validate(FlowDTO flowDTO, String tenantDomain) throws FlowMgtFrameworkException {
+
+        // Without conditional branching, the graph builder rejects decision steps, so there is nothing to validate.
+        if (flowDTO == null || flowDTO.getSteps() == null || !FlowMgtUtils.isConditionalBranchingEnabled()) {
+            return;
+        }
+        ClaimLookup claims = new ClaimLookup(tenantDomain);
+        for (StepDTO step : flowDTO.getSteps()) {
+            for (BranchDTO branch : branchesOf(step)) {
+                if (branch.getRule() != null) {
+                    validateBranchRule(step.getId(), branch, flowDTO.getFlowType(), tenantDomain, claims);
+                }
+            }
+        }
+    }
+
+    /**
+     * The branches of a decision step, or none for any other step.
+     */
+    private static List<BranchDTO> branchesOf(StepDTO step) {
+
+        if (!Constants.StepTypes.RULE_EVALUATION.equals(step.getType()) || step.getData() == null) {
+            return Collections.emptyList();
+        }
+        ActionDTO action = step.getData().getAction();
+        return action == null || action.getBranches() == null ? Collections.emptyList() : action.getBranches();
+    }
+
+    private static void validateBranchRule(String stepId, BranchDTO branch, String flowType, String tenantDomain,
+                                           ClaimLookup claims) throws FlowMgtFrameworkException {
+
+        FlowType ruleFlowType;
+        try {
+            ruleFlowType = FlowType.valueOf(flowType);
+        } catch (IllegalArgumentException e) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_RULES_NOT_SUPPORTED_FOR_FLOW,
+                    flowType, stepId);
+        }
+
+        // Checked before the rule builder, so the error names the specific problem.
+        for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
+            for (Expression expression : andCombinedRule.getExpressions()) {
+                validateKey(branch, expression);
+                validateValueShape(branch, expression);
+            }
+        }
+
+        try {
+            buildRule(branch, ruleFlowType, tenantDomain);
+        } catch (RuleManagementException e) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INVALID_BRANCH_RULE,
+                    branch.getName(), stepId, e.getMessage());
+        }
+
+        for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
+            for (Expression expression : andCombinedRule.getExpressions()) {
+                if (isClaimField(expression.getField())) {
+                    validateClaimOperator(branch, expression, claims);
+                }
+                validateReferencedClaim(branch, expression, claims);
+            }
+        }
+    }
+
+    /**
+     * Builds the branch's rule with the rule builder, which checks it against the fields the flow publishes.
+     */
+    private static void buildRule(BranchDTO branch, FlowType ruleFlowType, String tenantDomain)
+            throws RuleManagementException {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(ruleFlowType, tenantDomain);
+        boolean firstGroup = true;
+        for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
+            if (!firstGroup) {
+                ruleBuilder.addOrCondition();
+            }
+            for (Expression expression : andCombinedRule.getExpressions()) {
+                ruleBuilder.addAndExpression(expression);
+            }
+            firstGroup = false;
+        }
+        ruleBuilder.build();
+    }
+
+    private static boolean isClaimField(String field) {
+
+        return FlowRuleMetadataProvider.USER_CLAIMS.equals(field)
+                || FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS.equals(field);
+    }
+
+    /**
+     * A qualified field is meaningless without its qualifier, and a qualifier on a field that names one value would be
+     * stored and never read.
+     */
+    private static void validateKey(BranchDTO branch, Expression expression) throws FlowMgtClientException {
+
+        boolean hasQualifier = StringUtils.isNotBlank(expression.getFieldQualifier());
+        if (FlowRuleMetadataProvider.isQualified(expression.getField())) {
+            if (!hasQualifier) {
+                throw handleClientException(isClaimField(expression.getField())
+                                ? Constants.ErrorMessages.ERROR_CODE_CLAIM_QUALIFIER_REQUIRED
+                                : Constants.ErrorMessages.ERROR_CODE_QUALIFIER_REQUIRED,
+                        expression.getField(), branch.getName());
+            }
+        } else if (hasQualifier) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_QUALIFIER_NOT_ALLOWED,
+                    expression.getField(), branch.getName());
+        }
+    }
+
+    private static void validateClaimOperator(BranchDTO branch, Expression expression, ClaimLookup claims)
+            throws FlowMgtFrameworkException {
+
+        LocalClaim claim = claims.find(expression.getFieldQualifier());
+        if (claim == null) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNKNOWN_CLAIM,
+                    branch.getName(), expression.getFieldQualifier());
+        }
+
+        boolean multiValued = Boolean.parseBoolean(
+                claim.getClaimProperty(ClaimConstants.MULTI_VALUED_PROPERTY));
+        Set<String> allowed = multiValued
+                ? MULTI_VALUED_OPERATORS
+                : operatorsFor(claim.getClaimProperty(ClaimConstants.DATA_TYPE_PROPERTY));
+
+        if (!allowed.contains(expression.getOperator())) {
+            String reason = multiValued
+                    ? "It holds more than one value, so only in, notIn, isEmpty and isNotEmpty apply."
+                    : "It holds a single value. Allowed operators are: " + String.join(", ", allowed) + ".";
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_OPERATOR_NOT_ALLOWED_FOR_CLAIM,
+                    expression.getOperator(), expression.getFieldQualifier(), branch.getName(), reason);
+        }
+    }
+
+    /**
+     * A value read from a claim field must name a claim that exists, as the expression's own claim must.
+     */
+    private static void validateReferencedClaim(BranchDTO branch, Expression expression, ClaimLookup claims)
+            throws FlowMgtFrameworkException {
+
+        FieldReference reference = expression.getValue() == null ? null : expression.getValue().getFieldReference();
+        if (reference == null || !isClaimField(reference.getName())) {
+            return;
+        }
+        if (claims.find(reference.getQualifier()) == null) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNKNOWN_CLAIM,
+                    branch.getName(), reference.getQualifier());
+        }
+    }
+
+    /**
+     * in and notIn need a list on the right, and no other operator takes one. Operators that take no value, such as
+     * isBlank, are checked by the rule builder.
+     */
+    private static void validateValueShape(BranchDTO branch, Expression expression) throws FlowMgtClientException {
+
+        if (expression.getValue() != null && expression.getValue().getType() == Value.Type.FIELD) {
+            return;
+        }
+        boolean membership = LIST_OPERATORS.contains(expression.getOperator());
+        boolean listValued = expression.getValue() != null
+                && expression.getValue().getType() == Value.Type.LIST;
+        if (membership != listValued) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_LIST_VALUE_MISMATCH,
+                    expression.getOperator(), branch.getName(), membership ? "requires" : "does not take");
+        }
+    }
+
+    private static Set<String> operatorsFor(String dataType) {
+
+        if (ClaimConstants.ClaimDataType.INTEGER.name().equalsIgnoreCase(dataType)
+                || ClaimConstants.ClaimDataType.DECIMAL.name().equalsIgnoreCase(dataType)) {
+            return NUMERIC_OPERATORS;
+        }
+        return TEXT_OPERATORS;
+    }
+
+    /**
+     * The local claims of a tenant, read once per save however many conditions refer to them, and only when some
+     * condition does.
+     */
+    private static final class ClaimLookup {
+
+        private final String tenantDomain;
+        private Map<String, LocalClaim> claimsByUri;
+
+        private ClaimLookup(String tenantDomain) {
+
+            this.tenantDomain = tenantDomain;
+        }
+
+        private LocalClaim find(String claimUri) throws FlowMgtServerException {
+
+            if (claimsByUri == null) {
+                claimsByUri = load();
+            }
+            return claimsByUri.get(claimUri);
+        }
+
+        private Map<String, LocalClaim> load() throws FlowMgtServerException {
+
+            ClaimMetadataManagementService claimService =
+                    FlowMgtServiceDataHolder.getInstance().getClaimMetadataManagementService();
+            if (claimService == null) {
+                throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_METADATA, tenantDomain);
+            }
+            try {
+                Map<String, LocalClaim> claims = new HashMap<>();
+                List<LocalClaim> localClaims = claimService.getLocalClaims(tenantDomain);
+                if (localClaims != null) {
+                    for (LocalClaim localClaim : localClaims) {
+                        claims.put(localClaim.getClaimURI(), localClaim);
+                    }
+                }
+                return claims;
+            } catch (ClaimMetadataException e) {
+                throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_METADATA, e,
+                        tenantDomain);
+            }
+        }
+    }
+}
