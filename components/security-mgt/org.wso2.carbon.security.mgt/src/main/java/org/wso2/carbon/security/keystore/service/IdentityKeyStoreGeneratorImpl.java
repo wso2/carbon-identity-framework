@@ -249,7 +249,7 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
 
             // Common Name and alias for the generated certificate
             String commonName = "CN=" + buildDomainWithContext(tenantDomain, context)
-                    + ", OU=None, O=None, L=None, C=None";
+                    + ", OU=None, O=None, L=None";
 
             // Generate certificates
             X500Name distinguishedName = new X500Name(commonName);
