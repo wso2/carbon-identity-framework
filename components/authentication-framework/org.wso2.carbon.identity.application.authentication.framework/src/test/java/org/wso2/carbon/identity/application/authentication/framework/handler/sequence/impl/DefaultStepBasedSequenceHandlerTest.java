@@ -30,6 +30,8 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
+import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -48,6 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Imper
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
@@ -69,14 +72,17 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -1103,6 +1109,188 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         assertEquals(context.getSequenceConfig().getAuthenticatedUser().getUserName(),
                 authenticatedUserNameInSequence);
+    }
+
+    private static final String FED_IDP_NAME = "MockExternalIdP";
+    private static final String OIDC_AUTHENTICATOR = "OpenIDConnectAuthenticator";
+    private static final String IDP_ATTRIBUTE_CLAIM_URI = "customcountry";
+    private static final String IDP_ATTRIBUTE_VALUE = "sri lanka";
+    private static final String REQUESTED_CLAIM_URI = "http://wso2.org/claims/givenname";
+    private static final String REQUESTED_CLAIM_VALUE = "resolvedGivenName";
+    private static final String LOCAL_GROUPS_CLAIM_URI = "http://wso2.org/claims/groups";
+
+    @DataProvider(name = "retainFederatedAttributesDataProvider")
+    public Object[][] retainFederatedAttributesData() {
+
+        // Claims resolved for the application holding nothing the application asked for.
+        Map<String, String> internalClaimsOnly = new HashMap<>();
+        internalClaimsOnly.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, StringUtils.EMPTY);
+        internalClaimsOnly.put(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, MULTI_ATTRIBUTE_SEPARATOR_1);
+
+        // Claims resolved for the application holding a value the application asked for.
+        Map<String, String> resolvedRequestedClaim = new HashMap<>();
+        resolvedRequestedClaim.put(REQUESTED_CLAIM_URI, REQUESTED_CLAIM_VALUE);
+
+        String[] noFederatedAttributes = new String[]{FrameworkConstants.IDP_MAPPED_USER_ROLES,
+                IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR};
+
+        return new Object[][]{
+                // allowSPRequestedFedClaimsOnly, enableSPRequestedFedClaimFiltering, authenticator name,
+                // claims resolved for the application, expected claim uris on the authenticated user
+                {
+                        // Default behaviour: the attributes received from the IdP are dropped.
+                        true, true, OIDC_AUTHENTICATOR, internalClaimsOnly, noFederatedAttributes
+                },
+                {
+                        // The deprecated config on its own changes nothing, so a deployment that already
+                        // set it keeps the behaviour it has today.
+                        false, true, OIDC_AUTHENTICATOR, internalClaimsOnly, noFederatedAttributes
+                },
+                {
+                        // Filtering turned off: the attributes received from the IdP are kept, and the
+                        // mapped roles entry is carried onto them.
+                        true, false, OIDC_AUTHENTICATOR, internalClaimsOnly,
+                        new String[]{IDP_ATTRIBUTE_CLAIM_URI, FrameworkConstants.IDP_MAPPED_USER_ROLES}
+                },
+                {
+                        // Filtering turned off but a requested claim is resolved: the resolved claims win.
+                        true, false, OIDC_AUTHENTICATOR, resolvedRequestedClaim,
+                        new String[]{REQUESTED_CLAIM_URI}
+                },
+                {
+                        // Organization login is excluded even when filtering is turned off.
+                        true, false, FrameworkConstants.ORGANIZATION_AUTHENTICATOR, internalClaimsOnly,
+                        noFederatedAttributes
+                }
+        };
+    }
+
+    @Test(dataProvider = "retainFederatedAttributesDataProvider")
+    public void testRetainFederatedAttributes(boolean allowSPRequestedFedClaimsOnly,
+                                              boolean enableSPRequestedFedClaimFiltering,
+                                              String authenticatorName,
+                                              Map<String, String> resolvedClaims,
+                                              String[] expectedClaimUris) throws Exception {
+
+        boolean originalAllowValue = getBooleanField("allowSPRequestedFedClaimsOnly");
+        boolean originalFilteringValue = getBooleanField("enableSPRequestedFedClaimFiltering");
+        try (MockedStatic<ConfigurationFacade> configurationFacade = mockStatic(ConfigurationFacade.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            setBooleanField("allowSPRequestedFedClaimsOnly", allowSPRequestedFedClaimsOnly);
+            setBooleanField("enableSPRequestedFedClaimFiltering", enableSPRequestedFedClaimFiltering);
+
+            ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
+            configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
+            when(mockConfigurationFacade.getIdPConfigByName(anyString(), nullable(String.class)))
+                    .thenReturn(new ExternalIdPConfig());
+
+            FederatedApplicationAuthenticator stepAuthenticator = mock(FederatedApplicationAuthenticator.class);
+            when(stepAuthenticator.getName()).thenReturn(authenticatorName);
+
+            // The application asks for a claim, so the block that sends every IdP claim is skipped.
+            Map<String, String> requestedClaimMappings = new HashMap<>();
+            requestedClaimMappings.put(REQUESTED_CLAIM_URI, REQUESTED_CLAIM_URI);
+            ServiceProvider serviceProvider = new ServiceProvider();
+            ClaimConfig claimConfig = new ClaimConfig();
+            claimConfig.setLocalClaimDialect(true);
+            serviceProvider.setClaimConfig(claimConfig);
+            ApplicationConfig applicationConfig =
+                    spy(new ApplicationConfig(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
+            when(applicationConfig.getRequestedClaimMappings()).thenReturn(requestedClaimMappings);
+            when(applicationConfig.getClaimMappings()).thenReturn(requestedClaimMappings);
+
+            // Attributes received from the federated IdP, held on the step's authenticated user.
+            Map<ClaimMapping, String> idpAttributes = new HashMap<>();
+            idpAttributes.put(ClaimMapping.build(IDP_ATTRIBUTE_CLAIM_URI, IDP_ATTRIBUTE_CLAIM_URI, null, false),
+                    IDP_ATTRIBUTE_VALUE);
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setUserName(AUTH_USER_NAME_IN_SEQUENCE_CONFIG);
+            authenticatedUser.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+            authenticatedUser.setUserAttributes(idpAttributes);
+
+            StepConfig stepConfig = spy(new StepConfig());
+            when(stepConfig.getAuthenticatedUser()).thenReturn(authenticatedUser);
+            when(stepConfig.getAuthenticatedIdP()).thenReturn(FED_IDP_NAME);
+            when(stepConfig.isSubjectIdentifierStep()).thenReturn(true);
+            when(stepConfig.isSubjectAttributeStep()).thenReturn(true);
+            AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+            authenticatorConfig.setApplicationAuthenticator(stepAuthenticator);
+            when(stepConfig.getAuthenticatedAutenticator()).thenReturn(authenticatorConfig);
+
+            SequenceConfig sequenceConfig = spy(new SequenceConfig());
+            Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
+            stepConfigMap.put(1, stepConfig);
+            sequenceConfig.setStepMap(stepConfigMap);
+            sequenceConfig.setAuthenticatedUser(authenticatedUser);
+            sequenceConfig.setApplicationConfig(applicationConfig);
+
+            context.setSequenceConfig(sequenceConfig);
+            context.setRequestType(FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
+            context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+            doReturn(new HashMap<>(resolvedClaims)).when(stepBasedSequenceHandler)
+                    .handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class), anyMap(),
+                            anyBoolean());
+
+            stepBasedSequenceHandler.handlePostAuthentication(request, response, context);
+
+            assertEquals(toLocalClaimUris(context.getSequenceConfig().getAuthenticatedUser().getUserAttributes()),
+                    new HashSet<>(Arrays.asList(expectedClaimUris)),
+                    "Unexpected claims on the authenticated user.");
+        } finally {
+            setBooleanField("allowSPRequestedFedClaimsOnly", originalAllowValue);
+            setBooleanField("enableSPRequestedFedClaimFiltering", originalFilteringValue);
+        }
+    }
+
+    @Test
+    public void testHasServiceProviderRequestedClaimValues() throws Exception {
+
+        Method method = DefaultStepBasedSequenceHandler.class
+                .getDeclaredMethod("hasServiceProviderRequestedClaimValues", Map.class);
+        method.setAccessible(true);
+
+        Map<ClaimMapping, String> internalOnly = new HashMap<>();
+        internalOnly.put(ClaimMapping.build(FrameworkConstants.IDP_MAPPED_USER_ROLES,
+                FrameworkConstants.IDP_MAPPED_USER_ROLES, null, false), StringUtils.EMPTY);
+        internalOnly.put(ClaimMapping.build(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR,
+                IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, null, false), MULTI_ATTRIBUTE_SEPARATOR_1);
+        assertFalse((Boolean) method.invoke(stepBasedSequenceHandler, internalOnly),
+                "Only the claims the framework adds itself are present.");
+
+        assertFalse((Boolean) method.invoke(stepBasedSequenceHandler, new HashMap<ClaimMapping, String>()),
+                "An empty claim map holds no requested claim value.");
+
+        Map<ClaimMapping, String> withRequestedClaim = new HashMap<>(internalOnly);
+        withRequestedClaim.put(ClaimMapping.build(REQUESTED_CLAIM_URI, REQUESTED_CLAIM_URI, null, true),
+                REQUESTED_CLAIM_VALUE);
+        assertTrue((Boolean) method.invoke(stepBasedSequenceHandler, withRequestedClaim),
+                "A claim the application requested is present.");
+    }
+
+    private Set<String> toLocalClaimUris(Map<ClaimMapping, String> attributes) {
+
+        Set<String> claimUris = new HashSet<>();
+        for (ClaimMapping claimMapping : attributes.keySet()) {
+            claimUris.add(claimMapping.getLocalClaim().getClaimUri());
+        }
+        return claimUris;
+    }
+
+    private boolean getBooleanField(String fieldName) throws Exception {
+
+        Field field = DefaultStepBasedSequenceHandler.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.getBoolean(null);
+    }
+
+    private void setBooleanField(String fieldName, boolean value) throws Exception {
+
+        Field field = DefaultStepBasedSequenceHandler.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.setBoolean(null, value);
     }
 
     @DataProvider

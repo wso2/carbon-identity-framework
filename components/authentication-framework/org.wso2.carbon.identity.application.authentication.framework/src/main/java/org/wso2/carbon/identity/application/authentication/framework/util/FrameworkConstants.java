@@ -181,6 +181,8 @@ public abstract class FrameworkConstants {
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
     public static final String CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING = "EnableScopeBasedClaimFiltering";
     public static final String CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY = "AllowSPRequestedFedClaimsOnly";
+    public static final String CONFIG_ENABLE_SP_REQUESTED_FED_CLAIM_FILTERING =
+            "EnableSPRequestedFedClaimFiltering";
     public static final String INCLUDE_AUTH_FAILURE_REASON_IN_API_BASED_AUTH_RESPONSE =
             "IncludeAuthFailureReasonInAPIBasedAuthResponse";
     public static final String INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE =
