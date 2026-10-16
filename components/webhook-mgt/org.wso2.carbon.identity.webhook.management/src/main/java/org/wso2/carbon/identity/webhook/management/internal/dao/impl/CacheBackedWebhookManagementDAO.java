@@ -40,6 +40,9 @@ import java.util.List;
  */
 public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
 
+    private static final String SUBSCRIBED_SCOPE = "SUBSCRIBED";
+    private static final String SUBSCRIBED_WITH_CHILD_ORGS_SCOPE = "SUBSCRIBED_WITH_CHILD_ORGS";
+
     private static final Log LOG = LogFactory.getLog(CacheBackedWebhookManagementDAO.class);
     private final WebhookManagementDAO webhookManagementDAO;
     private final WebhookCache webhookCache;
@@ -204,6 +207,81 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
                 LOG.debug("Active webhooks cache miss for channel URI: " + channelUri + ", event profile: " +
                         eventProfileName + ", version: " + eventProfileVersion + ", tenant ID: " + tenantId +
                         ". Adding to cache.");
+            }
+            activeWebhooksCache.addToCache(cacheKey, new ActiveWebhooksCacheEntry(webhooks), tenantId);
+        }
+        return webhooks;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Shares the active webhooks cache with {@link #getActiveWebhooks}: the key already carries the
+     * profile, version, channel and tenant, and only one adapter type handler is in play for a
+     * given deployment, so the two never populate the same key with different answers.
+     * <p>
+     * Entries cached here can be invalidated by a change in a <em>different</em> tenant — the one
+     * that owns the webhook — which is why {@code WebhookManagementServiceImpl} clears the cache of
+     * every subscribed tenant when a webhook or its subscriptions change.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName, String eventProfileVersion,
+                                                           String channelUri, int tenantId)
+            throws WebhookMgtException {
+
+        ActiveWebhooksCacheKey cacheKey =
+                new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId);
+        ActiveWebhooksCacheEntry cacheEntry = activeWebhooksCache.getValueFromCache(cacheKey, tenantId);
+
+        if (cacheEntry != null && cacheEntry.getWebhooks() != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Active webhooks cache hit (including sub organizations) for channel URI: " + channelUri +
+                        ", tenant ID: " + tenantId + ". Returning from cache.");
+            }
+            return cacheEntry.getWebhooks();
+        }
+
+        List<Webhook> webhooks = webhookManagementDAO.getActiveWebhooksWithSubscribedChildOrgs(
+                eventProfileName, eventProfileVersion, channelUri, tenantId);
+        if (webhooks != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Active webhooks cache miss (including sub organizations) for channel URI: " + channelUri +
+                        ", tenant ID: " + tenantId + ". Adding to cache.");
+            }
+            activeWebhooksCache.addToCache(cacheKey, new ActiveWebhooksCacheEntry(webhooks), tenantId);
+        }
+        return webhooks;
+    }
+
+    /**
+     * Cached under a scope of its own: the answer differs from the active-webhook lookups over the same channel
+     * and tenant, and the entries of the two must not be served to each other.
+     */
+    @Override
+    public List<Webhook> getSubscribedWebhooks(String eventProfileName, String eventProfileVersion,
+                                               String channelUri, int tenantId,
+                                               boolean includeChildOrganizationSubscriptions)
+            throws WebhookMgtException {
+
+        String scope = includeChildOrganizationSubscriptions ? SUBSCRIBED_WITH_CHILD_ORGS_SCOPE : SUBSCRIBED_SCOPE;
+        ActiveWebhooksCacheKey cacheKey =
+                new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId, scope);
+        ActiveWebhooksCacheEntry cacheEntry = activeWebhooksCache.getValueFromCache(cacheKey, tenantId);
+
+        if (cacheEntry != null && cacheEntry.getWebhooks() != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Subscribed webhooks cache hit for channel URI: " + channelUri + ", tenant ID: " +
+                        tenantId + ", scope: " + scope + ". Returning from cache.");
+            }
+            return cacheEntry.getWebhooks();
+        }
+
+        List<Webhook> webhooks = webhookManagementDAO.getSubscribedWebhooks(
+                eventProfileName, eventProfileVersion, channelUri, tenantId, includeChildOrganizationSubscriptions);
+        if (webhooks != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Subscribed webhooks cache miss for channel URI: " + channelUri + ", tenant ID: " +
+                        tenantId + ", scope: " + scope + ". Adding to cache.");
             }
             activeWebhooksCache.addToCache(cacheKey, new ActiveWebhooksCacheEntry(webhooks), tenantId);
         }
