@@ -53,6 +53,20 @@ public enum ErrorMessage {
     ERROR_MAXIMUM_WEBHOOKS_PER_TENANT_REACHED("WEBHOOKMGT-60016", "Maximum number of webhooks reached.",
             "The maximum number of webhooks allowed has been reached. Max allowed: %s. Please delete an " +
                     "existing webhook before adding a new one."),
+    ERROR_CODE_SUB_ORG_POLICY_SELECTED_ORGS_REQUIRED("WEBHOOKMGT-60017",
+            "Invalid request.",
+            "At least one organization must be provided when the subscription policy is SELECTED_ORGS_ONLY."),
+    ERROR_CODE_CHANNEL_NOT_FOUND("WEBHOOKMGT-60018", "Channel not found",
+            "The channel %s could not be found for webhook %s."),
+    ERROR_CODE_SUB_ORG_CHANNEL_NOT_SUBSCRIBED("WEBHOOKMGT-60019",
+            "Invalid request.",
+            "An organization subscription was given for channel: %s, which the webhook does not subscribe to."),
+    ERROR_CODE_SUB_ORG_NOT_IN_HIERARCHY("WEBHOOKMGT-60020",
+            "Invalid request.",
+            "The organization: %s is not within the hierarchy of the organization that owns the webhook."),
+    ERROR_CODE_CHILD_ORG_SUBSCRIPTION_DISABLED("WEBHOOKMGT-60021",
+            "Operation not supported.",
+            "Child organization subscriptions are not enabled for webhook channels."),
 
     // Server errors (65xxx range) | Remaining codes are continued in API layer.
     // Continuation of server error codes can be found in the Webhook Management API layer as well.
@@ -124,7 +138,16 @@ public enum ErrorMessage {
             "An error occurred while retrying the webhook: %s."),
     ERROR_CODE_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_ERROR("WEBHOOKMGT-65033",
             "Error occurred while retrieving active webhooks by channel",
-            "An error occurred while retrieving active webhooks for channel: %s and tenant: %s.");
+            "An error occurred while retrieving active webhooks for channel: %s and tenant: %s."),
+    ERROR_CODE_SUB_ORG_POLICY_GET_ERROR("WEBHOOKMGT-65041",
+            "Error occurred while retrieving the organization subscription policy",
+            "An error occurred while retrieving the organization subscription policy of channel: %s."),
+    ERROR_CODE_SUB_ORG_POLICY_SET_ERROR("WEBHOOKMGT-65042",
+            "Error occurred while applying the organization subscription policy",
+            "An error occurred while applying the organization subscription policy to channel: %s."),
+    ERROR_CODE_SUB_ORG_HIERARCHY_ERROR("WEBHOOKMGT-65043",
+            "Error occurred while resolving the organization hierarchy",
+            "An error occurred while resolving the organization hierarchy for organization: %s.");
 
     private final String code;
     private final String message;
