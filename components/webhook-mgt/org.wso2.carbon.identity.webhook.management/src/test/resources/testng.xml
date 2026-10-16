@@ -44,6 +44,17 @@
             <class name="org.wso2.carbon.identity.webhook.management.util.WebhookValidatorTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.util.WebhookSecretProcessorTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.util.WebhookManagementAuditLoggerTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.util.WebhookManagementExceptionHandlerTest"/>
+        </classes>
+    </test>
+    <test name="webhook-management-model-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.webhook.management.model.OrganizationSubscriptionTest"/>
+        </classes>
+    </test>
+    <test name="webhook-management-cache-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.webhook.management.cache.ActiveWebhooksCacheKeyTest"/>
         </classes>
     </test>
 </suite>

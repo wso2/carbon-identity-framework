@@ -30,6 +30,8 @@ public class WebhookMgtConstants {
     public static final String CHANNELS_SUBSCRIBED_FIELD = "Channels Subscribed";
     public static final String SECRET_FIELD = "Secret";
     public static final String STATUS_FIELD = "Status";
+    public static final String EVENT_PROP_ORGANIZATION = "ORGANIZATION";
+    public static final String EVENT_PROP_ORGANIZATION_ID = "ORGANIZATION_ID";
 
     private WebhookMgtConstants() {
 

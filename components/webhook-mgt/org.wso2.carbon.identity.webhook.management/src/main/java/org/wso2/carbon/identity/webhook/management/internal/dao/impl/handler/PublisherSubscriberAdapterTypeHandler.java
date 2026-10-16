@@ -47,12 +47,19 @@ import java.util.stream.Collectors;
  */
 public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
 
-    private final WebhookManagementDAO dao;
     private final String webhookAdapterName;
 
+    /**
+     * The delegate DAO is passed to the base class rather than held here. AdapterTypeHandler
+     * implements the organization subscription operations once on behalf of both adapter types --
+     * they carry no adapter-specific side effect -- so the delegate has to be reachable from the
+     * base. The adapter-specific operations below read it through the inherited field.
+     *
+     * @param dao DAO this handler delegates to.
+     */
     public PublisherSubscriberAdapterTypeHandler(WebhookManagementDAO dao) {
 
-        this.dao = dao;
+        super(dao);
         this.webhookAdapterName = String.valueOf(WebhookManagementComponentServiceHolder.getInstance()
                 .getWebhookAdapter().getName());
     }
@@ -110,6 +117,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
                         .eventsSubscribed(subscriptions)
+                        .ownerTenantDomain(webhook.getOwnerTenantDomain())
                         .build();
             }
         } else {
@@ -379,6 +387,38 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
 
+    /**
+     * Deliberately the same answer as {@link #getActiveWebhooks}: under the PublisherSubscriber
+     * adapter a descendant organization is reached by publishing to the owning organization's
+     * topic, and the hub fans out from there. Widening this list would make the adapter post the
+     * same event once per inherited webhook on top of the topic publish.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksWithSubscribedChildOrgs(String eventProfileName, String eventProfileVersion,
+                                                           String channelUri, int tenantId)
+            throws WebhookMgtException {
+
+        return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+    }
+
+    /**
+     * Widened as asked, unlike {@link #getActiveWebhooksWithSubscribedChildOrgs}.
+     * <p>
+     * An event raised in a sub organization is published to the topic of each organization that subscribed to it,
+     * and that organization is only known from its webhooks, so the inherited ones have to be answered for here.
+     * The duplicate publishing this list could cause is avoided by publishing once per organization rather than
+     * once per webhook: a topic serves every subscriber of its channel.
+     */
+    @Override
+    public List<Webhook> getWebhooksWithAcceptedChannelSubscription(String eventProfileName, String eventProfileVersion,
+                                                                    String channelUri, int tenantId,
+                                                                    boolean includeChildOrganizationSubscriptions)
+            throws WebhookMgtException {
+
+        return dao.getWebhooksWithAcceptedChannelSubscription(eventProfileName, eventProfileVersion, channelUri,
+                tenantId, includeChildOrganizationSubscriptions);
+    }
+
     // --- Helper methods below ---
 
     private void ensureTopicsExistOrRegister(List<Subscription> events, String eventProfileName,
@@ -411,6 +451,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(base.getCreatedAt())
                 .updatedAt(base.getUpdatedAt())
                 .eventsSubscribed(updatedSubs)
+                .ownerTenantDomain(base.getOwnerTenantDomain())
                 .build();
     }
 

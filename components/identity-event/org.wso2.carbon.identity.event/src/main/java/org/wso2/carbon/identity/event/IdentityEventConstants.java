@@ -346,6 +346,10 @@ public class IdentityEventConstants {
 
         // Flow Event constants.
         public static final String POST_FLOW_EXECUTION_STEP_EVENT = "POST_FLOW_EXECUTION_STEP_EVENT";
+
+        // Organization management lifecycle event constants
+        public static final String EVENT_POST_ADD_ORGANIZATION = "POST_ADD_ORGANIZATION";
+        public static final String EVENT_POST_DELETE_ORGANIZATION = "POST_DELETE_ORGANIZATION";
     }
 
     /**
