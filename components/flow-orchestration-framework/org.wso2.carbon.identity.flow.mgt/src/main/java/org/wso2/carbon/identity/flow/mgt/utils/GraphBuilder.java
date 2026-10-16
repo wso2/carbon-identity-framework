@@ -209,13 +209,6 @@ public class GraphBuilder {
     }
 
     /**
-     * Reject a decision that cannot work, while the author can still see what they configured.
-     *
-     * @param stepId   Id of the decision step, for the message.
-     * @param branches Branches to check.
-     * @throws FlowMgtClientException If the decision cannot be evaluated as configured.
-     */
-    /**
      * A flow may have only as many decision steps as the server allows.
      */
     private static void validateRuleEvaluationStepCount(List<StepDTO> steps) throws FlowMgtClientException {
@@ -243,6 +236,13 @@ public class GraphBuilder {
         }
     }
 
+    /**
+     * Reject a decision that cannot work, while the author can still see what they configured.
+     *
+     * @param stepId   Id of the decision step, for the message.
+     * @param branches Branches to check.
+     * @throws FlowMgtClientException If the decision cannot be evaluated as configured.
+     */
     private void validateBranches(String stepId, List<BranchDTO> branches) throws FlowMgtClientException {
 
         Set<String> branchIds = new HashSet<>();

@@ -495,7 +495,7 @@ public class FlowDAOImpl implements FlowDAO {
         List<BranchDTO> branches = action.getBranches();
         for (int order = 0; order < branches.size(); order++) {
             BranchDTO branch = branches.get(order);
-            byte[] content = serializeRule(branch.getRule(), stepDTO.getId(), tenantId);
+            Optional<byte[]> content = serializeRule(branch.getRule(), stepDTO.getId(), tenantId);
             int ruleOrder = order;
             template.executeInsert(INSERT_FLOW_NODE_BRANCH,
                     preparedStatement -> {
@@ -503,7 +503,11 @@ public class FlowDAOImpl implements FlowDAO {
                         preparedStatement.setString(2, branch.getId());
                         preparedStatement.setString(3, branch.getName());
                         preparedStatement.setInt(4, ruleOrder);
-                        preparedStatement.setBytes(5, content);
+                        if (content.isPresent()) {
+                            preparedStatement.setBytes(5, content.get());
+                        } else {
+                            preparedStatement.setBytes(5, null);
+                        }
                     }, null, false);
         }
     }
@@ -547,20 +551,20 @@ public class FlowDAOImpl implements FlowDAO {
                 step.setData(new DataDTO.Builder().build());
             }
             if (step.getData().getAction() == null) {
-                step.getData().setAction(new ActionDTO.Builder().type(Constants.ActionTypes.RULE_EVALUATOR).build());
+                step.getData().setAction(new ActionDTO.Builder().type(Constants.ActionTypes.ROUTE).build());
             }
             step.getData().getAction().setBranches(branches);
         }
     }
 
-    private static byte[] serializeRule(ORCombinedRule rule, String stepId, int tenantId)
+    private static Optional<byte[]> serializeRule(ORCombinedRule rule, String stepId, int tenantId)
             throws FlowMgtFrameworkException {
 
         if (rule == null) {
-            return null;
+            return Optional.empty();
         }
         try {
-            return serializeObject(rule);
+            return Optional.of(serializeObject(rule));
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e, stepId, tenantId);
         }

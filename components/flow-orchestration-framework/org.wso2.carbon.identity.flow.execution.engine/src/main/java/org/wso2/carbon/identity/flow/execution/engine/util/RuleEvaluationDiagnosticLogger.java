@@ -34,6 +34,7 @@ public class RuleEvaluationDiagnosticLogger {
     private static final String STEP_ID = "stepId";
     private static final String BRANCH_ID = "branchId";
     private static final String BRANCH_NAME = "branchName";
+    private static final String NEXT_ID = "nextId";
 
     /**
      * Logs that a branch's condition held, so the decision took it.
@@ -42,16 +43,19 @@ public class RuleEvaluationDiagnosticLogger {
      * @param stepId     Id of the decision step.
      * @param branchId   Id of the branch taken.
      * @param branchName Name of the branch taken.
+     * @param nextId     Id of the step the branch leads to.
      */
-    public void logBranchSelected(String flowType, String stepId, String branchId, String branchName) {
+    public void logBranchSelected(String flowType, String stepId, String branchId, String branchName,
+                                  String nextId) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        triggerLogEvent(builder("The condition of a branch held, so the decision step took that branch.",
+        triggerLogEvent(builder("Branch rule matched.",
                 DiagnosticLog.ResultStatus.SUCCESS, flowType, stepId)
                 .inputParam(BRANCH_ID, branchId)
-                .inputParam(BRANCH_NAME, branchName));
+                .inputParam(BRANCH_NAME, branchName)
+                .inputParam(NEXT_ID, nextId));
     }
 
     /**
@@ -67,7 +71,7 @@ public class RuleEvaluationDiagnosticLogger {
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        triggerLogEvent(builder("No branch condition held, so the decision step took its default branch.",
+        triggerLogEvent(builder("No branch rule matched. Continued on the default branch.",
                 DiagnosticLog.ResultStatus.SUCCESS, flowType, stepId)
                 .inputParam(BRANCH_ID, branchId)
                 .inputParam(BRANCH_NAME, branchName));
@@ -86,7 +90,7 @@ public class RuleEvaluationDiagnosticLogger {
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        triggerLogEvent(builder("The condition of a branch could not be evaluated: " + reason,
+        triggerLogEvent(builder("Failed to evaluate the branch rule. Reason: " + reason,
                 DiagnosticLog.ResultStatus.FAILED, flowType, stepId)
                 .inputParam(BRANCH_NAME, branchName));
     }
@@ -102,7 +106,7 @@ public class RuleEvaluationDiagnosticLogger {
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        triggerLogEvent(builder("No branch condition held and the decision step has no default branch.",
+        triggerLogEvent(builder("No branch rule matched and no default branch is configured.",
                 DiagnosticLog.ResultStatus.FAILED, flowType, stepId));
     }
 
@@ -117,7 +121,7 @@ public class RuleEvaluationDiagnosticLogger {
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        triggerLogEvent(builder("The decision step cannot run because conditional branching is disabled.",
+        triggerLogEvent(builder("Conditional branching is not enabled.",
                 DiagnosticLog.ResultStatus.FAILED, flowType, stepId));
     }
 

@@ -131,7 +131,7 @@ public class GraphBuilderRuleEvaluationTest {
                     .id("step_route_" + i)
                     .type(Constants.StepTypes.RULE_EVALUATION)
                     .data(new DataDTO.Builder().action(new ActionDTO.Builder()
-                            .type(Constants.ActionTypes.RULE_EVALUATOR).branches(branches).build()).build())
+                            .type(Constants.ActionTypes.ROUTE).branches(branches).build()).build())
                     .build());
         }
         steps.add(new StepDTO.Builder().id(Constants.END_NODE_ID).type(Constants.StepTypes.END)
@@ -317,7 +317,7 @@ public class GraphBuilderRuleEvaluationTest {
     private StepDTO decisionStep(List<BranchDTO> branches, String executorName) {
 
         ActionDTO action = new ActionDTO.Builder()
-                .type(Constants.ActionTypes.RULE_EVALUATOR)
+                .type(Constants.ActionTypes.ROUTE)
                 .branches(branches)
                 .build();
 

@@ -285,7 +285,7 @@ public class Constants {
 
         public static final String EXECUTOR = "EXECUTOR";
         public static final String NEXT = "NEXT";
-        public static final String RULE_EVALUATOR = "RULE_EVALUATOR";
+        public static final String ROUTE = "ROUTE";
 
         private ActionTypes() {
 

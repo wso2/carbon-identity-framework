@@ -109,7 +109,7 @@ public class RuleEvaluationNode implements Node {
                     LOG.debug("Branch '" + branch.getName() + "' holds.");
                 }
                 DIAGNOSTIC_LOGGER.logBranchSelected(context.getFlowType(), nodeConfig.getId(), branch.getId(),
-                        branch.getName());
+                        branch.getName(), branch.getNextId());
                 return branch;
             }
         }

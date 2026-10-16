@@ -197,6 +197,7 @@ public class RuleEvaluationNodeTest {
         assertEquals(log.getActionId(), "rule-evaluation");
         assertEquals(log.getResultStatus(), DiagnosticLog.ResultStatus.SUCCESS.name());
         assertEquals(log.getInput().get("branchId"), "br_lk");
+        assertEquals(log.getInput().get("nextId"), LK_STEP);
         assertEquals(log.getInput().get("stepId"), DECISION_NODE_ID);
     }
 
@@ -328,7 +329,7 @@ public class RuleEvaluationNodeTest {
 
     private FlowExecutionContext contextFor(NodeConfig node, List<BranchDTO> branches) {
 
-        ActionDTO action = new ActionDTO.Builder().type("RULE_EVALUATOR").branches(branches).build();
+        ActionDTO action = new ActionDTO.Builder().type("ROUTE").branches(branches).build();
         StepDTO step = new StepDTO.Builder()
                 .id(DECISION_NODE_ID)
                 .type("RULE_EVALUATION")

@@ -228,7 +228,7 @@ public class FlowDAOImplRuleTest {
                 .nextId(Constants.END_NODE_ID).build());
 
         ActionDTO action = new ActionDTO.Builder()
-                .type(Constants.ActionTypes.RULE_EVALUATOR)
+                .type(Constants.ActionTypes.ROUTE)
                 .branches(branches)
                 .build();
         return new StepDTO.Builder()

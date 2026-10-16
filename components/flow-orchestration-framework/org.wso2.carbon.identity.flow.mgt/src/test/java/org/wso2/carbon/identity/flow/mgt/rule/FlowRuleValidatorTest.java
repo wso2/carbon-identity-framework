@@ -512,7 +512,7 @@ public class FlowRuleValidatorTest {
                 .nextId("END").build());
 
         ActionDTO action = new ActionDTO.Builder()
-                .type(Constants.ActionTypes.RULE_EVALUATOR)
+                .type(Constants.ActionTypes.ROUTE)
                 .branches(branches)
                 .build();
 
