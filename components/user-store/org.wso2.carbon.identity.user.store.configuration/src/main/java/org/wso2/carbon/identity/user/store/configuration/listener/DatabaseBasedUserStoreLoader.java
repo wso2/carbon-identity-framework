@@ -25,7 +25,10 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.ServerStartupObserver;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOImpl;
+import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigComponent;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
+import org.wso2.carbon.user.api.Tenant;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.AbstractAxis2ConfigurationContextObserver;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -57,7 +60,50 @@ public class DatabaseBasedUserStoreLoader extends AbstractAxis2ConfigurationCont
     @Override
     public void completedServerStartup() {
 
+        migrateFileBasedUserStores();
         loadUserStores(MultitenantConstants.SUPER_TENANT_ID);
+    }
+
+    /**
+     * Move the user store configurations every tenant still keeps as files into the database, when that has been
+     * asked for. Done in one pass over the tenants on startup rather than as each tenant is loaded, so that a
+     * deployment is migrated by the restart that turns the database persistence on.
+     */
+    private void migrateFileBasedUserStores() {
+
+        if (!SecondaryUserStoreConfigurationUtil.isFileBasedUserStoreMigrationEnabled()) {
+            return;
+        }
+        migrateFileBasedUserStores(MultitenantConstants.SUPER_TENANT_ID);
+        try {
+            for (Tenant tenant : UserStoreConfigComponent.getRealmService().getTenantManager().getAllTenants()) {
+                migrateFileBasedUserStores(tenant.getId());
+            }
+        } catch (UserStoreException e) {
+            log.error("Error occurred while listing the tenants to migrate their user store configurations.", e);
+        }
+    }
+
+    /**
+     * Move the user store configurations the given tenant still keeps as files into the database.
+     *
+     * @param tenantId Tenant whose configuration files should be migrated.
+     */
+    private void migrateFileBasedUserStores(int tenantId) {
+
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId, true);
+            UserStoreDAO userStoreDAO = SecondaryUserStoreConfigurationUtil.getUserStoreDAO();
+            if (userStoreDAO instanceof DatabaseBasedUserStoreDAOImpl) {
+                ((DatabaseBasedUserStoreDAOImpl) userStoreDAO).migrateFileBasedUserStores();
+            }
+        } catch (Exception e) {
+            // A tenant that cannot be migrated must not hold back the rest of the startup.
+            log.error("Error occurred while migrating the file based user stores of tenant: " + tenantId, e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
     }
 
     /**

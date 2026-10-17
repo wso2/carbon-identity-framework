@@ -79,6 +79,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreC
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.INIT_REGEX;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.MIGRATE_FILE_BASED_USER_STORES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.PERSISTENCE_TYPE_DATABASE;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 
@@ -132,6 +133,20 @@ public class SecondaryUserStoreConfigurationUtil {
             userStore = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES);
         }
         return getUserStoreConfigFile(userStore, fileName);
+    }
+
+    /**
+     * To get the directory that holds the user store configuration files of the tenant in the current context.
+     *
+     * @return the path of the tenant's userstores directory.
+     */
+    public static Path getUserStoreConfigurationDirectory() {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
+            return Paths.get(DEPLOYMENT_DIRECTORY);
+        }
+        return Paths.get(CarbonUtils.getCarbonTenantsDirPath(), String.valueOf(tenantId), USERSTORES);
     }
 
     private static Path getUserStoreConfigFile(Path userStore, String fileName) {
@@ -585,6 +600,18 @@ public class SecondaryUserStoreConfigurationUtil {
 
         return PERSISTENCE_TYPE_DATABASE.equalsIgnoreCase(
                 IdentityUtil.getProperty(UserStoreConfigurationConstant.USER_STORE_PERSISTENCE_TYPE));
+    }
+
+    /**
+     * Whether the user store configurations left in the file system should be moved into the database. Only has an
+     * effect when the database based persistence is enabled, and is off unless it is explicitly turned on.
+     *
+     * @return true if the file based configurations should be migrated.
+     */
+    public static boolean isFileBasedUserStoreMigrationEnabled() {
+
+        return isDatabaseBasedUserStorePersistenceEnabled() &&
+                Boolean.parseBoolean(IdentityUtil.getProperty(MIGRATE_FILE_BASED_USER_STORES));
     }
 
     /**

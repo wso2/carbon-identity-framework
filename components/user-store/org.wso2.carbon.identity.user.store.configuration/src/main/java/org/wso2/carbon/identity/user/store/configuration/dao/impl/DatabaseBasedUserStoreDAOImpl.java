@@ -28,12 +28,14 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQueries;
 import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStorePersistanceDTO;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
+import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreClientException;
@@ -51,6 +53,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -73,6 +79,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_MIGRATED;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 
 /**
@@ -568,6 +575,71 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                         tenantId, e);
             }
         }
+    }
+
+    /**
+     * Move the secondary user store configurations still held as files by the current tenant into the database.
+     * <p>
+     * A configuration is written as a row first and only then moved aside, so a run that stops half way leaves
+     * nothing behind and can simply be repeated. A domain that already has a row is left untouched, file and all:
+     * the row is what the management API serves, and overwriting it would discard everything done since.
+     */
+    public void migrateFileBasedUserStores() {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        File[] configurationFiles = SecondaryUserStoreConfigurationUtil.getUserStoreConfigurationDirectory().toFile()
+                .listFiles((directory, name) -> name.endsWith(FILE_EXTENSION_XML));
+        if (configurationFiles == null || configurationFiles.length == 0) {
+            // The tenant keeps no configurations on the file system, which is the steady state after a migration.
+            return;
+        }
+        for (File configurationFile : configurationFiles) {
+            try {
+                migrateFileBasedUserStore(configurationFile, tenantId);
+            } catch (IdentityUserStoreMgtException | IOException | UserStoreException | XMLStreamException e) {
+                // One configuration that cannot be migrated must not hold back the rest of the tenant.
+                log.error("Error occurred while migrating the user store configuration file: " +
+                        configurationFile.getName() + " of tenant: " + tenantId + ". The file is left in place.", e);
+            }
+        }
+    }
+
+    private void migrateFileBasedUserStore(File configurationFile, int tenantId) throws
+            IdentityUserStoreMgtException, IOException, UserStoreException, XMLStreamException {
+
+        Path configurationFilePath = configurationFile.toPath();
+        String userStoreProperties = new String(Files.readAllBytes(configurationFilePath), StandardCharsets.UTF_8);
+        String fileName = configurationFile.getName();
+        RealmConfiguration realmConfiguration = getRealmConfiguration(
+                fileName.substring(0, fileName.length() - FILE_EXTENSION_XML.length()),
+                new ByteArrayInputStream(userStoreProperties.getBytes(StandardCharsets.UTF_8)));
+        if (realmConfiguration == null) {
+            log.warn("The user store configuration file: " + fileName + " of tenant: " + tenantId + " could not be " +
+                    "read as a user store configuration and is not migrated.");
+            return;
+        }
+        String domainName = realmConfiguration.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME);
+        if (IdentityUtil.getAgentIdentityUserstoreName().equalsIgnoreCase(domainName)) {
+            /*
+             The agent user store is put in place by the product, not by an administrator, and the component that
+             does so treats the presence of this very file as the sign that the tenant already has one. Moving it
+             aside would have it attempt to add the store again on every startup.
+            */
+            if (log.isDebugEnabled()) {
+                log.debug("The agent user store of tenant: " + tenantId + " is left on the file system.");
+            }
+            return;
+        }
+        if (doGetUserStore(domainName).getUserStoreDTO() != null) {
+            log.info("The user store domain: " + domainName + " of tenant: " + tenantId + " is already persisted in " +
+                    "the database. The configuration file: " + fileName + " is left in place.");
+            return;
+        }
+        addUserStoreProperties(userStoreProperties, domainName);
+        Path migratedFilePath = Paths.get(configurationFilePath.toString() + FILE_EXTENSION_MIGRATED);
+        Files.move(configurationFilePath, migratedFilePath);
+        log.info("Migrated the user store domain: " + domainName + " of tenant: " + tenantId + " into the database. " +
+                "Its configuration file is moved to: " + migratedFilePath.getFileName() + ".");
     }
 
     private void addRealmToSecondaryUserStoreManager(UserStorePersistanceDTO userStorePersistanceDTO) throws

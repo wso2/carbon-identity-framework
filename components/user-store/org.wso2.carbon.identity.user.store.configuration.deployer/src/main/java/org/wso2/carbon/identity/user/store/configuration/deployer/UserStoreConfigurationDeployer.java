@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.CryptoException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.deployer.exception.UserStoreConfigurationDeployerException;
 import org.wso2.carbon.identity.user.store.configuration.deployer.internal.UserStoreConfigComponent;
 import org.wso2.carbon.identity.user.store.configuration.deployer.util.UserStoreConfigurationConstants;
@@ -174,6 +175,18 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
      */
     public void undeploy(String fileName) throws DeploymentException {
 
+        if (isDatabaseBasedUserStorePersistenceEnabled()) {
+            /*
+             The deployment directory is not what the user stores are kept in, so a configuration file leaving it
+             says nothing about the user store. Migrating a configuration into the database moves its file aside,
+             and removing the user store here would undo the migration until the next restart.
+            */
+            if (log.isDebugEnabled()) {
+                log.debug("Secondary user store configurations are persisted in the database. Skipping the " +
+                        "un-deployment of: " + fileName);
+            }
+            return;
+        }
         if (fileName != null) {
             String ext = FilenameUtils.getExtension(fileName);
             if (!UserStoreConfigurationConstants.ENC_EXTENSION.equalsIgnoreCase(ext)) {
@@ -181,6 +194,18 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
                 userStoreDeploymentManager.undeploy(fileName);
             }
         }
+    }
+
+    /**
+     * Whether secondary user store configurations are persisted in the database instead of the file system. Read
+     * here directly rather than through the user store configuration bundle, which this bundle does not depend on.
+     *
+     * @return true if the database based persistence is enabled.
+     */
+    private boolean isDatabaseBasedUserStorePersistenceEnabled() {
+
+        return UserStoreConfigurationConstants.PERSISTENCE_TYPE_DATABASE.equalsIgnoreCase(
+                IdentityUtil.getProperty(UserStoreConfigurationConstants.USER_STORE_PERSISTENCE_TYPE));
     }
 
     public void setDirectory(String s) {

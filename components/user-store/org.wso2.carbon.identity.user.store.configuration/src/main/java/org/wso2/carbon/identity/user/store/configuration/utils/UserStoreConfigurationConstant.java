@@ -51,6 +51,8 @@ public class UserStoreConfigurationConstant {
     // Secondary user store configuration persistence.
     public static final String USER_STORE_PERSISTENCE_TYPE = "UserStorePersistenceType";
     public static final String PERSISTENCE_TYPE_DATABASE = "database";
+    public static final String MIGRATE_FILE_BASED_USER_STORES = "MigrateFileBasedUserStoreConfigurations";
+    public static final String FILE_EXTENSION_MIGRATED = ".migrated";
 
     // Attribute mappings constants
     public static final String CLAIM_CONFIG = "claim-config.xml";
