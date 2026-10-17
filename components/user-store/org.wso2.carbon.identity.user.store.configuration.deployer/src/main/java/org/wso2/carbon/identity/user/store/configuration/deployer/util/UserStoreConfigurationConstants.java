@@ -24,6 +24,13 @@ public class UserStoreConfigurationConstants {
     public static final String XML_EXTENSION = "xml";
     public static final String ENCRYPT_TEXT = "#encrypt";
 
+    /*
+     Kept in step with UserStoreConfigurationConstant of the user store configuration bundle, which this bundle
+     deliberately does not depend on.
+    */
+    public static final String USER_STORE_PERSISTENCE_TYPE = "UserStorePersistenceType";
+    public static final String PERSISTENCE_TYPE_DATABASE = "database";
+
     public static final String PROPERTY_CLASS = "class";
     public static final String PROPERTY_NAME = "name";
     public static final String PROPERTY_ENCRYPT = "encrypt";

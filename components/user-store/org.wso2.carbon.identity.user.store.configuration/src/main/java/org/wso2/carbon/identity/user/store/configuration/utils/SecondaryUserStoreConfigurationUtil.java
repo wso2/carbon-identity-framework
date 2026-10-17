@@ -30,7 +30,9 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants.UserStoreState;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
+import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
+import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
@@ -77,6 +79,8 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreC
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.INIT_REGEX;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.MIGRATE_FILE_BASED_USER_STORES;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.PERSISTENCE_TYPE_DATABASE;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 
 /**
@@ -129,6 +133,20 @@ public class SecondaryUserStoreConfigurationUtil {
             userStore = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES);
         }
         return getUserStoreConfigFile(userStore, fileName);
+    }
+
+    /**
+     * To get the directory that holds the user store configuration files of the tenant in the current context.
+     *
+     * @return the path of the tenant's userstores directory.
+     */
+    public static Path getUserStoreConfigurationDirectory() {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
+            return Paths.get(DEPLOYMENT_DIRECTORY);
+        }
+        return Paths.get(CarbonUtils.getCarbonTenantsDirPath(), String.valueOf(tenantId), USERSTORES);
     }
 
     private static Path getUserStoreConfigFile(Path userStore, String fileName) {
@@ -504,6 +522,22 @@ public class SecondaryUserStoreConfigurationUtil {
         return existingPropertyValue;
     }
 
+    /**
+     * Whether the realm is currently serving the given user store domain.
+     * <p>
+     * Removing a secondary user store takes its manager out of the realm but leaves its configuration on the
+     * realm configuration chain until the next restart, so the chain alone is not evidence that a domain is
+     * still in use.
+     *
+     * @param userStoreDomain User store domain to check.
+     * @return true if the domain has a secondary user store manager.
+     * @throws UserStoreException if the realm cannot be consulted. An unknown realm state is not an absent store.
+     */
+    public static boolean isUserStoreServedByRealm(String userStoreDomain) throws UserStoreException {
+
+        return getSecondaryUserStoreManager(userStoreDomain) != null;
+    }
+
     private static UserStoreManager getSecondaryUserStoreManager(String userStoreDomain) throws UserStoreException {
 
         UserStoreManager secondaryUserStoreManager = null;
@@ -555,6 +589,49 @@ public class SecondaryUserStoreConfigurationUtil {
             throw new UserStoreException("Error occured while creating an instance of FileBasedUserStoreDAOFactory.");
         }
         return userStoreDAO;
+    }
+
+    /**
+     * Whether secondary user store configurations are persisted in the database instead of the file system.
+     *
+     * @return true if the database based persistence is enabled.
+     */
+    public static boolean isDatabaseBasedUserStorePersistenceEnabled() {
+
+        return PERSISTENCE_TYPE_DATABASE.equalsIgnoreCase(
+                IdentityUtil.getProperty(UserStoreConfigurationConstant.USER_STORE_PERSISTENCE_TYPE));
+    }
+
+    /**
+     * Whether the user store configurations left in the file system should be moved into the database. Only has an
+     * effect when the database based persistence is enabled, and is off unless it is explicitly turned on.
+     *
+     * @return true if the file based configurations should be migrated.
+     */
+    public static boolean isFileBasedUserStoreMigrationEnabled() {
+
+        return isDatabaseBasedUserStorePersistenceEnabled() &&
+                Boolean.parseBoolean(IdentityUtil.getProperty(MIGRATE_FILE_BASED_USER_STORES));
+    }
+
+    /**
+     * Get the user store DAO of the configured persistence type. Defaults to the file based DAO.
+     *
+     * @return UserStoreDAO to persist the secondary user store configurations with.
+     * @throws UserStoreException if an instance of the configured DAO cannot be created.
+     */
+    public static UserStoreDAO getUserStoreDAO() throws UserStoreException {
+
+        if (!isDatabaseBasedUserStorePersistenceEnabled()) {
+            return getFileBasedUserStoreDAOFactory();
+        }
+        AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreDAOFactories().get(DatabaseBasedUserStoreDAOFactory.class.getName());
+        if (userStoreDAOFactory == null) {
+            throw new UserStoreException(
+                    "Error occurred while creating an instance of DatabaseBasedUserStoreDAOFactory.");
+        }
+        return userStoreDAOFactory.getInstance();
     }
 
     /**
