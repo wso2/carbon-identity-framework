@@ -76,9 +76,9 @@ import javax.xml.transform.stream.StreamResult;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.DEPLOYMENT_DIRECTORY;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.PERSISTENCE_TYPE_DATABASE;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.INIT_REGEX;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.PERSISTENCE_TYPE_DATABASE;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 
 /**
@@ -504,6 +504,29 @@ public class SecondaryUserStoreConfigurationUtil {
             existingPropertyValue = secondaryUserStoreProperties.get(propertyDTOName);
         }
         return existingPropertyValue;
+    }
+
+    /**
+     * Whether the realm is currently serving the given user store domain.
+     * <p>
+     * Removing a secondary user store takes its manager out of the realm but leaves its configuration on the
+     * realm configuration chain until the next restart, so the chain alone is not evidence that a domain is
+     * still in use.
+     *
+     * @param userStoreDomain User store domain to check.
+     * @return true if the domain has a secondary user store manager.
+     */
+    public static boolean isUserStoreServedByRealm(String userStoreDomain) {
+
+        try {
+            return getSecondaryUserStoreManager(userStoreDomain) != null;
+        } catch (UserStoreException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Could not determine whether the user store domain: " + userStoreDomain +
+                        " is served by the realm.", e);
+            }
+            return false;
+        }
     }
 
     private static UserStoreManager getSecondaryUserStoreManager(String userStoreDomain) throws UserStoreException {

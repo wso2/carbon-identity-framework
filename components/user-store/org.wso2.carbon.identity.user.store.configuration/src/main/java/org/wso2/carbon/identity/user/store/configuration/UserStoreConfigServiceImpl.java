@@ -47,6 +47,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -253,12 +254,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
 
         UserStoreDTO[] userStoreDTOS = new UserStoreDTO[0];
         if (SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
-            try {
-                userStoreDTOS = SecondaryUserStoreConfigurationUtil.getUserStoreDAO().getUserStores();
-            } catch (UserStoreException e) {
-                throw new IdentityUserStoreMgtException("Error occurred while retrieving the user stores from the " +
-                        "database.", e);
-            }
+            userStoreDTOS = getUserStoresWhenPersistedInDatabase().toArray(new UserStoreDTO[0]);
         } else {
             Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
                     getInstance().getUserStoreDAOFactories();
@@ -300,23 +296,21 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public UserStoreDTO[] getUserStores() throws IdentityUserStoreMgtException {
 
         List<UserStoreDTO> userStoreDTOList = new ArrayList<>();
-        Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
-                getInstance().getUserStoreDAOFactories();
-        for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
+        if (SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
+            userStoreDTOList.addAll(getUserStoresWhenPersistedInDatabase());
+        } else {
+            Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                    getInstance().getUserStoreDAOFactories();
+            for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
 
-            boolean dbBasedEntry = StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS);
-            if (SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
-                // Only the database repository holds the configurations.
-                if (!dbBasedEntry) {
+                if (!SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                        StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
                     continue;
                 }
-            } else if (!SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                    dbBasedEntry) {
-                continue;
-            }
 
-            UserStoreDTO[] allUserStores = entry.getValue().getInstance().getUserStores();
-            userStoreDTOList.addAll(Arrays.asList(allUserStores));
+                UserStoreDTO[] allUserStores = entry.getValue().getInstance().getUserStores();
+                userStoreDTOList.addAll(Arrays.asList(allUserStores));
+            }
         }
         UserStoreDTO[] userStoreDTOS = userStoreDTOList.toArray(new UserStoreDTO[0]);
 
@@ -330,6 +324,67 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         }
 
         return userStoreDTOS;
+    }
+
+    /**
+     * List the secondary user stores of the tenant when the database holds the configurations.
+     * <p>
+     * The table is the system of record, but it is not everything the realm serves. A configuration that the
+     * product provisions as a file rather than through this service - the agent user store is one - has no row
+     * of its own, and would otherwise be missing here while still being in use. The realm chain is therefore
+     * read as well, and whatever it has that the table does not is appended.
+     *
+     * @return The user stores of the tenant.
+     * @throws IdentityUserStoreMgtException if the user stores cannot be retrieved.
+     */
+    private List<UserStoreDTO> getUserStoresWhenPersistedInDatabase() throws IdentityUserStoreMgtException {
+
+        List<UserStoreDTO> userStoreDTOList = new ArrayList<>();
+        Set<String> domains = new HashSet<>();
+        try {
+            collectUserStores(SecondaryUserStoreConfigurationUtil.getUserStoreDAO().getUserStores(),
+                    userStoreDTOList, domains, false);
+            /*
+             The file based DAO walks the realm configuration chain rather than the deployment directory, so it
+             returns the database held stores too. Those are already in hand and are skipped by domain. The chain
+             also keeps a store that has been deleted until the next restart, so only what the realm still serves
+             is taken from it.
+            */
+            collectUserStores(SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().getUserStores(),
+                    userStoreDTOList, domains, true);
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException("Error occurred while retrieving the user stores of the tenant.",
+                    e);
+        }
+        return userStoreDTOList;
+    }
+
+    /**
+     * Add the user stores whose domain has not been seen yet to the given list.
+     *
+     * @param userStoreDTOS        User stores to add.
+     * @param userStoreDTOList     List collecting the user stores.
+     * @param domains              Domains already collected, in upper case.
+     * @param requireServedByRealm Take only the domains the realm is still serving.
+     */
+    private void collectUserStores(UserStoreDTO[] userStoreDTOS, List<UserStoreDTO> userStoreDTOList,
+                                   Set<String> domains, boolean requireServedByRealm) {
+
+        if (userStoreDTOS == null) {
+            return;
+        }
+        for (UserStoreDTO userStoreDTO : userStoreDTOS) {
+            if (userStoreDTO == null || StringUtils.isBlank(userStoreDTO.getDomainId())) {
+                continue;
+            }
+            if (requireServedByRealm &&
+                    !SecondaryUserStoreConfigurationUtil.isUserStoreServedByRealm(userStoreDTO.getDomainId())) {
+                continue;
+            }
+            if (domains.add(userStoreDTO.getDomainId().toUpperCase())) {
+                userStoreDTOList.add(userStoreDTO);
+            }
+        }
     }
 
     @Override
