@@ -22,6 +22,7 @@ package org.wso2.carbon.identity.user.store.configuration.dao.impl;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
@@ -619,6 +620,15 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             return;
         }
         String domainName = realmConfiguration.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME);
+        if (StringUtils.isBlank(domainName)) {
+            /*
+             Without a domain there is nothing to key the row on. Persisting it would write a row no loader can
+             register and move the file aside, taking a working user store out of service.
+            */
+            log.warn("The user store configuration file: " + fileName + OF_TENANT + tenantId + " carries no " +
+                    "domain name and is not migrated.");
+            return;
+        }
         if (IdentityUtil.getAgentIdentityUserstoreName().equalsIgnoreCase(domainName)) {
             /*
              The agent user store is put in place by the product, not by an administrator, and the component that

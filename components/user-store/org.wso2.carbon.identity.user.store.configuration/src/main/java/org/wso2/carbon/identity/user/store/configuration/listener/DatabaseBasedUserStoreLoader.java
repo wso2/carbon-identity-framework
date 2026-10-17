@@ -80,7 +80,11 @@ public class DatabaseBasedUserStoreLoader extends AbstractAxis2ConfigurationCont
                 migrateFileBasedUserStores(tenant.getId());
             }
         } catch (UserStoreException e) {
-            log.error("Error occurred while listing the tenants to migrate their user store configurations.", e);
+            log.error("Error occurred while listing the tenants to migrate their user store configurations. " +
+                    e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to list the tenants to migrate their user store configurations.", e);
+            }
         }
     }
 
@@ -100,7 +104,11 @@ public class DatabaseBasedUserStoreLoader extends AbstractAxis2ConfigurationCont
             }
         } catch (Exception e) {
             // A tenant that cannot be migrated must not hold back the rest of the startup.
-            log.error("Error occurred while migrating the file based user stores of tenant: " + tenantId, e);
+            log.error("Error occurred while migrating the file based user stores of tenant: " + tenantId + ". " +
+                    e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to migrate the file based user stores of tenant: " + tenantId, e);
+            }
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -126,7 +134,11 @@ public class DatabaseBasedUserStoreLoader extends AbstractAxis2ConfigurationCont
             }
         } catch (Exception e) {
             // Failing here must not prevent the tenant from loading.
-            log.error("Error occurred while loading the database based user stores of tenant: " + tenantId, e);
+            log.error("Error occurred while loading the database based user stores of tenant: " + tenantId + ". " +
+                    e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to load the database based user stores of tenant: " + tenantId, e);
+            }
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
