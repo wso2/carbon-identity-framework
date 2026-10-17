@@ -343,8 +343,7 @@ public class UserStoreConfigServiceImplTest {
     }
 
     private void mockDatabasePersistence(MockedStatic<SecondaryUserStoreConfigurationUtil> util,
-                                         UserStoreDAO databaseDAO, UserStoreDAO fileDAO, boolean servedByRealm)
-            throws Exception {
+                                         UserStoreDAO databaseDAO, UserStoreDAO fileDAO, boolean servedByRealm) {
 
         util.when(SecondaryUserStoreConfigurationUtil::isDatabaseBasedUserStorePersistenceEnabled).thenReturn(true);
         util.when(SecondaryUserStoreConfigurationUtil::getUserStoreDAO).thenReturn(databaseDAO);
