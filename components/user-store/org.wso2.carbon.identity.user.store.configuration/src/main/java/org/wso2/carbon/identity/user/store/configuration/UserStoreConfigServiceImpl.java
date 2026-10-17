@@ -141,7 +141,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
-            } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
+            } else if (!isConfiguredRepository(userStoreDTO.getRepositoryClass())) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Repository separation of user-stores has been disabled. Unable to edit " +
                               "user-store " + userStoreDTO.getDomainId() + " with repository class " +
@@ -178,7 +178,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 }
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStoreDomainName
                         (previousDomainName, userStoreDTO);
-            } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
+            } else if (!isConfiguredRepository(userStoreDTO.getRepositoryClass())) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Repository separation of user-stores has been disabled. Unable to update " +
                               "user-store domain name " + userStoreDTO.getDomainId() + " with repository class " +
@@ -324,6 +324,25 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         }
 
         return userStoreDTOS;
+    }
+
+    /**
+     * Whether a repository class on an incoming request is one this service should act on.
+     * <p>
+     * A user store read back from the database repository carries its repository class, so a caller that
+     * round trips a DTO - updating a store it just fetched - sends it back populated. Treating any populated
+     * value as a repository this service cannot serve would drop those updates silently.
+     *
+     * @param repositoryClass Repository class on the request, which may be empty.
+     * @return true if the request should be served rather than logged about.
+     */
+    private boolean isConfiguredRepository(String repositoryClass) {
+
+        if (StringUtils.isEmpty(repositoryClass)) {
+            return true;
+        }
+        return SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled() &&
+                StringUtils.equals(repositoryClass, DB_BASED_REPOSITORY_CLASS);
     }
 
     /**
