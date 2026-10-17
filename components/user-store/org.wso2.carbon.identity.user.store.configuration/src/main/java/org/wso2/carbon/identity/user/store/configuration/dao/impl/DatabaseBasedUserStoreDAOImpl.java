@@ -428,6 +428,36 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String msg = "Error while removing the user store in the tenant: " + tenantId;
+        try {
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext.
+                    getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            if (userStoreManager == null) {
+                throw new IdentityUserStoreMgtException("Unable to find a user store from the " +
+                        "ThreadLocalCarbonContext.");
+            }
+            // Run pre user-store delete listeners, as the single store path does.
+            for (String domain : domains) {
+                triggerListnersOnUserStorePreDelete(domain);
+            }
+            deleteUserStoresFromDatabase(domains, tenantId, msg);
+            /*
+             The realm is only changed once the rows are gone. Doing it while the batch is still open leaves the
+             realm without user stores the database still holds if the batch then fails.
+            */
+            for (String domain : domains) {
+                userStoreManager.deletePersistedDomain(domain);
+                removeRealmFromSecondaryUserStoreManager(domain);
+            }
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstores cannot be deleted.", e);
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException(msg, e);
+        }
+    }
+
+    private void deleteUserStoresFromDatabase(String[] domains, int tenantId, String msg)
+            throws IdentityUserStoreMgtException {
+
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries
                                                                             .DELETE_USERSTORE_PROPERTIES)) {
@@ -437,14 +467,11 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                         log.debug("The userstore domain :" + domain + "in tenant :" + tenantId + " added to the batch" +
                                   " to remove.");
                     }
-                    removeRealmFromSecondaryUserStoreManager(domain);
                 }
                 ps.executeBatch();
                 IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException e) {
                 IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
-                throw new IdentityUserStoreMgtException(msg, e);
-            } catch (UserStoreException e) {
                 throw new IdentityUserStoreMgtException(msg, e);
             }
         } catch (SQLException e) {

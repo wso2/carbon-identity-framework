@@ -26,6 +26,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.multitenancy.utils.TenantAxisUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
@@ -210,7 +211,17 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         }
         try {
             if (SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
-                SecondaryUserStoreConfigurationUtil.getUserStoreDAO().deleteUserStore(domain);
+                /*
+                 The listing also reports the stores the realm serves without a row of its own, so a delete can
+                 arrive for one of those. The database DAO would remove no row and leave the file in place, and
+                 the deployment engine would bring the store back on the next restart. Delete it where it lives.
+                */
+                UserStoreDAO userStoreDAO = SecondaryUserStoreConfigurationUtil.getUserStoreDAO();
+                if (userStoreDAO.getUserStore(domain) != null) {
+                    userStoreDAO.deleteUserStore(domain);
+                } else {
+                    SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
+                }
             } else {
                 Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
                         getInstance().getUserStoreDAOFactories();
@@ -505,7 +516,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             }
         } else {
             userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-            updateStateInFileRepository(userStoreDTO);
+            updateStateInConfiguredRepository(userStoreDTO);
         }
     }
 
@@ -535,6 +546,23 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
      * @throws IdentityUserStoreMgtException
      */
     private void updateStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+
+        try {
+            SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory()
+                    .updateUserStore(userStoreDTO, true);
+        } catch (Exception e) {
+            String errorMessage = e.getMessage();
+            throw new IdentityUserStoreMgtException(errorMessage);
+        }
+    }
+
+    /**
+     * Change the state of a user store in whichever repository is configured.
+     *
+     * @param userStoreDTO {@link UserStoreDTO}
+     * @throws IdentityUserStoreMgtException if the state cannot be changed.
+     */
+    private void updateStateInConfiguredRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
             SecondaryUserStoreConfigurationUtil.getUserStoreDAO().updateUserStore(userStoreDTO, true);
