@@ -30,6 +30,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants.UserStoreState;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
+import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
@@ -515,18 +516,11 @@ public class SecondaryUserStoreConfigurationUtil {
      *
      * @param userStoreDomain User store domain to check.
      * @return true if the domain has a secondary user store manager.
+     * @throws UserStoreException if the realm cannot be consulted. An unknown realm state is not an absent store.
      */
-    public static boolean isUserStoreServedByRealm(String userStoreDomain) {
+    public static boolean isUserStoreServedByRealm(String userStoreDomain) throws UserStoreException {
 
-        try {
-            return getSecondaryUserStoreManager(userStoreDomain) != null;
-        } catch (UserStoreException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Could not determine whether the user store domain: " + userStoreDomain +
-                        " is served by the realm.", e);
-            }
-            return false;
-        }
+        return getSecondaryUserStoreManager(userStoreDomain) != null;
     }
 
     private static UserStoreManager getSecondaryUserStoreManager(String userStoreDomain) throws UserStoreException {
@@ -604,13 +598,13 @@ public class SecondaryUserStoreConfigurationUtil {
         if (!isDatabaseBasedUserStorePersistenceEnabled()) {
             return getFileBasedUserStoreDAOFactory();
         }
-        UserStoreDAO userStoreDAO = UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories()
-                .get(DatabaseBasedUserStoreDAOFactory.class.getName()).getInstance();
-        if (userStoreDAO == null) {
+        AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreDAOFactories().get(DatabaseBasedUserStoreDAOFactory.class.getName());
+        if (userStoreDAOFactory == null) {
             throw new UserStoreException(
-                    "Error occured while creating an instance of DatabaseBasedUserStoreDAOFactory.");
+                    "Error occurred while creating an instance of DatabaseBasedUserStoreDAOFactory.");
         }
-        return userStoreDAO;
+        return userStoreDAOFactory.getInstance();
     }
 
     /**

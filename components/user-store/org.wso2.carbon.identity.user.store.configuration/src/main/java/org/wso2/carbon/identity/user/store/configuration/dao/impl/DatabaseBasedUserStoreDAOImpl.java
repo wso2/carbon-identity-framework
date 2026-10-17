@@ -48,6 +48,7 @@ import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -71,6 +72,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 
 /**
  * This class contains the implementation of CRUD operations of the database based user Stores.
@@ -258,8 +260,13 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private RealmConfiguration getRealmConfiguration(String identifier, InputStream scriptBinaryStream)
             throws UserStoreException, XMLStreamException {
 
-        UserStoreConfigXMLProcessor userStoreXMLProcessor =
-                new UserStoreConfigXMLProcessor("/" + identifier + ".xml");
+        /*
+         The processor splits this path on the platform's file separator and requires the last segment to
+         match the domain, reading underscores back as dots. A hard coded slash leaves it unsplit on Windows.
+        */
+        UserStoreConfigXMLProcessor userStoreXMLProcessor = new UserStoreConfigXMLProcessor(
+                File.separator + identifier.replace(UserStoreConfigurationConstant.PERIOD,
+                        UserStoreConfigurationConstant.UNDERSCORE) + FILE_EXTENSION_XML);
         return userStoreXMLProcessor.
                 buildUserStoreConfiguration(getRealmElement(scriptBinaryStream));
     }

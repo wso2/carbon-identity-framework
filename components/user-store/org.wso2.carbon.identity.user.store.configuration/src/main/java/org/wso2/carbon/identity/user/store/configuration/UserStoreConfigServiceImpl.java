@@ -366,9 +366,10 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
      * @param userStoreDTOList     List collecting the user stores.
      * @param domains              Domains already collected, in upper case.
      * @param requireServedByRealm Take only the domains the realm is still serving.
+     * @throws UserStoreException if the realm cannot be consulted.
      */
     private void collectUserStores(UserStoreDTO[] userStoreDTOS, List<UserStoreDTO> userStoreDTOList,
-                                   Set<String> domains, boolean requireServedByRealm) {
+                                   Set<String> domains, boolean requireServedByRealm) throws UserStoreException {
 
         if (userStoreDTOS == null) {
             return;
