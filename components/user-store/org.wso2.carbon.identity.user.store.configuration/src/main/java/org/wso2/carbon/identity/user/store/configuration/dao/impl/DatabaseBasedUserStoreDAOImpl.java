@@ -84,6 +84,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private SecretResolver secretResolver;
     private static final String DATABASE_BASED = DatabaseBasedUserStoreDAOFactory.class.getName();
     private XMLProcessorUtils xmlProcessorUtils = new XMLProcessorUtils();
+    private static final String OF_TENANT = " of tenant: ";
 
     @Override
     protected void doAddUserStore(UserStorePersistanceDTO userStorePersistanceDTO) throws
@@ -524,19 +525,19 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                      as a duplicate domain, so leave the realm as it stands.
                     */
                     if (log.isDebugEnabled()) {
-                        log.debug("Skipping the user store domain: " + domainName + " of tenant: " + tenantId +
+                        log.debug("Skipping the user store domain: " + domainName + OF_TENANT + tenantId +
                                 ". The realm already serves it.");
                     }
                     continue;
                 }
                 addRealmToSecondaryUserStoreManager(userStorePersistanceDTO);
                 if (log.isDebugEnabled()) {
-                    log.debug("Loaded the user store domain: " + domainName + " of tenant: " + tenantId +
+                    log.debug("Loaded the user store domain: " + domainName + OF_TENANT + tenantId +
                             " from the database.");
                 }
             } catch (UserStoreException | XMLStreamException e) {
                 // A single broken user store should not stop the remaining ones from loading.
-                log.error("Error occurred while loading the user store domain: " + domainName + " of tenant: " +
+                log.error("Error occurred while loading the user store domain: " + domainName + OF_TENANT +
                         tenantId, e);
             }
         }

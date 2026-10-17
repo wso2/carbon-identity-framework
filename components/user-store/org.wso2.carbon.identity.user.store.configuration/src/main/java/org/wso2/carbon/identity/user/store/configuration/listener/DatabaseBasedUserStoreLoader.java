@@ -75,6 +75,7 @@ public class DatabaseBasedUserStoreLoader extends AbstractAxis2ConfigurationCont
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId, true);
             UserStoreDAO userStoreDAO = SecondaryUserStoreConfigurationUtil.getUserStoreDAO();
             if (userStoreDAO instanceof DatabaseBasedUserStoreDAOImpl) {
+                // A pattern variable here is not an option: the build's checkstyle cannot parse one.
                 ((DatabaseBasedUserStoreDAOImpl) userStoreDAO).loadSecondaryUserStores();
             }
         } catch (Exception e) {
