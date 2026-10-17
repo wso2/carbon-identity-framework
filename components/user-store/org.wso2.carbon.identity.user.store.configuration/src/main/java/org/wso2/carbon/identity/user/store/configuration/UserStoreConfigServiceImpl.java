@@ -254,7 +254,31 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             throw new IdentityUserStoreClientException("No privileges to delete own user store configurations.");
         }
         try {
-            SecondaryUserStoreConfigurationUtil.getUserStoreDAO().deleteUserStores(domains);
+            if (!SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
+                SecondaryUserStoreConfigurationUtil.getUserStoreDAO().deleteUserStores(domains);
+                return;
+            }
+            /*
+             As with a single delete, the listing reports the stores the realm serves without a row of their
+             own, so a batch can name both kinds. Each has to be deleted where it is actually held.
+            */
+            UserStoreDAO userStoreDAO = SecondaryUserStoreConfigurationUtil.getUserStoreDAO();
+            List<String> databaseHeld = new ArrayList<>();
+            List<String> fileHeld = new ArrayList<>();
+            for (String domain : domains) {
+                if (userStoreDAO.getUserStore(domain) != null) {
+                    databaseHeld.add(domain);
+                } else {
+                    fileHeld.add(domain);
+                }
+            }
+            if (!databaseHeld.isEmpty()) {
+                userStoreDAO.deleteUserStores(databaseHeld.toArray(new String[0]));
+            }
+            if (!fileHeld.isEmpty()) {
+                SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory()
+                        .deleteUserStores(fileHeld.toArray(new String[0]));
+            }
         } catch (UserStoreException e) {
             throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
         }
