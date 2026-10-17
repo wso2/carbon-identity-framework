@@ -19,22 +19,26 @@
 package org.wso2.carbon.identity.user.store.configuration;
 
 /**
- * This class contains database queries related to userstore CRUD operations.
+ * SQL queries for the secondary user store configurations persisted in the shared database.
  */
 public class UserStoreMgtDBQueries {
 
-    public static final String STORE_USERSTORE_PROPERTIES = "INSERT INTO IDN_ARTIFACT_STORE (ID,TENANT_ID,ARTIFACT," +
-                                                            "IDENTIFIER,CONTENT_TYPE,ARTIFACT_TYPE) VALUES (?,?,?,?," +
-                                                            "?,?)";
-    //To update the user store domain name.
-    public static final String UPDATE_USERSTORE_PROPERTIES = "UPDATE IDN_ARTIFACT_STORE SET ARTIFACT= ?,IDENTIFIER= ?" +
-                                                             " WHERE IDENTIFIER = ? AND TENANT_ID = ? AND " +
-                                                             "ARTIFACT_TYPE = ?";
-    public static final String GET_USERSTORE_PROPERTIES = "SELECT ARTIFACT FROM IDN_ARTIFACT_STORE WHERE IDENTIFIER=?" +
-                                                          " AND TENANT_ID = ? AND ARTIFACT_TYPE= ?";
-    public static final String GET_ALL_USERSTORE_PROPERTIES = "SELECT IDENTIFIER, ARTIFACT FROM IDN_ARTIFACT_STORE " +
-                                                              "WHERE TENANT_ID = ? AND ARTIFACT_TYPE= ?";
-    public static final String DELETE_USERSTORE_PROPERTIES = "DELETE FROM IDN_ARTIFACT_STORE WHERE IDENTIFIER = ? AND" +
-                                                             " TENANT_ID = ? AND ARTIFACT_TYPE= ?";
+    public static final String STORE_USERSTORE_PROPERTIES =
+            "INSERT INTO UM_SECONDARY_USER_STORE (UM_ID, UM_TENANT_ID, UM_USER_STORE_CONFIG, UM_DOMAIN_NAME) " +
+            "VALUES (?,?,?,?)";
 
+    //To update the user store domain name.
+    public static final String UPDATE_USERSTORE_PROPERTIES =
+            "UPDATE UM_SECONDARY_USER_STORE SET UM_USER_STORE_CONFIG = ?, UM_DOMAIN_NAME = ? " +
+            "WHERE UM_DOMAIN_NAME = ? AND UM_TENANT_ID = ?";
+
+    public static final String GET_USERSTORE_PROPERTIES =
+            "SELECT UM_USER_STORE_CONFIG FROM UM_SECONDARY_USER_STORE " +
+            "WHERE UM_DOMAIN_NAME = ? AND UM_TENANT_ID = ?";
+
+    public static final String GET_ALL_USERSTORE_PROPERTIES =
+            "SELECT UM_DOMAIN_NAME, UM_USER_STORE_CONFIG FROM UM_SECONDARY_USER_STORE WHERE UM_TENANT_ID = ?";
+
+    public static final String DELETE_USERSTORE_PROPERTIES =
+            "DELETE FROM UM_SECONDARY_USER_STORE WHERE UM_DOMAIN_NAME = ? AND UM_TENANT_ID = ?";
 }

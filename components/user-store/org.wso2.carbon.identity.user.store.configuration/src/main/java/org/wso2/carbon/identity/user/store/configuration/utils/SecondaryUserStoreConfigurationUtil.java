@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants.UserStoreState;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
+import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
@@ -75,6 +76,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.DEPLOYMENT_DIRECTORY;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.PERSISTENCE_TYPE_DATABASE;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.INIT_REGEX;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
@@ -553,6 +555,37 @@ public class SecondaryUserStoreConfigurationUtil {
                 .get(FileBasedUserStoreDAOFactory.class.getName()).getInstance();
         if (userStoreDAO == null) {
             throw new UserStoreException("Error occured while creating an instance of FileBasedUserStoreDAOFactory.");
+        }
+        return userStoreDAO;
+    }
+
+    /**
+     * Whether secondary user store configurations are persisted in the database instead of the file system.
+     *
+     * @return true if the database based persistence is enabled.
+     */
+    public static boolean isDatabaseBasedUserStorePersistenceEnabled() {
+
+        return PERSISTENCE_TYPE_DATABASE.equalsIgnoreCase(
+                IdentityUtil.getProperty(UserStoreConfigurationConstant.USER_STORE_PERSISTENCE_TYPE));
+    }
+
+    /**
+     * Get the user store DAO of the configured persistence type. Defaults to the file based DAO.
+     *
+     * @return UserStoreDAO to persist the secondary user store configurations with.
+     * @throws UserStoreException if an instance of the configured DAO cannot be created.
+     */
+    public static UserStoreDAO getUserStoreDAO() throws UserStoreException {
+
+        if (!isDatabaseBasedUserStorePersistenceEnabled()) {
+            return getFileBasedUserStoreDAOFactory();
+        }
+        UserStoreDAO userStoreDAO = UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories()
+                .get(DatabaseBasedUserStoreDAOFactory.class.getName()).getInstance();
+        if (userStoreDAO == null) {
+            throw new UserStoreException(
+                    "Error occured while creating an instance of DatabaseBasedUserStoreDAOFactory.");
         }
         return userStoreDAO;
     }

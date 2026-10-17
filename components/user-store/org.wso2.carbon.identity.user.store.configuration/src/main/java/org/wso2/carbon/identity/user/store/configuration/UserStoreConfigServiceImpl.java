@@ -106,7 +106,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                     }
                 }
                 validateConnectionUrl(userStoreDTO);
-                SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
+                SecondaryUserStoreConfigurationUtil.getUserStoreDAO().addUserStore(userStoreDTO);
             }
         } catch (UserStoreClientException e) {
             throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
@@ -148,8 +148,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 }
             } else {
                 validateConnectionUrl(userStoreDTO);
-                SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
-                        false);
+                SecondaryUserStoreConfigurationUtil.getUserStoreDAO().updateUserStore(userStoreDTO, false);
             }
         } catch (UserStoreClientException e) {
             throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
@@ -185,7 +184,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                               userStoreDTO.getRepositoryClass());
                 }
             } else {
-                SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().
+                SecondaryUserStoreConfigurationUtil.getUserStoreDAO().
                         updateUserStoreDomainName(previousDomainName, userStoreDTO);
             }
         } catch (UserStoreException e) {
@@ -209,15 +208,19 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             throw new IdentityUserStoreClientException("No privileges to delete own user store configurations.");
         }
         try {
-            Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
-                    getInstance().getUserStoreDAOFactories();
-            for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
+            if (SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
+                SecondaryUserStoreConfigurationUtil.getUserStoreDAO().deleteUserStore(domain);
+            } else {
+                Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                        getInstance().getUserStoreDAOFactories();
+                for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
 
-                if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                        StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
-                    entry.getValue().getInstance().deleteUserStore(domain);
-                } else {
-                    SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
+                    if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                            StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
+                        entry.getValue().getInstance().deleteUserStore(domain);
+                    } else {
+                        SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
+                    }
                 }
             }
         } catch (UserStoreException e) {
@@ -239,7 +242,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             throw new IdentityUserStoreClientException("No privileges to delete own user store configurations.");
         }
         try {
-            SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStores(domains);
+            SecondaryUserStoreConfigurationUtil.getUserStoreDAO().deleteUserStores(domains);
         } catch (UserStoreException e) {
             throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
         }
@@ -249,19 +252,29 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public UserStoreDTO getUserStore(String domain) throws IdentityUserStoreMgtException {
 
         UserStoreDTO[] userStoreDTOS = new UserStoreDTO[0];
-        Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
-                getInstance().getUserStoreDAOFactories();
-        for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
-
-            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                    StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
-                return entry.getValue().getInstance().getUserStore(domain);
-            }
+        if (SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
             try {
-                userStoreDTOS = SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().getUserStores();
+                userStoreDTOS = SecondaryUserStoreConfigurationUtil.getUserStoreDAO().getUserStores();
             } catch (UserStoreException e) {
-                throw new IdentityUserStoreMgtException("Error occurred while retrieving the user stores from file" +
-                        " based system.", e);
+                throw new IdentityUserStoreMgtException("Error occurred while retrieving the user stores from the " +
+                        "database.", e);
+            }
+        } else {
+            Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                    getInstance().getUserStoreDAOFactories();
+            for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
+
+                if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                        StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
+                    return entry.getValue().getInstance().getUserStore(domain);
+                }
+                try {
+                    userStoreDTOS = SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory()
+                            .getUserStores();
+                } catch (UserStoreException e) {
+                    throw new IdentityUserStoreMgtException("Error occurred while retrieving the user stores from " +
+                            "file based system.", e);
+                }
             }
         }
         if (userStoreDTOS != null) {
@@ -291,8 +304,14 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 getInstance().getUserStoreDAOFactories();
         for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
 
-            if (!SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                    StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
+            boolean dbBasedEntry = StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS);
+            if (SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
+                // Only the database repository holds the configurations.
+                if (!dbBasedEntry) {
+                    continue;
+                }
+            } else if (!SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                    dbBasedEntry) {
                 continue;
             }
 
@@ -443,7 +462,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     private void updateStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
-            SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, true);
+            SecondaryUserStoreConfigurationUtil.getUserStoreDAO().updateUserStore(userStoreDTO, true);
         } catch (Exception e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage);
