@@ -211,32 +211,58 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         }
         try {
             if (SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled()) {
-                /*
-                 The listing also reports the stores the realm serves without a row of its own, so a delete can
-                 arrive for one of those. The database DAO would remove no row and leave the file in place, and
-                 the deployment engine would bring the store back on the next restart. Delete it where it lives.
-                */
-                UserStoreDAO userStoreDAO = SecondaryUserStoreConfigurationUtil.getUserStoreDAO();
-                if (userStoreDAO.getUserStore(domain) != null) {
-                    userStoreDAO.deleteUserStore(domain);
-                } else {
-                    SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
-                }
+                deleteFromRepositoryHoldingTheUserStore(domain);
             } else {
-                Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
-                        getInstance().getUserStoreDAOFactories();
-                for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
-
-                    if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                            StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
-                        entry.getValue().getInstance().deleteUserStore(domain);
-                    } else {
-                        SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
-                    }
-                }
+                deleteFromRegisteredRepositories(domain);
             }
         } catch (UserStoreException e) {
             throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
+        }
+    }
+
+    /**
+     * Delete a user store from the repository that actually holds it.
+     * <p>
+     * The listing also reports the stores the realm serves without a row of their own, so a delete can arrive
+     * for one of those. The database DAO would remove no row and leave the file in place, and the deployment
+     * engine would bring the store back on the next restart.
+     *
+     * @param domain Domain of the user store to delete.
+     * @throws UserStoreException            if the repository cannot be resolved.
+     * @throws IdentityUserStoreMgtException if the user store cannot be deleted.
+     */
+    private void deleteFromRepositoryHoldingTheUserStore(String domain) throws UserStoreException,
+            IdentityUserStoreMgtException {
+
+        UserStoreDAO userStoreDAO = SecondaryUserStoreConfigurationUtil.getUserStoreDAO();
+        if (userStoreDAO.getUserStore(domain) != null) {
+            userStoreDAO.deleteUserStore(domain);
+        } else {
+            SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
+        }
+    }
+
+    /**
+     * Delete a user store through each registered repository, as the service did before the database
+     * repository could hold the configurations.
+     *
+     * @param domain Domain of the user store to delete.
+     * @throws UserStoreException            if a repository cannot be resolved.
+     * @throws IdentityUserStoreMgtException if the user store cannot be deleted.
+     */
+    private void deleteFromRegisteredRepositories(String domain) throws UserStoreException,
+            IdentityUserStoreMgtException {
+
+        Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                getInstance().getUserStoreDAOFactories();
+        for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
+
+            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                    StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
+                entry.getValue().getInstance().deleteUserStore(domain);
+            } else {
+                SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
+            }
         }
     }
 
