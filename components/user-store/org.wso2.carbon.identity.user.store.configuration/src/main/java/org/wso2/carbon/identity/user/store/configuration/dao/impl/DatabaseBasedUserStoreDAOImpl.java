@@ -65,6 +65,7 @@ import javax.xml.stream.XMLStreamException;
 import static org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQueries.GET_ALL_USERSTORE_PROPERTIES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.isUserStoreServedByRealm;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
@@ -516,6 +517,18 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             }
             String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
             try {
+                if (isUserStoreServedByRealm(domainName)) {
+                    /*
+                     The realm already serves this domain, which is the case when the same domain is also on
+                     the file system and the deployment engine read it first. Registering it again is rejected
+                     as a duplicate domain, so leave the realm as it stands.
+                    */
+                    if (log.isDebugEnabled()) {
+                        log.debug("Skipping the user store domain: " + domainName + " of tenant: " + tenantId +
+                                ". The realm already serves it.");
+                    }
+                    continue;
+                }
                 addRealmToSecondaryUserStoreManager(userStorePersistanceDTO);
                 if (log.isDebugEnabled()) {
                     log.debug("Loaded the user store domain: " + domainName + " of tenant: " + tenantId +
