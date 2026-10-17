@@ -600,7 +600,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             } catch (IdentityUserStoreMgtException | IOException | UserStoreException | XMLStreamException e) {
                 // One configuration that cannot be migrated must not hold back the rest of the tenant.
                 log.error("Error occurred while migrating the user store configuration file: " +
-                        configurationFile.getName() + " of tenant: " + tenantId + ". The file is left in place.", e);
+                        configurationFile.getName() + OF_TENANT + tenantId + ". The file is left in place.", e);
             }
         }
     }
@@ -615,7 +615,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 fileName.substring(0, fileName.length() - FILE_EXTENSION_XML.length()),
                 new ByteArrayInputStream(userStoreProperties.getBytes(StandardCharsets.UTF_8)));
         if (realmConfiguration == null) {
-            log.warn("The user store configuration file: " + fileName + " of tenant: " + tenantId + " could not be " +
+            log.warn("The user store configuration file: " + fileName + OF_TENANT + tenantId + " could not be " +
                     "read as a user store configuration and is not migrated.");
             return;
         }
@@ -641,14 +641,14 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             return;
         }
         if (doGetUserStore(domainName).getUserStoreDTO() != null) {
-            log.info("The user store domain: " + domainName + " of tenant: " + tenantId + " is already persisted in " +
+            log.info("The user store domain: " + domainName + OF_TENANT + tenantId + " is already persisted in " +
                     "the database. The configuration file: " + fileName + " is left in place.");
             return;
         }
         addUserStoreProperties(userStoreProperties, domainName);
         Path migratedFilePath = Paths.get(configurationFilePath.toString() + FILE_EXTENSION_MIGRATED);
         Files.move(configurationFilePath, migratedFilePath);
-        log.info("Migrated the user store domain: " + domainName + " of tenant: " + tenantId + " into the database. " +
+        log.info("Migrated the user store domain: " + domainName + OF_TENANT + tenantId + " into the database. " +
                 "Its configuration file is moved to: " + migratedFilePath.getFileName() + ".");
     }
 
