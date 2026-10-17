@@ -498,7 +498,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             }
             userStoreDTO = getUserStoreDTO(domain, isDisable, null);
             updateStateInFileRepository(userStoreDTO);
-        } else if (StringUtils.isNotEmpty(repositoryClass)) {
+        } else if (!isConfiguredRepository(repositoryClass)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Repository separation of user-stores has been disabled. Unable to modify state " +
                           "for user-store " + domain + " with repository class " + repositoryClass);
