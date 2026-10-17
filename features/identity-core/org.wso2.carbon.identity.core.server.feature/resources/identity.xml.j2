@@ -4905,6 +4905,10 @@
     </ReservedUserstores>
     {% endif %}
 
+    {% if user_store_mgt.persistence_type is defined %}
+    <UserStorePersistenceType>{{user_store_mgt.persistence_type}}</UserStorePersistenceType>
+    {% endif %}
+
     <!-- System Applications -->
     {% if system_applications.read_only_apps is defined %}
     <SystemApplications>

@@ -48,6 +48,10 @@ public class UserStoreConfigurationConstant {
     public static final String RESERVED_USERSTORES = "ReservedUserstores.ReservedUserstore";
     public static final String INIT_REGEX = "\\s*;\\s*init\\s*=\\s*";
 
+    // Secondary user store configuration persistence.
+    public static final String USER_STORE_PERSISTENCE_TYPE = "UserStorePersistenceType";
+    public static final String PERSISTENCE_TYPE_DATABASE = "database";
+
     // Attribute mappings constants
     public static final String CLAIM_CONFIG = "claim-config.xml";
     public static final String DIALECTS = "Dialects";
