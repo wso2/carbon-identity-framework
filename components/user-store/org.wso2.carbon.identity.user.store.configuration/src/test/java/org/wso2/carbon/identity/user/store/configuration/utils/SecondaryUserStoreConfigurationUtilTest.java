@@ -45,6 +45,7 @@ import static org.testng.AssertJUnit.assertTrue;
 public class SecondaryUserStoreConfigurationUtilTest {
 
     private static final String PERSISTENCE_TYPE = "UserStorePersistenceType";
+    private static final String MIGRATE_FILE_BASED = "MigrateFileBasedUserStoreConfigurations";
 
     private Map<String, AbstractUserStoreDAOFactory> factories;
 
@@ -78,6 +79,26 @@ public class SecondaryUserStoreConfigurationUtilTest {
             identityUtil.when(() -> IdentityUtil.getProperty(PERSISTENCE_TYPE)).thenReturn("DataBase");
             assertTrue("The persistence type must be read regardless of case.",
                     SecondaryUserStoreConfigurationUtil.isDatabaseBasedUserStorePersistenceEnabled());
+        }
+    }
+
+    @Test
+    public void testMigrationNeedsBothTheDatabaseAndItsOwnFlag() {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(PERSISTENCE_TYPE)).thenReturn("file");
+            identityUtil.when(() -> IdentityUtil.getProperty(MIGRATE_FILE_BASED)).thenReturn("true");
+            assertFalse("Migration must not run while the file system is the repository.",
+                    SecondaryUserStoreConfigurationUtil.isFileBasedUserStoreMigrationEnabled());
+
+            identityUtil.when(() -> IdentityUtil.getProperty(PERSISTENCE_TYPE)).thenReturn("database");
+            identityUtil.when(() -> IdentityUtil.getProperty(MIGRATE_FILE_BASED)).thenReturn(null);
+            assertFalse("Migration must be off unless it is turned on explicitly.",
+                    SecondaryUserStoreConfigurationUtil.isFileBasedUserStoreMigrationEnabled());
+
+            identityUtil.when(() -> IdentityUtil.getProperty(MIGRATE_FILE_BASED)).thenReturn("true");
+            assertTrue("Migration runs once both are on.",
+                    SecondaryUserStoreConfigurationUtil.isFileBasedUserStoreMigrationEnabled());
         }
     }
 
