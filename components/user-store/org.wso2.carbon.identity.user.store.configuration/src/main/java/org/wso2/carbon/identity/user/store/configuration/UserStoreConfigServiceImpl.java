@@ -236,8 +236,10 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
 
         UserStoreDAO userStoreDAO = SecondaryUserStoreConfigurationUtil.getUserStoreDAO();
         if (userStoreDAO.getUserStore(domain) != null) {
+            LOG.info("Deleting the user store domain: " + domain + " from the database repository.");
             userStoreDAO.deleteUserStore(domain);
         } else {
+            LOG.info("Deleting the user store domain: " + domain + " from the file based repository.");
             SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
         }
     }
