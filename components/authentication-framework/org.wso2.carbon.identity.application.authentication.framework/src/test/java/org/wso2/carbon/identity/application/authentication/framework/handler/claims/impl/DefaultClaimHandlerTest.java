@@ -25,8 +25,10 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -62,6 +64,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -395,6 +398,72 @@ public class DefaultClaimHandlerTest {
         invokeHandleRoleClaim(mappedAttrs, false, true, true, false);
 
         Assert.assertEquals(mappedAttrs.get(UserCoreConstants.ROLE_CLAIM), "Internal/everyone,SECONDARY/therole");
+    }
+
+    @DataProvider(name = "legacyFederatedClaimHandlingConfigDataProvider")
+    public Object[][] legacyFederatedClaimHandlingConfigData() {
+
+        return new Object[][]{
+                // configured value, whether the pre IS 6.0.0 federated claim handling is in force
+                {null, false},
+                {"", false},
+                {"true", true},
+                {"TRUE", true},
+                {"notaboolean", false},
+                {"false", false},
+                {"FALSE", false},
+        };
+    }
+
+    /**
+     * The gate the federated role claim guards read. It defaults to off so that a deployment which has not set
+     * the configuration keeps the behaviour it has today.
+     */
+    @Test(dataProvider = "legacyFederatedClaimHandlingConfigDataProvider")
+    public void testLegacyFederatedClaimHandlingDefaultsToOff(String configuredValue, boolean expected)
+            throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                            FrameworkConstants.CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING))
+                    .thenReturn(configuredValue);
+
+            Method method = DefaultClaimHandler.class
+                    .getDeclaredMethod("isLegacyFederatedClaimHandlingEnabled");
+            method.setAccessible(true);
+            Assert.assertEquals(method.invoke(null), expected,
+                    "Filtering gate did not match the configured value: " + configuredValue);
+        }
+    }
+
+    /**
+     * The identity provider claim mapping configuration is read on its own. Turning the federated claim
+     * filtering off must not change it, since a deployment may have enabled those mappings deliberately.
+     */
+    @Test
+    public void testLocalClaimDialectIsNotDecidedByTheFilteringConfig() throws Exception {
+
+        for (String filtering : new String[]{"true", "false"}) {
+            for (boolean customMappingsAllowed : new boolean[]{true, false}) {
+                try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+                     MockedStatic<FileBasedConfigurationBuilder> configBuilder =
+                             mockStatic(FileBasedConfigurationBuilder.class)) {
+
+                    identityUtil.when(() -> IdentityUtil.getProperty(
+                                    FrameworkConstants.CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING))
+                            .thenReturn(filtering);
+                    FileBasedConfigurationBuilder builder = mock(FileBasedConfigurationBuilder.class);
+                    when(builder.isCustomClaimMappingsForAuthenticatorsAllowed()).thenReturn(customMappingsAllowed);
+                    configBuilder.when(FileBasedConfigurationBuilder::getInstance).thenReturn(builder);
+
+                    Method method = DefaultClaimHandler.class
+                            .getDeclaredMethod("useLocalClaimDialectForClaimMappings");
+                    method.setAccessible(true);
+                    Assert.assertEquals(method.invoke(new DefaultClaimHandler()), customMappingsAllowed,
+                            "The claim mapping configuration was overridden while filtering was " + filtering);
+                }
+            }
+        }
     }
 
     private void invokeHandleRoleClaim(Map<String, String> mappedAttrs, boolean useUserstoreDomainInRoles,
