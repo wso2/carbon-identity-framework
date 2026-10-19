@@ -48,6 +48,11 @@
             <artifactId>org.wso2.carbon.identity.flow.extension.server.feature</artifactId>
             <type>zip</type>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.flow.executor.server.feature</artifactId>
+            <type>zip</type>
+        </dependency>
     </dependencies>
 
     <build>
@@ -74,6 +79,9 @@
                                 </includedFeatureDef>
                                 <includedFeatureDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.extension.server.feature
+                                </includedFeatureDef>
+                                <includedFeatureDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.executor.server.feature
                                 </includedFeatureDef>
                             </includedFeatures>
                         </configuration>
