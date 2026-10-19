@@ -58,6 +58,7 @@ public abstract class FrameworkConstants {
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
+    public static final String LEGACY_FEDERATED_CLAIM_HANDLING = "LegacyFederatedClaimHandling";
     public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
     public static final String SP_REQUESTED_CLAIMS_IN_REQUEST = "SP_REQUESTED_CLAIMS_IN_REQUEST";
     public static final String LOCAL_IDP_NAME = "LOCAL";
@@ -181,6 +182,8 @@ public abstract class FrameworkConstants {
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
     public static final String CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING = "EnableScopeBasedClaimFiltering";
     public static final String CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY = "AllowSPRequestedFedClaimsOnly";
+    public static final String CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING =
+            "EnableLegacyFederatedClaimHandling";
     public static final String INCLUDE_AUTH_FAILURE_REASON_IN_API_BASED_AUTH_RESPONSE =
             "IncludeAuthFailureReasonInAPIBasedAuthResponse";
     public static final String INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE =

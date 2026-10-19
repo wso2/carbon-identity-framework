@@ -200,6 +200,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         String serviceProviderMappedUserRoles;
 
         boolean useAppAssociatedRoles = isAppRoleResolverExists() || !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
+        // Read once: the three role claim guards below all ask the same question.
+        boolean legacyFederatedClaimHandling = isLegacyFederatedClaimHandlingEnabled();
         boolean excludeSuperTenantForLegacyRolesClaim =
                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getTenantDomain()) &&
                 Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR));
@@ -250,7 +252,9 @@ public class DefaultClaimHandler implements ClaimHandler {
                     && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
                 remoteClaims.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
             }
-            if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)) {
+            if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)
+                    && !legacyFederatedClaimHandling) {
+                // The blank entry has no pre IS 6.0.0 equivalent, so it is left out under legacy handling.
                 remoteClaims.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
             }
         }
@@ -297,9 +301,12 @@ public class DefaultClaimHandler implements ClaimHandler {
             // used and roles claim should not be overridden.
             if (!FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(
                     stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator().getName())) {
-                localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM,
-                        StringUtils.isNotEmpty(serviceProviderMappedUserRoles) ?
-                                serviceProviderMappedUserRoles : StringUtils.EMPTY);
+                if (StringUtils.isNotEmpty(serviceProviderMappedUserRoles)) {
+                    localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM, serviceProviderMappedUserRoles);
+                } else if (!legacyFederatedClaimHandling) {
+                    // Pre IS 6.0.0 wrote no roles claim here, so the empty one is left out under legacy handling.
+                    localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM, StringUtils.EMPTY);
+                }
             }
             if (CollectionUtils.isNotEmpty(federatedUserRolesUnmappedExclusive)) {
                 Set<String> federatedUserRolesUnmappedInclusiveSetWithoutDomain =
@@ -380,7 +387,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                             }
                         }
                     }
-                } else {
+                } else if (!legacyFederatedClaimHandling) {
+                    // The empty entry draws in the multi attribute separator, which pre IS 6.0.0 did not send.
                     spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, StringUtils.EMPTY);
                 }
             }
@@ -1380,6 +1388,19 @@ public class DefaultClaimHandler implements ClaimHandler {
     private boolean useLocalClaimDialectForClaimMappings() {
 
         return FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
+    }
+
+    /**
+     * Whether the federated claims are handled the way releases before IS 6.0.0 handled them. Reads
+     * {@code EnableLegacyFederatedClaimHandling} alone; the deprecated {@code AllowSPRequestedFedClaimsOnly}
+     * has no say over it.
+     *
+     * @return true only when {@code EnableLegacyFederatedClaimHandling} is turned on.
+     */
+    private static boolean isLegacyFederatedClaimHandlingEnabled() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(FrameworkConstants.CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING));
     }
 
     /**

@@ -402,6 +402,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         authenticationResult.setSaaSApp(sequenceConfig.getApplicationConfig().isSaaSApp());
         authenticationResult.setSharedAppLogin(context.isSharedAppLogin());
+        // Carried to the inbound protocol, which needs to know the claims were handled the pre IS 6.0.0 way.
+        if (Boolean.TRUE.equals(
+                context.getProperty(FrameworkConstants.LEGACY_FEDERATED_CLAIM_HANDLING))) {
+            authenticationResult.addProperty(FrameworkConstants.LEGACY_FEDERATED_CLAIM_HANDLING, true);
+        }
 
         if (isAuthenticated) {
 

@@ -68,6 +68,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.REQUESTED_SUBJECT;
 
 /**
@@ -78,6 +79,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
     private static boolean allowSPRequestedFedClaimsOnly = true;
+    private static boolean enableLegacyFederatedClaimHandling = false;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -96,6 +98,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY))) {
             allowSPRequestedFedClaimsOnly =
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY));
+        }
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING))) {
+            enableLegacyFederatedClaimHandling = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING));
         }
     }
 
@@ -254,6 +260,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
 
         boolean isAuthenticatorExecuted = false;
+        boolean isFederatedAttributeStep = false;
         ImpersonatedUser impersonatedUser = null;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
@@ -366,6 +373,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 }
                 if (stepConfig.isSubjectAttributeStep()) {
 
+                    // Organization login has its own authenticator and is out of scope here.
+                    isFederatedAttributeStep = !FrameworkConstants.ORGANIZATION_AUTHENTICATOR
+                            .equals(authenticator.getName());
+
                     if (!sequenceConfig.getApplicationConfig().isMappedSubjectIDSelected()) {
                         // if we found the mapped subject - then we do not need to worry about
                         // finding attributes.
@@ -373,15 +384,17 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // if no requested claims are selected and sp claim dialect is not a standard dialect,
                         // send all local mapped claim values or idp claim values
                         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+                        // Either configuration turns this branch on; neither depends on the other.
                         if (MapUtils.isEmpty(appConfig.getRequestedClaimMappings()) &&
-                                (!allowSPRequestedFedClaimsOnly ||
-                                        !isSPStandardClaimDialect(context.getRequestType()))) {
+                                (!allowSPRequestedFedClaimsOnly
+                                        || enableLegacyFederatedClaimHandling
+                                        || !isSPStandardClaimDialect(context.getRequestType()))) {
 
+                            // One or the other, not both, as this branch did before IS 6.0.0.
                             if (MapUtils.isNotEmpty(localClaimValues)) {
                                 mappedAttrs = localClaimValues;
-                            }
-                            if (MapUtils.isNotEmpty(idpClaimValues)) {
-                                mappedAttrs.putAll(idpClaimValues);
+                            } else if (MapUtils.isNotEmpty(idpClaimValues)) {
+                                mappedAttrs = idpClaimValues;
                             }
                         }
                         authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
@@ -443,12 +456,26 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         List<ClaimMapping> selectedRequestedClaims = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityClaimFilter().getFilteredClaims(context, appConfig);
 
-        // Reset the user attributes returned from federate IdP if the requested claims are not empty.
-        if (!selectedRequestedClaims.isEmpty()) {
-            sequenceConfig.getAuthenticatedUser().setUserAttributes(Collections.unmodifiableMap(new HashMap<>()));
-        }
-        if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()) {
-            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+        // Decided by the configuration alone, not by what the claim mappings or the dialects resolve to.
+        boolean retainFederatedAttributes = enableLegacyFederatedClaimHandling && isFederatedAttributeStep;
+
+        // Pre IS 6.0.0 made one write here, the last one below. Skipping the other two leaves exactly that.
+        if (retainFederatedAttributes) {
+            // A requested claim can be left unresolved here, and pre IS 6.0.0 still asked for consent to it.
+            context.setProperty(FrameworkConstants.LEGACY_FEDERATED_CLAIM_HANDLING, true);
+            if (log.isDebugEnabled() && authenticatedUserAttributes.isEmpty()) {
+                log.debug("Keeping the claims received from the federated identity provider since no claim "
+                        + "the service provider requested resolved and "
+                        + CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING + " is set to true.");
+            }
+        } else {
+            // Reset the user attributes returned from federate IdP if the requested claims are not empty.
+            if (!selectedRequestedClaims.isEmpty()) {
+                sequenceConfig.getAuthenticatedUser().setUserAttributes(Collections.unmodifiableMap(new HashMap<>()));
+            }
+            if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()) {
+                sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+            }
         }
         if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
