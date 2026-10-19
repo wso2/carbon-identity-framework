@@ -1,0 +1,10 @@
+{
+  "id": "digital-wallet",
+  "name": "Digital Wallet",
+  "description": "Enable users to sign in or register using verifiable credentials.",
+  "image": "assets/images/logos/wallet.svg",
+  "category": "DEFAULT",
+  "displayOrder": 3,
+  "tags": ["Wallet", "OpenID4VP"],
+  "type": "identity-provider"
+}

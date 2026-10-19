@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtE
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,13 +83,13 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
 
         Object exposeValue = actionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         if (exposeValue != null) {
-            List<ContextPath> validatedExpose = validateAccessConfig(exposeValue);
+            List<ContextPath> validatedExpose = validateAccessConfig(ACCESS_CONFIG_EXPOSE, exposeValue);
             properties.put(ACCESS_CONFIG_EXPOSE, createBlobProperty(validatedExpose));
         }
 
         Object modifyValue = actionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
         if (modifyValue != null) {
-            List<ContextPath> validatedModify = validateAccessConfig(modifyValue);
+            List<ContextPath> validatedModify = validateAccessConfig(ACCESS_CONFIG_MODIFY, modifyValue);
             properties.put(ACCESS_CONFIG_MODIFY, createBlobProperty(validatedModify));
         }
 
@@ -193,7 +194,7 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
-            return validateAccessConfig(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE));
+            return validateAccessConfig(ACCESS_CONFIG_EXPOSE, updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
             return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         }
@@ -206,7 +207,7 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
-            return validateAccessConfig(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
+            return validateAccessConfig(ACCESS_CONFIG_MODIFY, updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
             return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
         }
@@ -214,7 +215,8 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
     }
 
     @SuppressWarnings("unchecked")
-    private List<ContextPath> validateAccessConfig(Object exposeValue) throws ActionDTOModelResolverException {
+    private List<ContextPath> validateAccessConfig(String accessConfig, Object exposeValue)
+            throws ActionDTOModelResolverException {
 
         if (!(exposeValue instanceof List<?>)) {
             throw new ActionDTOModelResolverClientException("Invalid expose format.",
@@ -243,6 +245,9 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
         }
 
         validateContextPathFormat(result);
+        if (ACCESS_CONFIG_MODIFY.equals(accessConfig)) {
+            FlowExtensionUtil.validateModifyPaths(result);
+        }
         return result;
     }
 

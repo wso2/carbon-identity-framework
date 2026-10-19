@@ -69,6 +69,7 @@ import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
@@ -143,11 +144,13 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.DEFAULT_SP_CONFIG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
@@ -159,6 +162,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_F
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
+import static org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST;
 import static org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT;
 import static org.wso2.carbon.user.core.UserStoreConfigConstants.GROUP_NAME_ATTRIBUTE;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -175,6 +179,10 @@ public class ApplicationManagementServiceImplTest {
     private static final String APPLICATION_NAME_1 = "Test application1";
     private static final String APPLICATION_NAME_2 = "Test application2";
     private static final String APPLICATION_NAME_3 = "Test application3";
+    private static final String APPLICATION_NAME_FAILED_UPDATE_WITH_CERT = "Test application failed update with cert";
+    private static final String APPLICATION_NAME_DANGLING_CERT_READ = "Test application dangling cert read";
+    private static final String APPLICATION_NAME_DANGLING_CERT_UPDATE = "Test application dangling cert update";
+    private static final String APPLICATION_NAME_CERT_READ_FAILURE = "Test application cert read failure";
     private static final String APPLICATION_TEMPLATE_ID_1 = "Test_template_1";
     private static final String APPLICATION_TEMPLATE_ID_2 = "Test_template_2";
     private static final String APPLICATION_TEMPLATE_VERSION_1 = "v1.0.0";
@@ -228,6 +236,7 @@ public class ApplicationManagementServiceImplTest {
     private Certificate certificate;
     private CertificateMgtServerException serverException;
     private CertificateMgtClientException clientException;
+    private CertificateMgtClientException certificateNotFoundException;
     private OrganizationManager organizationManager;
     private String rootAppId;
     private String l1AppId;
@@ -271,6 +280,9 @@ public class ApplicationManagementServiceImplTest {
                 new Throwable());
         clientException = new CertificateMgtClientException(ERROR_INVALID_CERTIFICATE_CONTENT.getMessage(),
                 ERROR_INVALID_CERTIFICATE_CONTENT.getDescription(), ERROR_INVALID_CERTIFICATE_CONTENT.getCode());
+        certificateNotFoundException = new CertificateMgtClientException(
+                ERROR_CERTIFICATE_DOES_NOT_EXIST.getMessage(), ERROR_CERTIFICATE_DOES_NOT_EXIST.getDescription(),
+                ERROR_CERTIFICATE_DOES_NOT_EXIST.getCode());
 
         organizationManager = mock(OrganizationManager.class);
         ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
@@ -1167,6 +1179,69 @@ public class ApplicationManagementServiceImplTest {
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
+    @DataProvider(name = "clientIdWithOnlyAtSymbolsDataProvider")
+    public Object[][] clientIdWithOnlyAtSymbolsDataProvider() {
+
+        return new Object[][]{
+                {"@"},
+                {"@@"},
+                {"@@@"}
+        };
+    }
+
+    @Test(dataProvider = "clientIdWithOnlyAtSymbolsDataProvider")
+    public void testGetServiceProviderByClientIdWithOnlyAtSymbols(String clientId)
+            throws IdentityApplicationManagementException {
+
+        // An unresolvable client id falls back to the default service provider. A client id made up of only '@'
+        // characters has no application either, so it must follow that same path instead of failing while the
+        // appended tenant domain is split off.
+        ServiceProvider defaultSP = new ServiceProvider();
+        defaultSP.setApplicationName(DEFAULT_SP_CONFIG);
+        ApplicationManagementServiceComponent.getFileBasedSPs().put(DEFAULT_SP_CONFIG, defaultSP);
+        try {
+            ServiceProvider expected = applicationManagementService.getServiceProviderByClientId(
+                    "unknown auth key", "oauth2", SUPER_TENANT_DOMAIN_NAME);
+            ServiceProvider actual = applicationManagementService.getServiceProviderByClientId(clientId, "oauth2",
+                    SUPER_TENANT_DOMAIN_NAME);
+
+            Assert.assertNotNull(actual);
+            Assert.assertEquals(actual.getApplicationName(), expected.getApplicationName());
+        } finally {
+            ApplicationManagementServiceComponent.getFileBasedSPs().remove(DEFAULT_SP_CONFIG);
+        }
+    }
+
+    @Test
+    public void testGetServiceProviderByClientIdWithMultipleAtSymbols()
+            throws IdentityApplicationManagementException {
+
+        // The client id is split at the first '@', so a client id carrying more than one '@' must keep resolving
+        // the same application as before.
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP);
+
+        applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Registered so that a client id which resolves no application returns the default service provider
+        // instead of failing, which keeps the assertion below on the resolved application name.
+        ServiceProvider defaultSP = new ServiceProvider();
+        defaultSP.setApplicationName(DEFAULT_SP_CONFIG);
+        ApplicationManagementServiceComponent.getFileBasedSPs().put(DEFAULT_SP_CONFIG, defaultSP);
+        try {
+            ServiceProvider actual = applicationManagementService.getServiceProviderByClientId(
+                    "auth key@extra@" + SUPER_TENANT_DOMAIN_NAME, "oauth2", SUPER_TENANT_DOMAIN_NAME);
+
+            Assert.assertNotNull(actual);
+            Assert.assertEquals(actual.getApplicationName(), inputSP.getApplicationName());
+        } finally {
+            ApplicationManagementServiceComponent.getFileBasedSPs().remove(DEFAULT_SP_CONFIG);
+            // Deleting all added application.
+            applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+        }
+    }
+
     @DataProvider(name = "testAddApplicationWithIsManagementApplicationData")
     public Object[][] testAddApplicationWithIsManagementApplicationData() {
 
@@ -1790,6 +1865,162 @@ public class ApplicationManagementServiceImplTest {
         doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
         applicationManagementService.deleteApplication(appWithoutCert.getApplicationName(),
                 SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+    }
+
+    /**
+     * A failure anywhere in an application update must leave the certificate record alone, so that the certificate
+     * reference surviving in SP_METADATA never points at a deleted record.
+     * See https://github.com/wso2/product-is/issues/28238
+     */
+    @Test(groups = "certificate", priority = 12)
+    public void testCertificateIsNotTouchedWhenApplicationUpdateFails() throws Exception {
+
+        String appId = createApplicationWithCertificate(APPLICATION_NAME_FAILED_UPDATE_WITH_CERT);
+        try {
+            ServiceProvider appToUpdate = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            /*
+            Remove the certificate and, in the same request, set a JWKS URI longer than the 255 character limit of
+            the SP_METADATA value column, so that the update fails while writing the service provider properties.
+             */
+            appToUpdate.setCertificateContent(StringUtils.EMPTY);
+            appToUpdate.setJwksUri("https://localhost/" + StringUtils.repeat("a", 255) + "/jwks");
+            try {
+                applicationManagementService.updateApplicationByResourceId(appId, appToUpdate,
+                        SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+                Assert.fail("Successful update of the application without an exception is considered as a failure");
+            } catch (IdentityApplicationManagementException e) {
+                // Expected, since the JWKS URI does not fit in the SP_METADATA value column.
+            }
+
+            verify(applicationCertificateManagementService, never()).deleteCertificate(anyInt(), anyString());
+
+            ServiceProvider appAfterFailedUpdate = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            Assert.assertEquals(getCertificateReferences(appAfterFailedUpdate),
+                    Collections.singletonList(String.valueOf(CERTIFICATE_ID)));
+            Assert.assertEquals(appAfterFailedUpdate.getCertificateContent(), certificate.getCertificateContent());
+        } finally {
+            deleteApplicationWithCertificate(APPLICATION_NAME_FAILED_UPDATE_WITH_CERT);
+        }
+    }
+
+    /**
+     * Applications broken before the above fix carry a reference to a certificate record that no longer exists.
+     * Reading such an application should not fail, since that fails the listing of every application in the tenant.
+     */
+    @Test(groups = "certificate", priority = 12)
+    public void testGetApplicationWithDanglingCertificateReference() throws Exception {
+
+        String appId = createApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_READ);
+        try {
+            reset(applicationCertificateManagementService);
+            doThrow(certificateNotFoundException).when(applicationCertificateManagementService)
+                    .getCertificate(anyInt(), anyString());
+
+            ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            Assert.assertNotNull(retrievedSP, "A dangling certificate reference should not fail the application read");
+            Assert.assertNull(retrievedSP.getCertificateContent());
+        } finally {
+            deleteApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_READ);
+        }
+    }
+
+    /**
+     * Only a missing certificate record is treated as an absent certificate. Any other failure of the certificate
+     * management service must still surface, rather than silently reading the application back without its
+     * certificate.
+     */
+    @Test(groups = "certificate", priority = 12)
+    public void testGetApplicationFailsWhenCertificateRetrievalFailsForAnotherReason() throws Exception {
+
+        String appId = createApplicationWithCertificate(APPLICATION_NAME_CERT_READ_FAILURE);
+        try {
+            reset(applicationCertificateManagementService);
+            doThrow(clientException).when(applicationCertificateManagementService)
+                    .getCertificate(anyInt(), anyString());
+
+            applicationManagementService.getApplicationByResourceId(appId, SUPER_TENANT_DOMAIN_NAME);
+            Assert.fail("An unexpected certificate management failure should not be treated as an absent certificate");
+        } catch (IdentityApplicationManagementException e) {
+            // Expected, since the failure is not a missing certificate record.
+        } finally {
+            // Resets the certificate management service mock as well, so that it does not leak into other tests.
+            deleteApplicationWithCertificate(APPLICATION_NAME_CERT_READ_FAILURE);
+        }
+    }
+
+    /**
+     * Updating the certificate of an application with a dangling certificate reference should persist the
+     * certificate as a new record and replace the stale reference with it.
+     */
+    @Test(groups = "certificate", priority = 12)
+    public void testUpdateApplicationWithDanglingCertificateReference() throws Exception {
+
+        String appId = createApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_UPDATE);
+        try {
+            ServiceProvider appToUpdate = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+
+            int newCertificateId = CERTIFICATE_ID + 1;
+            doThrow(certificateNotFoundException).when(applicationCertificateManagementService)
+                    .updateCertificateContent(anyInt(), anyString(), anyString());
+            doReturn(newCertificateId).when(applicationCertificateManagementService)
+                    .addCertificate(any(), anyString());
+
+            appToUpdate.setCertificateContent(UPDATED_CERTIFICATE);
+            applicationManagementService.updateApplicationByResourceId(appId, appToUpdate, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+
+            ServiceProvider updatedSP = applicationManagementService.getApplicationByResourceId(appId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            Assert.assertEquals(getCertificateReferences(updatedSP),
+                    Collections.singletonList(String.valueOf(newCertificateId)));
+        } finally {
+            deleteApplicationWithCertificate(APPLICATION_NAME_DANGLING_CERT_UPDATE);
+        }
+    }
+
+    /**
+     * Creates an application with a certificate, with the certificate management service stubbed to hand out
+     * {@link #CERTIFICATE_ID} and to resolve it back to {@link #certificate}.
+     *
+     * @param applicationName Name of the application to create.
+     * @return Resource ID of the created application.
+     */
+    private String createApplicationWithCertificate(String applicationName) throws Exception {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(applicationName);
+        inputSP.setCertificateContent(certificate.getCertificateContent());
+        addApplicationConfigurations(inputSP);
+
+        reset(applicationCertificateManagementService);
+        doReturn(CERTIFICATE_ID).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+        when(applicationCertificateManagementService.getCertificate(anyInt(), anyString())).thenReturn(certificate);
+
+        return applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+    }
+
+    private void deleteApplicationWithCertificate(String applicationName) throws Exception {
+
+        reset(applicationCertificateManagementService);
+        doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        applicationManagementService.deleteApplication(applicationName, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+    }
+
+    private List<String> getCertificateReferences(ServiceProvider serviceProvider) {
+
+        List<String> certificateReferences = new ArrayList<>();
+        for (ServiceProviderProperty property : serviceProvider.getSpProperties()) {
+            if ("CERTIFICATE".equals(property.getName())) {
+                certificateReferences.add(property.getValue());
+            }
+        }
+        return certificateReferences;
     }
 
     @Test(groups = "b2b-shared-apps", priority = 13)

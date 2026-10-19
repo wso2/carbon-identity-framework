@@ -193,18 +193,24 @@ public class ConfigurationUtils {
      */
     public static boolean isCreatedTimeFieldExists() {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-
-            /*
-            DB scripts without CREATED_TIME field can exists for H2 and MYSQL 5.7.
-             */
-            String sql = GET_CREATED_TIME_COLUMN_MYSQL;
-
+        /*
+        DB scripts without CREATED_TIME field can exists for H2 and MYSQL 5.7.
+         */
+        String sql = GET_CREATED_TIME_COLUMN_MYSQL;
+        try {
+            // Resolve the DB type before taking the connection so the checks do not borrow while it is held.
             if (isMSSqlDB()) {
                 sql = GET_CREATED_TIME_COLUMN_MSSQL;
             } else if (isOracleDB()) {
                 sql = GET_CREATED_TIME_COLUMN_ORACLE;
             }
+        } catch (DataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while checking if CREATED_TIME field exists in IDN_CONFIG_RESOURCE table.", e);
+            }
+            return false;
+        }
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
                  ResultSet resultSet = preparedStatement.executeQuery()) {
                 // Following statement will throw SQLException if the column is not found
@@ -218,7 +224,7 @@ public class ConfigurationUtils {
                 }
                 return false;
             }
-        } catch (IdentityRuntimeException | SQLException | DataAccessException e) {
+        } catch (IdentityRuntimeException | SQLException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while checking if CREATED_TIME field exists in IDN_CONFIG_RESOURCE table.",
                         e);

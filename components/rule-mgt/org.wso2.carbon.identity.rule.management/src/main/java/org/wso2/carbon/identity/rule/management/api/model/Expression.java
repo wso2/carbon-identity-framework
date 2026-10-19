@@ -19,24 +19,33 @@
 package org.wso2.carbon.identity.rule.management.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+import java.io.Serializable;
 
 /**
  * Represents an expression in Rule Management.
  * This class has a field, an operator and a value.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonDeserialize(builder = Expression.Builder.class)
-public class Expression {
+public class Expression implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String field;
+    private final String fieldQualifier;
     private final String operator;
     private final Value value;
 
     private Expression(Builder builder) {
 
         this.field = builder.field;
+        this.fieldQualifier = builder.fieldQualifier;
         this.operator = builder.operator;
         this.value = resolveValue(builder);
     }
@@ -44,6 +53,16 @@ public class Expression {
     public String getField() {
 
         return field;
+    }
+
+    /**
+     * Qualifier selecting one value of the field, such as a claim URI.
+     *
+     * @return The qualifier, or null when the field is not qualified.
+     */
+    public String getFieldQualifier() {
+
+        return fieldQualifier;
     }
 
     public String getOperator() {
@@ -69,9 +88,11 @@ public class Expression {
      * Builder for the Expression.
      */
     @JsonPOJOBuilder(withPrefix = "")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Builder {
 
         private String field;
+        private String fieldQualifier;
         private String operator;
         private Value value;
         private String rawValue;
@@ -79,6 +100,12 @@ public class Expression {
         public Builder field(String field) {
 
             this.field = field;
+            return this;
+        }
+
+        public Builder fieldQualifier(String fieldQualifier) {
+
+            this.fieldQualifier = fieldQualifier;
             return this;
         }
 
@@ -115,10 +142,6 @@ public class Expression {
 
             if (operator == null || operator.isEmpty()) {
                 throw new IllegalArgumentException("Operator must be provided.");
-            }
-
-            if (value == null && rawValue == null) {
-                throw new IllegalArgumentException("Either primitive value or Value with type must be provided.");
             }
 
             return new Expression(this);

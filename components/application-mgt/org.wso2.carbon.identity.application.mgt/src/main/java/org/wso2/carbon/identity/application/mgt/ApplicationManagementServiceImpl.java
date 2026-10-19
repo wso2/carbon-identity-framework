@@ -1481,8 +1481,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
         // client id can contain the @ to identify the tenant domain.
-        if (clientId != null && clientId.contains("@")) {
-            clientId = clientId.split("@")[0];
+        if (clientId != null) {
+            int tenantSeparatorIndex = clientId.indexOf('@');
+            if (tenantSeparatorIndex > 0) {
+                clientId = clientId.substring(0, tenantSeparatorIndex);
+            }
         }
 
         String serviceProviderName;
@@ -3733,5 +3736,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return Arrays.stream(serviceProvider.getSpProperties())
                 .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
                         Boolean.parseBoolean(property.getValue()));
+    }
+
+    @Override
+    public List<ApplicationBasicInfo> getApplicationBasicInfosByIds(int[] appIds)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationBasicInfosByIds(appIds);
+    }
+
+    @Override
+    public List<ApplicationBasicInfo> getApplicationBasicInfos(String filterClause, List<Object> filterParams)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationBasicInfos(filterClause, filterParams);
     }
 }

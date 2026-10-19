@@ -19,11 +19,14 @@
 package org.wso2.carbon.identity.rule.metadata.api.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.wso2.carbon.identity.rule.metadata.internal.deserializer.ValueDeserializer;
 import org.wso2.carbon.identity.rule.metadata.internal.deserializer.ValueTypeDeserializer;
 
 /**
  * Represents a value meta of a field.
+ * Read from JSON as the subclass its input type and value type call for.
  */
+@JsonDeserialize(using = ValueDeserializer.class)
 public abstract class Value {
 
     private final InputType inputType;

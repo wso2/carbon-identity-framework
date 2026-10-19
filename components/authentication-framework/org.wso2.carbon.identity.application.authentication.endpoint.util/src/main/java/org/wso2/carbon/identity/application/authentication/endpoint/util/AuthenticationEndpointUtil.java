@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -393,6 +393,17 @@ public class AuthenticationEndpointUtil {
                 return handleHttpResponse(response, backendURL);
             });
 
+        } catch (IllegalArgumentException e) {
+            /*
+             * The URL was built from a request parameter, so a malformed request makes it unparsable.
+             * URI.create() reports that with an unchecked exception, which no caller of this method
+             * catches, so it used to unwind out of the servlet and be logged with its stack trace.
+             * There are no properties to read for such a URL, which is the same outcome as a lookup
+             * that resolves nothing.
+             */
+            if (log.isDebugEnabled()) {
+                log.debug("Skipping " + HTTP_METHOD_GET + " request: the backend URL is not valid.");
+            }
         } catch (IOException e) {
             log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + backendURL + ", failed.", e);
         }

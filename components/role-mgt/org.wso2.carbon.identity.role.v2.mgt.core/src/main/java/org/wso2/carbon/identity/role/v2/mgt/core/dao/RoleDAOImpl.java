@@ -3699,73 +3699,64 @@ public class RoleDAOImpl implements RoleDAO {
     private void equalFilterBuilder(String value, String attributeName, StringBuilder filter,
                                     FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " =:" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" =:").append(parameterName).append("; AND ");
     }
 
     private void notEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
                                     FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " !=:" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" !=:").append(parameterName).append("; AND ");
     }
 
     private void startWithFilterBuilder(String value, String attributeName, StringBuilder filter,
                                         FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " LIKE :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value + "%");
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value + "%");
+        filter.append(attributeName).append(" LIKE :").append(parameterName).append("; AND ");
     }
 
     private void endWithFilterBuilder(String value, String attributeName, StringBuilder filter,
                                       FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " LIKE :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, "%" + value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, "%" + value);
+        filter.append(attributeName).append(" LIKE :").append(parameterName).append("; AND ");
     }
 
     private void containsFilterBuilder(String value, String attributeName, StringBuilder filter,
                                        FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " LIKE :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, "%" + value + "%");
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, "%" + value + "%");
+        filter.append(attributeName).append(" LIKE :").append(parameterName).append("; AND ");
     }
 
     private void greaterThanOrEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
                                                  FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " >= :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" >= :").append(parameterName).append("; AND ");
     }
 
     private void lessThanOrEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
                                               FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " <= :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" <= :").append(parameterName).append("; AND ");
     }
 
     private void greaterThanFilterBuilder(String value, String attributeName, StringBuilder filter,
                                           FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " > :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" > :").append(parameterName).append("; AND ");
     }
 
     private void lessThanFilterBuilder(String value, String attributeName, StringBuilder filter,
                                        FilterQueryBuilder filterQueryBuilder) {
 
-        String filterString = " < :" + attributeName + "; AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+        String parameterName = filterQueryBuilder.addFilterAttributeValue(attributeName, value);
+        filter.append(attributeName).append(" < :").append(parameterName).append("; AND ");
     }
 
     private IdpGroup convertToIdpGroup(IdPGroup idpGroup) {

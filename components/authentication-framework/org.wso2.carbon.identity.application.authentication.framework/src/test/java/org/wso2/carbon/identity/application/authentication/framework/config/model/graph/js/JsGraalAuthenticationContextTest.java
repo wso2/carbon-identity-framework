@@ -55,6 +55,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_SOURCE;
@@ -292,6 +293,54 @@ public class JsGraalAuthenticationContextTest {
                 Source.newBuilder(POLYGLOT_LANGUAGE, "context.passwordResetComplete", POLYGLOT_SOURCE).build());
         assertFalse(result.isNull());
         assertFalse(result.asBoolean());
+    }
+
+    @Test
+    public void testGetDeviceDataFromWrappedContext() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "ANDROID");
+        deviceData.put("rooted", false);
+        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA, deviceData);
+
+        JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+        bindings.putMember("context", jsAuthenticationContext);
+
+        Value platform = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.deviceData.platform", POLYGLOT_SOURCE).build());
+        assertFalse(platform.isNull());
+        assertEquals(platform.asString(), "ANDROID");
+
+        Value rooted = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.deviceData.rooted", POLYGLOT_SOURCE).build());
+        assertFalse(rooted.asBoolean());
+    }
+
+    @Test
+    public void testDeviceDataNotAvailableWhenNotResolved() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+
+        JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+        bindings.putMember("context", jsAuthenticationContext);
+
+        Value result = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.deviceData", POLYGLOT_SOURCE).build());
+        assertTrue(result.isNull());
+    }
+
+    @Test
+    public void testDeviceDataMemberIgnoresNonMapValue() {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA, "not-a-map");
+
+        JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
+
+        assertNull(jsAuthenticationContext.getMember(FrameworkConstants.JSAttributes.JS_DEVICE_DATA));
     }
 
     /**

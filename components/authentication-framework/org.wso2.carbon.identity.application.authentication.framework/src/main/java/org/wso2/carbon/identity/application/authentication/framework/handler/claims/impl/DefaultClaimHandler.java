@@ -81,6 +81,7 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_USERSTORE_DOMAIN_REMOVAL_FROM_LEGACY_ROLE_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ALLOW_AUTHENTICATED_SUB_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
@@ -199,6 +200,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         String serviceProviderMappedUserRoles;
 
         boolean useAppAssociatedRoles = isAppRoleResolverExists() || !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
+        // Read once: the three role claim guards below all ask the same question.
+        boolean legacyFederatedClaimHandling = isLegacyFederatedClaimHandlingEnabled();
         boolean excludeSuperTenantForLegacyRolesClaim =
                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getTenantDomain()) &&
                 Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR));
@@ -249,7 +252,9 @@ public class DefaultClaimHandler implements ClaimHandler {
                     && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
                 remoteClaims.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
             }
-            if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)) {
+            if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)
+                    && !legacyFederatedClaimHandling) {
+                // The blank entry has no pre IS 6.0.0 equivalent, so it is left out under legacy handling.
                 remoteClaims.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
             }
         }
@@ -296,9 +301,12 @@ public class DefaultClaimHandler implements ClaimHandler {
             // used and roles claim should not be overridden.
             if (!FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(
                     stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator().getName())) {
-                localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM,
-                        StringUtils.isNotEmpty(serviceProviderMappedUserRoles) ?
-                                serviceProviderMappedUserRoles : StringUtils.EMPTY);
+                if (StringUtils.isNotEmpty(serviceProviderMappedUserRoles)) {
+                    localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM, serviceProviderMappedUserRoles);
+                } else if (!legacyFederatedClaimHandling) {
+                    // Pre IS 6.0.0 wrote no roles claim here, so the empty one is left out under legacy handling.
+                    localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM, StringUtils.EMPTY);
+                }
             }
             if (CollectionUtils.isNotEmpty(federatedUserRolesUnmappedExclusive)) {
                 Set<String> federatedUserRolesUnmappedInclusiveSetWithoutDomain =
@@ -379,7 +387,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                             }
                         }
                     }
-                } else {
+                } else if (!legacyFederatedClaimHandling) {
+                    // The empty entry draws in the multi attribute separator, which pre IS 6.0.0 did not send.
                     spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, StringUtils.EMPTY);
                 }
             }
@@ -795,13 +804,6 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Retrieve all non-null user claim values against local claim uris.
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager,
                 authenticatedUserId, userStore);
-
-        // AUTHDIAG (temporary) - which record the claims were actually read from. Note the claims are
-        // fetched by user id, while the subject carries a possibly different user store domain.
-        log.info("AUTHDIAG claims userId=" + authenticatedUserId
-                + " subjectDomain=" + authenticatedUser.getUserStoreDomain()
-                + " tenant=" + tenantDomain + " claimCount=" + allLocalClaims.size()
-                + " hasGroups=" + allLocalClaims.containsKey(IdentityUtil.getLocalGroupsClaimURI()));
 
         boolean useAppAssociatedRoles = isAppRoleResolverExists() || !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
         boolean isRoleClaimRequested = (requestedClaimMappings.get(FrameworkConstants.ROLES_CLAIM) != null);
@@ -1389,6 +1391,19 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
+     * Whether the federated claims are handled the way releases before IS 6.0.0 handled them. Reads
+     * {@code EnableLegacyFederatedClaimHandling} alone; the deprecated {@code AllowSPRequestedFedClaimsOnly}
+     * has no say over it.
+     *
+     * @return true only when {@code EnableLegacyFederatedClaimHandling} is turned on.
+     */
+    private static boolean isLegacyFederatedClaimHandlingEnabled() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(FrameworkConstants.CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING));
+    }
+
+    /**
      * Checks if a configuration is available indicating to combine the custom claim
      * dialect with the federated authenticator's dialect when a custom dialect
      * claim mapping is used.
@@ -1409,16 +1424,31 @@ public class DefaultClaimHandler implements ClaimHandler {
      */
     private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
 
-        if (mappedAttrs.containsKey(getLocalGroupsClaimURI())) {
-            String[] groups = mappedAttrs.get(getLocalGroupsClaimURI()).split(Pattern
-                    .quote(FrameworkUtils.getMultiAttributeSeparator()));
-            SequenceConfig sequenceConfig = context.getSequenceConfig();
-            // Execute only if it has allowed removing userstore domain from the sp level configurations.
-            if (isRemoveUserDomainInRole(sequenceConfig)) {
-                mappedAttrs.put(getLocalGroupsClaimURI(), FrameworkUtils
-                        .removeDomainFromNamesExcludeHybrid(Arrays.asList(groups)));
-            }
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        removeUserStoreDomainFromClaim(sequenceConfig, mappedAttrs, getLocalGroupsClaimURI());
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ALLOW_USERSTORE_DOMAIN_REMOVAL_FROM_LEGACY_ROLE_CLAIM))
+                && IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()
+                && IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled()) {
+            removeUserStoreDomainFromClaim(sequenceConfig, mappedAttrs, UserCoreConstants.ROLE_CLAIM);
         }
+    }
+
+    /**
+     * Remove the user store domain from the values of the given claim, keeping the hybrid domains intact.
+     *
+     * @param sequenceConfig Sequence configuration.
+     * @param mappedAttrs    Mapped claim attributes.
+     * @param claimURI       Claim URI of which the values should be domain free.
+     */
+    private void removeUserStoreDomainFromClaim(SequenceConfig sequenceConfig, Map<String, String> mappedAttrs,
+                                                String claimURI) {
+
+        String claimValue = mappedAttrs.get(claimURI);
+        if (StringUtils.isBlank(claimValue) || !isRemoveUserDomainInRole(sequenceConfig)) {
+            return;
+        }
+        String[] names = claimValue.split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
+        mappedAttrs.put(claimURI, FrameworkUtils.removeDomainFromNamesExcludeHybrid(Arrays.asList(names)));
     }
 
     /**

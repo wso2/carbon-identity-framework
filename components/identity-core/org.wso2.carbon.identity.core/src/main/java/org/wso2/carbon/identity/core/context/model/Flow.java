@@ -144,6 +144,19 @@ public class Flow {
 
         FLOW_DEFINITIONS.put(Name.PURPOSE_UPDATE, EnumSet.of(InitiatingPersona.ADMIN));
         // -----------------------------------------------------------------------------------------------
+
+        // ------------------------- Organization management flows ---------------------------------------
+        FLOW_DEFINITIONS.put(Name.ORGANIZATION_CREATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ORGANIZATION_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ORGANIZATION_DELETE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ORGANIZATION_ENABLE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ORGANIZATION_DISABLE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        // -----------------------------------------------------------------------------------------------
     }
 
     /**
@@ -227,7 +240,15 @@ public class Flow {
         CONSENT_CREATE,
         CONSENT_GRANT,
         CONSENT_REVOKE,
-        PURPOSE_UPDATE
+        PURPOSE_UPDATE,
+        // --------------------------------------------------
+
+        // ---------Organization management flows------------
+        ORGANIZATION_CREATE,
+        ORGANIZATION_UPDATE,
+        ORGANIZATION_DELETE,
+        ORGANIZATION_ENABLE,
+        ORGANIZATION_DISABLE
         // --------------------------------------------------
     }
 

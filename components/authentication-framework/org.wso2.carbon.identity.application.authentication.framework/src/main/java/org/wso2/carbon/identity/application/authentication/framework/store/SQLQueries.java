@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import static org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl.SCOPE_LIST_PLACEHOLDER;
+import static org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl.SESSION_ID_LIST_PLACEHOLDER;
 
 /**
  * This class holds the SQL queries used by {@link UserSessionStore}.
@@ -92,6 +93,11 @@ public class SQLQueries {
      */
     public static final String SQL_SELECT_IDP_ID_OF_IDP = "SELECT IDP.ID FROM IDP WHERE NAME = ?";
 
+    /**
+     * @deprecated Since the identity provider of a session user is resolved through the identity provider
+     * management service.
+     */
+    @Deprecated
     public static final String SQL_SELECT_IDP_WITH_TENANT = "SELECT IDP.ID FROM IDP WHERE NAME = ? AND TENANT_ID = ?";
 
     // Retrieve application id given the name and the tenant id.
@@ -188,9 +194,29 @@ public class SQLQueries {
     public static final String SQL_GET_APPS_FOR_SESSION_ID = "SELECT SUBJECT, APP_ID FROM IDN_AUTH_SESSION_APP_INFO " +
             "WHERE SESSION_ID = ?";
 
+    public static final String SQL_GET_APPS_FOR_SESSION_IDS = "SELECT SESSION_ID, SUBJECT, APP_ID FROM " +
+            "IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID IN (" + SESSION_ID_LIST_PLACEHOLDER + ")";
+
+    public static final String SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_FOR_SESSION_IDS = "SELECT SESSION_ID, " +
+            "PROPERTY_TYPE, VALUE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (" +
+            SESSION_ID_LIST_PLACEHOLDER + ")";
+
+    public static final String SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_FOR_SESSION_IDS_H2 = "SELECT SESSION_ID, " +
+            "PROPERTY_TYPE, `VALUE` FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (" +
+            SESSION_ID_LIST_PLACEHOLDER + ")";
+
+    /**
+     * @deprecated Since the applications of a session are read through the application management service.
+     */
+    @Deprecated
     public static final String SQL_GET_APPLICATION = "SELECT ID, APP_NAME, UUID FROM SP_APP WHERE ID IN (" +
             SCOPE_LIST_PLACEHOLDER + ")";
 
+    /**
+     * @deprecated Since the applications matching a session search are read through the application management
+     * service.
+     */
+    @Deprecated
     public static final String SQL_GET_APPLICATIONS_BY_FILTER_AND_TENANT = "SELECT ID, APP_NAME, UUID FROM SP_APP {0}";
 
     public static final String SQL_GET_SESSIONS_BY_USER = "SELECT SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING " +

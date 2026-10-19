@@ -25,8 +25,10 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -39,15 +41,18 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -59,6 +64,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -320,6 +326,181 @@ public class DefaultClaimHandlerTest {
 
             // Claims are fetched using the shared user's ID in the org's tenant domain.
             Assert.assertEquals(result.get(TEST_SP_CLAIM_URI), TEST_CLAIM_VALUE);
+        }
+    }
+
+    @Test
+    public void testHandleRoleClaimRemovesDomainFromLegacyRoleClaimOnGroupRoleSeparation() throws Exception {
+
+        Map<String, String> mappedAttrs = new HashMap<>();
+        mappedAttrs.put(UserCoreConstants.ROLE_CLAIM, "Internal/everyone,SECONDARY/therole");
+        mappedAttrs.put(UserCoreConstants.INTERNAL_ROLES_CLAIM, "Internal/everyone");
+        mappedAttrs.put(UserCoreConstants.USER_STORE_GROUPS_CLAIM, "therole");
+        mappedAttrs.put(FrameworkConstants.USERNAME_CLAIM, "theuser");
+
+        invokeHandleRoleClaim(mappedAttrs, false, true, true, true);
+
+        Assert.assertEquals(mappedAttrs.get(UserCoreConstants.ROLE_CLAIM), "Internal/everyone,therole",
+                "User store domain should be removed from the legacy role claim while the hybrid domain is kept.");
+        Assert.assertEquals(mappedAttrs.get(UserCoreConstants.INTERNAL_ROLES_CLAIM), "Internal/everyone",
+                "Hybrid domains should never be removed from the internal roles claim.");
+        Assert.assertEquals(mappedAttrs.get(UserCoreConstants.USER_STORE_GROUPS_CLAIM), "therole",
+                "The groups claim should not be touched.");
+        Assert.assertEquals(mappedAttrs.get(FrameworkConstants.USERNAME_CLAIM), "theuser",
+                "Non role claims should be left untouched.");
+    }
+
+    @Test
+    public void testHandleRoleClaimRemovesDomainFromLegacyRoleClaimWithoutGroupRoleSeparation() throws Exception {
+
+        Map<String, String> mappedAttrs = new HashMap<>();
+        mappedAttrs.put(UserCoreConstants.ROLE_CLAIM, "Internal/everyone,SECONDARY/therole");
+
+        invokeHandleRoleClaim(mappedAttrs, false, false, false, false);
+
+        Assert.assertEquals(mappedAttrs.get(UserCoreConstants.ROLE_CLAIM), "Internal/everyone,therole");
+    }
+
+    /**
+     * The domain has to be preserved when the application keeps 'Use user store domain in roles' enabled.
+     */
+    @Test
+    public void testHandleRoleClaimKeepsDomainWhenUseUserstoreDomainInRolesEnabled() throws Exception {
+
+        Map<String, String> mappedAttrs = new HashMap<>();
+        mappedAttrs.put(UserCoreConstants.ROLE_CLAIM, "Internal/everyone,SECONDARY/therole");
+
+        invokeHandleRoleClaim(mappedAttrs, true, true, true, true);
+
+        Assert.assertEquals(mappedAttrs.get(UserCoreConstants.ROLE_CLAIM), "Internal/everyone,SECONDARY/therole");
+    }
+
+    /**
+     * The legacy role claim should be left as it is when it is not shown on group vs role separation.
+     */
+    @Test
+    public void testHandleRoleClaimSkipsLegacyRoleClaimWhenNotShown() throws Exception {
+
+        Map<String, String> mappedAttrs = new HashMap<>();
+        mappedAttrs.put(UserCoreConstants.ROLE_CLAIM, "Internal/everyone,SECONDARY/therole");
+
+        invokeHandleRoleClaim(mappedAttrs, false, true, false, true);
+
+        Assert.assertEquals(mappedAttrs.get(UserCoreConstants.ROLE_CLAIM), "Internal/everyone,SECONDARY/therole");
+    }
+
+    @Test
+    public void testHandleRoleClaimKeepsDomainWhenDomainRemovalNotAllowed() throws Exception {
+
+        Map<String, String> mappedAttrs = new HashMap<>();
+        mappedAttrs.put(UserCoreConstants.ROLE_CLAIM, "Internal/everyone,SECONDARY/therole");
+
+        invokeHandleRoleClaim(mappedAttrs, false, true, true, false);
+
+        Assert.assertEquals(mappedAttrs.get(UserCoreConstants.ROLE_CLAIM), "Internal/everyone,SECONDARY/therole");
+    }
+
+    @DataProvider(name = "legacyFederatedClaimHandlingConfigDataProvider")
+    public Object[][] legacyFederatedClaimHandlingConfigData() {
+
+        return new Object[][]{
+                // configured value, whether the pre IS 6.0.0 federated claim handling is in force
+                {null, false},
+                {"", false},
+                {"true", true},
+                {"TRUE", true},
+                {"notaboolean", false},
+                {"false", false},
+                {"FALSE", false},
+        };
+    }
+
+    /**
+     * The gate the federated role claim guards read. It defaults to off so that a deployment which has not set
+     * the configuration keeps the behaviour it has today.
+     */
+    @Test(dataProvider = "legacyFederatedClaimHandlingConfigDataProvider")
+    public void testLegacyFederatedClaimHandlingDefaultsToOff(String configuredValue, boolean expected)
+            throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                            FrameworkConstants.CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING))
+                    .thenReturn(configuredValue);
+
+            Method method = DefaultClaimHandler.class
+                    .getDeclaredMethod("isLegacyFederatedClaimHandlingEnabled");
+            method.setAccessible(true);
+            Assert.assertEquals(method.invoke(null), expected,
+                    "Filtering gate did not match the configured value: " + configuredValue);
+        }
+    }
+
+    /**
+     * The identity provider claim mapping configuration is read on its own. Turning the federated claim
+     * filtering off must not change it, since a deployment may have enabled those mappings deliberately.
+     */
+    @Test
+    public void testLocalClaimDialectIsNotDecidedByTheFilteringConfig() throws Exception {
+
+        for (String filtering : new String[]{"true", "false"}) {
+            for (boolean customMappingsAllowed : new boolean[]{true, false}) {
+                try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+                     MockedStatic<FileBasedConfigurationBuilder> configBuilder =
+                             mockStatic(FileBasedConfigurationBuilder.class)) {
+
+                    identityUtil.when(() -> IdentityUtil.getProperty(
+                                    FrameworkConstants.CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING))
+                            .thenReturn(filtering);
+                    FileBasedConfigurationBuilder builder = mock(FileBasedConfigurationBuilder.class);
+                    when(builder.isCustomClaimMappingsForAuthenticatorsAllowed()).thenReturn(customMappingsAllowed);
+                    configBuilder.when(FileBasedConfigurationBuilder::getInstance).thenReturn(builder);
+
+                    Method method = DefaultClaimHandler.class
+                            .getDeclaredMethod("useLocalClaimDialectForClaimMappings");
+                    method.setAccessible(true);
+                    Assert.assertEquals(method.invoke(new DefaultClaimHandler()), customMappingsAllowed,
+                            "The claim mapping configuration was overridden while filtering was " + filtering);
+                }
+            }
+        }
+    }
+
+    private void invokeHandleRoleClaim(Map<String, String> mappedAttrs, boolean useUserstoreDomainInRoles,
+                                       boolean groupRoleSeparationEnabled, boolean showLegacyRoleClaim,
+                                       boolean allowDomainRemovalFromLegacyRoleClaim) throws Exception {
+
+        LocalAndOutboundAuthenticationConfig localAndOutboundConfig = new LocalAndOutboundAuthenticationConfig();
+        localAndOutboundConfig.setUseUserstoreDomainInRoles(useUserstoreDomainInRoles);
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundConfig);
+
+        when(authenticationContext.getSequenceConfig()).thenReturn(sequenceConfig);
+        when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+        when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            identityUtil.when(IdentityUtil::isGroupsVsRolesSeparationImprovementsEnabled)
+                    .thenReturn(groupRoleSeparationEnabled);
+            identityUtil.when(IdentityUtil::getLocalGroupsClaimURI).thenReturn(groupRoleSeparationEnabled
+                    ? UserCoreConstants.INTERNAL_ROLES_CLAIM : UserCoreConstants.ROLE_CLAIM);
+            identityUtil.when(IdentityUtil::isShowLegacyRoleClaimOnGroupRoleSeparationEnabled)
+                    .thenReturn(showLegacyRoleClaim);
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                            FrameworkConstants.ALLOW_USERSTORE_DOMAIN_REMOVAL_FROM_LEGACY_ROLE_CLAIM))
+                    .thenReturn(String.valueOf(allowDomainRemovalFromLegacyRoleClaim));
+            identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+            // The separator is resolved from the server configuration, hence it is the only stubbed behaviour.
+            frameworkUtils.when(FrameworkUtils::getMultiAttributeSeparator).thenReturn(",");
+            frameworkUtils.when(() -> FrameworkUtils.removeDomainFromNamesExcludeHybrid(any()))
+                    .thenCallRealMethod();
+
+            Method handleRoleClaim = DefaultClaimHandler.class
+                    .getDeclaredMethod("handleRoleClaim", AuthenticationContext.class, Map.class);
+            handleRoleClaim.setAccessible(true);
+            handleRoleClaim.invoke(new DefaultClaimHandler(), authenticationContext, mappedAttrs);
         }
     }
 }

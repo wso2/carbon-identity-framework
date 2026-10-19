@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
@@ -53,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.M
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -87,6 +89,7 @@ import org.wso2.carbon.identity.organization.management.organization.user.sharin
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -275,6 +278,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
 
+                // Resolve verified device data from the initiation request and store it on the context.
+                resolveAndStoreDeviceData(request, context);
+
                 // We'll use the cloned context to re-initiate the login flow when the session
                 // nonce cookie validation failed.
                 if (request.getParameter(FrameworkConstants.RequestParams.LOGOUT) == null) {
@@ -310,11 +316,25 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         initialTenantDomainFromThreadLocal = IdentityUtil.threadLocalProperties.get().
                                 get(TENANT_NAME_FROM_CONTEXT).toString();
                     }
-                    if ((context.isOrgApplicationLogin() || context.isSharedAppLogin()) &&
+
+                    boolean isOrgAppOrSharedAppEnhancedLogin = context.isOrgApplicationLogin() ||
+                            context.isSharedAppLogin();
+
+                    if (isSharedConnectionFlow(context)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Shared connection callback received for the login flow.");
+                        }
+                        String contextInitializedOrgId = resolveContextInitializedOrganizationId(context);
+
+                        isTenantFlowStarted = isOrgAppOrSharedAppEnhancedLogin
+                                ? startCarbonContextForTenantQualifiedOrganizationPaths(contextInitializedOrgId)
+                                : startCarbonContextForOrganizationQualifiedPaths(context, contextInitializedOrgId);
+                    } else if (isOrgAppOrSharedAppEnhancedLogin &&
                             StringUtils.isNotEmpty(PrivilegedCarbonContext.getThreadLocalCarbonContext().
                                     getOrganizationId())) {
-                        isTenantFlowStarted = startCarbonContextForTenantQualifiedOrganizationPaths();
-                    } else if (!(context.isSharedAppLogin() || context.isOrgApplicationLogin()) &&
+                        isTenantFlowStarted = startCarbonContextForTenantQualifiedOrganizationPaths(
+                                PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId());
+                    } else if (!isOrgAppOrSharedAppEnhancedLogin &&
                             StringUtils.isNotEmpty(PrivilegedCarbonContext.getThreadLocalCarbonContext().
                                     getAccessingOrganizationId())) {
                         isTenantFlowStarted = startCarbonContextForOrganizationQualifiedPaths(context,
@@ -684,15 +704,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * was initiated. These details will be used to build the follow-up requests such as authorize calls,
      * error pages, second factor authenticators etc... with the same URL pattern.
      *
+     * @param organizationId Organization ID.
      * @return whether the carbon context is started.
      * @throws OrganizationManagementException if an error occurred in the tenant domain resolving.
      */
-    private boolean startCarbonContextForTenantQualifiedOrganizationPaths() throws OrganizationManagementException {
+    private boolean startCarbonContextForTenantQualifiedOrganizationPaths(String organizationId)
+            throws OrganizationManagementException {
 
         log.debug("Sub organization federation login detected with /o/org_id/ pattern " +
                     "commonauth endpoint.");
-        String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .getOrganizationId();
         String primaryOrgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager().
                 getPrimaryOrganizationId(organizationId);
         String primaryTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager().
@@ -707,6 +727,46 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         carbonContext.setApplicationResidentOrganizationId(organizationId);
         IdentityUtil.threadLocalProperties.get().put(TENANT_NAME_FROM_CONTEXT, primaryTenantDomain);
         return true;
+    }
+
+    private String resolveContextInitializedOrganizationId(AuthenticationContext context)
+            throws OrganizationManagementException, FrameworkException {
+
+        String orgId;
+        OrganizationLoginData organizationLoginData = context.getOrganizationLoginData();
+        if (context.isSharedAppLogin() && organizationLoginData != null &&
+                organizationLoginData.getAccessingOrganization() != null &&
+                StringUtils.isNotBlank(organizationLoginData.getAccessingOrganization().getId())) {
+            // Only for enhanced login enabled shared application login flow.
+            orgId = organizationLoginData.getAccessingOrganization().getId();
+        } else {
+            // For other cases(Org application login & enhanced login disabled applications), resolving the
+            // organization ID from the tenant domain.
+            String tenantDomain = context.getTenantDomain();
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                throw new FrameworkException("Shared connection initialized tenant domain: " + tenantDomain +
+                        " is not an organization domain.");
+            }
+            orgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(tenantDomain);
+        }
+
+        if (StringUtils.isBlank(orgId)) {
+            throw new FrameworkException("Unable to resolve the context initialized organization id.");
+        }
+        return orgId;
+    }
+
+    private boolean isSharedConnectionFlow(AuthenticationContext context) {
+
+        ExternalIdPConfig externalIdPConfig = context.getExternalIdP();
+        if (externalIdPConfig == null || externalIdPConfig.getIdentityProvider() == null ||
+                externalIdPConfig.getIdentityProvider().getIdpProperties() == null) {
+            return false;
+        }
+        return Arrays.stream(externalIdPConfig.getIdentityProvider().getIdpProperties())
+                .anyMatch(property -> IdPManagementConstants.IS_SHARED_IDP_PROPERTY.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 
     private boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context,
@@ -858,6 +918,60 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // set current request and response to the authentication context.
         context.setProperty(FrameworkConstants.RequestAttribute.HTTP_REQUEST, new TransientObjectWrapper(request));
         context.setProperty(FrameworkConstants.RequestAttribute.HTTP_RESPONSE, new TransientObjectWrapper(response));
+    }
+
+    /**
+     * Invokes the registered {@link DeviceDataResolver} on the initiation request and stores
+     * any resolved device data payload on the authentication context. A no-op when the request
+     * carries no device token, since there is no device data to resolve.
+     * <p>
+     * When a device token is presented, an unavailable resolver and a resolver failure are server
+     * errors, hence they are surfaced as a {@link FrameworkException} instead of leaving the
+     * context without device data. Otherwise the flow continues and the missing device data is
+     * later reported as a client error at device policy evaluation.
+     *
+     * @param request The initiation request carrying the device token.
+     * @param context The authentication context being initialized.
+     * @throws FrameworkException If the device data resolver is not available or the resolution
+     *                            fails.
+     */
+    private void resolveAndStoreDeviceData(HttpServletRequest request, AuthenticationContext context)
+            throws FrameworkException {
+
+        if (!isDeviceTokenPresent(request)) {
+            return;
+        }
+        DeviceDataResolver deviceDataResolver = FrameworkServiceDataHolder.getInstance().getDeviceDataResolver();
+        if (deviceDataResolver == null) {
+            throw new FrameworkException("Device data resolver is not available to resolve the device data of the " +
+                    "authentication request.");
+        }
+        try {
+            Optional<Map<String, Object>> deviceData =
+                    deviceDataResolver.resolveDeviceData(request, context.getTenantDomain());
+            if (deviceData.isPresent()) {
+                context.setProperty(FrameworkConstants.DEVICE_DATA, deviceData.get());
+                if (log.isDebugEnabled()) {
+                    log.debug("Device data resolved and stored on the authentication context.");
+                }
+            }
+        } catch (RuntimeException e) {
+            throw new FrameworkException("Error while resolving device data at initiation.", e);
+        }
+    }
+
+    /**
+     * Returns true if the request carries a device token, which is sent as the
+     * {@link FrameworkConstants#DEVICE_TOKEN_PARAM} query parameter in redirect based flows and as
+     * the {@link FrameworkConstants#DEVICE_TOKEN_HEADER} header in app native flows.
+     *
+     * @param request The initiation request.
+     * @return True if a device token is presented.
+     */
+    private boolean isDeviceTokenPresent(HttpServletRequest request) {
+
+        return StringUtils.isNotBlank(request.getParameter(FrameworkConstants.DEVICE_TOKEN_PARAM)) ||
+                StringUtils.isNotBlank(request.getHeader(FrameworkConstants.DEVICE_TOKEN_HEADER));
     }
 
     /**

@@ -19,6 +19,9 @@
 package org.wso2.carbon.identity.api.resource.mgt.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.ToNumberPolicy;
+import com.google.gson.ToNumberStrategy;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +39,23 @@ public class AuthorizationDetailsTypesUtil {
 
     private static final Log LOG = LogFactory.getLog(AuthorizationDetailsTypesUtil.class);
     private static final Gson GSON = new Gson();
+    /*
+     * By default, Gson parses every JSON number of a Map<String, Object> as a Double. JSON schema validators such as
+     * Vert.x cast integer keywords (e.g. minItems, maxItems) directly to Integer, hence integral values (including
+     * ones written as 1.0) are returned as Integer, or as Long when they exceed the Integer range.
+     */
+    private static final ToNumberStrategy INTEGRAL_PRESERVING_NUMBER_STRATEGY = in -> {
+        final Number number = ToNumberPolicy.LONG_OR_DOUBLE.readNumber(in);
+        final double doubleValue = number.doubleValue();
+        if (doubleValue >= Integer.MIN_VALUE && doubleValue <= Integer.MAX_VALUE
+                && doubleValue == Math.rint(doubleValue)) {
+            return (int) doubleValue;
+        }
+        return number;
+    };
+    private static final Gson INTEGRAL_PRESERVING_GSON = new GsonBuilder()
+            .setObjectToNumberStrategy(INTEGRAL_PRESERVING_NUMBER_STRATEGY)
+            .create();
     private static final Type SCHEMA_TYPE = new TypeToken<Map<String, Object>>() { }.getType();
 
     /**
@@ -47,6 +67,19 @@ public class AuthorizationDetailsTypesUtil {
     public static Map<String, Object> parseSchema(final String schema) {
 
         return GSON.fromJson(schema, SCHEMA_TYPE);
+    }
+
+    /**
+     * Parses a JSON schema into a map structure to be used for authorization details schema validation. Unlike
+     * {@link #parseSchema(String)}, integral numbers are returned as {@code Integer} (or {@code Long}) instead of
+     * {@code Double}, as JSON schema validators expect integer keywords such as {@code minItems} to be integers.
+     *
+     * @param schema the JSON schema string to be parsed. It must be a valid JSON string.
+     * @return a {@code Map<String, Object>} representing the parsed JSON schema.
+     */
+    public static Map<String, Object> parseSchemaForValidation(final String schema) {
+
+        return INTEGRAL_PRESERVING_GSON.fromJson(schema, SCHEMA_TYPE);
     }
 
     /**

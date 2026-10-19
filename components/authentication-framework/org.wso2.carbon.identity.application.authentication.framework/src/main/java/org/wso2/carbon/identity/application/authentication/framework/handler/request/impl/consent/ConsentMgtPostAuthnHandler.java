@@ -126,6 +126,19 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
     }
 
+    /**
+     * Whether the federated claims of this flow were handled the way releases before IS 6.0.0 handled them,
+     * as recorded on the context by the step based sequence handler.
+     *
+     * @param context Authentication context.
+     * @return true when the claims were handled that way.
+     */
+    private boolean isLegacyFederatedClaimHandlingEnabled(AuthenticationContext context) {
+
+        return context != null && Boolean.TRUE.equals(
+                context.getProperty(FrameworkConstants.LEGACY_FEDERATED_CLAIM_HANDLING));
+    }
+
     private boolean isOAuthFlow(AuthenticationContext context) {
 
         return FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(context.getRequestType()) || REQUEST_TYPE_OAUTH2
@@ -176,10 +189,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
 
             removeClaimsWithoutConsent(context, consentClaimsData);
-            // Remove the claims which dont have values given by the user.
-            consentClaimsData.setRequestedClaims(
-                    removeConsentRequestedNullUserAttributes(consentClaimsData.getRequestedClaims(),
-                            authenticatedUser.getUserAttributes(), claimMappings));
+            /* Remove the claims which dont have values given by the user. Skipped when the federated claims
+               were handled the way releases before IS 6.0.0 handled them, which can leave a requested claim
+               unresolved while those releases still asked the user to consent to it. */
+            if (!isLegacyFederatedClaimHandlingEnabled(context)) {
+                consentClaimsData.setRequestedClaims(
+                        removeConsentRequestedNullUserAttributes(consentClaimsData.getRequestedClaims(),
+                                authenticatedUser.getUserAttributes(), claimMappings));
+            }
             if (hasConsentForRequiredClaims(consentClaimsData)) {
 
                 if (isDebugEnabled()) {
@@ -354,10 +371,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
             UserConsent userConsent = processUserConsent(request, context);
             ConsentClaimsData consentClaimsData = getConsentClaimsData(context, authenticatedUser, serviceProvider);
-            // Remove the claims which dont have values given by the user.
-            consentClaimsData.setRequestedClaims(
-                    removeConsentRequestedNullUserAttributes(consentClaimsData.getRequestedClaims(),
-                    authenticatedUser.getUserAttributes(), claimMappings));
+            /* Skipped for the same reason as in handlePreConsent, so that a claim the user was asked about
+               is also recorded. */
+            if (!isLegacyFederatedClaimHandlingEnabled(context)) {
+                consentClaimsData.setRequestedClaims(
+                        removeConsentRequestedNullUserAttributes(consentClaimsData.getRequestedClaims(),
+                        authenticatedUser.getUserAttributes(), claimMappings));
+            }
             try {
 
                 List<Integer> claimIdsWithConsent = getClaimIdsWithConsent(userConsent);

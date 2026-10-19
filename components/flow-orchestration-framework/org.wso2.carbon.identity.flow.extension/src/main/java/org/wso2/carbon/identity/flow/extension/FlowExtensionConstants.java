@@ -76,6 +76,7 @@ public class FlowExtensionConstants {
         public static final String ICON_URL = "ICON_URL";
         public static final String CERTIFICATE = "CERTIFICATE";
         public static final String CERTIFICATE_NAME_PREFIX = "ACTIONS:";
+        public static final String NON_MODIFIABLE_PATHS = "Actions.Types.FlowExtension.NonModifiablePaths.Path";
 
         private ActionManagement() {
 

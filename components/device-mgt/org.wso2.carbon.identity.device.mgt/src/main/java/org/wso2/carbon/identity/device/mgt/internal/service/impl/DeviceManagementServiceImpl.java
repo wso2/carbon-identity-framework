@@ -70,6 +70,12 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     }
 
     @Override
+    public String generateDeviceId() {
+
+        return UUID.randomUUID().toString();
+    }
+
+    @Override
     public Device registerDevice(Device device, DeviceAssociation association, String tenantDomain)
             throws DeviceMgtException {
 
@@ -77,7 +83,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         DEVICE_VALIDATOR.validateDeviceForRegistration(device);
         DEVICE_VALIDATOR.validateAssociation(association);
 
-        String deviceId = UUID.randomUUID().toString();
+        String deviceId = device.getId();
         Timestamp registeredAt = device.getRegisteredAt() != null
                 ? device.getRegisteredAt() : Timestamp.from(Instant.now());
         device = new Device.Builder(device)

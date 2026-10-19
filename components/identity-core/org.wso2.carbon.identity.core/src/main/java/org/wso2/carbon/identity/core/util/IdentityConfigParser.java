@@ -1,5 +1,5 @@
 /*
-*  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+*  Copyright (c) 2005-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 *
 *  WSO2 Inc. licenses this file to you under the Apache License,
 *  Version 2.0 (the "License"); you may not use this file except
@@ -42,6 +42,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -64,6 +65,7 @@ public class IdentityConfigParser {
     private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     private static List<String> cookiesToInvalidateConfigurationHolder = new ArrayList<>();
     private static Map<String, Boolean> storeProcedureBasedDAOConfigurationHolder = new HashMap<>();
+    private static Map<String, String> sessionStorageProperties = new HashMap<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
     private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
@@ -127,6 +129,18 @@ public class IdentityConfigParser {
     public static Map<String, Boolean> getStoreProcedureBasedDAOConfigurationHolder() {
 
         return storeProcedureBasedDAOConfigurationHolder;
+    }
+
+    /**
+     * Returns the properties configured under the SessionStorage element, which are the settings of the
+     * configured session storage implementation. They are not interpreted here: an implementation names
+     * its own properties, and reads the ones it knows.
+     *
+     * @return the configured properties, keyed by property name. Empty when none are configured.
+     */
+    public static Map<String, String> getSessionStorageProperties() {
+
+        return Collections.unmodifiableMap(sessionStorageProperties);
     }
 
     /**
@@ -209,6 +223,7 @@ public class IdentityConfigParser {
             buildCookiesToInvalidateConfig();
             buildStoreProcedureBasedDAOConfig();
             buildImpersonateMyAccountResourceConfigs();
+            buildSessionStorageConfig();
 
         } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
@@ -220,6 +235,42 @@ public class IdentityConfigParser {
             } catch ( IOException e ) {
                 log.error("Error closing the input stream for identity.xml", e);
             }
+        }
+    }
+
+    /**
+     * Reads the properties of the SessionStorage element. The property names are those of the storage
+     * implementation the deployment selected, so none of them is known here: every name is kept as it is
+     * written and the implementation reads the ones it defines. Values are resolved through the secret
+     * resolver, so a credential of a storage implementation can be kept in the secure vault like any
+     * other.
+     */
+    private void buildSessionStorageConfig() {
+
+        sessionStorageProperties.clear();
+        OMElement sessionStorage = this.getConfigElement(IdentityConstants.SESSION_STORAGE_CONFIG);
+        if (sessionStorage == null) {
+            return;
+        }
+        OMElement propertiesElement = sessionStorage.getFirstChildWithName(getQNameWithIdentityNS(
+                IdentityConstants.SESSION_STORAGE_PROPERTIES));
+        if (propertiesElement == null) {
+            return;
+        }
+        Iterator<OMElement> properties = propertiesElement.getChildrenWithName(getQNameWithIdentityNS(
+                IdentityConstants.SESSION_STORAGE_PROPERTY));
+        if (properties == null) {
+            return;
+        }
+        while (properties.hasNext()) {
+            OMElement property = properties.next();
+            String name = property.getAttributeValue(new QName(IdentityConstants.SESSION_STORAGE_PROPERTY_NAME));
+            if (StringUtils.isBlank(name)) {
+                log.warn("A property of the " + IdentityConstants.SESSION_STORAGE_CONFIG
+                        + " configuration carries no name, and is ignored.");
+                continue;
+            }
+            sessionStorageProperties.put(name.trim(), resolve(property.getText(), secretResolver));
         }
     }
 

@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.flow.extension.executor.FlowExtensionResponseProcessorTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.executor.JWEEncryptionUtilTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.executor.PathTypeAnnotationUtilTest"/>
+            <class name="org.wso2.carbon.identity.flow.extension.management.FlowExtensionActionDTOModelResolverTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.metadata.FlowExtensionContextTreeBuilderTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.AccessConfigTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.ContextPathTest"/>
@@ -33,6 +34,7 @@
             <class name="org.wso2.carbon.identity.flow.extension.model.FlowExtensionFlowTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.FlowExtensionUserTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.OperationExecutionResultTest"/>
+            <class name="org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtilTest"/>
         </classes>
     </test>
 </suite>

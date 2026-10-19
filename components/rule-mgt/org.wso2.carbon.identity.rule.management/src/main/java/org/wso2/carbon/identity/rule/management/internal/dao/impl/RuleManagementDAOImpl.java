@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.rule.management.internal.dao.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -48,6 +49,9 @@ import java.nio.charset.StandardCharsets;
 public class RuleManagementDAOImpl implements RuleManagementDAO {
 
     private static final String V1 = "1.0.0";
+    // Unknown enum values read as null, so a value type added by a newer node fails closed instead of the read.
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
 
     /**
      * This method will add the Rule to the database and add the Rule Value References to the database.
@@ -263,7 +267,8 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
                 statement -> {
                     for (ANDCombinedRule rule1 : orCombinedRule.getRules()) {
                         for (Expression expression : rule1.getExpressions()) {
-                            if (expression.getValue().getType() == Value.Type.REFERENCE) {
+                            if (expression.getValue() != null
+                                    && expression.getValue().getType() == Value.Type.REFERENCE) {
                                 statement.setInt(RuleSQLConstants.Column.RULE_REFERENCE_ID, internalRuleId);
                                 statement.setString(RuleSQLConstants.Column.FIELD_NAME, expression.getField());
                                 statement.setString(RuleSQLConstants.Column.FIELD_REFERENCE,
@@ -310,8 +315,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
     private InputStream convertRuleToJson(Rule rule) throws RuleManagementServerException {
 
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return new ByteArrayInputStream(objectMapper.writeValueAsString(rule).getBytes(StandardCharsets.UTF_8));
+            return new ByteArrayInputStream(OBJECT_MAPPER.writeValueAsString(rule).getBytes(StandardCharsets.UTF_8));
         } catch (JsonProcessingException e) {
             throw new RuleManagementServerException("Failed to convert rule to JSON.", e);
         }
@@ -320,8 +324,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
     private ORCombinedRule convertJsonToRule(String ruleJson) throws RuleManagementServerException {
 
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(ruleJson, ORCombinedRule.class);
+            return OBJECT_MAPPER.readValue(ruleJson, ORCombinedRule.class);
         } catch (JsonProcessingException e) {
             throw new RuleManagementServerException("Failed to convert JSON to rule.", e);
         }

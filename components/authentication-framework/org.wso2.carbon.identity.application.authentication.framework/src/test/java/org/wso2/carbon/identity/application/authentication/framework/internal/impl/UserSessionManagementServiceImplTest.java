@@ -41,10 +41,12 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
@@ -251,7 +253,8 @@ public class UserSessionManagementServiceImplTest {
         try (MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class);
              MockedConstruction<UserSessionDAOImpl> userSessionDAOConstruction =
                      mockConstruction(UserSessionDAOImpl.class,
-                             (mock, context) -> when(mock.getSession(sessionId)).thenReturn(fedUserSession))) {
+                             (mock, context) -> when(mock.getSessions(anyList()))
+                                     .thenReturn(Collections.singletonMap(sessionId, fedUserSession)))) {
 
             frameworkUtilsMockedStatic.when(() -> FrameworkUtils.getSessionContextFromCache(sessionId,
                     "carbon.super")).thenReturn(mockedSessionContext);

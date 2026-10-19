@@ -73,8 +73,26 @@
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
             <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
         </PushedAuthReqCleanUp>
+        <DeviceTokenJtiCleanUp>
+            <Enable>{{device_token.cleanup.enable_expired_jti_cleanup}}</Enable>
+            <CleanUpPeriod>{{device_token.cleanup.clean_expired_jti_every}}</CleanUpPeriod>
+        </DeviceTokenJtiCleanUp>
         <SkipClaimMetadataPersistence>{{identity_data_source.skip_claim_metadata_persistence}}</SkipClaimMetadataPersistence>
     </JDBCPersistenceManager>
+
+    <!-- A property name carrying a dot has to be quoted in deployment.toml. -->
+    {% if session_storage.type is defined %}
+    <SessionStorage>
+        <Type>{{session_storage.type}}</Type>
+        {% if session_storage.properties is defined %}
+        <Properties>
+            {% for name, value in session_storage.properties.items() %}
+            <Property name="{{name}}">{{value}}</Property>
+            {% endfor %}
+        </Properties>
+        {% endif %}
+    </SessionStorage>
+    {% endif %}
 
     <!--
     This section provide the ability to configure the storage type for the features that used to store data in the
@@ -298,6 +316,15 @@
         {% else %}
         <RecomputeSubjectClaimForAlternateSubjectIdentifier>false</RecomputeSubjectClaimForAlternateSubjectIdentifier>
         {% endif %}
+        <!--
+            Configuration to support multiple client secrets per OAuth application,
+            facilitating zero-downtime client secret rotation.
+            MaxSecretCount defines the maximum number of client secrets an
+            application is allowed to hold at any given time.
+         -->
+        <MultipleClientSecrets>
+            <MaxSecretCount>{{oauth.multiple_client_secrets.max_secret_count}}</MaxSecretCount>
+        </MultipleClientSecrets>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -1625,6 +1652,7 @@
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
         <SAMLSPCertificateExpiryValidationEnabled>{{saml.enable_saml_sp_certificate_expiry_validation}}</SAMLSPCertificateExpiryValidationEnabled>
         <SAMLIdpInitLogoutResponseSigningEnabled>{{saml.enable_saml_idp_init_logout_response_signing}}</SAMLIdpInitLogoutResponseSigningEnabled>
+        <SAMLValidateAssertionConsumerURLForSignedRequests>{{saml.validate_assertion_consumer_url_for_signed_requests}}</SAMLValidateAssertionConsumerURLForSignedRequests>
         <SAML2AuthnRequestsSigningEnabled>{{saml.metadata.enable_authentication_requests_signing}}</SAML2AuthnRequestsSigningEnabled>
         <SAMLAssertionEncyptWithAppCert>{{saml.metadata.assertion_encrypt_with_app_cert}}</SAMLAssertionEncyptWithAppCert>
         <SendSAMLAuthFailureResponseToSP>{{saml.send_saml_auth_failure_response_to_sp}}</SendSAMLAuthFailureResponseToSP>
@@ -1654,6 +1682,9 @@
         <PromptSubjectClaimRequestedConsent>{{authentication.consent.subject.prompt}}</PromptSubjectClaimRequestedConsent>
         <!--Specify whether consent V2 API related functionalities should be enabled.-->
         <EnableV2API>{{consent_mgt.enable_v2_api}}</EnableV2API>
+        <!--Specify whether the existing active consents of the same subject, application and purpose should be
+        revoked when a new consent is added via the consent V2 API.-->
+        <RevokeActiveConsentsOnCreate>{{consent_mgt.revoke_active_consents_on_create}}</RevokeActiveConsentsOnCreate>
     </Consent>
 
     <SecurityTokenService>
@@ -1907,6 +1938,41 @@
             Supported versions : IS 7.0.0 onwards
         -->
         <EnableSpecCompliantEmailHandling>{{scim2.enable_spec_compliant_email_handling}}</EnableSpecCompliantEmailHandling>
+        <!--
+            Configuration to specify which claims should be blocked from being updating in the
+            SCIM2 /Me endpoint for better security and privacy.
+        -->
+        {% if scim2.me.blocked_claims is defined or scim2.me.extended_blocked_claims is defined %}
+        <Me>
+            <!--
+                List of claims that are blocked from being updating via SCIM2/Me endpoint.
+            -->
+            {% if scim2.me.blocked_claims is defined and scim2.me.blocked_claims|length %}
+            <BlockedClaims>
+                {% for claim in scim2.me.blocked_claims %}
+                <BlockedClaim>{{claim}}</BlockedClaim>
+                {% endfor %}
+            </BlockedClaims>
+            {% else %}
+            <BlockedClaims></BlockedClaims>
+            {% endif %}
+
+            <!--
+                Extended list of claims that are blocked from being updating via SCIM2/Me endpoint.
+                This provides additional blocking configuration for more granular control.
+                Default: Empty (no claims are blocked)
+            -->
+            {% if scim2.me.extended_blocked_claims is defined and scim2.me.extended_blocked_claims|length %}
+            <ExtendedBlockedClaims>
+                {% for claim in scim2.me.extended_blocked_claims %}
+                <ExtendedBlockedClaim>{{claim}}</ExtendedBlockedClaim>
+                {% endfor %}
+            </ExtendedBlockedClaims>
+            {% else %}
+            <ExtendedBlockedClaims></ExtendedBlockedClaims>
+            {% endif %}
+        </Me>
+        {% endif %}
     </SCIM2>
 
     <Captcha>
@@ -2363,6 +2429,7 @@
             <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
+        <ResolveExistingUserBeforeConsentPrompt>{{authentication.jit_provisioning.resolve_existing_user_before_consent_prompt}}</ResolveExistingUserBeforeConsentPrompt>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
         <AllowNonStandardClaimURI>{{authentication.jit_provisioning.allow_non_Standard_claim_uri}}</AllowNonStandardClaimURI>
         {% if authentication.jit_provisioning.show_failure_reason is defined %}
@@ -2565,6 +2632,11 @@
                <Version>
                    <Latest>{{actions.types.flow_extension.version.latest}}</Latest>
                </Version>
+               <NonModifiablePaths>
+                   {% for path in actions.types.flow_extension.non_modifiable_paths %}
+                   <Path>{{path}}</Path>
+                   {% endfor %}
+               </NonModifiablePaths>
             </FlowExtension>
         </Types>
     </Actions>
@@ -3153,6 +3225,18 @@
                    timeout="{{cache.saml_cert_cache.timeout}}"
                    capacity="{{cache.saml_cert_cache.capacity}}"
                    isDistributed="false"/>
+            {% if openid4vp.enabled %}
+            <Cache id="vp_session_cache" name="VPSessionCache"
+                   enable="{{cache.vp_session_cache.enable | default('true')}}"
+                   timeout="{{cache.vp_session_cache.timeout | default('300')}}"
+                   capacity="{{cache.vp_session_cache.capacity | default('1000')}}"
+                   isDistributed="false"/>
+            <Cache id="openid4vp_presentation_definition_cache" name="OpenID4VPPresentationDefinitionCache"
+                   enable="{{cache.openid4vp_presentation_definition_cache.enable | default('true')}}"
+                   timeout="{{cache.openid4vp_presentation_definition_cache.timeout | default('900')}}"
+                   capacity="{{cache.openid4vp_presentation_definition_cache.capacity | default('1000')}}"
+                   isDistributed="false"/>
+            {% endif %}
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
                     enable="true"
@@ -4995,8 +5079,17 @@
     <IncludeMultiOptionsInAPIBasedAuthResponse>{{authentication.include_multi_options_in_api_based_auth_response}}</IncludeMultiOptionsInAPIBasedAuthResponse>
     <IncludeAuthInitDataOnRetryInAPIBasedAuthResponse>{{authentication.include_auth_init_data_on_retry_in_api_based_auth_response}}</IncludeAuthInitDataOnRetryInAPIBasedAuthResponse>
 
-    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <!-- Configuration to allow only SP requested claims during federated flow. To reproduce the claim
+         handling of releases before IS 6.0.0, use EnableLegacyFederatedClaimHandling below instead of this
+         one; the two are independent and do not do the same thing. -->
     <AllowSPRequestedFedClaimsOnly>{{authentication.allow_sp_requested_fed_claims_only}}</AllowSPRequestedFedClaimsOnly>
+
+    <!-- Configuration to handle the claims received from the federated IdP the way releases before IS 6.0.0
+         handled them. Set to true when migrating from such a release and the application relies on that
+         behaviour. AllowCustomClaimMappingsForAuthenticators has to be set to whatever the deployment used
+         before the migration; its default changed from false to true, so a deployment that relied on the
+         old default has to set it to false explicitly. -->
+    <EnableLegacyFederatedClaimHandling>{{authentication.enable_legacy_federated_claim_handling}}</EnableLegacyFederatedClaimHandling>
 
     {% if stored_procedure_dao is defined %}
     <!-- Stored Procedure supported DAO Implementation of Identity components.
@@ -5139,6 +5232,20 @@
     <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
     {% endif %}
 
+    {% if legacy_claims.return_legacy_role_claim_in_application_response is defined %}
+    <!-- Config to return the legacy role claim (http://wso2.org/claims/role) for applications with no role
+         claim set. Enabled by default. When set to false, the roles claim (http://wso2.org/claims/roles) is
+         returned instead, resolved based on the group and role separation configuration. -->
+    <ReturnLegacyRoleClaimInApplicationResponse>{{legacy_claims.return_legacy_role_claim_in_application_response}}</ReturnLegacyRoleClaimInApplicationResponse>
+    {% endif %}
+    
+    {% if legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim is defined %}
+    <!-- When enabled, protocols such as SAML and Passive STS apply the application-level Use user store domain
+         in roles configuration to the legacy role claim. OIDC applications, as well as deployments with
+         group-role separation disabled, already apply this configuration regardless of this setting. -->
+    <AllowUserstoreDomainRemovalFromLegacyRoleClaim>{{legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim}}</AllowUserstoreDomainRemovalFromLegacyRoleClaim>
+    {% endif %}
+
      {% if scim2.enable_legacy_enterprise_user is defined %}
      <!-- Config to allow legacy SCIM enterprise user behavior -->
      <EnableSCIMLegacyEnterpriseUser>{{scim2.enable_legacy_enterprise_user}}</EnableSCIMLegacyEnterpriseUser>
@@ -5246,6 +5353,7 @@
             <IncludePrimaryWhenSecondaryPresent>{{token_exchange.implicit_association.include_primary_when_secondary_present}}</IncludePrimaryWhenSecondaryPresent>
         </ImplicitAssociation>
         <LimitScopesToSubjectToken>{{token_exchange.limit_scopes_to_subject_token}}</LimitScopesToSubjectToken>
+        <UseRequestingAppSubjectAttribute>{{token_exchange.use_requesting_app_subject_attribute}}</UseRequestingAppSubjectAttribute>
     </TokenExchange>
 
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
@@ -5371,13 +5479,6 @@
         <DefaultProvisioningUserStore>{{connection_sharing.default_provisioning_user_store}}</DefaultProvisioningUserStore>
         <IDP>
             <Enable>{{connection_sharing.idp.enable}}</Enable>
-            {% if connection_sharing.idp.disabled_authenticators is defined %}
-            <DisabledAuthenticators>
-                {% for authenticator in connection_sharing.idp.disabled_authenticators %}
-                <Authenticator>{{authenticator}}</Authenticator>
-                {% endfor %}
-            </DisabledAuthenticators>
-            {% endif %}
         </IDP>
     </ConnectionSharing>
 
@@ -5423,8 +5524,72 @@
     </CircuitBreaker>
 
     <Rules>
+        {% if rules.pre_issue_access_token.max_rules_combined_with_or is defined %}
+        <PreIssueAccessToken>
+            <MaxRulesCombinedWithOr>{{rules.pre_issue_access_token.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </PreIssueAccessToken>
+        {% endif %}
+        {% if rules.pre_update_password.max_rules_combined_with_or is defined %}
+        <PreUpdatePassword>
+            <MaxRulesCombinedWithOr>{{rules.pre_update_password.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </PreUpdatePassword>
+        {% endif %}
+        {% if rules.pre_update_profile.max_rules_combined_with_or is defined %}
+        <PreUpdateProfile>
+            <MaxRulesCombinedWithOr>{{rules.pre_update_profile.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </PreUpdateProfile>
+        {% endif %}
+        {% if rules.pre_issue_id_token.max_rules_combined_with_or is defined %}
+        <PreIssueIdToken>
+            <MaxRulesCombinedWithOr>{{rules.pre_issue_id_token.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </PreIssueIdToken>
+        {% endif %}
+        {% if rules.approval_workflow.max_rules_combined_with_or is defined %}
+        <ApprovalWorkflow>
+            <MaxRulesCombinedWithOr>{{rules.approval_workflow.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+        </ApprovalWorkflow>
+        {% endif %}
         <DevicePolicy>
             <MaxExpressionsCombinedWithAnd>{{rules.device_policy.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% if rules.device_policy.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.device_policy.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
         </DevicePolicy>
+        {% if rules.registration.max_expressions_combined_with_and is defined or rules.registration.max_rules_combined_with_or is defined %}
+        <Registration>
+            {% if rules.registration.max_expressions_combined_with_and is defined %}
+            <MaxExpressionsCombinedWithAnd>{{rules.registration.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% endif %}
+            {% if rules.registration.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.registration.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
+        </Registration>
+        {% endif %}
+        {% if rules.password_recovery.max_expressions_combined_with_and is defined or rules.password_recovery.max_rules_combined_with_or is defined %}
+        <PasswordRecovery>
+            {% if rules.password_recovery.max_expressions_combined_with_and is defined %}
+            <MaxExpressionsCombinedWithAnd>{{rules.password_recovery.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% endif %}
+            {% if rules.password_recovery.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.password_recovery.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
+        </PasswordRecovery>
+        {% endif %}
+        {% if rules.invited_user_registration.max_expressions_combined_with_and is defined or rules.invited_user_registration.max_rules_combined_with_or is defined %}
+        <InvitedUserRegistration>
+            {% if rules.invited_user_registration.max_expressions_combined_with_and is defined %}
+            <MaxExpressionsCombinedWithAnd>{{rules.invited_user_registration.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% endif %}
+            {% if rules.invited_user_registration.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.invited_user_registration.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
+        </InvitedUserRegistration>
+        {% endif %}
     </Rules>
+
+    {% if openid4vp is defined %}
+    <OpenID4VP>
+        <Enabled>{{openid4vp.enabled}}</Enabled>
+    </OpenID4VP>
+    {% endif %}
 </Server>

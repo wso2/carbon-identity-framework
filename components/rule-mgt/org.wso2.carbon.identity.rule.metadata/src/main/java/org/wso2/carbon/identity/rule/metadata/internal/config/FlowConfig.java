@@ -124,7 +124,8 @@ public class FlowConfig {
         Field updatedField = getUpdatedField(mapper, overrides, fieldDefinition);
         Value updatedValue = getUpdatedValue(mapper, overrides, fieldDefinition);
 
-        return new FieldDefinition(updatedField, fieldDefinition.getOperators(), updatedValue);
+        return new FieldDefinition(updatedField, fieldDefinition.getOperators(), updatedValue,
+                fieldDefinition.getValueFieldOptions());
     }
 
     private static Field getUpdatedField(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition) {
@@ -140,7 +141,8 @@ public class FlowConfig {
         }
 
         return new Field(fieldDefinition.getField().getName(),
-                Objects.requireNonNull(overriddenAttributes.get("displayName")).toString());
+                Objects.requireNonNull(overriddenAttributes.get("displayName")).toString(),
+                fieldDefinition.getField().getQualifier());
     }
 
     private static Value getUpdatedValue(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition)

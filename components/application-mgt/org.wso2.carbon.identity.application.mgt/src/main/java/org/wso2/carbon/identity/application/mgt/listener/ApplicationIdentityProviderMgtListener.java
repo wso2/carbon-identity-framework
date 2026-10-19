@@ -142,7 +142,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
 
         // Verify if the entire IDP is disabled.
         if (!identityProvider.isEnable()) {
-            throw new IdentityProviderManagementException(
+            throw new IdentityProviderManagementClientException(
                     "Error in disabling identity provider as it is referred by service providers.");
         }
 
@@ -167,11 +167,11 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                             tenantDomain)) {
                 if (defaultAuthenticatorConfig != null && StringUtils.equals(federatedAuthenticatorConfig.getName(),
                         defaultAuthenticatorConfig.getName())) {
-                    throw new IdentityProviderManagementException("Error in disabling default federated authenticator" +
-                            " as it is referred by service providers.");
+                    throw new IdentityProviderManagementClientException("Error in disabling default federated " +
+                            "authenticator as it is referred by service providers.");
                 }
 
-                throw new IdentityProviderManagementException(federatedAuthenticatorConfig.getName()
+                throw new IdentityProviderManagementClientException(federatedAuthenticatorConfig.getName()
                         + " is referred by service providers.");
             }
         }

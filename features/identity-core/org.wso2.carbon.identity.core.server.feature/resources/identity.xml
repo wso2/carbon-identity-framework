@@ -64,6 +64,10 @@
             <Enable>true</Enable>
             <CleanUpPeriod>1440</CleanUpPeriod>
         </PushedAuthReqCleanUp>
+        <DeviceTokenJtiCleanUp>
+            <Enable>true</Enable>
+            <CleanUpPeriod>15</CleanUpPeriod>
+        </DeviceTokenJtiCleanUp>
     </JDBCPersistenceManager>
 
     <!--
@@ -1131,6 +1135,42 @@
             Supported versions : IS 7.0.0 onwards
         -->
         <EnableSpecCompliantEmailHandling>true</EnableSpecCompliantEmailHandling>
+        <!--
+            Configuration to specify which claims should be blocked from performing updates.
+        -->
+        <Me>
+            <!--
+                List of claims that are blocked from being updated via SCIM2/Me endpoint.
+                Each claim should be specified as a separate <BlockedClaim> element within this section.
+            -->
+            <BlockedClaims>
+                <BlockedClaim>http://wso2.org/claims/identity/failedLoginAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedLoginLockoutCount</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedSMSOTPAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedTOTPAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedEmailOTPAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedBackupCodeAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/accountLocked</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/unlockTime</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/accountDisabled</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/emailVerified</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/phoneVerified</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/isLiteUser</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/totpEnabled</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/backupCodeEnabled</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/enabledAuthenticators</BlockedClaim>
+            </BlockedClaims>
+
+
+            <!--
+                Extended list of claims that are blocked from being updated via SCIM2/Me endpoint.
+                This provides additional blocking configuration for more granular control.
+                Each claim should be specified as a separate <ExtendedBlockedClaim> element within this section.
+            -->
+            <ExtendedBlockedClaims></ExtendedBlockedClaims>
+        </Me>
     </SCIM2>
 
     <PasswordPolicy>
@@ -1647,6 +1687,8 @@
             <Cache id="saml_cert_cache" name="SAMLCertCache" enable="true" timeout="900" capacity="5000" isDistributed="false"/>
             <Cache id="push_auth_context_cache" name="PushAuthContextCache" enable="true" timeout="300" capacity="5000" isDistributed="false" isTemporary="true"/>
             <Cache id="push_auth_status_cache" name="PushAuthStatusCache" enable="true" timeout="300" capacity="5000" isDistributed="false" isTemporary="true"/>
+            <Cache id="vp_session_cache" name="VPSessionCache" enable="true" timeout="300" capacity="1000" isDistributed="false"/>
+            <Cache id="openid4vp_presentation_definition_cache" name="OpenID4VPPresentationDefinitionCache" enable="true" timeout="900" capacity="1000" isDistributed="false"/>
         </CacheManager>
     </CacheConfig>
 
@@ -2608,7 +2650,7 @@
 	    If none defines for any handler, then this authorization control will be not applied for that.
 	 -->
     <AuthorizationControl>
-        <SkipAuthorization authHandler="ClientAuthentication" endpoints="(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*),(.*)/api/users/v2/recovery/username/(.*),(.*)/api/server/v(.*)/organization-configs/discovery(.*),(.*)/api/server/v(.*)/configs/authenticators(.*),(.*)/api/server/v1/flow/config(.*),(.*)/api/server/v1/flow/configs(.*)"/>
+        <SkipAuthorization authHandler="ClientAuthentication" endpoints="(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*),(.*)/api/users/v2/recovery/username/(.*),(.*)/api/server/v(.*)/organization-configs/discovery(.*),(.*)/api/server/v(.*)/configs/authenticators(.*),(.*)/api/server/v1/flow/config(.*),(.*)/api/server/v1/flow/configs(.*),(.*)/api/server/v1/organizations/check-handle"/>
     </AuthorizationControl>
 
     <!--
@@ -2936,8 +2978,17 @@
     <IncludeAuthFailureReasonInAPIBasedAuthResponse>true</IncludeAuthFailureReasonInAPIBasedAuthResponse>
     <IncludeMultiOptionsInAPIBasedAuthResponse>true</IncludeMultiOptionsInAPIBasedAuthResponse>
 
-    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <!-- Configuration to allow only SP requested claims during federated flow. To reproduce the claim
+         handling of releases before IS 6.0.0, use EnableLegacyFederatedClaimHandling below instead of this
+         one; the two are independent and do not do the same thing. -->
     <AllowSPRequestedFedClaimsOnly>true</AllowSPRequestedFedClaimsOnly>
+
+    <!-- Configuration to handle the claims received from the federated IdP the way releases before IS 6.0.0
+         handled them. Set to true when migrating from such a release and the application relies on that
+         behaviour. AllowCustomClaimMappingsForAuthenticators has to be set to whatever the deployment used
+         before the migration; its default changed from false to true, so a deployment that relied on the
+         old default has to set it to false explicitly. -->
+    <EnableLegacyFederatedClaimHandling>false</EnableLegacyFederatedClaimHandling>
 
     <!-- Configuration to show the pending user information during the authentication failure attempts. -->
     <ShowPendingUserInformation>true</ShowPendingUserInformation>
@@ -3123,4 +3174,8 @@
             <MaxExpressionsCombinedWithAnd>15</MaxExpressionsCombinedWithAnd>
         </DevicePolicy>
     </Rules>
+
+    <OpenID4VP>
+        <Enabled>false</Enabled>
+    </OpenID4VP>
 </Server>

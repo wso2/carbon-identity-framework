@@ -58,6 +58,7 @@ public abstract class FrameworkConstants {
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
+    public static final String LEGACY_FEDERATED_CLAIM_HANDLING = "LegacyFederatedClaimHandling";
     public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
     public static final String SP_REQUESTED_CLAIMS_IN_REQUEST = "SP_REQUESTED_CLAIMS_IN_REQUEST";
     public static final String LOCAL_IDP_NAME = "LOCAL";
@@ -90,6 +91,8 @@ public abstract class FrameworkConstants {
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
     public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
     public static final String ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM = "AddUserStoreDomainToGroupClaims";
+    public static final String ALLOW_USERSTORE_DOMAIN_REMOVAL_FROM_LEGACY_ROLE_CLAIM =
+            "AllowUserstoreDomainRemovalFromLegacyRoleClaim";
     public static final String IS_OTP_VERIFICATION_TRIGGERED = "isOtpVerificationTriggered";
     public static final String OTP_VERIFICATION_PENDING_CLAIM = "otpVerificationPendingClaim";
     public static final String CLAIM_FOR_PENDING_OTP_VERIFICATION = "claimForPendingOtpVerification";
@@ -179,6 +182,8 @@ public abstract class FrameworkConstants {
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
     public static final String CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING = "EnableScopeBasedClaimFiltering";
     public static final String CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY = "AllowSPRequestedFedClaimsOnly";
+    public static final String CONFIG_ENABLE_LEGACY_FEDERATED_CLAIM_HANDLING =
+            "EnableLegacyFederatedClaimHandling";
     public static final String INCLUDE_AUTH_FAILURE_REASON_IN_API_BASED_AUTH_RESPONSE =
             "IncludeAuthFailureReasonInAPIBasedAuthResponse";
     public static final String INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE =
@@ -268,6 +273,10 @@ public abstract class FrameworkConstants {
     public static final String RESTART_LOGIN_FLOW = "restartLoginFlow";
     public static final String REMOVE_COMMONAUTH_COOKIE = "removeCommonAuthCookie";
     public static final String INITIAL_CONTEXT = "initialContext";
+    public static final String DEVICE_DATA = "deviceData";
+    // Transport of the device token resolved by the registered DeviceDataResolver implementation.
+    public static final String DEVICE_TOKEN_PARAM = "device_token";
+    public static final String DEVICE_TOKEN_HEADER = "X-Device-Token";
     public static final String RESTART_LOGIN_FLOW_QUERY_PARAMS =
             "&authFailure=true&authFailureMsg=login.reinitiate.message";
     public static final String NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG =
@@ -295,6 +304,8 @@ public abstract class FrameworkConstants {
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
     public static final String IDP_MAPPED_USER_ROLES = "identityProviderMappedUserRoles";
     public static final String ALLOW_ASSOCIATING_TO_EXISTING_USER = "JITProvisioning.AllowAssociatingToExistingUser";
+    public static final String RESOLVE_EXISTING_USER_BEFORE_CONSENT_PROMPT =
+            "JITProvisioning.ResolveExistingUserBeforeConsentPrompt";
 
     // The constant to used as the attribute key or the property key of the federated tokens.
     public static final String FEDERATED_TOKENS = "federated_tokens";
@@ -676,6 +687,7 @@ public abstract class FrameworkConstants {
         public static final String JS_AUTH_FAILURE = "fail";
         public static final String JS_ENDPOINT_PARAMS = "endpointParams";
         public static final String JS_PASSWORD_RESET_COMPLETE = "passwordResetComplete";
+        public static final String JS_DEVICE_DATA = "deviceData";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";

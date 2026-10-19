@@ -33,12 +33,14 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
@@ -46,10 +48,17 @@ import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,12 +69,21 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.DOB_CLAIM_URI;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_FUTURE_DATE_NOT_ALLOWED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_INVALID_DATE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_META_DATA_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ORGANIZATION_NAME;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_HANDLE_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_NAME_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_NAME_CONTAINS_HTML_CONTENT;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_RESERVED_ORGANIZATION_NAME;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
@@ -74,6 +92,11 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER_TYPE_CONFIG;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORGANIZATION_IDENTIFIER_TYPE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_DESCRIPTION_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_HANDLE_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_NAME_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.LENGTH_CONFIG;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_LENGTH;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_VARIANT;
@@ -88,6 +111,8 @@ import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionE
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SUPER;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SUPER_ORG_ID;
 
 /**
  * This class is responsible for validating user inputs during the flow execution process.
@@ -101,6 +126,10 @@ public class InputValidationService {
     private static final String DATE_VARIANT = "DATE";
     private static final String DATE_VALIDATOR = "DateValidator";
     private static final String DISALLOW_FUTURE_CONDITION = "disallow.future";
+    // Claims whose value can never be a future date. Kept as a fixed set rather than claim
+    // configuration so the rule applies uniformly to every tenant without provisioning changes.
+    // Not every date claim belongs here: expiry or renewal dates are legitimately in the future.
+    private static final Set<String> NO_FUTURE_DATE_CLAIMS = Collections.singleton(DOB_CLAIM_URI);
 
     private InputValidationService() {
 
@@ -192,9 +221,16 @@ public class InputValidationService {
      */
     public void handleUserInputs(FlowExecutionContext context) {
 
+        Map<String, String> identifierTypes = resolveIdentifierTypes(context);
         context.getUserInputData().forEach(
                 (key, value) -> {
-                    if (key.startsWith(CLAIM_URI_PREFIX)) {
+                    // A flow organization input takes priority over the claim URI prefix.
+                    if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(key))) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Routing organization input: " + key);
+                        }
+                        setOrganizationInput(context.getFlowOrganization(), key, value);
+                    } else if (key.startsWith(CLAIM_URI_PREFIX)) {
                         context.getFlowUser().addUpdatedClaim(key, value);
                     } else if (CONSENT_KEY.equals(key) || PREFERENCE_KEY.equals(key)) {
                         context.getFlowUser().addUserConsents(FlowUser.UserConsent.fromJson(value));
@@ -264,10 +300,10 @@ public class InputValidationService {
     }
 
     /**
-     * Validate user inputs against claim uniqueness constraints.
+     * Validate user and organization inputs.
      *
      * @param context Flow context.
-     * @throws FlowEngineClientException If claim uniqueness validation fails.
+     * @throws FlowEngineException If an input fails validation.
      */
     private void validateUserInputs(FlowExecutionContext context) throws FlowEngineException {
 
@@ -278,8 +314,11 @@ public class InputValidationService {
         // The proper fix is to introduce an attribute collector executor for the flow, which would allow this
         // to be handled in the graph building phase itself.
         boolean skipUniquenessValidation = isUserResolveExecutor(context);
+        Map<String, String> identifierTypes = resolveIdentifierTypes(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
-            if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+            if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(userInput.getKey()))) {
+                validateOrganizationInput(context.getTenantDomain(), userInput.getKey(), userInput.getValue());
+            } else if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
                 validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
                         skipUniquenessValidation);
             } else if (userInput.getKey().equals(PASSWORD_KEY)) {
@@ -289,18 +328,222 @@ public class InputValidationService {
     }
 
     /**
-     * Retrieve validation rules from claim metadata for the given claim URI.
-     * Validates claim uniqueness if configured and throws exception on failure.
+     * Validate a submitted organization input before it is routed onto the flow organization.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param identifier   Organization input identifier.
+     * @param value        Organization input value.
+     * @throws FlowEngineException If an organization input fails validation.
+     */
+    private void validateOrganizationInput(String tenantDomain, String identifier, String value)
+            throws FlowEngineException {
+
+        switch (identifier) {
+            case ORG_NAME_KEY:
+                validateOrganizationName(tenantDomain, value);
+                break;
+            case ORG_HANDLE_KEY:
+                validateOrganizationHandle(tenantDomain, value);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Validate the organization name against the rules organization management enforces at creation:
+     * not blank, no HTML content, not a reserved name and unique within the current hierarchy.
+     *
+     * @param tenantDomain     Tenant domain.
+     * @param organizationName Organization name to validate.
+     * @throws FlowEngineException If the name is invalid or the validation fails.
+     */
+    private void validateOrganizationName(String tenantDomain, String organizationName)
+            throws FlowEngineException {
+
+        if (StringUtils.isBlank(organizationName)) {
+            throw handleClientException(ERROR_CODE_INVALID_ORGANIZATION_NAME);
+        }
+        if (Utils.hasHtmlContent(organizationName)) {
+            throw handleClientException(ERROR_CODE_ORGANIZATION_NAME_CONTAINS_HTML_CONTENT);
+        }
+        OrganizationManager organizationManager =
+                FlowExecutionEngineDataHolder.getInstance().getOrganizationManager();
+        String superRootOrgName;
+        try {
+            superRootOrgName = organizationManager.getOrganizationNameById(SUPER_ORG_ID);
+        } catch (OrganizationManagementException e) {
+            throw handleServerException(ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE, e, tenantDomain);
+        }
+        if (StringUtils.equalsIgnoreCase(superRootOrgName, organizationName) ||
+                StringUtils.equalsIgnoreCase(SUPER, organizationName)) {
+            throw handleClientException(ERROR_CODE_RESERVED_ORGANIZATION_NAME, organizationName);
+        }
+        if (organizationManager.isOrganizationExistByNameInGivenHierarchy(organizationName)) {
+            throw handleClientException(ERROR_CODE_ORGANIZATION_NAME_ALREADY_EXISTS, organizationName);
+        }
+    }
+
+    /**
+     * Validate the organization handle against tenant domain availability. A blank handle is valid;
+     * organization creation falls back to the organization ID in that case.
+     *
+     * @param tenantDomain       Tenant domain.
+     * @param organizationHandle Organization handle to validate.
+     * @throws FlowEngineException If the handle is taken or the validation fails.
+     */
+    private void validateOrganizationHandle(String tenantDomain, String organizationHandle)
+            throws FlowEngineException {
+
+        if (StringUtils.isBlank(organizationHandle)) {
+            return;
+        }
+        OrganizationManager organizationManager =
+                FlowExecutionEngineDataHolder.getInstance().getOrganizationManager();
+        boolean handleExists;
+        try {
+            handleExists = organizationManager.isOrganizationExistByHandle(organizationHandle);
+        } catch (OrganizationManagementException e) {
+            throw handleServerException(ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE, e, tenantDomain);
+        }
+        if (handleExists) {
+            throw handleClientException(ERROR_CODE_ORGANIZATION_HANDLE_ALREADY_EXISTS, organizationHandle);
+        }
+    }
+
+    /**
+     * Routes an organization input onto the flow organization. The fields the engine and its executors
+     * reference directly are set as first class fields; anything else the flow collects is kept as a
+     * custom attribute.
+     *
+     * @param organization Organization details collected by the flow.
+     * @param identifier   Identifier of the input field.
+     * @param value        Value submitted for the field.
+     */
+    private void setOrganizationInput(FlowOrganization organization, String identifier, String value) {
+
+        switch (identifier) {
+            case ORG_NAME_KEY:
+                organization.setOrganizationName(value);
+                break;
+            case ORG_HANDLE_KEY:
+                organization.setOrganizationHandle(value);
+                break;
+            case ORG_DESCRIPTION_KEY:
+                organization.setOrganizationDescription(value);
+                break;
+            default:
+                organization.setAttribute(identifier, value);
+        }
+    }
+
+    /**
+     * Builds a map of input identifier to its configured {@code identifierType}, by walking every step
+     * of the flow graph and the components nested within each step.
+     * <p>
+     * All steps are scanned rather than only the current node: input validation runs before the node
+     * executes, so the step an input belongs to is ambiguous at this point, and identifiers are unique
+     * within a flow.
+     *
+     * @param context Flow execution context.
+     * @return Identifier to identifier type; empty when the graph declares none.
+     */
+    private Map<String, String> resolveIdentifierTypes(FlowExecutionContext context) {
+
+        Map<String, String> identifierTypes = new HashMap<>();
+        if (context.getGraphConfig() == null || context.getGraphConfig().getNodePageMappings() == null) {
+            return identifierTypes;
+        }
+        for (StepDTO step : context.getGraphConfig().getNodePageMappings().values()) {
+            if (step != null && step.getData() != null) {
+                collectIdentifierTypes(step.getData().getComponents(), identifierTypes);
+            }
+        }
+        return identifierTypes;
+    }
+
+    /**
+     * Collects the {@code identifierType} of each component, recursing into nested components.
+     *
+     * @param components      Components to walk.
+     * @param identifierTypes Map collecting identifier to identifier type.
+     */
+    private void collectIdentifierTypes(List<ComponentDTO> components, Map<String, String> identifierTypes) {
+
+        if (components == null) {
+            return;
+        }
+        for (ComponentDTO component : components) {
+            if (component == null) {
+                continue;
+            }
+            if (MapUtils.isNotEmpty(component.getConfigs())) {
+                Object identifier = component.getConfigs().get(IDENTIFIER);
+                Object identifierType = component.getConfigs().get(IDENTIFIER_TYPE_CONFIG);
+                if (identifier != null && identifierType != null) {
+                    identifierTypes.put(String.valueOf(identifier), String.valueOf(identifierType));
+                }
+            }
+            collectIdentifierTypes(component.getComponents(), identifierTypes);
+        }
+    }
+
+    /**
+     * Validate a claim whose value can never be a future date.
+     * <p>
+     * Deliberately independent of claim metadata: the rule is fixed in {@link #NO_FUTURE_DATE_CLAIMS} rather than
+     * configured per tenant, so it is applied before the metadata lookup in
+     * {@link #validateUserClaims(String, String, String, boolean)}, which returns early when the claim or the
+     * metadata service is unavailable. The same rule is enforced again at user creation by the user store
+     * operation listeners; validating here lets the flow re-render the offending step with an inline error
+     * instead of failing at the end of the flow.
+     *
+     * @param claimUri   Claim URI.
+     * @param claimValue Submitted claim value.
+     * @throws FlowEngineClientException If the value is not an existing calendar date, or is a future date.
+     */
+    private void validateNoFutureDateClaim(String claimUri, String claimValue) throws FlowEngineClientException {
+
+        if (!NO_FUTURE_DATE_CLAIMS.contains(claimUri) || StringUtils.isBlank(claimValue)) {
+            return;
+        }
+        LocalDate date;
+        try {
+            date = LocalDate.parse(claimValue);
+        } catch (DateTimeParseException e) {
+            // Reachable when the value matches the claim's YYYY-MM-DD pattern but is not a real date. Ex: 2025-02-30.
+            throw handleClientException(ERROR_CODE_CLAIM_INVALID_DATE, claimUri);
+        }
+        /*
+         * The server's own notion of today, matching LocalDate.now() in the user store operation listener that
+         * enforces the same rule at user creation. The zone is stated explicitly rather than left implicit, but
+         * it is deliberately the system zone and not UTC: if the two layers disagreed on where the day boundary
+         * falls, a value one accepted the other would reject.
+         */
+        if (date.isAfter(LocalDate.now(ZoneId.systemDefault()))) {
+            throw handleClientException(ERROR_CODE_CLAIM_FUTURE_DATE_NOT_ALLOWED, claimUri);
+        }
+    }
+
+    /**
+     * Validate a submitted claim value.
+     * <p>
+     * Applies the rules that are fixed in code first, then the rules configured in the claim's metadata
+     * (regex, and uniqueness where configured). The fixed rules run before the metadata lookup on purpose,
+     * because that lookup returns early when the claim or the metadata service is unavailable.
      *
      * @param tenantDomain             Tenant domain.
      * @param claimUri                 Claim URI.
      * @param claimValue               Claim value to validate.
      * @param skipUniquenessValidation Whether to skip claim uniqueness validation.
-     * @throws FlowEngineException If claim uniqueness validation fails.
+     * @throws FlowEngineException If the value fails a fixed rule, the configured regex, or uniqueness.
      */
     private void validateUserClaims(String tenantDomain, String claimUri, String claimValue,
                                    boolean skipUniquenessValidation)
             throws FlowEngineException {
+
+        // Must stay outside the try below: everything in it is skipped when claim metadata is unavailable.
+        validateNoFutureDateClaim(claimUri, claimValue);
 
         try {
             if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
@@ -667,12 +910,11 @@ public class InputValidationService {
             }
         }
         // Process all components and apply validations at once.
-        processComponentValidations(dataDTO.getComponents(), validationMap, context.getTenantDomain());
+        processComponentValidations(dataDTO.getComponents(), validationMap);
     }
 
     private void processComponentValidations(List<ComponentDTO> components,
-                                             Map<String, ArrayList<ValidationDTO>> validationMap,
-                                             String tenantDomain) {
+                                             Map<String, ArrayList<ValidationDTO>> validationMap) {
 
         if (components == null || components.isEmpty()) {
             return;
@@ -682,10 +924,10 @@ public class InputValidationService {
             if (Constants.ComponentTypes.INPUT.equals(component.getType())) {
                 String identifier = (String) component.getConfigs().get(IDENTIFIER);
                 applyValidationIfNeeded(component, identifier, validationMap);
-                applyDateValidationIfNeeded(component, identifier, tenantDomain);
+                applyDateValidationIfNeeded(component, identifier);
             } else if (Constants.ComponentTypes.FORM.equals(component.getType())) {
                 // Process nested components.
-                processComponentValidations(component.getComponents(), validationMap, tenantDomain);
+                processComponentValidations(component.getComponents(), validationMap);
             }
         }
     }
@@ -699,48 +941,29 @@ public class InputValidationService {
     }
 
     /**
-     * Attach a client-side date validation rule to a date input component when its claim is
-     * configured to disallow future values (claim property {@code disallowFutureDate=true}).
-     * The rule is consumed by the client to show an inline error before submission. Server-side
-     * enforcement is handled separately by the user store operation listeners.
+     * Attach a client-side date validation rule to a date input component backed by a claim whose
+     * value can never be a future date. The rule is consumed by the client to show an inline error
+     * before submission. Server-side enforcement is handled separately by the user store operation
+     * listeners, which apply the same rule regardless of what the client was told.
      *
-     * @param component    Input component.
-     * @param identifier   Component identifier (claim URI for claim-backed inputs).
-     * @param tenantDomain Tenant domain.
+     * @param component  Input component.
+     * @param identifier Component identifier (claim URI for claim-backed inputs).
      */
-    private void applyDateValidationIfNeeded(ComponentDTO component, String identifier, String tenantDomain) {
+    private void applyDateValidationIfNeeded(ComponentDTO component, String identifier) {
 
-        if (identifier == null || !DATE_VARIANT.equalsIgnoreCase(component.getVariant())) {
+        if (!NO_FUTURE_DATE_CLAIMS.contains(identifier) ||
+                !DATE_VARIANT.equalsIgnoreCase(component.getVariant())) {
             return;
         }
-        if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
-            return;
-        }
-        try {
-            Optional<LocalClaim> localClaim = FlowExecutionEngineDataHolder.getInstance()
-                    .getClaimMetadataManagementService().getLocalClaim(identifier, tenantDomain);
-            if (!localClaim.isPresent()) {
-                return;
-            }
-            String disallowFutureDate = localClaim.get()
-                    .getClaimProperty(ClaimConstants.DISALLOW_FUTURE_DATE_PROPERTY);
-            if (!Boolean.parseBoolean(disallowFutureDate)) {
-                return;
-            }
-            ValidationDTO dateValidation = new ValidationDTO();
-            dateValidation.setName(DATE_VALIDATOR);
-            dateValidation.setType(RULES);
-            List<ValidationDTO.Condition> conditions = new ArrayList<>();
-            conditions.add(new ValidationDTO.Condition(DISALLOW_FUTURE_CONDITION, Boolean.TRUE.toString()));
-            dateValidation.setConditions(conditions);
-            addValidationToComponent(component, dateValidation);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Attached future-date validation for claim: " + identifier);
-            }
-        } catch (ClaimMetadataException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error while retrieving claim metadata for date validation of claim: " + identifier);
-            }
+        ValidationDTO dateValidation = new ValidationDTO();
+        dateValidation.setName(DATE_VALIDATOR);
+        dateValidation.setType(RULES);
+        List<ValidationDTO.Condition> conditions = new ArrayList<>();
+        conditions.add(new ValidationDTO.Condition(DISALLOW_FUTURE_CONDITION, Boolean.TRUE.toString()));
+        dateValidation.setConditions(conditions);
+        addValidationToComponent(component, dateValidation);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Attached future-date validation for claim: " + identifier);
         }
     }
 

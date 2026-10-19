@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByName;
@@ -160,15 +161,21 @@ public class ApplicationIdentityProviderMgtListenerTest {
 
         identityProvider1.setEnable(false);
         String exceptionMessage = null;
+        IdentityProviderManagementException caughtException = null;
         try {
             applicationIdentityProviderMgtListener.doPreUpdateIdP(identityProvider1.getIdentityProviderName(),
                     identityProvider1, SUPER_TENANT_DOMAIN_NAME);
         } catch (IdentityProviderManagementException ex) {
+            caughtException = ex;
             exceptionMessage = ex.getMessage();
+        } finally {
+            identityProvider1.setEnable(true);
         }
         Assert.assertEquals(exceptionMessage,
                 "Error in disabling identity provider as it is referred by service providers.");
-        identityProvider1.setEnable(true);
+        Assert.assertTrue(caughtException instanceof IdentityProviderManagementClientException,
+                "A validation failure must surface as a client error, otherwise the API layer reports it as a "
+                        + "500 Internal Server Error.");
     }
 
     @Test(description = "Test the pre-update IDP listener functionality for an IDP with disabled default"
@@ -179,15 +186,21 @@ public class ApplicationIdentityProviderMgtListenerTest {
                 identityProvider1.getFederatedAuthenticatorConfigs();
         federatedAuthenticatorConfig[0].setEnabled(false);
         String exceptionMessage = null;
+        IdentityProviderManagementException caughtException = null;
         try {
             applicationIdentityProviderMgtListener.doPreUpdateIdP(identityProvider1.getIdentityProviderName(),
                     identityProvider1, SUPER_TENANT_DOMAIN_NAME);
         } catch (IdentityProviderManagementException ex) {
+            caughtException = ex;
             exceptionMessage = ex.getMessage();
+        } finally {
+            federatedAuthenticatorConfig[0].setEnabled(true);
         }
         Assert.assertEquals(exceptionMessage,
                 "Error in disabling default federated authenticator as it is referred by service providers.");
-        federatedAuthenticatorConfig[0].setEnabled(true);
+        Assert.assertTrue(caughtException instanceof IdentityProviderManagementClientException,
+                "A validation failure must surface as a client error, otherwise the API layer reports it as a "
+                        + "500 Internal Server Error.");
     }
 
     @Test(description = "Test the pre-update IDP listener functionality for an IDP with disabled authenticator.")
@@ -197,15 +210,21 @@ public class ApplicationIdentityProviderMgtListenerTest {
                 identityProvider2.getFederatedAuthenticatorConfigs();
         federatedAuthenticatorConfig[1].setEnabled(false);
         String exceptionMessage = null;
+        IdentityProviderManagementException caughtException = null;
         try {
             applicationIdentityProviderMgtListener.doPreUpdateIdP(identityProvider2.getIdentityProviderName(),
                     identityProvider2, SUPER_TENANT_DOMAIN_NAME);
         } catch (IdentityProviderManagementException ex) {
+            caughtException = ex;
             exceptionMessage = ex.getMessage();
+        } finally {
+            federatedAuthenticatorConfig[1].setEnabled(true);
         }
         Assert.assertEquals(exceptionMessage,
                 "CustomAuthenticator is referred by service providers.");
-        federatedAuthenticatorConfig[1].setEnabled(true);
+        Assert.assertTrue(caughtException instanceof IdentityProviderManagementClientException,
+                "A validation failure must surface as a client error, otherwise the API layer reports it as a "
+                        + "500 Internal Server Error.");
     }
 
     @Test(description = "Test the pre-update IDP listener functionality for an IDP with disabled provisioning"
@@ -216,15 +235,21 @@ public class ApplicationIdentityProviderMgtListenerTest {
                 identityProvider1.getProvisioningConnectorConfigs();
         provisioningConnectorConfigs[0].setEnabled(false);
         String exceptionMessage = null;
+        IdentityProviderManagementException caughtException = null;
         try {
             applicationIdentityProviderMgtListener.doPreUpdateIdP(identityProvider1.getIdentityProviderName(),
                     identityProvider1, SUPER_TENANT_DOMAIN_NAME);
         } catch (IdentityProviderManagementException ex) {
+            caughtException = ex;
             exceptionMessage = ex.getMessage();
+        } finally {
+            provisioningConnectorConfigs[0].setEnabled(true);
         }
         Assert.assertEquals(exceptionMessage,
                 "ProvisioningConnector connector is already configured for outbound provisioning.");
-        provisioningConnectorConfigs[0].setEnabled(true);
+        Assert.assertTrue(caughtException instanceof IdentityProviderManagementClientException,
+                "A validation failure must surface as a client error, otherwise the API layer reports it as a "
+                        + "500 Internal Server Error.");
     }
 
     @Test(description = "Test the pre-update IDP listener functionality for the IDP name change"

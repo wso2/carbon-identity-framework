@@ -134,6 +134,13 @@ public class IdentityConstants {
     public final static String COOKIE_SAME_SITE = "sameSite";
     public final static String COOKIES_TO_INVALIDATE_CONFIG = "CookiesToInvalidate";
 
+    // Session storage configuration constants.
+    public final static String SESSION_STORAGE_CONFIG = "SessionStorage";
+    public final static String SESSION_STORAGE_TYPE = "Type";
+    public final static String SESSION_STORAGE_PROPERTIES = "Properties";
+    public final static String SESSION_STORAGE_PROPERTY = "Property";
+    public final static String SESSION_STORAGE_PROPERTY_NAME = "name";
+
     // Store Procedure Based DAO Configuration Constants
     public final static String STORED_PROCEDURE_DAO_CONFIG = "StoredProcedureDAO";
     public final static String DAO_CONFIG = "DAO";
@@ -182,6 +189,8 @@ public class IdentityConstants {
     public static final String IDENTITY_UTIL_ENABLE_SHA256 = "IdentityUtil.EnableSHA256";
     public static final String CERT_THUMBPRINT_ENABLE_SHA256 = "CertThumbprint.EnableSHA256";
     public static final String ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR = "AllowLegacyRoleClaimBehaviour";
+    public static final String RETURN_LEGACY_ROLE_CLAIM_IN_APPLICATION_RESPONSE =
+            "ReturnLegacyRoleClaimInApplicationResponse";
 
     private IdentityConstants() {
     }

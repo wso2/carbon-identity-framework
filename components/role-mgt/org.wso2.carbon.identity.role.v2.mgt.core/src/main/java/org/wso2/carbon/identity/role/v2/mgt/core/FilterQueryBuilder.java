@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -43,6 +43,7 @@ public class FilterQueryBuilder {
      * Add a filter query builder attribute.
      *
      * @param value attribute value.
+     * @deprecated use {@link #addFilterAttributeValue(String, String)} instead.
      */
     public void setFilterAttributeValue(String name, String value) {
 
@@ -50,6 +51,30 @@ public class FilterQueryBuilder {
             stringParameters = new HashMap<>();
         }
         stringParameters.put(name, value);
+    }
+
+    /**
+     * Add a filter query builder attribute.
+     *
+     * @param name  attribute name.
+     * @param value attribute value.
+     * @return the parameter name used to store the value.
+     */
+    public String addFilterAttributeValue(String name, String value) {
+
+        String parameterName = name;
+
+        if (stringParameters == null) {
+            stringParameters = new HashMap<>();
+        } else {
+            int index = 1;
+            while (stringParameters.containsKey(parameterName)) {
+                parameterName = name + "_" + index++;
+            }
+        }
+
+        stringParameters.put(parameterName, value);
+        return parameterName;
     }
 
     /**

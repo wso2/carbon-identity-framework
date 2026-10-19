@@ -24,6 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.rule.management.api.model.FlowType;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * Rule Management Config util class.
  * Holds system configurations related to rule management that can be overridden per flow type in identity.xml.
@@ -35,6 +38,24 @@ public class RuleManagementConfig {
     private static final Log LOG = LogFactory.getLog(RuleManagementConfig.class);
 
     private static final int DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND = 5;
+    private static final int DEFAULT_MAX_RULES_COMBINED_WITH_OR = 10;
+
+    /**
+     * The identity.xml section holding the limits of each flow type.
+     */
+    private static final Map<FlowType, String> CONFIG_SECTIONS = new EnumMap<>(FlowType.class);
+
+    static {
+        CONFIG_SECTIONS.put(FlowType.PRE_ISSUE_ACCESS_TOKEN, "Rules.PreIssueAccessToken");
+        CONFIG_SECTIONS.put(FlowType.PRE_UPDATE_PASSWORD, "Rules.PreUpdatePassword");
+        CONFIG_SECTIONS.put(FlowType.PRE_UPDATE_PROFILE, "Rules.PreUpdateProfile");
+        CONFIG_SECTIONS.put(FlowType.PRE_ISSUE_ID_TOKEN, "Rules.PreIssueIdToken");
+        CONFIG_SECTIONS.put(FlowType.APPROVAL_WORKFLOW, "Rules.ApprovalWorkflow");
+        CONFIG_SECTIONS.put(FlowType.DEVICE_POLICY, "Rules.DevicePolicy");
+        CONFIG_SECTIONS.put(FlowType.REGISTRATION, "Rules.Registration");
+        CONFIG_SECTIONS.put(FlowType.PASSWORD_RECOVERY, "Rules.PasswordRecovery");
+        CONFIG_SECTIONS.put(FlowType.INVITED_USER_REGISTRATION, "Rules.InvitedUserRegistration");
+    }
 
     private RuleManagementConfig() {
 
@@ -60,29 +81,37 @@ public class RuleManagementConfig {
      */
     public int getMaxAndExpressionCount(FlowType flowType) {
 
-        String propertyKey;
-        switch (flowType) {
-            case PRE_ISSUE_ACCESS_TOKEN:
-                propertyKey = "Rules.PreIssueAccessToken.MaxExpressionsCombinedWithAnd";
-                break;
-            case PRE_UPDATE_PASSWORD:
-                propertyKey = "Rules.PreUpdatePassword.MaxExpressionsCombinedWithAnd";
-                break;
-            case PRE_UPDATE_PROFILE:
-                propertyKey = "Rules.PreUpdateProfile.MaxExpressionsCombinedWithAnd";
-                break;
-            case PRE_ISSUE_ID_TOKEN:
-                propertyKey = "Rules.PreIssueIdToken.MaxExpressionsCombinedWithAnd";
-                break;
-            case APPROVAL_WORKFLOW:
-                propertyKey = "Rules.ApprovalWorkflow.MaxExpressionsCombinedWithAnd";
-                break;
-            case DEVICE_POLICY:
-                propertyKey = "Rules.DevicePolicy.MaxExpressionsCombinedWithAnd";
-                break;
-            default:
-                return DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND;
-        }
+        return resolveLimit(flowType, "MaxExpressionsCombinedWithAnd", DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND);
+    }
+
+    /**
+     * Returns the maximum number of rules that can be combined with OR for the given flow type.
+     * The value can be overridden per flow type in identity.xml. If the property is not configured or invalid,
+     * the default value is returned.
+     *
+     * @param flowType Flow type.
+     * @return The maximum number of rules that can be combined with OR for the given flow type.
+     */
+    public int getMaxOrRuleCount(FlowType flowType) {
+
+        return resolveLimit(flowType, "MaxRulesCombinedWithOr", DEFAULT_MAX_RULES_COMBINED_WITH_OR);
+    }
+
+    /**
+     * Resolves a limit configured under the flow type's section in identity.xml.
+     *
+     * @param flowType     Flow type.
+     * @param property     Name of the limit within the flow type's section.
+     * @param defaultValue Value used when the limit is not configured, is invalid, or the flow type has no section.
+     * @return The limit.
+     */
+    private static int resolveLimit(FlowType flowType, String property, int defaultValue) {
+
+        String section = CONFIG_SECTIONS.get(flowType);
+        return section == null ? defaultValue : resolvePositive(section + "." + property, defaultValue);
+    }
+
+    private static int resolvePositive(String propertyKey, int defaultValue) {
 
         try {
             String propertyValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(propertyKey);
@@ -95,14 +124,14 @@ public class RuleManagementConfig {
         } catch (NullPointerException | NumberFormatException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Failed to resolve " + propertyKey + " from identity.xml. Using the default value: " +
-                        DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND, e);
+                        defaultValue, e);
             }
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Positive value not configured for " + propertyKey +
-                    ". Using the default value: " + DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND);
+                    ". Using the default value: " + defaultValue);
         }
-        return DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND;
+        return defaultValue;
     }
 }

@@ -178,10 +178,6 @@ public abstract class JsAuthenticatedUser extends AbstractJSObjectWrapper<Authen
                 getContext().setProperty(PROP_USERNAME_UPDATED_EXTERNALLY, "true");
                 break;
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
-                // AUTHDIAG (temporary) - the adaptive script changing the user store domain.
-                // Note this does not touch the user id, so ordering against AUTHDIAG resolve-* matters.
-                LOG.info("AUTHDIAG script-set-domain old=" + getWrapped().getUserStoreDomain()
-                        + " new=" + value + " userIdAlreadySet=" + getWrapped().isUserIdExists());
                 getWrapped().setUserStoreDomain((String) value);
                 break;
             default:

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
 import org.wso2.carbon.identity.mgt.dto.UserRecoveryDataDO;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
+import org.wso2.carbon.identity.mgt.util.Utils;
 import org.wso2.carbon.registry.common.ResourceData;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
@@ -378,13 +379,13 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
             try {
                 String[] resources = collection.getChildren();
                 for (String resource : resources) {
-                    String[] splittedResource = resource.split("___");
-                    if (splittedResource.length == 3) {
+                    String userNameSegment = Utils.extractUserNameFromCodeResource(resource);
+                    if (userNameSegment != null) {
                         //PRIMARY USER STORE
-                        if (resource.contains("___" + userNameToValidate.toLowerCase() + "___")) {
+                        if (userNameSegment.equals(userNameToValidate.toLowerCase())) {
                             deleteRegistryResource(registry, resource);
                         }
-                    } else if (splittedResource.length == 2) {
+                    } else if (resource.contains(IdentityMgtConstants.REG_DELIMITER)) {
                         //SECONDARY USER STORE. Resource is a collection.
                         deleteOldResourcesIfFound(registry, username, resource);
                     }

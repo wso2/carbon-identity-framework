@@ -1962,11 +1962,6 @@ public class IdentityUtil {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
                     String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
 
-                    // AUTHDIAG (temporary) - did the domain-scoped lookup find the user?
-                    log.info("AUTHDIAG direct-lookup domain=" + userStoreDomain + " tenantId=" + tenantId
-                            + " storeClass=" + userStoreManager.getClass().getSimpleName()
-                            + " found=" + StringUtils.isNotBlank(userId) + " userId=" + userId);
-
                     // If the user id could not be resolved, probably user does not exist in the user store.
                     if (StringUtils.isBlank(userId)) {
                         if (log.isDebugEnabled()) {
@@ -1981,18 +1976,12 @@ public class IdentityUtil {
                             return userId;
                         }
                         String associatedOrganizationUUID = tenant.getAssociatedOrganizationUUID();
-                        // AUTHDIAG (temporary) - the resident organization fallback.
-                        log.info("AUTHDIAG fallback-considered domain=" + userStoreDomain + " tenantId=" + tenantId
-                                + " associatedOrgUUID=" + associatedOrganizationUUID);
                         if (StringUtils.isNotBlank(associatedOrganizationUUID)) {
                             // Trying to resolve the user from the Resident Organization if the user is not found in
                             // the user store of the current organization.
                             Optional<User> user = IdentityCoreServiceDataHolder.getInstance()
                                     .getOrganizationUserResidentResolverService().resolveUserFromResidentOrganization(
                                             username, null, associatedOrganizationUUID);
-                            log.info("AUTHDIAG fallback-result resolved=" + user.isPresent()
-                                    + " userId=" + user.map(User::getUserID).orElse(null)
-                                    + " domain=" + user.map(User::getUserStoreDomain).orElse(null));
                             if (user.isPresent()) {
                                 return user.get().getUserID();
                             }

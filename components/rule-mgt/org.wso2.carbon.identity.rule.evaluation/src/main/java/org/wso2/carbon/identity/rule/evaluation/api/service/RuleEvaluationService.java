@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.rule.evaluation.api.service;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
 /**
  * Rule evaluation service interface.
@@ -38,6 +39,18 @@ public interface RuleEvaluationService {
      * @throws RuleEvaluationException If an error occurs while evaluating the rule.
      */
     RuleEvaluationResult evaluate(String ruleId, FlowContext flowContext, String tenantDomain)
+            throws RuleEvaluationException;
+
+    /**
+     * Evaluate a rule held by the caller rather than by rule management. The caller must have validated it.
+     *
+     * @param rule         Rule to evaluate.
+     * @param flowContext  Flow context.
+     * @param tenantDomain Tenant domain.
+     * @return Rule evaluation result.
+     * @throws RuleEvaluationException If an error occurs while evaluating the rule.
+     */
+    RuleEvaluationResult evaluate(Rule rule, FlowContext flowContext, String tenantDomain)
             throws RuleEvaluationException;
 
 }

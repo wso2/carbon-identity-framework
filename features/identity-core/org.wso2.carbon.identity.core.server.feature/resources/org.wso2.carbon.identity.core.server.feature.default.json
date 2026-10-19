@@ -7,6 +7,7 @@
   "authentication.include_multi_options_in_api_based_auth_response": true,
   "authentication.include_auth_init_data_on_retry_in_api_based_auth_response": false,
   "authentication.allow_sp_requested_fed_claims_only": true,
+  "authentication.enable_legacy_federated_claim_handling": false,
   "authentication.endpoint.enable_custom_claim_mappings": true,
   "authentication.endpoint.enable_merging_custom_claim_mappings_with_default": true,
 
@@ -52,6 +53,8 @@
   "session.timeout.maximum_session_timeout": "30d",
   "par.cleanup.enable_expired_requests_cleanup": true,
   "par.cleanup.clean_expired_requests_every": "1d",
+  "device_token.cleanup.enable_expired_jti_cleanup": true,
+  "device_token.cleanup.clean_expired_jti_every": "1d",
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
   "key_mgt.key_manager_type": "SunX509",
   "key_mgt.trust_manager_type": "SunX509",
@@ -365,6 +368,7 @@
   "oauth.listener.agent_application_creator.order": "99",
   "oauth.graceful_refresh_token_rotation.maximum_validity_period": "60",
   "oauth.graceful_refresh_token_rotation.maximum_reuse_limit": "5",
+  "oauth.multiple_client_secrets.max_secret_count": "2",
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -389,6 +393,7 @@
   "saml.metadata.assertion_encrypt_with_app_cert": true,
   "saml.enable_saml_sp_certificate_expiry_validation": true,
   "saml.enable_saml_idp_init_logout_response_signing": true,
+  "saml.validate_assertion_consumer_url_for_signed_requests": true,
   "saml.send_saml_auth_failure_response_to_sp": false,
   "saml.return_valid_name_id_format": false,
   "saml.response.allow_nested_assertions": false,
@@ -462,6 +467,8 @@
   "scim2.return_conflict_on_claim_uniqueness_violation": true,
   "scim2.throw_userstore_exception_on_user_creation_error": true,
   "scim2.enable_spec_compliant_email_handling": true,
+  "scim2.me.blocked_claims": ["http://wso2.org/claims/identity/failedLoginAttempts", "http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess", "http://wso2.org/claims/identity/failedLoginLockoutCount", "http://wso2.org/claims/identity/failedPasswordRecoveryAttempts", "http://wso2.org/claims/identity/failedSMSOTPAttempts", "http://wso2.org/claims/identity/failedTOTPAttempts", "http://wso2.org/claims/identity/failedEmailOTPAttempts", "http://wso2.org/claims/identity/failedBackupCodeAttempts", "http://wso2.org/claims/identity/accountLocked", "http://wso2.org/claims/identity/unlockTime", "http://wso2.org/claims/identity/accountDisabled", "http://wso2.org/claims/identity/emailVerified", "http://wso2.org/claims/identity/phoneVerified", "http://wso2.org/claims/identity/isLiteUser", "http://wso2.org/claims/identity/totpEnabled", "http://wso2.org/claims/identity/backupCodeEnabled", "http://wso2.org/claims/identity/enabledAuthenticators", "http://wso2.org/claims/identity/accountState", "http://wso2.org/claims/identity/lastLoginTime", "http://wso2.org/claims/identity/lastLogonTime", "http://wso2.org/claims/identity/lastPasswordUpdateTime", "http://wso2.org/claims/identity/lockedReason", "http://wso2.org/claims/identity/isReadOnlyUser", "http://wso2.org/claims/identity/oneTimePassword", "http://wso2.org/claims/identity/managedOrg", "http://wso2.org/claims/identity/passwordExpiryTime", "http://wso2.org/claims/identity/sharedType", "http://wso2.org/claims/identity/failedPushAuthAttempts"],
+  "scim2.me.extended_blocked_claims": [],
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -591,6 +598,8 @@
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
   "identity_mgt.user_claim_update.restrict_immutable_local_claim_update": true,
+
+  "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": true,
 
   "identity_mgt.claims.hidden_claims": [
     "http://wso2.org/claims/identity/askPassword",
@@ -914,7 +923,8 @@
     "/smsotpauthenticationendpoint/",
     "/totpauthenticationendpoint/",
     "/accounts/",
-    "/oid4vci/"
+    "/oid4vci/",
+    "/oid4vp/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -1441,6 +1451,7 @@
   "console.ui.routes.organizationEnabledRoutes.accountSecurity": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.actions": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.admin-forced-password-reset": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.agents": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.apiResources": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.applications": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
@@ -1611,6 +1622,9 @@
   "console.applications.sub_features.applicationClientSecretManagement.scopes.create": [
     "internal_application_mgt_client_secret_create"
   ],
+  "console.applications.sub_features.applicationClientSecretManagement.scopes.delete": [
+    "internal_application_mgt_client_secret_delete"
+  ],
   "console.applications.sub_features.applicationClientSecretManagement.scopes.read": [
     "internal_application_mgt_client_secret_view"
   ],
@@ -1664,6 +1678,19 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
+  "console.connection_sharing.enabled": "$ref{connection_sharing.idp.enable}",
+  "console.connection_sharing.scopes.feature": ["console:connectionSharing"],
+  "console.connection_sharing.disabled_features": [],
+  "console.connection_sharing.scopes.create": ["internal_idp_share"],
+  "console.connection_sharing.scopes.read": [
+    "internal_idp_shared_access_view",
+    "internal_organization_view"
+  ],
+  "console.connection_sharing.scopes.update": [
+    "internal_idp_share",
+    "internal_idp_unshare"
+  ],
+  "console.connection_sharing.scopes.delete": ["internal_idp_unshare"],
   "console.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
   "console.consents.scopes.feature": ["console:consents"],
   "console.consents.disabled_features": [],
@@ -2008,6 +2035,14 @@
   "console.verifiable_credentials.scopes.read": ["internal_vc_template_view"],
   "console.verifiable_credentials.scopes.update": ["internal_vc_template_update"],
   "console.verifiable_credentials.scopes.delete": ["internal_vc_template_delete"],
+  "console.verifiable_presentation.enabled": "$ref{openid4vp.enabled}",
+  "console.verifiable_presentation.scopes.feature": ["console:presentation_definitions"],
+  "console.verifiable_presentation.disabled_features": [],
+  "console.verifiable_presentation.scopes.create": ["internal_presentation_definition_create"],
+  "console.verifiable_presentation.scopes.read": ["internal_presentation_definition_view"],
+  "console.verifiable_presentation.scopes.update": ["internal_presentation_definition_update"],
+  "console.verifiable_presentation.scopes.delete": ["internal_presentation_definition_delete"],
+  "openid4vp.enabled": false,
   "console.ws_fed_configuration.enabled": true,
   "console.self_app_identifier": "Console",
   "console.system_apps_identifiers": ["Console", "My Account"],
@@ -2320,6 +2355,9 @@
   "actions.types.pre_update_password.version.latest": "v2",
   "actions.types.flow_extension.enable": true,
   "actions.types.flow_extension.version.latest": "v1",
+  "actions.types.flow_extension.non_modifiable_paths": [
+  "/user/claims[uri=http://wso2.org/claims/userid]",
+  "/user/claims[uri=http://wso2.org/claims/created]"],
 
   "external_api_client.http_client.connection_timeout": "2000",
   "external_api_client.http_client.read_timeout": "3000",
@@ -2360,6 +2398,7 @@
 
   "token_exchange.implicit_association.include_primary_when_secondary_present": true,
   "token_exchange.limit_scopes_to_subject_token": true,
+  "token_exchange.use_requesting_app_subject_attribute": true,
 
   "attribute.return_previous_additional_properties.enabled": false,
 
@@ -2383,6 +2422,7 @@
   "flow_execution.enable_legacy_invited_user_registration_flow": false,
   "flow_execution.registration.display_claim_availability": false,
   "consent_mgt.enable_v2_api": true,
+  "consent_mgt.revoke_active_consents_on_create": true,
   "branding_configuration.custom_content.max_file_size": "1048576",
   "captcha.disable_for_console.login": false,
   "captcha.enable_captcha_for_local_otp_authenticators": true,
@@ -2406,6 +2446,7 @@
   "tenant_level_application_authentication_config.enabled_for_auth_sequence": true,
   "branding_configuration.use_intermediate_loader_page": false,
   "branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal": false,
+  "webappscommon.inherit_app_level_custom_layout": true,
 
   "enhanced_organization_authentication_feature.enabled": true,
 
@@ -2413,7 +2454,6 @@
   "use_resident_user_id_for_authenticated_shared_users.enabled": true,
   "connection_sharing.default_provisioning_user_store": "PRIMARY",
   "connection_sharing.idp.enable": "true",
-  "connection_sharing.idp.disabled_authenticators": [],
   "app_native_authentication.handle_fail_completed_authenticator_status": true,
   "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
   "enhanced_organization_authentication.enabled_by_default_for_new_apps": true,
@@ -2441,5 +2481,7 @@
 
   "saas_apps.return_roles_in_id_token": false,
 
-  "rules.device_policy.max_expressions_combined_with_and": 15
+  "rules.device_policy.max_expressions_combined_with_and": 15,
+
+  "legacy_claims.return_legacy_role_claim_in_application_response": false
 }

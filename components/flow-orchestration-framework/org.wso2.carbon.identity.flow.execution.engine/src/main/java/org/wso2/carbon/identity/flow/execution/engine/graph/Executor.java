@@ -19,10 +19,14 @@
 package org.wso2.carbon.identity.flow.execution.engine.graph;
 
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadata;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interface for the executor.
@@ -58,4 +62,24 @@ public interface Executor {
      * @return List of completion data.
      */
     ExecutorResponse rollback(FlowExecutionContext context) throws FlowEngineException;
+
+    /**
+     * Declare supported flow types for dynamically registered executors.
+     *
+     * @return Set of supported flow types.
+     */
+    default Set<FlowTypes> getSupportedFlowTypes() {
+
+        return Collections.emptySet();
+    }
+
+    /**
+     * Get the metadata describing how the flow composer should present a dynamically registered executor.
+     *
+     * @return Executor metadata, or null to let the engine derive defaults from {@link #getName()}.
+     */
+    default FlowExecutorMetadata getExecutorMetadata() {
+
+        return null;
+    }
 }

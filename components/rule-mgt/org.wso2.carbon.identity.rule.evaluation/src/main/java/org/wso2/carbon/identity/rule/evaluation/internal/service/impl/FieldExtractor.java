@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationExce
 import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
@@ -59,19 +60,31 @@ public class FieldExtractor {
     public List<Field> extractFields(Rule rule) throws RuleEvaluationException {
 
         List<Field> fieldList = new ArrayList<>();
-        Set<String> extractedFieldName = new HashSet<>();
+        Set<String> extractedFields = new HashSet<>();
 
         for (Expression expression : rule.getExpressions()) {
-            String fieldName = expression.getField();
-            if (extractedFieldName.add(fieldName)) {
+            if (extractedFields.add(FieldLookup.token(expression.getField(), expression.getFieldQualifier()))) {
                 FieldDefinition fieldDefinition = expressionMetadataFieldsMap.get(expression.getField());
                 if (fieldDefinition == null) {
                     throw new RuleEvaluationException(
                             "Field definition not found for the field: " + expression.getField());
                 }
 
-                Field field = new Field(expression.getField(), resolveValueType(fieldDefinition.getValue()));
-                fieldList.add(field);
+                fieldList.add(new Field(expression.getField(), expression.getFieldQualifier(),
+                        resolveValueType(fieldDefinition.getValue())));
+            }
+            FieldReference reference = expression.getValue() == null ? null
+                    : expression.getValue().getFieldReference();
+            if (reference != null && expression.getValue().getType()
+                    == org.wso2.carbon.identity.rule.management.api.model.Value.Type.FIELD
+                    && extractedFields.add(FieldLookup.token(reference.getName(), reference.getQualifier()))) {
+                FieldDefinition referencedDefinition = expressionMetadataFieldsMap.get(reference.getName());
+                if (referencedDefinition == null) {
+                    throw new RuleEvaluationException(
+                            "Field definition not found for the field: " + reference.getName());
+                }
+                fieldList.add(new Field(reference.getName(), reference.getQualifier(),
+                        resolveValueType(referencedDefinition.getValue())));
             }
         }
 

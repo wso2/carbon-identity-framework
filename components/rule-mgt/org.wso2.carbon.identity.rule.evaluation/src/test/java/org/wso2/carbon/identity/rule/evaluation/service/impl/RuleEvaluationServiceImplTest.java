@@ -63,6 +63,8 @@ import java.util.Objects;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -138,6 +140,32 @@ public class RuleEvaluationServiceImplTest {
         assertNotNull(result);
         assertEquals(result.getRuleId(), ruleId);
         assertTrue(result.isRuleSatisfied());
+    }
+
+    /**
+     * A caller that holds its own rule has no id to look up. Evaluating the object must therefore
+     * never reach rule management -- the point of the overload is that the rule was never registered.
+     */
+    @Test
+    public void testEvaluateRuleObjectDoesNotConsultRuleManagement() throws Exception {
+
+        String tenantDomain = "tenant1";
+        Rule rule = createRule(tenantDomain);
+        FlowContext flowContext = new FlowContext(FlowType.PRE_ISSUE_ACCESS_TOKEN, Collections.emptyMap());
+
+        // Swapped in for the duration so the assertion does not depend on what other tests did.
+        RuleManagementService unusedRuleManagement = mock(RuleManagementService.class);
+        RuleEvaluationComponentServiceHolder.getInstance().setRuleManagementService(unusedRuleManagement);
+        try {
+            RuleEvaluationResult result = ruleEvaluationService.evaluate(rule, flowContext, tenantDomain);
+
+            assertNotNull(result);
+            assertEquals(result.getRuleId(), rule.getId());
+            assertTrue(result.isRuleSatisfied());
+            verify(unusedRuleManagement, never()).getRuleByRuleId(any(), any());
+        } finally {
+            RuleEvaluationComponentServiceHolder.getInstance().setRuleManagementService(ruleManagementService);
+        }
     }
 
     @Test
