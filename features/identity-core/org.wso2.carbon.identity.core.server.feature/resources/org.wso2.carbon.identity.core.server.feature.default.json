@@ -1343,6 +1343,21 @@
       "description": "This email is sent to the user to inform when a new device has been registered for push notification.",
       "displayName": "Push Device Registration",
       "id": "UHVzaERldmljZVJlZ2lzdHJhdGlvbg"
+    },
+    {
+      "description": "This email OTP is sent to verify the user before the profile update.",
+      "displayName": "Email OTP for Profile Update",
+      "id": "UHJvZmlsZVVwZGF0ZUVtYWlsT1RQ"
+    },
+    {
+      "description": "This email is sent to the user to verify them using a magic link before the profile update",
+      "displayName": "Magic Link Profile Update",
+      "id": "bWFnaWNMaW5rUHJvZmlsZVVwZGF0ZQ"
+    },
+    {
+      "description": "This email notifies the user that the profile update is successfully completed",
+      "displayName": "Profile Update Success",
+      "id": "cHJvZmlsZVVwZGF0ZVN1Y2Nlc3M"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1410,6 +1425,16 @@
       "description": "This SMS is sent to the user to complete the CIBA authentication request.",
       "displayName": "CIBA Authentication Request",
       "id": "Q0lCQVNNU0F1dGhlbnRpY2F0aW9uTm90aWZpY2F0aW9u"
+    },
+    {
+      "description": "This SMS OTP is sent to verify the user before the profile update.",
+      "displayName": "SMS OTP for Profile Update",
+      "id": "cHJvZmlsZVVwZGF0ZVNNU09UUA"
+    },
+    {
+      "description": "This SMS is sent to notify the user of a successful profile update.",
+      "displayName": "Profile Update Success",
+      "id": "cHJvZmlsZVVwZGF0ZVN1Y2Nlc3M"
     }
   ],
   "console.ui.app_copyright": "WSO2 Identity Server",
@@ -2414,7 +2439,8 @@
   "flow_execution.flow_type_ttl": {
     "REGISTRATION": "30",
     "PASSWORD_RECOVERY": "30",
-    "INVITED_USER_REGISTRATION": "30"
+    "INVITED_USER_REGISTRATION": "30",
+    "PROFILE_UPDATE": "30"
   },
   "flow_execution.enable_legacy_flows": false,
   "flow_execution.enable_legacy_self_registration_flow": false,
