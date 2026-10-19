@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleClientException;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleDecisionStepException;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 
 /**
@@ -65,25 +65,22 @@ public class FlowRuleValidator {
     /**
      * The operators that take a list of values.
      */
-    private static final Set<String> LIST_OPERATORS =
-            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(IN, NOT_IN)));
+    private static final Set<String> LIST_OPERATORS = Set.of(IN, NOT_IN);
 
     /**
      * The only operators a multi-valued claim accepts: they check its entries.
      */
-    private static final Set<String> MULTI_VALUED_OPERATORS =
-            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(IN, NOT_IN, "isEmpty", "isNotEmpty")));
+    private static final Set<String> MULTI_VALUED_OPERATORS = Set.of(IN, NOT_IN, "isEmpty", "isNotEmpty");
 
-    private static final Set<String> NUMERIC_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList("equals", "notEquals", "greaterThan", "lessThan", IS_BLANK, IS_NOT_BLANK)));
+    private static final Set<String> NUMERIC_OPERATORS = Set.of("equals", "notEquals", "greaterThan", "lessThan",
+            IS_BLANK, IS_NOT_BLANK);
 
     /**
      * Everything that is not a number is compared as text, dates and booleans included: nothing validates their format
      * on write, so ordering them would compare strings.
      */
-    private static final Set<String> TEXT_OPERATORS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList("equals", "notEquals", "contains", "notContains", "startsWith", "endsWith", IS_BLANK,
-                    IS_NOT_BLANK)));
+    private static final Set<String> TEXT_OPERATORS = Set.of("equals", "notEquals", "contains", "notContains",
+            "startsWith", "endsWith", IS_BLANK, IS_NOT_BLANK);
 
     private FlowRuleValidator() {
 
@@ -128,18 +125,24 @@ public class FlowRuleValidator {
     private static void validateBranchRule(String stepId, BranchDTO branch, String flowType, String tenantDomain,
                                            ClaimLookup claims) throws FlowMgtFrameworkException {
 
+        if (StringUtils.isBlank(flowType)) {
+            throw handleDecisionStepException("Flow type not provided.",
+                    "The flow type is required to validate the rules of its decision steps.");
+        }
         FlowType ruleFlowType;
         try {
             ruleFlowType = FlowType.valueOf(flowType);
         } catch (IllegalArgumentException e) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_RULES_NOT_SUPPORTED_FOR_FLOW,
+            throw handleDecisionStepException("Rules are not supported for this flow.",
+                    "The %s flow does not publish rule fields, so the decision step %s cannot be evaluated.",
                     flowType, stepId);
         }
+        validateRuleShape(stepId, branch);
 
         // Checked before the rule builder, so the error names the specific problem.
         for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
             for (Expression expression : andCombinedRule.getExpressions()) {
-                validateKey(branch, expression);
+                validateQualifier(branch, expression);
                 validateValueShape(branch, expression);
             }
         }
@@ -147,8 +150,7 @@ public class FlowRuleValidator {
         try {
             buildRule(branch, ruleFlowType, tenantDomain);
         } catch (RuleManagementException e) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INVALID_BRANCH_RULE,
-                    branch.getName(), stepId, e.getMessage());
+            throw invalidRule(stepId, branch, e.getMessage());
         }
 
         for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
@@ -181,6 +183,30 @@ public class FlowRuleValidator {
         ruleBuilder.build();
     }
 
+    /**
+     * A branch's rule must hold at least one group of conditions, and every group at least one condition, so that the
+     * checks below and the rule builder have something to read.
+     */
+    private static void validateRuleShape(String stepId, BranchDTO branch) throws FlowMgtClientException {
+
+        List<ANDCombinedRule> groups = branch.getRule().getRules();
+        if (groups == null || groups.isEmpty()) {
+            throw invalidRule(stepId, branch, "The rule has no groups of conditions combined with OR.");
+        }
+        for (ANDCombinedRule group : groups) {
+            if (group == null || group.getExpressions() == null || group.getExpressions().isEmpty()
+                    || group.getExpressions().contains(null)) {
+                throw invalidRule(stepId, branch, "A group of conditions combined with AND is empty.");
+            }
+        }
+    }
+
+    private static FlowMgtClientException invalidRule(String stepId, BranchDTO branch, String reason) {
+
+        return handleDecisionStepException("Invalid rule.",
+                "The rule on branch %s of the decision step %s is not valid: %s", branch.getName(), stepId, reason);
+    }
+
     private static boolean isClaimField(String field) {
 
         return FlowRuleMetadataProvider.USER_CLAIMS.equals(field)
@@ -191,18 +217,23 @@ public class FlowRuleValidator {
      * A qualified field is meaningless without its qualifier, and a qualifier on a field that names one value would be
      * stored and never read.
      */
-    private static void validateKey(BranchDTO branch, Expression expression) throws FlowMgtClientException {
+    private static void validateQualifier(BranchDTO branch, Expression expression) throws FlowMgtClientException {
 
         boolean hasQualifier = StringUtils.isNotBlank(expression.getFieldQualifier());
         if (FlowRuleMetadataProvider.isQualified(expression.getField())) {
             if (!hasQualifier) {
-                throw handleClientException(isClaimField(expression.getField())
-                                ? Constants.ErrorMessages.ERROR_CODE_CLAIM_QUALIFIER_REQUIRED
-                                : Constants.ErrorMessages.ERROR_CODE_QUALIFIER_REQUIRED,
+                if (isClaimField(expression.getField())) {
+                    throw handleDecisionStepException("Claim not selected.",
+                            "A condition on %s in branch %s does not say which claim it compares.",
+                            expression.getField(), branch.getName());
+                }
+                throw handleDecisionStepException("Qualifier not provided.",
+                        "A condition on %s in branch %s does not say which value of that field it compares.",
                         expression.getField(), branch.getName());
             }
         } else if (hasQualifier) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_QUALIFIER_NOT_ALLOWED,
+            throw handleDecisionStepException("Qualifier not allowed.",
+                    "The field %s in branch %s names a single value and takes no qualifier.",
                     expression.getField(), branch.getName());
         }
     }
@@ -212,7 +243,8 @@ public class FlowRuleValidator {
 
         LocalClaim claim = claims.find(expression.getFieldQualifier());
         if (claim == null) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNKNOWN_CLAIM,
+            throw handleDecisionStepException("Unknown claim.",
+                    "The rule in branch %s compares the claim %s, which is not a claim of this organization.",
                     branch.getName(), expression.getFieldQualifier());
         }
 
@@ -226,7 +258,8 @@ public class FlowRuleValidator {
             String reason = multiValued
                     ? "It holds more than one value, so only in, notIn, isEmpty and isNotEmpty apply."
                     : "It holds a single value. Allowed operators are: " + String.join(", ", allowed) + ".";
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_OPERATOR_NOT_ALLOWED_FOR_CLAIM,
+            throw handleDecisionStepException("Operator not allowed for this claim.",
+                    "The operator %s cannot be used with the claim %s in branch %s. %s",
                     expression.getOperator(), expression.getFieldQualifier(), branch.getName(), reason);
         }
     }
@@ -242,7 +275,8 @@ public class FlowRuleValidator {
             return;
         }
         if (claims.find(reference.getQualifier()) == null) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNKNOWN_CLAIM,
+            throw handleDecisionStepException("Unknown claim.",
+                    "The rule in branch %s compares the claim %s, which is not a claim of this organization.",
                     branch.getName(), reference.getQualifier());
         }
     }
@@ -260,7 +294,8 @@ public class FlowRuleValidator {
         boolean listValued = expression.getValue() != null
                 && expression.getValue().getType() == Value.Type.LIST;
         if (membership != listValued) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_LIST_VALUE_MISMATCH,
+            throw handleDecisionStepException("Value does not match the operator.",
+                    "The operator %s in branch %s %s a list of values.",
                     expression.getOperator(), branch.getName(), membership ? "requires" : "does not take");
         }
     }

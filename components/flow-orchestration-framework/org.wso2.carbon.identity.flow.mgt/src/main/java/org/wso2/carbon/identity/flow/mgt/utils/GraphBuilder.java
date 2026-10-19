@@ -68,6 +68,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleClientException;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleDecisionStepException;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 
 /**
@@ -197,8 +198,9 @@ public class GraphBuilder {
         validateBranches(step.getId(), action.getBranches());
 
         if (action.getExecutor() != null) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_DECISION_INVALID_EXECUTOR,
-                    step.getId(), action.getExecutor().getName());
+            throw handleDecisionStepException("Executor not allowed on a decision step.",
+                    "The decision step %s names the executor %s. A decision only evaluates its branches, so it " +
+                    "carries no executor.", step.getId(), action.getExecutor().getName());
         }
 
         NodeConfig ruleEvaluationNode = createRuleEvaluationNode(step.getId());
@@ -219,7 +221,8 @@ public class GraphBuilder {
         long count = steps.stream().filter(step -> Constants.StepTypes.RULE_EVALUATION.equals(step.getType())).count();
         int max = FlowMgtUtils.getMaxRuleEvaluationNodes();
         if (count > max) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_TOO_MANY_RULE_EVALUATION_NODES, count, max);
+            throw handleDecisionStepException("Too many decision steps.",
+                    "The flow has %d decision steps, more than the %d allowed.", count, max);
         }
     }
 
@@ -231,8 +234,9 @@ public class GraphBuilder {
             throws FlowMgtClientException {
 
         if (value.length() > maxLength) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_BRANCH_VALUE_TOO_LONG, attribute, stepId,
-                    maxLength);
+            throw handleDecisionStepException("Branch value too long.",
+                    "The %s of a branch of the decision step %s is longer than %d characters.",
+                    attribute, stepId, maxLength);
         }
     }
 
@@ -249,25 +253,10 @@ public class GraphBuilder {
         int defaults = 0;
 
         for (BranchDTO branch : branches) {
-            if (StringUtils.isBlank(branch.getId())) {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INCOMPLETE_BRANCH, stepId, "id");
-            }
-            if (StringUtils.isBlank(branch.getName())) {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INCOMPLETE_BRANCH, stepId, "name");
-            }
-            validateLength(stepId, "id", branch.getId(), MAX_BRANCH_ID_LENGTH);
-            validateLength(stepId, "name", branch.getName(), MAX_BRANCH_NAME_LENGTH);
-            if (StringUtils.isBlank(branch.getNextId())) {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INCOMPLETE_BRANCH, stepId,
-                        "next step");
-            }
-            if (stepId.equals(branch.getNextId())) {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_SELF_REFERENCING_BRANCH,
-                        branch.getName(), stepId);
-            }
+            validateBranch(stepId, branch);
             if (!branchIds.add(branch.getId())) {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_DUPLICATE_BRANCH_ID, stepId,
-                        branch.getId());
+                throw handleDecisionStepException("Duplicate branch id.",
+                        "More than one branch of the decision step %s uses the id %s.", stepId, branch.getId());
             }
             if (branch.isDefault()) {
                 defaults++;
@@ -275,10 +264,49 @@ public class GraphBuilder {
         }
 
         if (defaults == 0) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_NO_DEFAULT_BRANCH, stepId);
+            throw handleDecisionStepException("No default branch defined.",
+                    "The decision step %s has no default branch. Add a branch without a condition, taken when no " +
+                    "other branch matches.", stepId);
         }
         if (defaults > 1) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_MULTIPLE_DEFAULT_BRANCHES, stepId);
+            throw handleDecisionStepException("Multiple default branches defined.",
+                    "The decision step %s has more than one branch without a condition. Only one default branch is " +
+                    "allowed.", stepId);
+        }
+        if (branches.size() == defaults) {
+            throw handleDecisionStepException("No rule branch defined.",
+                    "The decision step %s has only a default branch. Add at least one branch with a rule.",
+                    stepId);
+        }
+    }
+
+    /**
+     * Reject a branch that is missing a part, has a value too long to store, or points back at its own step.
+     *
+     * @param stepId Id of the decision step, for the message.
+     * @param branch Branch to check.
+     * @throws FlowMgtClientException If the branch is not complete.
+     */
+    private void validateBranch(String stepId, BranchDTO branch) throws FlowMgtClientException {
+
+        if (StringUtils.isBlank(branch.getId())) {
+            throw handleDecisionStepException("Branch id not provided.",
+                    "A branch of the decision step %s has no id.", stepId);
+        }
+        if (StringUtils.isBlank(branch.getName())) {
+            throw handleDecisionStepException("Branch name not provided.",
+                    "A branch of the decision step %s has no name.", stepId);
+        }
+        validateLength(stepId, "id", branch.getId(), MAX_BRANCH_ID_LENGTH);
+        validateLength(stepId, "name", branch.getName(), MAX_BRANCH_NAME_LENGTH);
+        if (StringUtils.isBlank(branch.getNextId())) {
+            throw handleDecisionStepException("Branch next step not provided.",
+                    "A branch of the decision step %s does not say which step it goes to.", stepId);
+        }
+        if (stepId.equals(branch.getNextId())) {
+            throw handleDecisionStepException("Branch targets its own step.",
+                    "The branch %s of the decision step %s points back at the same step, which cannot make " +
+                    "progress.", branch.getName(), stepId);
         }
     }
 

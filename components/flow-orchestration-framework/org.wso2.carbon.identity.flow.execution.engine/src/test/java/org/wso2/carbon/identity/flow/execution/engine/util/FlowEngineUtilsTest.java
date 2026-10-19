@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheEntry;
@@ -53,13 +54,16 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.AssertJUnit.fail;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
@@ -440,5 +444,64 @@ public class FlowEngineUtilsTest {
         if (mockAutoCloseable != null) {
             mockAutoCloseable.close();
         }
+    }
+
+    @Test
+    public void testRegistrationUserStoreDomainIsResolvedFromTheUsername() {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS)) {
+            identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn("DEFAULT");
+            FlowUser user = new FlowUser();
+            FlowExecutionContext context = userContext("REGISTRATION", user);
+
+            user.addClaim(USERNAME_CLAIM_URI, "alice");
+            FlowExecutionEngineUtils.resolveUserStoreDomain(context);
+            assertEquals(user.getUserStoreDomain(), "DEFAULT");
+
+            user.addClaim(USERNAME_CLAIM_URI, "partners/alice");
+            FlowExecutionEngineUtils.resolveUserStoreDomain(context);
+            assertEquals(user.getUserStoreDomain(), "PARTNERS");
+        }
+    }
+
+    @Test
+    public void testUserStoreDomainOfAnIdentifiedUserIsKept() {
+
+        FlowUser user = new FlowUser();
+        user.setUserId("user-1");
+        user.setUserStoreDomain("LDAP");
+        user.addClaim(USERNAME_CLAIM_URI, "partners/alice");
+
+        FlowExecutionEngineUtils.resolveUserStoreDomain(userContext("REGISTRATION", user));
+
+        assertEquals(user.getUserStoreDomain(), "LDAP");
+    }
+
+    @Test
+    public void testUserStoreDomainOutsideRegistrationIsOnlyTakenFromADomainQualifiedUsername() {
+
+        FlowUser plainUser = new FlowUser();
+        plainUser.addClaim(USERNAME_CLAIM_URI, "alice");
+        FlowExecutionEngineUtils.resolveUserStoreDomain(userContext("PASSWORD_RECOVERY", plainUser));
+        assertNull(plainUser.getUserStoreDomain());
+
+        FlowUser qualifiedUser = new FlowUser();
+        qualifiedUser.addClaim(USERNAME_CLAIM_URI, "partners/alice");
+        FlowExecutionEngineUtils.resolveUserStoreDomain(userContext("PASSWORD_RECOVERY", qualifiedUser));
+        assertEquals(qualifiedUser.getUserStoreDomain(), "PARTNERS");
+
+        FlowUser resolvedUser = new FlowUser();
+        resolvedUser.setUserStoreDomain("LDAP");
+        resolvedUser.addClaim(USERNAME_CLAIM_URI, "partners/alice");
+        FlowExecutionEngineUtils.resolveUserStoreDomain(userContext("PASSWORD_RECOVERY", resolvedUser));
+        assertEquals(resolvedUser.getUserStoreDomain(), "LDAP");
+    }
+
+    private static FlowExecutionContext userContext(String flowType, FlowUser user) {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setFlowType(flowType);
+        context.setFlowUser(user);
+        return context;
     }
 }

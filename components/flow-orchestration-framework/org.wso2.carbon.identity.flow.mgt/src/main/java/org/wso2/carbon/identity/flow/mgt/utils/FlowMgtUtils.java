@@ -121,6 +121,25 @@ public class FlowMgtUtils {
     }
 
     /**
+     * Handle a decision step that is not valid. Every such failure shares one error code and says what is wrong
+     * through its own message and description.
+     *
+     * @param message     Error message.
+     * @param description Error description, formatted with the data.
+     * @param data        The error description data.
+     * @return FlowMgtClientException.
+     */
+    public static FlowMgtClientException handleDecisionStepException(String message, String description,
+                                                                     Object... data) {
+
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new FlowMgtClientException(ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP.getCode(), message,
+                description);
+    }
+
+    /**
      * Whether conditional branching is enabled on the server. It guards decision steps, from saving and reading them
      * to evaluating them, so a server without it never reads or writes the branch table.
      *

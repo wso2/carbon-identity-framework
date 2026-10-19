@@ -30,7 +30,9 @@ import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
+import org.wso2.carbon.identity.flow.execution.engine.rule.AbstractFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
@@ -38,6 +40,7 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
@@ -57,9 +60,15 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotSame;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests which branch a rule evaluation takes.
@@ -116,6 +125,45 @@ public class RuleEvaluationNodeTest {
         ruleEvaluationNode.execute(contextFor(node, guardedThenDefault()), node);
 
         assertEquals(node.getNextNodeId(), LK_STEP);
+    }
+
+    /**
+     * The rule component gets a copy holding only what the rule fields read, never the flow's own context, so it
+     * cannot change the flow and never sees the user's credentials, inputs or the flow graph.
+     */
+    @Test
+    public void testRuleComponentGetsACopyOfTheContext() throws Exception {
+
+        stubEvaluation(false);
+        NodeConfig node = node();
+        FlowExecutionContext context = contextFor(node, guardedThenDefault());
+        context.setApplicationId("app-1");
+        FlowUser user = context.getFlowUser();
+        user.setUserId("user-1");
+        user.setUserStoreDomain("PRIMARY");
+        user.addClaim("http://wso2.org/claims/country", "LK");
+        user.getUserCredentials().put("password", "secret".toCharArray());
+        context.getUserInputData().put("http://wso2.org/claims/country", "LK");
+
+        ruleEvaluationNode.execute(context, node);
+
+        ArgumentCaptor<FlowContext> captor = ArgumentCaptor.forClass(FlowContext.class);
+        verify(ruleEvaluationService, times(2)).evaluate(any(Rule.class), captor.capture(), anyString());
+        FlowExecutionContext first = ruleContextOf(captor.getAllValues().get(0));
+        FlowExecutionContext ruleContext = ruleContextOf(captor.getAllValues().get(1));
+        assertSame(ruleContext, first, "One copy serves every branch of the decision.");
+        assertNotSame(ruleContext, context);
+        assertNotSame(ruleContext.getFlowUser(), user);
+        assertEquals(ruleContext.getTenantDomain(), "carbon.super");
+        assertEquals(ruleContext.getApplicationId(), "app-1");
+        assertEquals(ruleContext.getFlowType(), "REGISTRATION");
+        assertEquals(ruleContext.getFlowUser().getUserId(), "user-1");
+        assertEquals(ruleContext.getFlowUser().getUserStoreDomain(), "PRIMARY");
+        assertEquals(ruleContext.getFlowUser().getClaims(), user.getClaims());
+        assertNotSame(ruleContext.getFlowUser().getClaims(), user.getClaims());
+        assertTrue(ruleContext.getFlowUser().getUserCredentials().isEmpty());
+        assertTrue(ruleContext.getUserInputData().isEmpty());
+        assertNull(ruleContext.getGraphConfig());
     }
 
     @Test
@@ -290,6 +338,12 @@ public class RuleEvaluationNodeTest {
         FlowExecutionContext context = contextFor(node, guardedOnly);
 
         assertThrows(FlowEngineException.class, () -> ruleEvaluationNode.execute(context, node));
+    }
+
+    private static FlowExecutionContext ruleContextOf(FlowContext flowContext) {
+
+        return (FlowExecutionContext) flowContext.getContextData()
+                .get(AbstractFlowRuleEvaluationDataProvider.FLOW_EXECUTION_CONTEXT);
     }
 
     private void stubEvaluation(boolean satisfied) throws Exception {

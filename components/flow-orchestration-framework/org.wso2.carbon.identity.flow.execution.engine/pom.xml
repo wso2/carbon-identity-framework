@@ -173,6 +173,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.flow.mgt.exception;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.flow.mgt.utils;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.input.validation.mgt.exceptions;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.input.validation.mgt.model;

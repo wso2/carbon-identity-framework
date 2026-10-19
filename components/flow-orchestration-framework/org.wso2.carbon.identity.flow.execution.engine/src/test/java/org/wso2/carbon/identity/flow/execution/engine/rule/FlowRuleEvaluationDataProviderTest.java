@@ -38,9 +38,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
-import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -63,6 +61,8 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.expectThrows;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * Tests what a flow condition is evaluated against.
@@ -72,10 +72,15 @@ public class FlowRuleEvaluationDataProviderTest {
     private static final String TENANT = "carbon.super";
     private static final String COUNTRY = "http://wso2.org/claims/country";
     private static final String GROUPS = "http://wso2.org/claims/groups";
+    private static final String AGE = "http://wso2.org/claims/age";
     private static final String SEPARATOR = ",,,";
+
+    private static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
 
     private final RegistrationFlowRuleEvaluationDataProvider provider =
             new RegistrationFlowRuleEvaluationDataProvider();
+    private final PasswordRecoveryFlowRuleEvaluationDataProvider recoveryProvider =
+            new PasswordRecoveryFlowRuleEvaluationDataProvider();
 
     private ClaimMetadataManagementService claimService;
     private AbstractUserStoreManager userStoreManager;
@@ -89,6 +94,9 @@ public class FlowRuleEvaluationDataProviderTest {
         when(claimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.empty());
         when(claimService.getLocalClaim(eq(GROUPS), anyString())).thenReturn(Optional.of(claim(GROUPS, true)));
         when(claimService.getLocalClaim(eq(COUNTRY), anyString())).thenReturn(Optional.of(claim(COUNTRY, false)));
+        LocalClaim age = claim(AGE, false);
+        age.setClaimProperty(ClaimConstants.DATA_TYPE_PROPERTY, "INTEGER");
+        when(claimService.getLocalClaim(eq(AGE), anyString())).thenReturn(Optional.of(age));
         FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(claimService);
 
         userStoreManager = mock(AbstractUserStoreManager.class);
@@ -209,6 +217,32 @@ public class FlowRuleEvaluationDataProviderTest {
                 field(AbstractFlowRuleEvaluationDataProvider.USER_CLAIMS, COUNTRY), context(existingUser())));
     }
 
+    /**
+     * A number claim is compared as a number, so 9 is not greater than 18 the way "9" is greater than "18" as text.
+     */
+    @Test
+    public void testNumberClaimIsANumber() throws Exception {
+
+        FlowUser user = new FlowUser();
+        user.addClaim(AGE, "9");
+
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, AGE),
+                context(user));
+
+        assertEquals(value.getValueType(), ValueType.NUMBER);
+        assertEquals(value.getValue(), 9.0);
+    }
+
+    @Test
+    public void testNumberClaimThatIsNotANumberIsNoValue() throws Exception {
+
+        FlowUser user = new FlowUser();
+        user.addClaim(AGE, "nine");
+
+        assertNull(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, AGE), context(user))
+                .getValue());
+    }
+
     @Test
     public void testApplicationIsTheIdOfTheApplicationTheFlowRunsFor() throws Exception {
 
@@ -227,31 +261,38 @@ public class FlowRuleEvaluationDataProviderTest {
         FlowUser user = existingUser();
         user.setUserStoreDomain("ldap");
 
-        assertEquals(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null), context(user))
-                .getValue(), "LDAP");
+        assertEquals(resolve(recoveryProvider, field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null),
+                context(user)).getValue(), "LDAP");
     }
 
     /**
-     * A user with no recorded domain is in the primary store, named as the tenant names it -- DEFAULT on
-     * Asgardeo, for instance.
+     * The store is resolved on the flow user as the flow runs, so a user without one has no value, whatever the
+     * username, and nothing is read from the user store.
      */
     @Test
-    public void testUserDomainFallsBackToThePrimaryStore() throws Exception {
+    public void testUserDomainIsNoValueWhenTheFlowUserHasNoStore() throws Exception {
 
-        RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
-        when(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME))
-                .thenReturn("default");
-        when(userStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
+        FlowUser user = existingUser();
+        user.addClaim(USERNAME_CLAIM, "partners/alice");
 
-        assertEquals(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null),
-                context(existingUser())).getValue(), "DEFAULT");
+        FieldValue value = resolve(recoveryProvider, field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null),
+                context(user));
+
+        assertEquals(value.getValueType(), ValueType.STRING);
+        assertNull(value.getValue());
+        assertNull(resolve(recoveryProvider, field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null),
+                context(null)).getValue());
+        verify(userStoreManager, never()).getUserWithID(anyString(), any(), any());
     }
 
     @Test
-    public void testUserDomainBeforeTheUserIsIdentifiedIsAnError() {
+    public void testRegistrationUserDomainIsTheStoreOfTheFlowUser() throws Exception {
 
-        expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
-                field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null), context(new FlowUser())));
+        FlowUser user = new FlowUser();
+        user.setUserStoreDomain("partners");
+
+        assertEquals(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_DOMAIN, null), context(user))
+                .getValue(), "PARTNERS");
     }
 
     @Test
@@ -338,9 +379,15 @@ public class FlowRuleEvaluationDataProviderTest {
 
     private FieldValue resolve(Field field, FlowExecutionContext context) throws Exception {
 
+        return resolve(provider, field, context);
+    }
+
+    private FieldValue resolve(AbstractFlowRuleEvaluationDataProvider dataProvider, Field field,
+                               FlowExecutionContext context) throws Exception {
+
         Map<String, Object> contextData = new HashMap<>();
         contextData.put(AbstractFlowRuleEvaluationDataProvider.FLOW_EXECUTION_CONTEXT, context);
-        List<FieldValue> values = provider.getEvaluationData(
+        List<FieldValue> values = dataProvider.getEvaluationData(
                 new RuleEvaluationContext("rule", Collections.singletonList(field)),
                 new FlowContext(FlowType.REGISTRATION, contextData), TENANT);
         assertEquals(values.size(), 1);

@@ -242,6 +242,29 @@ public class FlowRuleValidatorTest {
         assertThrows(FlowMgtClientException.class, () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
     }
 
+    /**
+     * A flow without a type, or a rule without conditions, is rejected as a client error rather than failing on the
+     * server.
+     */
+    @Test
+    public void testFlowWithoutATypeIsRejected() {
+
+        FlowDTO flow = flowWith(expression(COUNTRY, "equals", scalar("LK")));
+        flow.setFlowType(null);
+
+        assertThrows(FlowMgtClientException.class, () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
+    }
+
+    @Test
+    public void testRuleWithoutConditionsIsRejected() {
+
+        FlowDTO flow = flowWith(expression(COUNTRY, "equals", scalar("LK")));
+        BranchDTO guarded = flow.getSteps().get(0).getData().getAction().getBranches().get(0);
+        guarded.setRule(new ORCombinedRule.Builder().setRules(null).build());
+
+        assertThrows(FlowMgtClientException.class, () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
+    }
+
     @Test
     public void testNumericClaimAcceptsOrdering() throws Exception {
 
@@ -314,7 +337,8 @@ public class FlowRuleValidatorTest {
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flowWith(qualifiedApplication), TENANT_DOMAIN));
-        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_QUALIFIER_NOT_ALLOWED));
+        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP));
+        assertEquals(e.getMessage(), "Qualifier not allowed.");
     }
 
     @Test
@@ -343,7 +367,8 @@ public class FlowRuleValidatorTest {
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flowWith(application), TENANT_DOMAIN));
-        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_LIST_VALUE_MISMATCH));
+        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP));
+        assertEquals(e.getMessage(), "Value does not match the operator.");
     }
 
     @Test
@@ -370,7 +395,8 @@ public class FlowRuleValidatorTest {
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flowWith(userDomain("UNKNOWN")), TENANT_DOMAIN));
-        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_INVALID_BRANCH_RULE));
+        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP));
+        assertEquals(e.getMessage(), "Invalid rule.");
     }
 
     private static Expression userDomain(String domain) {
@@ -446,7 +472,8 @@ public class FlowRuleValidatorTest {
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
-        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_UNKNOWN_CLAIM));
+        assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP));
+        assertEquals(e.getMessage(), "Unknown claim.");
     }
 
     @Test

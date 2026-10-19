@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheEntry;
@@ -48,6 +49,7 @@ import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngi
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
@@ -57,6 +59,7 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,6 +81,7 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.EventPropert
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.STEP_TYPE;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.USER_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
@@ -671,5 +675,30 @@ public class FlowExecutionEngineUtils {
             properties.put(USER_ID, context.getFlowUser().getUserId());
         }
         return properties;
+    }
+
+    /**
+     * Resolve the user store domain of a user who is not identified yet, from the username they gave.
+     * A registering user is created in the primary user store unless the username names another one.
+     *
+     * @param context Flow execution context.
+     */
+    public static void resolveUserStoreDomain(FlowExecutionContext context) {
+
+        FlowUser user = context.getFlowUser();
+        if (user == null || StringUtils.isNotBlank(user.getUserId()) || user.getClaims() == null) {
+            return;
+        }
+        String username = user.getClaims().get(USERNAME_CLAIM_URI);
+        if (StringUtils.isBlank(username)) {
+            return;
+        }
+        // Outside registration, only a username that names its domain says anything about the user's store.
+        boolean registration = Constants.FlowTypes.REGISTRATION.getType().equals(context.getFlowType());
+        boolean namesDomain = StringUtils.isBlank(user.getUserStoreDomain())
+                && username.contains(UserCoreConstants.DOMAIN_SEPARATOR);
+        if (registration || namesDomain) {
+            user.setUserStoreDomain(IdentityUtil.extractDomainFromName(username));
+        }
     }
 }

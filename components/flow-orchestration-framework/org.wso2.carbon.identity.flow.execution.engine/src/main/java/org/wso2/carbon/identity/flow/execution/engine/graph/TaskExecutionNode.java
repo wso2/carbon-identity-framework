@@ -45,6 +45,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_CO
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
+import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.resolveUserStoreDomain;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
@@ -208,6 +209,7 @@ public class TaskExecutionNode implements Node {
         if (response.getUpdatedUserClaims() != null) {
             response.getUpdatedUserClaims()
                     .forEach((key, value) -> user.addUpdatedClaim(key, String.valueOf(value)));
+            resolveUserStoreDomain(context);
         }
         if (response.getUserCredentials() != null) {
             user.getUserCredentials().putAll(response.getUserCredentials());

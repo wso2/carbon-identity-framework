@@ -242,6 +242,7 @@ public class InputValidationService {
                     context.getUserInputData().remove(key);
                 }
         );
+        FlowExecutionEngineUtils.resolveUserStoreDomain(context);
         context.getUserInputData().remove(CONSENT_KEY);
         context.getUserInputData().remove(PREFERENCE_KEY);
     }

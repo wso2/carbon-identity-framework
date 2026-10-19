@@ -38,7 +38,6 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.Group;
 
@@ -126,7 +125,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
             case USER_CLAIMS:
                 return persistedClaim(field, context, tenantDomain);
             case USER_DOMAIN:
-                return userDomain(field, context, tenantDomain);
+                return userStoreDomain(field, context);
             case USER_GROUPS:
                 return userGroups(field, context, tenantDomain);
             case USER_ROLES:
@@ -152,25 +151,13 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                 ValueType.REFERENCE);
     }
 
-    /**
-     * The user store of the user, once the user exists.
-     */
-    private FieldValue userDomain(Field field, FlowExecutionContext context, String tenantDomain)
-            throws RuleEvaluationDataProviderException {
+    private FieldValue userStoreDomain(Field field, FlowExecutionContext context) {
 
-        FlowUser user = identifiedUser(field, context);
-        if (StringUtils.isNotBlank(user.getUserStoreDomain())) {
+        FlowUser user = context.getFlowUser();
+        if (user != null && StringUtils.isNotBlank(user.getUserStoreDomain())) {
             return stringValue(field, user.getUserStoreDomain().toUpperCase());
         }
-        try {
-            String primaryDomain = userStoreManager(tenantDomain).getRealmConfiguration()
-                    .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-            return stringValue(field, StringUtils.isNotBlank(primaryDomain)
-                    ? primaryDomain.toUpperCase() : UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
-        } catch (UserStoreException e) {
-            throw new RuleEvaluationDataProviderException("Could not read the primary user store of tenant "
-                    + tenantDomain + " for the condition on the user's domain.", e);
-        }
+        return stringValue(field, null);
     }
 
     /**
@@ -266,21 +253,15 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         return (FlowExecutionContext) context;
     }
 
-    /**
-     * A claim value, as a set when the claim holds more than one value. An empty value counts as no value: a set
-     * that is not there rather than an empty one, so isBlank and isEmpty hold on it but notIn does not.
-     *
-     * @param field           Field being resolved.
-     * @param rawValue        Value as stored or collected.
-     * @param userStoreDomain User store the separator is configured on, or null for the primary.
-     * @param tenantDomain    Tenant domain.
-     * @return The value.
-     */
     private FieldValue claimValue(Field field, String rawValue, String userStoreDomain, String tenantDomain)
             throws RuleEvaluationDataProviderException {
 
-        if (!isMultiValued(field.getQualifier(), tenantDomain)) {
-            return stringValue(field, StringUtils.isEmpty(rawValue) ? null : rawValue);
+        Optional<LocalClaim> claim = localClaim(field.getQualifier(), tenantDomain);
+        if (!isMultiValued(claim)) {
+            if (StringUtils.isEmpty(rawValue)) {
+                return stringValue(field, null);
+            }
+            return isNumeric(claim) ? numberValue(field, rawValue) : stringValue(field, rawValue);
         }
 
         if (StringUtils.isEmpty(rawValue)) {
@@ -293,10 +274,40 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         return new FieldValue(field.getName(), field.getQualifier(), values);
     }
 
-    private boolean isMultiValued(String claimUri, String tenantDomain) throws RuleEvaluationDataProviderException {
+    private static boolean isMultiValued(Optional<LocalClaim> claim) {
+
+        return claim.isPresent() && Boolean.parseBoolean(
+                claim.get().getClaimProperty(ClaimConstants.MULTI_VALUED_PROPERTY));
+    }
+
+    /**
+     * Whether a claim holds numbers, so its value is compared as a number rather than as text.
+     */
+    private static boolean isNumeric(Optional<LocalClaim> claim) {
+
+        String dataType = claim.map(localClaim -> localClaim.getClaimProperty(ClaimConstants.DATA_TYPE_PROPERTY))
+                .orElse(null);
+        return ClaimConstants.ClaimDataType.INTEGER.name().equalsIgnoreCase(dataType)
+                || ClaimConstants.ClaimDataType.DECIMAL.name().equalsIgnoreCase(dataType);
+    }
+
+    /**
+     * A number claim's value as a number. A value that is not a number is no value, as it cannot be compared with one.
+     */
+    private static FieldValue numberValue(Field field, String rawValue) {
+
+        try {
+            return new FieldValue(field.getName(), field.getQualifier(), Double.valueOf(rawValue.trim()));
+        } catch (NumberFormatException e) {
+            return new FieldValue(field.getName(), field.getQualifier(), (String) null, ValueType.STRING);
+        }
+    }
+
+    private Optional<LocalClaim> localClaim(String claimUri, String tenantDomain)
+            throws RuleEvaluationDataProviderException {
 
         if (StringUtils.isBlank(claimUri)) {
-            return false;
+            return Optional.empty();
         }
         ClaimMetadataManagementService claimService =
                 FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService();
@@ -305,25 +316,19 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                     "Claim metadata service is not available to read claim " + claimUri + ".");
         }
         try {
-            Optional<LocalClaim> claim = claimService.getLocalClaim(claimUri, tenantDomain);
-            return claim.isPresent() && Boolean.parseBoolean(
-                    claim.get().getClaimProperty(ClaimConstants.MULTI_VALUED_PROPERTY));
+            return claimService.getLocalClaim(claimUri, tenantDomain);
         } catch (ClaimMetadataException e) {
             throw new RuleEvaluationDataProviderException("Could not read the metadata of claim " + claimUri
                     + " in tenant " + tenantDomain + ".", e);
         }
     }
 
-    private FieldValue stringValue(Field field, String value) {
+    protected FieldValue stringValue(Field field, String value) {
 
         return new FieldValue(field.getName(), field.getQualifier(), value, ValueType.STRING);
     }
 
-    /**
-     * The user, once identified. Before that, what is stored for the user cannot be known, which is not the same as
-     * the user having nothing stored, so a condition on it is an error rather than a check of an empty value.
-     */
-    private static FlowUser identifiedUser(Field field, FlowExecutionContext context)
+    private FlowUser identifiedUser(Field field, FlowExecutionContext context)
             throws RuleEvaluationDataProviderException {
 
         FlowUser user = context.getFlowUser();

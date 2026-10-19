@@ -49,6 +49,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mockStatic;
 
@@ -219,6 +220,22 @@ public class GraphBuilderRuleEvaluationTest {
                 .nextId(Constants.END_NODE_ID).build());
 
         assertThrows(FlowMgtClientException.class, () -> buildGraph(decisionStep(twoDefaults)));
+    }
+
+    /**
+     * A decision with only a default always takes it, so there is nothing to decide.
+     */
+    @Test
+    public void testDecisionWithOnlyADefaultBranchIsRejected() {
+
+        List<BranchDTO> defaultOnly = new ArrayList<>();
+        defaultOnly.add(new BranchDTO.Builder().id("br_default").name("Everyone")
+                .nextId(Constants.END_NODE_ID).build());
+
+        FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
+                () -> buildGraph(decisionStep(defaultOnly)));
+        assertEquals(e.getErrorCode(), Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP.getCode());
+        assertEquals(e.getMessage(), "No rule branch defined.");
     }
 
     @Test
