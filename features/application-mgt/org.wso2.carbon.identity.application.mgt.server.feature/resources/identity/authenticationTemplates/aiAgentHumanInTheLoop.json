@@ -1,0 +1,69 @@
+{
+  "category": "AIAgents",
+  "name": "AI-Agent-Human-in-the-Loop",
+  "title": "AI Agent Human-in-the-Loop Template",
+  "summary": "Requires a human-only verification step, such as a passkey, when an AI agent that identifies itself with Web Bot Auth signs in.",
+  "preRequisites": [
+    "Modify the 1st and 2nd factor authentication option(s) from defaults as required.",
+    "AI agents are identified by their Web Bot Auth headers (Signature, Signature-Input and Signature-Agent). Make sure your load balancers and proxies forward them to the server.",
+    "To identify AI agents that do not use Web Bot Auth, extend detectAgent(). See the documentation for examples.",
+    "The 2nd step must be one that only a human can complete, such as a passkey or a push notification. Do not enable progressive enrollment for it in this flow, so an agent cannot enroll its own device."
+  ],
+  "parametersDescription": {},
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "Passkey authenticator (human-only verification)"
+  },
+  "authenticationSteps": 2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "FIDOAuthenticator"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "",
+  "code": [
+    "// This script requires a human-only verification step (passkey by default) when the request comes from an AI agent.",
+    "//",
+    "// AI agents that use Web Bot Auth sign every request with HTTP Message Signatures and declare themselves",
+    "// in the Signature-Agent header. To identify other AI agents, extend detectAgent().",
+    "// See the documentation for more identification methods.",
+    "",
+    "// Detection result for this login flow. Top-level variables are kept across the steps of a flow.",
+    "var agentDetected = false;",
+    "",
+    "var onLoginRequest = function (context) {",
+    "    // Request headers of the sign-in request are only available here, so detect before running the steps.",
+    "    agentDetected = detectAgent(context);",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            if (agentDetected) {",
+    "                Log.info('AI agent detected for application: ' + context.serviceProviderName +",
+    "                    '. Requiring human verification.');",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
+    "};",
+    "",
+    "// Returns true when the request comes from an AI agent that identifies itself with Web Bot Auth.",
+    "var detectAgent = function (context) {",
+    "    // Header names are lower-case.",
+    "    var headers = context.request.headers;",
+    "    // Signed agents send a Signature-Agent header and a Signature-Input header with tag=\"web-bot-auth\".",
+    "    // The declaration is enough to deny or step up an agent. Verify the signature (for example at your edge)",
+    "    // before trusting a specific agent.",
+    "    var signatureInput = String(headers['signature-input'] || '');",
+    "    return !!headers['signature-agent'] || signatureInput.indexOf('web-bot-auth') >= 0;",
+    "};"
+  ],
+  "runtime": "any"
+}

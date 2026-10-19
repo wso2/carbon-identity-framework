@@ -21,5 +21,11 @@
     "displayName": "Progressive Enrollment",
     "order": 4,
     "icon": "./images/progressive-enrollment-template.png"
+  },
+
+  "AIAgents": {
+    "displayName": "AI Agents",
+    "order": 5,
+    "icon": "./images/ai-agents-template.png"
   }
 }

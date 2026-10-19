@@ -1,0 +1,63 @@
+{
+  "category": "AIAgents",
+  "name": "AI-Agent-Blocking",
+  "title": "AI Agent Blocking Template",
+  "summary": "Denies sign-in to AI agents that identify themselves with Web Bot Auth.",
+  "preRequisites": [
+    "Modify the authentication option(s) from defaults as required.",
+    "AI agents are identified by their Web Bot Auth headers (Signature, Signature-Input and Signature-Agent). Make sure your load balancers and proxies forward them to the server.",
+    "To identify AI agents that do not use Web Bot Auth, extend detectAgent(). See the documentation for examples."
+  ],
+  "parametersDescription": {
+    "errorMessage": "Message shown to blocked clients"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator"
+  },
+  "authenticationSteps": 1,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "",
+  "code": [
+    "// This script denies sign-in when the request comes from an AI agent.",
+    "//",
+    "// AI agents that use Web Bot Auth sign every request with HTTP Message Signatures and declare themselves",
+    "// in the Signature-Agent header. To identify other AI agents, extend detectAgent().",
+    "// See the documentation for more identification methods.",
+    "",
+    "// Message shown to blocked clients.",
+    "var errorMessage = 'AI agents are not allowed to sign in to this application.';",
+    "",
+    "var onLoginRequest = function (context) {",
+    "    if (detectAgent(context)) {",
+    "        Log.info('AI agent blocked for application: ' + context.serviceProviderName);",
+    "        var responseMode = context.request.params.response_mode;",
+    "        if (responseMode && responseMode[0] === 'direct') {",
+    "            fail({'errorCode': 'access_denied', 'errorMessage': errorMessage});",
+    "        } else {",
+    "            sendError(null, {'status': 'ACCESS_DENIED', 'statusMsg': errorMessage});",
+    "        }",
+    "        return;",
+    "    }",
+    "    executeStep(1);",
+    "};",
+    "",
+    "// Returns true when the request comes from an AI agent that identifies itself with Web Bot Auth.",
+    "var detectAgent = function (context) {",
+    "    // Header names are lower-case.",
+    "    var headers = context.request.headers;",
+    "    // Signed agents send a Signature-Agent header and a Signature-Input header with tag=\"web-bot-auth\".",
+    "    // The declaration is enough to deny or step up an agent. Verify the signature (for example at your edge)",
+    "    // before trusting a specific agent.",
+    "    var signatureInput = String(headers['signature-input'] || '');",
+    "    return !!headers['signature-agent'] || signatureInput.indexOf('web-bot-auth') >= 0;",
+    "};"
+  ],
+  "runtime": "any"
+}
