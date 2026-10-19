@@ -1726,6 +1726,50 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             context.setServiceProviderResourceId(
                     effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId());
         }
+
+        try {
+            if (OrganizationManagementUtil.isOrganization(context.getTenantDomain())) {
+                if (effectiveSequence.getApplicationConfig().getServiceProvider() != null && StringUtils.isNotBlank(
+                        effectiveSequence.getApplicationConfig().getServiceProvider().getTenantDomain())) {
+                    ServiceProvider serviceProvider = effectiveSequence.getApplicationConfig().getServiceProvider();
+                    boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
+                            .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                                    Boolean.parseBoolean(property.getValue()));
+                    try {
+                        if (isFragmentApp) {
+                            String mainAppId = FrameworkServiceDataHolder.getInstance().
+                                    getApplicationManagementService().getMainAppId(
+                                            effectiveSequence.getApplicationConfig().getServiceProvider().
+                                                    getApplicationResourceId());
+                            String mainAppTenantDomain = IdentityTenantUtil.getTenantDomain(FrameworkServiceDataHolder.
+                                    getInstance().getApplicationManagementService().getTenantIdByApp(mainAppId));
+                            ServiceProvider mainSp = FrameworkServiceDataHolder.getInstance().
+                                    getApplicationManagementService().getApplicationByResourceId(mainAppId,
+                                            mainAppTenantDomain);
+                            boolean isEnhancedLoginEnabled = mainSp.isEnhancedOrganizationAuthenticationEnabled();
+                            String mainAppOrgId = FrameworkServiceDataHolder.getInstance().
+                                    getOrganizationManager().resolveOrganizationId(mainAppTenantDomain);
+                            context.setServiceProviderResourceId(mainAppId);
+                            context.setServiceProviderOrganizationId(mainAppOrgId);
+                            context.setServiceProviderTenantDomain(mainAppTenantDomain);
+                            context.getProperties().put("enhancedOrgLoginEnabled", isEnhancedLoginEnabled);
+                        } else {
+                            String appOrgId = FrameworkServiceDataHolder.getInstance().
+                                    getOrganizationManager().resolveOrganizationId(
+                                            effectiveSequence.getApplicationConfig().
+                                                    getServiceProvider().getTenantDomain());
+                            context.setServiceProviderOrganizationId(appOrgId);
+                            context.setServiceProviderTenantDomain(
+                                    effectiveSequence.getApplicationConfig().getServiceProvider().getTenantDomain());
+                        }
+                    } catch (OrganizationManagementException | IdentityApplicationManagementException e) {
+                        log.warn("Application organization resolving is failed. " + e.getMessage(), e);
+                    }
+                }
+            }
+        } catch (OrganizationManagementException e) {
+            log.warn("Organization check failed. " + e.getMessage(), e);
+        }
     }
 
     /**
