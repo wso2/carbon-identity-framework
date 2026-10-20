@@ -62,7 +62,8 @@
     "    // The declaration is enough to deny or step up an agent. Verify the signature (for example at your edge)",
     "    // before trusting a specific agent.",
     "    var signatureInput = String(headers['signature-input'] || '');",
-    "    return !!headers['signature-agent'] || signatureInput.indexOf('web-bot-auth') >= 0;",
+    "    // Match the tag parameter exactly, e.g. sig1=(...);tag=\"web-bot-auth\".",
+    "    return !!headers['signature-agent'] || /;\\s*tag=\"web-bot-auth\"\\s*(;|,|$)/.test(signatureInput);",
     "};"
   ],
   "runtime": "any"
