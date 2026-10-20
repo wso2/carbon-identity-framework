@@ -110,6 +110,10 @@ public class IdentityApplicationConstants {
             "isEnhancedOrganizationAuthenticationEnabled";
     public static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_DISPLAY_NAME =
             "Is Enhanced Organization Authentication Enabled";
+    public static final String IS_ORGANIZATION_CUSTOM_ROLES_ENABLED_SP_PROPERTY_NAME =
+            "isOrganizationCustomRolesEnabled";
+    public static final String IS_ORGANIZATION_CUSTOM_ROLES_ENABLED_SP_PROPERTY_DISPLAY_NAME =
+            "Is Organization Custom Roles Enabled";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
     public static final String ADVANCED_CONFIG = "advancedConfigurations";
@@ -132,6 +136,8 @@ public class IdentityApplicationConstants {
     public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
     public static final String ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME = "associatedRoles.allowedAudience";
     public static final String ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME = "applicationEnabled";
+    public static final String ORGANIZATION_CUSTOM_ROLES_ENABLED_REQUEST_ATTRIBUTE_NAME =
+            "organizationCustomRolesEnabled";
 
     public static final String IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME = "isAPIBasedAuthenticationEnabled";
     public static final String IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME = "Is API Based Authentication Enabled";

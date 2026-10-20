@@ -1294,6 +1294,24 @@ public class ApplicationMgtUtil {
     }
 
     /**
+     * Check whether organization custom roles of the given role audience are enabled for the shared applications of
+     * the given main application.
+     *
+     * @param mainApplication Main application.
+     * @param roleAudience    Role audience, i.e. {@code application} or {@code organization}.
+     * @return True if organization custom roles of the given audience are enabled for the shared applications.
+     */
+    public static boolean isOrganizationCustomRolesEnabled(ServiceProvider mainApplication, String roleAudience) {
+
+        return mainApplication != null
+                && mainApplication.isEnhancedOrganizationAuthenticationEnabled()
+                && mainApplication.isOrganizationCustomRolesEnabled()
+                && mainApplication.getAssociatedRolesConfig() != null
+                && StringUtils.equalsIgnoreCase(roleAudience,
+                        mainApplication.getAssociatedRolesConfig().getAllowedAudience());
+    }
+
+    /**
      * Check whether the application is Console or My Account by app name.
      *
      * @param name Application name.

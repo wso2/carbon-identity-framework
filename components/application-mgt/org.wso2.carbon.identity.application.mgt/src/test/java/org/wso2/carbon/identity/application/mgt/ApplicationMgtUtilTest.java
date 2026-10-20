@@ -30,6 +30,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -974,5 +975,40 @@ public class ApplicationMgtUtilTest {
         when(mockPrivilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(mockPrivilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(mockPrivilegedCarbonContext.getUsername()).thenReturn("admin");
+    }
+
+    @DataProvider(name = "organizationCustomRolesConfigProvider")
+    public Object[][] organizationCustomRolesConfigProvider() {
+
+        return new Object[][]{
+                // isEnhancedOrgAuthEnabled, isOrganizationCustomRolesEnabled, allowedAudience, expected,
+                // expected for organization audience.
+                {true, true, "application", true, false},
+                {true, true, "organization", false, true},
+                {true, false, "application", false, false},
+                {true, false, "organization", false, false},
+                {false, true, "application", false, false},
+                {false, true, "organization", false, false},
+                {true, true, null, false, false}
+        };
+    }
+
+    @Test(dataProvider = "organizationCustomRolesConfigProvider")
+    public void testIsOrganizationCustomRolesEnabled(boolean isEnhancedOrgAuthEnabled,
+                                                   boolean isOrganizationCustomRolesEnabled, String allowedAudience,
+                                                   boolean expected, boolean expectedForOrganizationAudience) {
+
+        ServiceProvider mainApplication = new ServiceProvider();
+        mainApplication.setEnhancedOrganizationAuthenticationEnabled(isEnhancedOrgAuthEnabled);
+        mainApplication.setOrganizationCustomRolesEnabled(isOrganizationCustomRolesEnabled);
+        if (allowedAudience != null) {
+            AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+            associatedRolesConfig.setAllowedAudience(allowedAudience);
+            mainApplication.setAssociatedRolesConfig(associatedRolesConfig);
+        }
+
+        assertEquals(ApplicationMgtUtil.isOrganizationCustomRolesEnabled(mainApplication, "application"), expected);
+        assertEquals(ApplicationMgtUtil.isOrganizationCustomRolesEnabled(mainApplication, "organization"),
+                expectedForOrganizationAudience);
     }
 }

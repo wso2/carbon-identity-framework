@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.APIResourceTypes;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
@@ -64,7 +65,9 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_F
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MERGE_AUTHORIZED_SCOPES_BY_POLICY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_ORG_SCOPE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_ORG_SCOPE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_SCOPE_PREFIX;
 
 /**
@@ -180,6 +183,10 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 }
                 authorizedAPI.setScopes(scopeList);
             }
+            // Management API resources of the main application are not available to organizations.
+            if (StringUtils.isNotBlank(mainAppId)) {
+                authorizedAPIs.removeIf(authorizedAPI -> isManagementAPIType(authorizedAPI.getType()));
+            }
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.postGetAuthorizedAPIs(authorizedAPIs, applicationId, tenantDomain);
             }
@@ -214,9 +221,11 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             // returns null, so skip its SP_SHARED_APP query using the cached service provider.
             ServiceProvider serviceProvider = applicationManagementService.getApplicationByResourceId(appId,
                     tenantDomain);
+            boolean isSharedApp = false;
             if (serviceProvider == null || isFragmentApp(serviceProvider)) {
                 String mainAppId = applicationManagementService.getMainAppId(appId);
                 if (mainAppId != null) {
+                    isSharedApp = true;
                     appId = mainAppId;
                     int tenantId = applicationManagementService.getTenantIdByApp(mainAppId);
                     tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
@@ -282,6 +291,10 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 authorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
                         IdentityTenantUtil.getTenantId(tenantDomain));
             }
+            // Management API scopes of the main application are not available to organizations.
+            if (isSharedApp) {
+                authorizedScopes = getScopesExcludingManagementScopes(authorizedScopes);
+            }
 
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.postGetAuthorizedScopes(authorizedScopes, appId, tenantDomain);
@@ -305,6 +318,36 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     return new AuthorizedScopes(authorizedScopes.getPolicyId(), filteredScopes);
                 })
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /**
+     * Exclude the management API scopes which are not available to organizations. Only the internal_org_ scopes of
+     * the internal scopes and the console:org: scopes of the console scopes are retained. New objects are returned
+     * since the given authorized scopes can be cached entries of the main application.
+     *
+     * @param authorizedScopesList Authorized scopes.
+     * @return Authorized scopes excluding the management API scopes.
+     */
+    private List<AuthorizedScopes> getScopesExcludingManagementScopes(List<AuthorizedScopes> authorizedScopesList) {
+
+        return authorizedScopesList.stream()
+                .map(authorizedScopes -> new AuthorizedScopes(authorizedScopes.getPolicyId(),
+                        authorizedScopes.getScopes() == null ? null : authorizedScopes.getScopes().stream()
+                                .filter(scope -> !isManagementScope(scope))
+                                .collect(Collectors.toCollection(ArrayList::new))))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private static boolean isManagementScope(String scope) {
+
+        return (scope.startsWith(INTERNAL_SCOPE_PREFIX) && !scope.startsWith(INTERNAL_ORG_SCOPE_PREFIX)) ||
+                (scope.startsWith(CONSOLE_SCOPE_PREFIX) && !scope.startsWith(CONSOLE_ORG_SCOPE_PREFIX));
+    }
+
+    private static boolean isManagementAPIType(String apiResourceType) {
+
+        return APIResourceTypes.TENANT.equals(apiResourceType) || APIResourceTypes.SYSTEM.equals(apiResourceType) ||
+                APIResourceTypes.CONSOLE_FEATURE.equals(apiResourceType);
     }
 
     @Override
