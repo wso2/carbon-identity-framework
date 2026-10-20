@@ -1746,13 +1746,28 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             ServiceProvider mainSp = FrameworkServiceDataHolder.getInstance().
                                     getApplicationManagementService().getApplicationByResourceId(mainAppId,
                                             mainAppTenantDomain);
-                            boolean isEnhancedLoginEnabled = mainSp.isEnhancedOrganizationAuthenticationEnabled();
-                            String mainAppOrgId = FrameworkServiceDataHolder.getInstance().
-                                    getOrganizationManager().resolveOrganizationId(mainAppTenantDomain);
-                            context.setServiceProviderResourceId(mainAppId);
-                            context.setServiceProviderOrganizationId(mainAppOrgId);
-                            context.setServiceProviderTenantDomain(mainAppTenantDomain);
-                            context.getProperties().put("enhancedOrgLoginEnabled", isEnhancedLoginEnabled);
+                            if (mainSp == null) {
+                                /*
+                                 The main application is the only thing that can answer which organization owns
+                                 the shared one. Without it the owner is left unresolved rather than guessed at,
+                                 and the login continues: this information is descriptive.
+                                 */
+                                log.warn("Main application not found for resource id: " + mainAppId +
+                                        " in tenant domain: " + mainAppTenantDomain +
+                                        ". The organization owning the application is left unresolved.");
+                            } else {
+                                String mainAppOrgId = FrameworkServiceDataHolder.getInstance().
+                                        getOrganizationManager().resolveOrganizationId(mainAppTenantDomain);
+                                /*
+                                 The resource id is deliberately left as the shared application's own. The
+                                 organization qualified callback flow looks the application up by it in the
+                                 organization being accessed, where only the shared application exists.
+                                 */
+                                context.setServiceProviderOrganizationId(mainAppOrgId);
+                                context.setServiceProviderTenantDomain(mainAppTenantDomain);
+                                context.getProperties().put("enhancedOrgLoginEnabled",
+                                        mainSp.isEnhancedOrganizationAuthenticationEnabled());
+                            }
                         } else {
                             String appOrgId = FrameworkServiceDataHolder.getInstance().
                                     getOrganizationManager().resolveOrganizationId(
