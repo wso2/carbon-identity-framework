@@ -57,6 +57,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
     private static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED =
             "IsEnhancedOrganizationAuthenticationEnabled";
+    private static final String IS_ORGANIZATION_CUSTOM_ROLES_ENABLED = "IsOrganizationCustomRolesEnabled";
     private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
@@ -159,6 +160,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED)
     private boolean isEnhancedOrganizationAuthenticationEnabled;
+
+    @IgnoreNullElement
+    @XmlElement(name = IS_ORGANIZATION_CUSTOM_ROLES_ENABLED)
+    private boolean isOrganizationCustomRolesEnabled;
 
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
@@ -718,6 +723,28 @@ public class ServiceProvider implements Serializable {
     public void setEnhancedOrganizationAuthenticationEnabled(boolean isEnhancedOrganizationAuthenticationEnabled) {
 
         this.isEnhancedOrganizationAuthenticationEnabled = isEnhancedOrganizationAuthenticationEnabled;
+    }
+
+    /**
+     * Check whether sub organizations are allowed to create custom roles for the shared applications of this service
+     * provider.
+     *
+     * @return true if organization custom roles are enabled, false otherwise.
+     */
+    public boolean isOrganizationCustomRolesEnabled() {
+
+        return isOrganizationCustomRolesEnabled;
+    }
+
+    /**
+     * Set whether sub organizations are allowed to create custom roles for the shared applications of this service
+     * provider.
+     *
+     * @param isOrganizationCustomRolesEnabled true to enable organization custom roles, false to disable.
+     */
+    public void setOrganizationCustomRolesEnabled(boolean isOrganizationCustomRolesEnabled) {
+
+        this.isOrganizationCustomRolesEnabled = isOrganizationCustomRolesEnabled;
     }
 
     public boolean isAPIBasedAuthenticationEnabled() {

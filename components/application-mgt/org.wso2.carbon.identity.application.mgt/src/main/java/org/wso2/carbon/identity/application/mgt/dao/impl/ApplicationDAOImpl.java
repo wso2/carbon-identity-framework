@@ -172,6 +172,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ORGANIZATION_CUSTOM_ROLES_ENABLED_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ORGANIZATION_CUSTOM_ROLES_ENABLED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
@@ -525,6 +527,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProviderProperty isEnhancedOrganizationAuthenticationEnabled =
                     buildIsEnhancedOrganizationAuthenticationEnabledProperty(application);
             serviceProviderProperties.add(isEnhancedOrganizationAuthenticationEnabled);
+
+            ServiceProviderProperty isOrganizationCustomRolesEnabled =
+                    buildIsOrganizationCustomRolesEnabledProperty(application);
+            serviceProviderProperties.add(isOrganizationCustomRolesEnabled);
             application.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
 
@@ -2433,6 +2439,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setEnhancedOrganizationAuthenticationEnabled(
                     getIsEnhancedOrganizationAuthenticationEnabled(propertyList));
+            serviceProvider.setOrganizationCustomRolesEnabled(getIsOrganizationCustomRolesEnabled(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
             ClientAttestationMetaData clientAttestationMetaData = new ClientAttestationMetaData();
             clientAttestationMetaData.setAttestationEnabled(getIsAttestationEnabled(propertyList));
@@ -2756,6 +2763,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String value = propertyList.stream()
                 .filter(property -> IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_NAME
                         .equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+        return Boolean.parseBoolean(value);
+    }
+
+    private boolean getIsOrganizationCustomRolesEnabled(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_ORGANIZATION_CUSTOM_ROLES_ENABLED_SP_PROPERTY_NAME.equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
@@ -5595,6 +5612,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         spPropertyMap.put(isEnhancedOrganizationAuthenticationEnabledProperty.getName(),
                 isEnhancedOrganizationAuthenticationEnabledProperty);
 
+        ServiceProviderProperty isOrganizationCustomRolesEnabledProperty =
+                buildIsOrganizationCustomRolesEnabledProperty(sp);
+        spPropertyMap.put(isOrganizationCustomRolesEnabledProperty.getName(),
+                isOrganizationCustomRolesEnabledProperty);
+
         if (sp.getClientAttestationMetaData() != null) {
             ServiceProviderProperty isAttestationEnabled =
                     buildIsAttestationEnabledProperty(sp.getClientAttestationMetaData());
@@ -5672,6 +5694,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         isEnhancedOrganizationAuthenticationEnabledProperty.setValue(
                 String.valueOf(sp.isEnhancedOrganizationAuthenticationEnabled()));
         return isEnhancedOrganizationAuthenticationEnabledProperty;
+    }
+
+    private ServiceProviderProperty buildIsOrganizationCustomRolesEnabledProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty isOrganizationCustomRolesEnabledProperty = new ServiceProviderProperty();
+        isOrganizationCustomRolesEnabledProperty.setName(IS_ORGANIZATION_CUSTOM_ROLES_ENABLED_SP_PROPERTY_NAME);
+        isOrganizationCustomRolesEnabledProperty.setDisplayName(
+                IS_ORGANIZATION_CUSTOM_ROLES_ENABLED_SP_PROPERTY_DISPLAY_NAME);
+        isOrganizationCustomRolesEnabledProperty.setValue(String.valueOf(sp.isOrganizationCustomRolesEnabled()));
+        return isOrganizationCustomRolesEnabledProperty;
     }
 
     private void storeAndroidAttestationServiceCredentialAsSecret(ServiceProvider sp)

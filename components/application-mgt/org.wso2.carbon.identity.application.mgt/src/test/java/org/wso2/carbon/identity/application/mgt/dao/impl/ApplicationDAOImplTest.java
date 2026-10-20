@@ -423,6 +423,28 @@ public class ApplicationDAOImplTest {
         assertEquals(serviceProvider2.getAssociatedRolesConfig().getRoles().length, 0);
     }
 
+    @Test(description = "Test persisting the shared application role creation configuration of an application.",
+            dependsOnMethods = { "testUpdateApplicationForFragmentApp" })
+    public void testOrganizationCustomRolesConfig() throws IdentityApplicationManagementException {
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("test-sub-org-role-authoring-app");
+        serviceProvider.setApplicationVersion("v1.0.0");
+        serviceProvider.setEnhancedOrganizationAuthenticationEnabled(true);
+        serviceProvider.setOrganizationCustomRolesEnabled(true);
+        applicationDAO.createApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+
+        ServiceProvider storedServiceProvider =
+                applicationDAO.getApplication("test-sub-org-role-authoring-app", SUPER_TENANT_DOMAIN_NAME);
+        assertTrue(storedServiceProvider.isOrganizationCustomRolesEnabled());
+
+        storedServiceProvider.setOrganizationCustomRolesEnabled(false);
+        applicationDAO.updateApplication(storedServiceProvider, SUPER_TENANT_DOMAIN_NAME);
+        assertFalse(applicationDAO.getApplication("test-sub-org-role-authoring-app", SUPER_TENANT_DOMAIN_NAME)
+                .isOrganizationCustomRolesEnabled());
+    }
+
     /**
      * Get a new DiscoverableGroup object.
      *
