@@ -44,6 +44,7 @@ import java.util.UUID;
 
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.EXECUTOR;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.NEXT;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.ROUTE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.BUTTON;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.FORM;
 import static org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID;
@@ -108,6 +109,9 @@ public class GraphBuilder {
         for (StepDTO step : steps) {
             if (step.getType() == null) {
                 throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE, "null");
+            }
+            if (!Constants.StepTypes.RULE_EVALUATION.equals(step.getType()) && step.getData() != null) {
+                rejectBranches(step.getData().getAction(), step.getId(), step.getType());
             }
             switch (step.getType()) {
                 case VIEW:
@@ -185,6 +189,17 @@ public class GraphBuilder {
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED,
                     step.getId());
         }
+        validateRuleEvaluationStep(step);
+
+        NodeConfig ruleEvaluationNode = createRuleEvaluationNode(step.getId());
+        nodeMap.put(ruleEvaluationNode.getId(), ruleEvaluationNode);
+        for (BranchDTO branch : step.getData().getAction().getBranches()) {
+            nodeEdges.add(new NodeEdge(ruleEvaluationNode.getId(), branch.getNextId(), branch.getId()));
+        }
+    }
+    
+    private void validateRuleEvaluationStep(StepDTO step) throws FlowMgtClientException {
+
         if (step.getData() == null) {
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
         }
@@ -192,21 +207,30 @@ public class GraphBuilder {
         if (action == null) {
             throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
         }
-        if (action.getBranches() == null || action.getBranches().isEmpty()) {
-            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
+        if (!ROUTE.equals(action.getType())) {
+            throw handleDecisionStepException("Invalid action type for a decision step.",
+                    "The decision step %s has the action type %s. A decision step's action type should be %s.",
+                    step.getId(), action.getType(), ROUTE);
         }
-        validateBranches(step.getId(), action.getBranches());
-
         if (action.getExecutor() != null) {
             throw handleDecisionStepException("Executor not allowed on a decision step.",
-                    "The decision step %s names the executor %s. A decision only evaluates its branches, so it " +
-                    "carries no executor.", step.getId(), action.getExecutor().getName());
+                    "The decision step %s names the executor %s. A decision step should not carry an executor.",
+                    step.getId(), action.getExecutor().getName());
+        }
+        if (step.getData().getComponents() != null && !step.getData().getComponents().isEmpty()) {
+            throw handleDecisionStepException("Components not allowed on a decision step.",
+                    "The decision step %s carries components. A decision step should not carry components.",
+                    step.getId());
         }
 
-        NodeConfig ruleEvaluationNode = createRuleEvaluationNode(step.getId());
-        nodeMap.put(ruleEvaluationNode.getId(), ruleEvaluationNode);
-        for (BranchDTO branch : action.getBranches()) {
-            nodeEdges.add(new NodeEdge(ruleEvaluationNode.getId(), branch.getNextId(), branch.getId()));
+        validateBranches(step.getId(), action.getBranches());
+    }
+
+    private void rejectBranches(ActionDTO action, String id, String type) throws FlowMgtClientException {
+
+        if (action != null && action.getBranches() != null && !action.getBranches().isEmpty()) {
+            throw handleDecisionStepException("Branches not allowed here.",
+                    "The %s %s carries branches. Only a decision step has branches.", type, id);
         }
     }
 
@@ -240,14 +264,12 @@ public class GraphBuilder {
         }
     }
 
-    /**
-     * Reject a decision that cannot work, while the author can still see what they configured.
-     *
-     * @param stepId   Id of the decision step, for the message.
-     * @param branches Branches to check.
-     * @throws FlowMgtClientException If the decision cannot be evaluated as configured.
-     */
     private void validateBranches(String stepId, List<BranchDTO> branches) throws FlowMgtClientException {
+
+        if (branches == null || branches.isEmpty()) {
+            throw handleDecisionStepException("No branches defined.",
+                    "The decision step %s has no branches configured.", stepId);
+        }
 
         Set<String> branchIds = new HashSet<>();
         int defaults = 0;
@@ -280,13 +302,6 @@ public class GraphBuilder {
         }
     }
 
-    /**
-     * Reject a branch that is missing a part, has a value too long to store, or points back at its own step.
-     *
-     * @param stepId Id of the decision step, for the message.
-     * @param branch Branch to check.
-     * @throws FlowMgtClientException If the branch is not complete.
-     */
     private void validateBranch(String stepId, BranchDTO branch) throws FlowMgtClientException {
 
         if (StringUtils.isBlank(branch.getId())) {
@@ -356,6 +371,7 @@ public class GraphBuilder {
         if (action == null) {
             throw handleClientException(ERROR_CODE_INVALID_ACTION_FOR_BUTTON, id);
         }
+        rejectBranches(action, id, BUTTON);
         if (action.getNextId() == null) {
             throw handleClientException(ERROR_CODE_NEXT_ACTION_NOT_FOUND, id);
         }

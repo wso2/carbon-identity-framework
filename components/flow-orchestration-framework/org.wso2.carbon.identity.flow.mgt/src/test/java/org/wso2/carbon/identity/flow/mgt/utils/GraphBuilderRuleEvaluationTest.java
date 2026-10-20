@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtClientException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
@@ -300,7 +301,9 @@ public class GraphBuilderRuleEvaluationTest {
 
         StepDTO step = decisionStep(Collections.emptyList());
 
-        assertThrows(FlowMgtClientException.class, () -> buildGraph(step));
+        FlowMgtClientException e = expectThrows(FlowMgtClientException.class, () -> buildGraph(step));
+        assertEquals(e.getErrorCode(), Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP.getCode());
+        assertEquals(e.getMessage(), "No branches defined.");
     }
 
     @Test
@@ -309,6 +312,75 @@ public class GraphBuilderRuleEvaluationTest {
         StepDTO step = decisionStep(branchesWithDefaultLast(), "PasswordProvisioningExecutor");
 
         assertThrows(FlowMgtClientException.class, () -> buildGraph(step));
+    }
+
+    @Test
+    public void testDecisionWithAnotherActionTypeIsRejected() {
+
+        StepDTO step = decisionStep(branchesWithDefaultLast());
+        step.getData().getAction().setType(Constants.ActionTypes.EXECUTOR);
+
+        FlowMgtClientException e = expectThrows(FlowMgtClientException.class, () -> buildGraph(step));
+        assertEquals(e.getErrorCode(), Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP.getCode());
+        assertEquals(e.getMessage(), "Invalid action type for a decision step.");
+    }
+
+    @Test
+    public void testDecisionWithComponentsIsRejected() {
+
+        StepDTO step = decisionStep(branchesWithDefaultLast());
+        step.getData().setComponents(Collections.singletonList(
+                new ComponentDTO.Builder().id("text_1").type("TEXT").build()));
+
+        FlowMgtClientException e = expectThrows(FlowMgtClientException.class, () -> buildGraph(step));
+        assertEquals(e.getErrorCode(), Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP.getCode());
+        assertEquals(e.getMessage(), "Components not allowed on a decision step.");
+    }
+
+    @Test
+    public void testBranchesOnAnotherStepAreRejected() {
+
+        StepDTO execution = new StepDTO.Builder()
+                .id("execution_1")
+                .type(Constants.StepTypes.EXECUTION)
+                .data(new DataDTO.Builder().action(new ActionDTO.Builder()
+                        .type(Constants.ActionTypes.EXECUTOR)
+                        .executor(new ExecutorDTO("PasswordProvisioningExecutor"))
+                        .nextId(Constants.END_NODE_ID)
+                        .branches(branchesWithDefaultLast())
+                        .build()).build())
+                .build();
+
+        FlowMgtClientException e = expectThrows(FlowMgtClientException.class, () -> buildGraph(execution));
+        assertEquals(e.getErrorCode(), Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP.getCode());
+        assertEquals(e.getMessage(), "Branches not allowed here.");
+    }
+
+    @Test
+    public void testBranchesOnAButtonInAFormAreRejected() {
+
+        ComponentDTO button = new ComponentDTO.Builder()
+                .id("button_1")
+                .type(Constants.ComponentTypes.BUTTON)
+                .action(new ActionDTO.Builder()
+                        .type(Constants.ActionTypes.NEXT)
+                        .nextId(Constants.END_NODE_ID)
+                        .branches(branchesWithDefaultLast())
+                        .build())
+                .build();
+        StepDTO view = new StepDTO.Builder()
+                .id("view_1")
+                .type(Constants.StepTypes.VIEW)
+                .data(new DataDTO.Builder().components(Collections.singletonList(new ComponentDTO.Builder()
+                        .id("form_1")
+                        .type(Constants.ComponentTypes.FORM)
+                        .components(Collections.singletonList(button))
+                        .build())).build())
+                .build();
+
+        FlowMgtClientException e = expectThrows(FlowMgtClientException.class, () -> buildGraph(view));
+        assertEquals(e.getErrorCode(), Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP.getCode());
+        assertTrue(e.getDescription().contains("button_1"));
     }
 
     /**
