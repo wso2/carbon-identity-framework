@@ -807,9 +807,44 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
+    /**
+     * Set the stored shared application role management setting to the updated application if the update does not
+     * carry it, e.g. when importing a file without the element. Otherwise, such an update would turn the setting off,
+     * and the roles created by organizations for the shared applications would be deleted.
+     *
+     * @param updatedApp   Updated application.
+     * @param resourceId   Resource ID of the application.
+     * @param tenantDomain Tenant domain of the application.
+     * @param username     Username of the user who updates the application.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the stored application.
+     */
+    private void resolveSharedAppRoleManagementSetting(ServiceProvider updatedApp, String resourceId,
+                                                       String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        if (updatedApp.hasSharedAppRoleManagementSetting()) {
+            return;
+        }
+        ServiceProvider storedApp;
+        if (StringUtils.isNotBlank(resourceId)) {
+            storedApp = getApplicationByResourceId(resourceId, tenantDomain);
+        } else {
+            try {
+                startTenantFlow(tenantDomain, username);
+                storedApp = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                        .getApplication(updatedApp.getApplicationID());
+            } finally {
+                endTenantFlow();
+            }
+        }
+        updatedApp.setSharedAppRoleManagementAllowed(storedApp != null && storedApp.isSharedAppRoleManagementAllowed());
+    }
+
     private void doUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        resolveSharedAppRoleManagementSetting(serviceProvider, serviceProvider.getApplicationResourceId(),
+                tenantDomain, username);
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
 
         // invoking the listeners
@@ -2684,7 +2719,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         return appDAO.getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
     }
-    
+
     /**
      * Create the application. This method creates the service provider without creating any protocol configurations.
      *
@@ -2765,7 +2800,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         return resourceId;
     }
-    
+
     /**
      * Create the application. This method creates the service provider with protocol configurations.
      *
@@ -2783,7 +2818,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ServiceProvider application = applicationModel.getServiceProvider();
              addedInbounds = addInboundAuthenticationProtocolsToApplication(
                     application, applicationModel.getInboundProtocolConfigurationDto(), tenantDomain);
-            
+
             return createApplication(application, tenantDomain, username);
         } catch (IdentityApplicationManagementException identityApplicationManagementException) {
             /*
@@ -2892,7 +2927,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         return application;
     }
-    
+
     @Override
     public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
@@ -2910,6 +2945,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private void doUpdateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
                                                  String username) throws IdentityApplicationManagementException {
 
+        resolveSharedAppRoleManagementSetting(updatedApp, resourceId, tenantDomain, username);
         validateApplicationConfigurations(updatedApp, tenantDomain, username);
 
         updatedApp.setApplicationResourceId(resourceId);
@@ -2919,25 +2955,25 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled() &&
                     !listener.doPreUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain, username)) {
-                
+
                 throw buildServerException("Pre Update application operation of listener: " + getName(listener) +
                         " failed for application with resourceId: " + resourceId);
             }
         }
-        
+
         try {
             startTenantFlow(tenantDomain, username);
-            
+
             ApplicationBasicInfo storedAppInfo = getApplicationBasicInfo(resourceId, tenantDomain);
             if (storedAppInfo == null) {
                 String msg = "Cannot find an application for " + "resourceId: " + resourceId + " in tenantDomain: "
                         + tenantDomain;
                 throw buildClientException(APPLICATION_NOT_FOUND, msg);
             }
-            
+
             String updatedAppName = updatedApp.getApplicationName();
             String storedAppName = storedAppInfo.getApplicationName();
-            
+
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
 
@@ -2949,17 +2985,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             doPreUpdateChecks(storedAppName, updatedApp, tenantDomain, username);
             appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
             postApplicationUserAttributeUpdate(updatedApp, storedApp, tenantDomain);
-            
+
             if (isOwnerUpdateRequest(storedAppInfo.getAppOwner(), updatedApp.getOwner())) {
                 // User existence check is already done in appDAO.updateApplicationByResourceId() method.
                 assignApplicationRole(updatedApp.getApplicationName(), updatedApp.getOwner().getUserName());
             }
-            
+
             updateApplicationPermissions(updatedApp, updatedAppName, storedAppName);
         } finally {
             endTenantFlow();
         }
-        
+
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled()
                     && !listener.doPostUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain, username)) {
@@ -2977,7 +3013,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }
-    
+
     /**
      * Update the application by resource id. This method update the inbound protocol configurations of the application
      * by calling the relevant protocol handlers if available.
@@ -2992,7 +3028,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                               InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO,
                                               String tenantDomain, String username)
             throws IdentityApplicationManagementException {
-        
+
         if (inboundProtocolConfigurationDTO == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Inbound protocol configuration is not provided for the application: " + resourceId +

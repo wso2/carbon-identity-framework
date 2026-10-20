@@ -89,6 +89,12 @@ public class RoleConstants {
     // Role properties
     public static final String IS_SHARED_ROLE_PROP_NAME = "isSharedRole";
 
+    /*
+     Thread local property set by the role sharing flows while provisioning inherited roles into a sub organization.
+     Otherwise, role creation against a shared application is treated as role creation by the sub organization.
+     */
+    public static final String IS_SHARED_ROLE_PROVISIONING_FLOW = "isSharedRoleProvisioningFlow";
+
     /**
      * Grouping of constants related to database table names.
      */
