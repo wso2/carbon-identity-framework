@@ -57,6 +57,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
     private static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED =
             "IsEnhancedOrganizationAuthenticationEnabled";
+    private static final String IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED = "IsSharedAppRoleManagementEnabled";
     private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
@@ -159,6 +160,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED)
     private boolean isEnhancedOrganizationAuthenticationEnabled;
+
+    @IgnoreNullElement
+    @XmlElement(name = IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED)
+    private boolean isSharedAppRoleManagementEnabled;
 
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
@@ -718,6 +723,28 @@ public class ServiceProvider implements Serializable {
     public void setEnhancedOrganizationAuthenticationEnabled(boolean isEnhancedOrganizationAuthenticationEnabled) {
 
         this.isEnhancedOrganizationAuthenticationEnabled = isEnhancedOrganizationAuthenticationEnabled;
+    }
+
+    /**
+     * Check whether sub organizations are allowed to manage their own roles for the shared applications of this
+     * service provider.
+     *
+     * @return true if role management for shared applications is enabled, false otherwise.
+     */
+    public boolean isSharedAppRoleManagementEnabled() {
+
+        return isSharedAppRoleManagementEnabled;
+    }
+
+    /**
+     * Set whether sub organizations are allowed to manage their own roles for the shared applications of this service
+     * provider.
+     *
+     * @param isSharedAppRoleManagementEnabled true to enable role management for shared applications, false to disable.
+     */
+    public void setSharedAppRoleManagementEnabled(boolean isSharedAppRoleManagementEnabled) {
+
+        this.isSharedAppRoleManagementEnabled = isSharedAppRoleManagementEnabled;
     }
 
     public boolean isAPIBasedAuthenticationEnabled() {

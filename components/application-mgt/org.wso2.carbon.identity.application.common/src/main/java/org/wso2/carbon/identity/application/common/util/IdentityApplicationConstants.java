@@ -110,6 +110,10 @@ public class IdentityApplicationConstants {
             "isEnhancedOrganizationAuthenticationEnabled";
     public static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_DISPLAY_NAME =
             "Is Enhanced Organization Authentication Enabled";
+    public static final String IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED_SP_PROPERTY_NAME =
+            "isSharedAppRoleManagementEnabled";
+    public static final String IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED_SP_PROPERTY_DISPLAY_NAME =
+            "Is Shared Application Role Management Enabled";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
     public static final String ADVANCED_CONFIG = "advancedConfigurations";

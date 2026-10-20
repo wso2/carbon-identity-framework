@@ -172,6 +172,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
@@ -525,6 +527,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProviderProperty isEnhancedOrganizationAuthenticationEnabled =
                     buildIsEnhancedOrganizationAuthenticationEnabledProperty(application);
             serviceProviderProperties.add(isEnhancedOrganizationAuthenticationEnabled);
+
+            ServiceProviderProperty isSharedAppRoleManagementEnabled =
+                    buildIsSharedAppRoleManagementEnabledProperty(application);
+            serviceProviderProperties.add(isSharedAppRoleManagementEnabled);
             application.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
 
@@ -2433,6 +2439,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setEnhancedOrganizationAuthenticationEnabled(
                     getIsEnhancedOrganizationAuthenticationEnabled(propertyList));
+            serviceProvider.setSharedAppRoleManagementEnabled(getIsSharedAppRoleManagementEnabled(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
             ClientAttestationMetaData clientAttestationMetaData = new ClientAttestationMetaData();
             clientAttestationMetaData.setAttestationEnabled(getIsAttestationEnabled(propertyList));
@@ -2506,7 +2513,24 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         List<String> associatedRoleIds = new ArrayList<>();
         String allowedAudience =
                 getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, connection);
-        if (RoleConstants.APPLICATION.equalsIgnoreCase(allowedAudience)) {
+        String mainAppId = getMainAppIdOfSharedApp(applicationId, connection);
+        String sharedAppRoleManagementAudience =
+                mainAppId != null ? getSharedAppRoleManagementAudience(mainAppId, connection) : null;
+        if (RoleConstants.APPLICATION.equalsIgnoreCase(sharedAppRoleManagementAudience)) {
+            /*
+             Roles of a shared application are the application audience roles in the shared application's
+             organization. This includes the roles inherited from the main application and the roles authored by
+             the organization itself. Applicable only when the main application allows organizations to manage
+             roles. Otherwise, the roles are resolved through the main application roles.
+             */
+            try {
+                associatedRolesConfig.setRoles(getRolesOfSharedApplication(applicationId, tenantDomain));
+            } catch (IdentityRoleManagementException e) {
+                throw new IdentityApplicationManagementException(
+                        "Error while retrieving associated roles for application ID: " + applicationId, e);
+            }
+        } else if (RoleConstants.APPLICATION.equalsIgnoreCase(allowedAudience)
+                && !RoleConstants.ORGANIZATION.equalsIgnoreCase(sharedAppRoleManagementAudience)) {
             try (NamedPreparedStatement preparedStatement = new NamedPreparedStatement(connection,
                     ApplicationMgtDBQueries.LOAD_ASSOCIATED_ROLES)) {
                 preparedStatement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID,
@@ -2522,7 +2546,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 throw new IdentityApplicationManagementException(
                         "Error while retrieving associated roles for application ID: " + applicationId, e);
             }
-        } else if (RoleConstants.ORGANIZATION.equalsIgnoreCase(allowedAudience)) {
+        } else if (RoleConstants.ORGANIZATION.equalsIgnoreCase(allowedAudience)
+                || RoleConstants.ORGANIZATION.equalsIgnoreCase(sharedAppRoleManagementAudience)) {
+            /*
+             For a shared application whose main application allows organizations to manage organization audience
+             roles, these include the roles created by the organization along with the roles shared from the main
+             application's organization.
+             */
             ApplicationManagementServiceComponentHolder holder = ApplicationManagementServiceComponentHolder.
                     getInstance();
             RoleManagementService roleManagementService = holder.getRoleManagementServiceV2();
@@ -2540,7 +2570,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             allRoles.addAll(chunkOfRoles);
                             offset += chunkOfRoles.size(); // Move to the next chunk
                         }
-                    } while (chunkOfRoles.size() == maximumPage);
+                    } while (!chunkOfRoles.isEmpty() && chunkOfRoles.size() == maximumPage);
 
                     RoleV2[] roles = allRoles.stream().map(role -> new RoleV2(role.getId(), role.getName()))
                             .toArray(RoleV2[]::new);
@@ -2555,6 +2585,70 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         associatedRolesConfig.setAllowedAudience(
                 StringUtils.isNotBlank(allowedAudience) ? allowedAudience.toLowerCase() : RoleConstants.ORGANIZATION);
         return associatedRolesConfig;
+    }
+
+    /**
+     * Get the role audience of the main application, if the main application has enhanced organization authentication
+     * and shared application role management enabled.
+     *
+     * @param mainAppId  Main application ID.
+     * @param connection An already open DB connection to reuse.
+     * @return The role audience ( {@code application} or {@code organization}) if shared application role management
+     * is enabled for the shared applications, {@code null} otherwise.
+     * @throws IdentityApplicationManagementException If an error occurs while reading the main application properties.
+     */
+    private String getSharedAppRoleManagementAudience(String mainAppId, Connection connection)
+            throws IdentityApplicationManagementException {
+
+        boolean isSharedAppRoleManagementEnabled = Boolean.parseBoolean(getSPPropertyValueByPropertyKey(mainAppId,
+                IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_NAME, connection))
+                && Boolean.parseBoolean(getSPPropertyValueByPropertyKey(mainAppId,
+                IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED_SP_PROPERTY_NAME, connection));
+        if (!isSharedAppRoleManagementEnabled) {
+            return null;
+        }
+        String mainAppAllowedAudience =
+                getSPPropertyValueByPropertyKey(mainAppId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, connection);
+        if (RoleConstants.APPLICATION.equalsIgnoreCase(mainAppAllowedAudience) ||
+                RoleConstants.ORGANIZATION.equalsIgnoreCase(mainAppAllowedAudience)) {
+            return mainAppAllowedAudience;
+        }
+        return null;
+    }
+
+    private RoleV2[] getRolesOfSharedApplication(String sharedAppId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        RoleManagementService roleManagementServiceV2 =
+                ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
+        if (roleManagementServiceV2 == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Role management service is not available. Hence, the roles of the shared application: "
+                        + sharedAppId + " are not resolved.");
+            }
+            return new RoleV2[0];
+        }
+        return roleManagementServiceV2.getRolesByApplication(sharedAppId, tenantDomain).stream()
+                .map(role -> new RoleV2(role.getId(), role.getName()))
+                .toArray(RoleV2[]::new);
+    }
+
+    private String getMainAppIdOfSharedApp(String sharedAppId, Connection connection)
+            throws IdentityApplicationManagementServerException {
+
+        try (PreparedStatement prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.GET_MAIN_APP_ID)) {
+            prepStmt.setString(1, sharedAppId);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getString(ApplicationTableColumns.MAIN_APP_ID);
+                }
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while getting main application id for the shared application with id: %s",
+                            sharedAppId), e);
+        }
     }
 
     private RoleV2[] buildAssociatedRolesWithRoleName(List<String> roleIds, String tenantDomain)
@@ -2756,6 +2850,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String value = propertyList.stream()
                 .filter(property -> IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_NAME
                         .equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+        return Boolean.parseBoolean(value);
+    }
+
+    private boolean getIsSharedAppRoleManagementEnabled(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED_SP_PROPERTY_NAME.equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
@@ -5595,6 +5699,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         spPropertyMap.put(isEnhancedOrganizationAuthenticationEnabledProperty.getName(),
                 isEnhancedOrganizationAuthenticationEnabledProperty);
 
+        ServiceProviderProperty isSharedAppRoleManagementEnabledProperty =
+                buildIsSharedAppRoleManagementEnabledProperty(sp);
+        spPropertyMap.put(isSharedAppRoleManagementEnabledProperty.getName(),
+                isSharedAppRoleManagementEnabledProperty);
+
         if (sp.getClientAttestationMetaData() != null) {
             ServiceProviderProperty isAttestationEnabled =
                     buildIsAttestationEnabledProperty(sp.getClientAttestationMetaData());
@@ -5672,6 +5781,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         isEnhancedOrganizationAuthenticationEnabledProperty.setValue(
                 String.valueOf(sp.isEnhancedOrganizationAuthenticationEnabled()));
         return isEnhancedOrganizationAuthenticationEnabledProperty;
+    }
+
+    private ServiceProviderProperty buildIsSharedAppRoleManagementEnabledProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty isSharedAppRoleManagementEnabledProperty = new ServiceProviderProperty();
+        isSharedAppRoleManagementEnabledProperty.setName(IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED_SP_PROPERTY_NAME);
+        isSharedAppRoleManagementEnabledProperty.setDisplayName(
+                IS_SHARED_APP_ROLE_MANAGEMENT_ENABLED_SP_PROPERTY_DISPLAY_NAME);
+        isSharedAppRoleManagementEnabledProperty.setValue(String.valueOf(sp.isSharedAppRoleManagementEnabled()));
+        return isSharedAppRoleManagementEnabledProperty;
     }
 
     private void storeAndroidAttestationServiceCredentialAsSecret(ServiceProvider sp)
