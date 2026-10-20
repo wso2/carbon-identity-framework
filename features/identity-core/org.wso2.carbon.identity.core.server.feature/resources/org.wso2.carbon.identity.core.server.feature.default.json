@@ -2042,7 +2042,7 @@
   "console.verifiable_presentation.scopes.read": ["internal_presentation_definition_view"],
   "console.verifiable_presentation.scopes.update": ["internal_presentation_definition_update"],
   "console.verifiable_presentation.scopes.delete": ["internal_presentation_definition_delete"],
-  "openid4vp.enabled": false,
+  "openid4vp.enabled": true,
   "console.ws_fed_configuration.enabled": true,
   "console.self_app_identifier": "Console",
   "console.system_apps_identifiers": ["Console", "My Account"],
