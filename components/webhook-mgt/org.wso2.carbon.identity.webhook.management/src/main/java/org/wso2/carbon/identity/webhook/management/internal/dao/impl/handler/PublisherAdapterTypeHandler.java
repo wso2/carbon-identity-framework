@@ -39,11 +39,15 @@ import java.util.List;
  */
 public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
 
-    private final WebhookManagementDAO dao;
-
+    /**
+     * The delegate DAO is passed to the base class rather than held here, so that the organization
+     * subscription operations AdapterTypeHandler implements on behalf of both adapters can reach it.
+     *
+     * @param dao DAO this handler delegates to.
+     */
     public PublisherAdapterTypeHandler(WebhookManagementDAO dao) {
 
-        this.dao = dao;
+        super(dao);
     }
 
     @Override
@@ -105,6 +109,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .ownerTenantDomain(webhook.getOwnerTenantDomain())
                 .build();
         dao.activateWebhook(activatedWebhook, tenantId);
     }
@@ -124,6 +129,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .ownerTenantDomain(webhook.getOwnerTenantDomain())
                 .build();
         dao.deactivateWebhook(deactivatedWebhook, tenantId);
     }
@@ -162,6 +168,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
+                .ownerTenantDomain(webhook.getOwnerTenantDomain())
                 .build();
         dao.updateWebhook(updatedWebhook, tenantId);
     }
@@ -171,5 +178,31 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
                                            int tenantId) throws WebhookMgtException {
 
         return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+    }
+
+    /**
+     * Under the Publisher adapter every webhook is posted to individually, so an event raised in a
+     * descendant organization must reach the webhooks of ancestors that opted it in as well as the
+     * webhooks configured in its own tenant. Both come back from one query.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksForOrganization(String eventProfileName,
+                                                          String eventProfileVersion,
+                                                          String channelUri, int eventOrgTenantId)
+            throws WebhookMgtException {
+
+        return dao.getActiveWebhooksForOrganization(eventProfileName, eventProfileVersion,
+                channelUri, eventOrgTenantId);
+    }
+
+    @Override
+    public List<Webhook> getSubscriptionAcceptedWebhooksForOrganization(String eventProfileName,
+                                                                        String eventProfileVersion,
+                                                                        String channelUri, int eventOrgTenantId,
+                                                                        boolean includeChildOrganizationSubscriptions)
+            throws WebhookMgtException {
+
+        return dao.getSubscriptionAcceptedWebhooksForOrganization(eventProfileName, eventProfileVersion, channelUri,
+                eventOrgTenantId, includeChildOrganizationSubscriptions);
     }
 }

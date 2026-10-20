@@ -18,22 +18,41 @@
 
 package org.wso2.carbon.identity.webhook.management.dao;
 
+import org.mockito.Answers;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.ChannelOrgSubscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOImpl;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -55,8 +74,56 @@ public class WebhookManagementDAOImplTest {
     Webhook testWebhook;
 
     public static final int TENANT_ID = 1;
+    private static final String TENANT_DOMAIN = "carbon.super";
+    private static final int SUBSCRIBED_TENANT_ID = 7;
+    private static final String ORG_SUB_CHANNEL_URI = "https://schemas.identity.wso2.org/events/logins";
+    private static final String ORG_SUB_OTHER_CHANNEL_URI =
+            "https://schemas.identity.wso2.org/events/registration";
+    private static final String ORG_SUB_UNKNOWN_CHANNEL_URI =
+            "https://schemas.identity.wso2.org/events/none";
+    private static final int SUB_ORG_TENANT_ID_1 = 101;
+    private static final int SUB_ORG_TENANT_ID_2 = 102;
+    private static final String SUB_ORG_ID_1 = "dd8e0455-29a1-4c73-8d6b-60f88c607d38";
+    private static final String SUB_ORG_ID_2 = "7c1f9a83-5b2e-41d7-9f30-2ac4e8b16d55";
+    private static final String ACCEPTED_CHANNEL_URI = "https://schemas.identity.wso2.org/events/accepted";
+    private static final String PENDING_CHANNEL_URI = "https://schemas.identity.wso2.org/events/pending";
+    private static final String SHARED_ORG_ID = "b2a1c7d4-8e35-4f90-a6b1-5c0d93e2f781";
+    // createWebhook stores this rather than the webhook's own version; the lookup filters on it.
+    private static final String WEBHOOK_SCHEMA_VERSION = "v1";
     private Webhook createdWebhook;
+    private String orgSubWebhookId;
+    private String orgSubChannelUuid;
     WebhookManagementDAOImpl webhookManagementDAOImpl = new WebhookManagementDAOImpl();
+    private MockedStatic<IdentityUtil> identityUtil;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+
+    /**
+     * The test schema has the IDN_WEBHOOK_CHANNELS.UUID column, so the suite declares it available. Unit tests do
+     * not load identity.xml, so the property is mocked. Every other IdentityUtil method keeps its real behavior.
+     */
+    @BeforeClass
+    public void setUpClass() {
+
+        identityUtil = mockStatic(IdentityUtil.class, Answers.CALLS_REAL_METHODS);
+        // A webhook read from the database records the tenant domain of its owner, which the row mapper
+        // resolves from the stored tenant id. Unit tests have no realm service, so the lookup is mocked.
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+        stubChannelUuidColumnAvailable("true");
+    }
+
+    @AfterMethod
+    public void resetChannelUuidColumnAvailable() {
+
+        stubChannelUuidColumnAvailable("true");
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+
+        identityUtil.close();
+        identityTenantUtil.close();
+    }
 
     @Test
     public void testAddWebhook() throws WebhookMgtException {
@@ -136,6 +203,117 @@ public class WebhookManagementDAOImplTest {
         assertNotNull(updatedWebhook);
         assertEquals(createdWebhook.getId(), updatedWebhook.getId());
         Assert.assertEquals(updatedWebhook.getName(), "Updated name");
+    }
+
+    /**
+     * An update must not recycle channel identity. Channels present before and after the update
+     * keep their UUID and subscription status, removed channels disappear, and only genuinely new
+     * channels get a fresh UUID.
+     * <p>
+     * The UUID is the anchor for organization subscriptions and for the REST channel sub-resource,
+     * so regenerating it on every update would silently detach both.
+     */
+    @Test(dependsOnMethods = {"testUpdateWebhook"})
+    public void testUpdatePreservesChannelIdentity() throws Exception {
+
+        List<Subscription> initialChannels = new ArrayList<>();
+        initialChannels.add(Subscription.builder().channelUri("channel-keep")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        initialChannels.add(Subscription.builder().channelUri("channel-drop")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+
+        Webhook webhook = buildWebhook(UUID.randomUUID().toString(),
+                "https://example.com/webhook-identity", initialChannels);
+        webhookManagementDAOImpl.createWebhook(webhook, TENANT_ID);
+
+        Map<String, String> uuidsBefore = readChannelUuids(webhook.getId());
+        assertEquals(uuidsBefore.size(), 2);
+        assertNotNull(uuidsBefore.get("channel-keep"));
+
+        // Drop one channel, retain one, add one. Statuses are intentionally absent, as they are on
+        // a REST-originated update.
+        List<Subscription> updatedChannels = new ArrayList<>();
+        updatedChannels.add(Subscription.builder().channelUri("channel-keep").build());
+        updatedChannels.add(Subscription.builder().channelUri("channel-new").build());
+
+        webhookManagementDAOImpl.updateWebhook(
+                buildWebhook(webhook.getId(), "https://example.com/webhook-identity", updatedChannels), TENANT_ID);
+
+        Map<String, String> uuidsAfter = readChannelUuids(webhook.getId());
+        assertEquals(uuidsAfter.size(), 2);
+        assertEquals(uuidsAfter.get("channel-keep"), uuidsBefore.get("channel-keep"),
+                "Retained channel must keep its UUID across an update.");
+        assertNotNull(uuidsAfter.get("channel-new"), "Newly subscribed channel must be inserted.");
+        assertNull(uuidsAfter.get("channel-drop"), "Unsubscribed channel must be removed.");
+
+        // The retained channel must also keep the subscription status it already had, since the
+        // update carried none.
+        Webhook reloaded = webhookManagementDAOImpl.getWebhook(webhook.getId(), TENANT_ID);
+        Subscription keptChannel = reloaded.getEventsSubscribed().stream()
+                .filter(channel -> "channel-keep".equals(channel.getChannelUri()))
+                .findFirst().orElse(null);
+        assertNotNull(keptChannel);
+        assertEquals(keptChannel.getStatus(), SubscriptionStatus.SUBSCRIPTION_ACCEPTED,
+                "Retained channel must keep its subscription status across an update.");
+    }
+
+    private Webhook buildWebhook(String uuid, String endpoint, List<Subscription> channels) {
+
+        return buildWebhook(uuid, endpoint, channels, WebhookStatus.ACTIVE);
+    }
+
+    private Webhook buildWebhook(String uuid, String endpoint, List<Subscription> channels,
+                                 WebhookStatus status) {
+
+        return new Webhook.Builder()
+                .uuid(uuid)
+                .endpoint(endpoint)
+                .name(WEBHOOK_NAME)
+                .secret(WEBHOOK_SECRET)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
+                .status(status)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .eventsSubscribed(channels)
+                .build();
+    }
+
+    /**
+     * Drop or restore the NOT NULL constraint on IDN_WEBHOOK_CHANNELS.UUID, so that the insert used before the
+     * channel UUID migration can be tested against a schema like the one it was written for.
+     */
+    private void setChannelUuidNullable(boolean nullable) throws SQLException {
+
+        String query = "ALTER TABLE IDN_WEBHOOK_CHANNELS ALTER COLUMN UUID " + (nullable ? "SET NULL" : "SET NOT NULL");
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.executeUpdate();
+            connection.commit();
+        }
+    }
+
+    private void stubChannelUuidColumnAvailable(String value) {
+
+        identityUtil.when(() -> IdentityUtil.getProperty(WebhookManagementDAOImpl.CHANNEL_UUID_COLUMN_AVAILABLE))
+                .thenReturn(value);
+    }
+
+    private Map<String, String> readChannelUuids(String webhookUuid) throws SQLException {
+
+        String query = "SELECT C.CHANNEL_URI, C.UUID FROM IDN_WEBHOOK_CHANNELS C "
+                + "INNER JOIN IDN_WEBHOOK W ON C.WEBHOOK_ID = W.ID WHERE W.UUID = ?";
+        Map<String, String> channelUuids = new HashMap<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, webhookUuid);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    channelUuids.put(resultSet.getString("CHANNEL_URI"), resultSet.getString("UUID"));
+                }
+            }
+        }
+        return channelUuids;
     }
 
     @Test(dependsOnMethods = {"testUpdateWebhook"})
@@ -348,4 +526,410 @@ public class WebhookManagementDAOImplTest {
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
                 .build();
     }
+
+    /**
+     * The channel UUID column arrives with a migration, so a deployment can declare it absent. The insert then
+     * omits the column entirely and the channel is stored without an identifier.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testChannelsStoredWithoutUuidWhenColumnDeclaredUnavailable() throws Exception {
+
+        String webhookUuid = UUID.randomUUID().toString();
+        List<Subscription> channels = new ArrayList<>();
+        channels.add(Subscription.builder().channelUri("channel-without-uuid")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+
+        stubChannelUuidColumnAvailable("false");
+        setChannelUuidNullable(true);
+        try {
+            webhookManagementDAOImpl.createWebhook(
+                    buildWebhook(webhookUuid, "https://example.com/webhook-no-uuid", channels), TENANT_ID);
+
+            Map<String, String> storedUuids = readChannelUuids(webhookUuid);
+            assertEquals(storedUuids.size(), 1);
+            assertNull(storedUuids.get("channel-without-uuid"),
+                    "A channel stored while the UUID column is declared unavailable must carry no identifier.");
+        } finally {
+            // Rows without a UUID must be gone before the NOT NULL constraint can be restored.
+            webhookManagementDAOImpl.deleteWebhook(webhookUuid, TENANT_ID);
+            setChannelUuidNullable(false);
+        }
+    }
+
+    /**
+     * With the column declared available, every channel is stored with a generated identifier.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testChannelsStoredWithUuidWhenColumnDeclaredAvailable() throws Exception {
+
+        String webhookUuid = UUID.randomUUID().toString();
+        List<Subscription> channels = new ArrayList<>();
+        channels.add(Subscription.builder().channelUri("channel-with-uuid")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+
+        stubChannelUuidColumnAvailable("true");
+        webhookManagementDAOImpl.createWebhook(
+                buildWebhook(webhookUuid, "https://example.com/webhook-with-uuid", channels), TENANT_ID);
+
+        assertNotNull(readChannelUuids(webhookUuid).get("channel-with-uuid"),
+                "A channel stored while the UUID column is declared available must carry an identifier.");
+    }
+
+    /**
+     * A fresh deployment declares the UUID column NOT NULL, so an unset property has to be read as available:
+     * the column is absent only on the schema that predates the channel UUID migration, which such a
+     * deployment declares for itself.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testChannelsStoredWithUuidWhenConfigIsAbsent() throws Exception {
+
+        String webhookUuid = UUID.randomUUID().toString();
+        List<Subscription> channels = new ArrayList<>();
+        channels.add(Subscription.builder().channelUri("channel-default-config")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+
+        stubChannelUuidColumnAvailable(null);
+        webhookManagementDAOImpl.createWebhook(
+                buildWebhook(webhookUuid, "https://example.com/webhook-default-config", channels), TENANT_ID);
+
+        assertNotNull(readChannelUuids(webhookUuid).get("channel-default-config"),
+                "An unset channel UUID column property must be read as available.");
+    }
+
+    /**
+     * The widened lookup returns a webhook to its own tenant, and to another tenant only once that tenant holds a
+     * subscription row for the channel -- the two arms of the query.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testActiveWebhookLookupReachesSubscribedTenantOnly() throws Exception {
+
+        String webhookUuid = UUID.randomUUID().toString();
+        List<Subscription> channels = new ArrayList<>();
+        channels.add(Subscription.builder().channelUri("lookup-channel")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        webhookManagementDAOImpl.createWebhook(
+                buildWebhook(webhookUuid, "https://example.com/webhook-lookup", channels), TENANT_ID);
+
+        assertTrue(containsWebhook(webhookManagementDAOImpl.getActiveWebhooksForOrganization(
+                WEBHOOK_EVENT_PROFILE_NAME, WEBHOOK_SCHEMA_VERSION, "lookup-channel", TENANT_ID), webhookUuid));
+        assertFalse(containsWebhook(webhookManagementDAOImpl.getActiveWebhooksForOrganization(
+                WEBHOOK_EVENT_PROFILE_NAME, WEBHOOK_SCHEMA_VERSION, "lookup-channel", SUBSCRIBED_TENANT_ID),
+                webhookUuid), "An unsubscribed tenant must not reach another tenant's webhook.");
+
+        subscribeTenantToChannel(readChannelUuids(webhookUuid).get("lookup-channel"), SUBSCRIBED_TENANT_ID);
+
+        assertTrue(containsWebhook(webhookManagementDAOImpl.getActiveWebhooksForOrganization(
+                WEBHOOK_EVENT_PROFILE_NAME, WEBHOOK_SCHEMA_VERSION, "lookup-channel", SUBSCRIBED_TENANT_ID),
+                webhookUuid), "A subscribed tenant must reach the owning tenant's webhook.");
+    }
+
+    /**
+     * Null entries, entries without a URI, and repeated URIs in an update are ignored rather than stored.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testUpdateIgnoresNullAndDuplicateChannels() throws Exception {
+
+        String webhookUuid = UUID.randomUUID().toString();
+        String endpoint = "https://example.com/webhook-upsert";
+        List<Subscription> initial = new ArrayList<>();
+        initial.add(Subscription.builder().channelUri("kept")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        webhookManagementDAOImpl.createWebhook(buildWebhook(webhookUuid, endpoint, initial), TENANT_ID);
+
+        List<Subscription> desired = new ArrayList<>();
+        desired.add(null);
+        desired.add(Subscription.builder().status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        desired.add(Subscription.builder().channelUri("kept")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        desired.add(Subscription.builder().channelUri("added")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        desired.add(Subscription.builder().channelUri("added")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        webhookManagementDAOImpl.updateWebhook(buildWebhook(webhookUuid, endpoint, desired), TENANT_ID);
+
+        assertEquals(readChannelUuids(webhookUuid).keySet(), new HashSet<>(Arrays.asList("kept", "added")));
+    }
+
+    /**
+     * An update carrying no channels removes every channel the webhook had.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testUpdateWithoutChannelsRemovesAll() throws Exception {
+
+        String webhookUuid = UUID.randomUUID().toString();
+        String endpoint = "https://example.com/webhook-clear";
+        List<Subscription> initial = new ArrayList<>();
+        initial.add(Subscription.builder().channelUri("first")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        initial.add(Subscription.builder().channelUri("second")
+                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        webhookManagementDAOImpl.createWebhook(buildWebhook(webhookUuid, endpoint, initial), TENANT_ID);
+
+        webhookManagementDAOImpl.updateWebhook(buildWebhook(webhookUuid, endpoint, null), TENANT_ID);
+
+        assertTrue(readChannelUuids(webhookUuid).isEmpty());
+    }
+
+    private boolean containsWebhook(List<Webhook> webhooks, String webhookUuid) {
+
+        return webhooks.stream().anyMatch(webhook -> webhookUuid.equals(webhook.getId()));
+    }
+
+    private void subscribeTenantToChannel(String channelUuid, int tenantId) throws SQLException {
+
+        String query = "INSERT INTO IDN_WEBHOOK_CHANNEL_ORG_SUBSCRIPTION "
+                + "(CHANNEL_UUID, SUBSCRIBED_ORG_TENANT_ID, SUBSCRIBED_ORG_ID) VALUES (?, ?, ?)";
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, channelUuid);
+            statement.setInt(2, tenantId);
+            statement.setString(3, UUID.randomUUID().toString());
+            statement.executeUpdate();
+            connection.commit();
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Organization subscriptions. Moved here from a test class of their own when the channel DAO was folded
+    // into this one. They work on a webhook of their own rather than the one the rest of the class shares,
+    // because the last of them deletes it to prove the cascade.
+    // ---------------------------------------------------------------------------------------
+
+    /**
+     * A channel identifier is resolvable per channel of a webhook, and only for the channels it actually
+     * carries.
+     * <p>
+     * The delete path reads every channel of a webhook before removing it, so that each one's sharing policy can
+     * be cleared from UM_RESOURCE_SHARING_POLICY, which lives in another database and cannot cascade.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testChannelUuidsResolvePerChannel() throws WebhookMgtException {
+
+        orgSubWebhookId = UUID.randomUUID().toString();
+        List<Subscription> channels = Arrays.asList(
+                Subscription.builder().channelUri(ORG_SUB_CHANNEL_URI)
+                        .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build(),
+                Subscription.builder().channelUri(ORG_SUB_OTHER_CHANNEL_URI)
+                        .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build());
+        webhookManagementDAOImpl.createWebhook(
+                buildWebhook(orgSubWebhookId, "https://example.com/org-sub-webhook", channels), TENANT_ID);
+
+        orgSubChannelUuid = webhookManagementDAOImpl.getChannelUuid(orgSubWebhookId, ORG_SUB_CHANNEL_URI, TENANT_ID);
+        assertNotNull(orgSubChannelUuid, "A channel of the webhook must resolve to an identifier.");
+
+        List<String> channelUuids = webhookManagementDAOImpl.getChannelUuids(orgSubWebhookId, TENANT_ID);
+        assertEquals(channelUuids.size(), 2, "Every channel of the webhook must be listed.");
+        assertTrue(channelUuids.contains(orgSubChannelUuid));
+
+        assertNull(webhookManagementDAOImpl.getChannelUuid(orgSubWebhookId, ORG_SUB_UNKNOWN_CHANNEL_URI, TENANT_ID),
+                "A channel the webhook does not carry must not resolve to an identifier.");
+    }
+
+    /**
+     * Organization subscriptions of a channel are stored and read back whole.
+     * <p>
+     * The organization id is stored alongside the tenant id so that the REST layer, which works in organization
+     * ids, never has to resolve one per row, while the publish path matches on the tenant alone.
+     */
+    @Test(dependsOnMethods = {"testChannelUuidsResolvePerChannel"})
+    public void testAddAndListChannelOrgSubscriptions() throws WebhookMgtException {
+
+        webhookManagementDAOImpl.addChannelOrgSubscriptions(Arrays.asList(
+                orgSubscription(SUB_ORG_TENANT_ID_1, SUB_ORG_ID_1),
+                orgSubscription(SUB_ORG_TENANT_ID_2, SUB_ORG_ID_2)));
+
+        List<ChannelOrgSubscription> subscriptions =
+                webhookManagementDAOImpl.getChannelOrgSubscriptions(orgSubChannelUuid);
+        assertEquals(subscriptions.size(), 2);
+        assertEquals(webhookManagementDAOImpl.getChannelOrgSubscriptionCount(orgSubChannelUuid), 2);
+
+        List<Integer> tenantIds = webhookManagementDAOImpl.getSubscribedOrgTenantIds(orgSubChannelUuid);
+        assertTrue(tenantIds.containsAll(Arrays.asList(SUB_ORG_TENANT_ID_1, SUB_ORG_TENANT_ID_2)),
+                "The publish path resolves by tenant, so every subscribed tenant must be readable.");
+
+        for (ChannelOrgSubscription subscription : subscriptions) {
+            assertEquals(subscription.getChannelUuid(), orgSubChannelUuid);
+            if (subscription.getSubscribedOrgTenantId() == SUB_ORG_TENANT_ID_1) {
+                assertEquals(subscription.getSubscribedOrgId(), SUB_ORG_ID_1);
+            } else {
+                assertEquals(subscription.getSubscribedOrgId(), SUB_ORG_ID_2);
+            }
+        }
+    }
+
+    /**
+     * Deleting a webhook takes its organization subscriptions with it, through the foreign key on CHANNEL_UUID.
+     * <p>
+     * This is what makes deleting a webhook subscribed to many organizations a bounded local cascade rather than
+     * a fanout: no per-organization state lives outside the database and nothing has to be unwound by hand.
+     */
+    @Test(dependsOnMethods = {"testAddAndListChannelOrgSubscriptions"})
+    public void testChannelOrgSubscriptionsCascadeOnWebhookDelete() throws WebhookMgtException {
+
+        assertEquals(webhookManagementDAOImpl.getChannelOrgSubscriptionCount(orgSubChannelUuid), 2);
+
+        webhookManagementDAOImpl.deleteWebhook(orgSubWebhookId, TENANT_ID);
+
+        assertEquals(webhookManagementDAOImpl.getChannelOrgSubscriptionCount(orgSubChannelUuid), 0,
+                "Organization subscriptions must be removed when the owning webhook is deleted.");
+        assertNull(webhookManagementDAOImpl.getChannelUuid(orgSubWebhookId, ORG_SUB_CHANNEL_URI, TENANT_ID));
+    }
+
+    /**
+     * The accepted-channel-subscription lookup differs from the active-webhook lookup in two ways, and both are
+     * asserted here: it admits a PARTIALLY_ACTIVE webhook, which is the only state the PublisherSubscriber
+     * adapter ever persists, and it requires the channel's own subscription to have been accepted.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testAcceptedChannelSubscriptionLookupSpansWebhookStatuses() throws Exception {
+
+        String activeWebhookId = UUID.randomUUID().toString();
+        webhookManagementDAOImpl.createWebhook(buildWebhook(activeWebhookId,
+                "https://example.com/webhook-accepted-active", Arrays.asList(
+                        Subscription.builder().channelUri(ACCEPTED_CHANNEL_URI)
+                                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build(),
+                        // No status: the channel exists but its subscription was never accepted.
+                        Subscription.builder().channelUri(PENDING_CHANNEL_URI).build())), TENANT_ID);
+
+        String partialWebhookId = UUID.randomUUID().toString();
+        webhookManagementDAOImpl.createWebhook(buildWebhook(partialWebhookId,
+                "https://example.com/webhook-accepted-partial", Arrays.asList(
+                        Subscription.builder().channelUri(ACCEPTED_CHANNEL_URI)
+                                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build()),
+                WebhookStatus.PARTIALLY_ACTIVE), TENANT_ID);
+
+        List<Webhook> accepted = webhookManagementDAOImpl.getSubscriptionAcceptedWebhooksForOrganization(
+                WEBHOOK_EVENT_PROFILE_NAME, WEBHOOK_SCHEMA_VERSION, ACCEPTED_CHANNEL_URI, TENANT_ID, false);
+        assertTrue(containsWebhook(accepted, activeWebhookId), "An active webhook must be reached.");
+        assertTrue(containsWebhook(accepted, partialWebhookId),
+                "A partially active webhook must be reached: it is the only state this adapter persists.");
+
+        assertTrue(webhookManagementDAOImpl.getSubscriptionAcceptedWebhooksForOrganization(
+                        WEBHOOK_EVENT_PROFILE_NAME, WEBHOOK_SCHEMA_VERSION, PENDING_CHANNEL_URI, TENANT_ID, false)
+                .isEmpty(), "A channel whose subscription was never accepted must not be reached.");
+    }
+
+    /**
+     * Widened, the same lookup reaches a webhook of another tenant once that tenant holds a subscription row for
+     * the channel, and not before -- the second query the boolean selects.
+     */
+    @Test(dependsOnMethods = {"testAcceptedChannelSubscriptionLookupSpansWebhookStatuses"})
+    public void testAcceptedChannelSubscriptionLookupWidensToSubscribedTenant() throws Exception {
+
+        String webhookId = UUID.randomUUID().toString();
+        webhookManagementDAOImpl.createWebhook(buildWebhook(webhookId,
+                "https://example.com/webhook-accepted-widened", Arrays.asList(
+                        Subscription.builder().channelUri(ACCEPTED_CHANNEL_URI)
+                                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build())), TENANT_ID);
+
+        assertFalse(containsWebhook(webhookManagementDAOImpl.getSubscriptionAcceptedWebhooksForOrganization(
+                        WEBHOOK_EVENT_PROFILE_NAME, WEBHOOK_SCHEMA_VERSION, ACCEPTED_CHANNEL_URI,
+                        SUBSCRIBED_TENANT_ID, true), webhookId),
+                "An unsubscribed tenant must not reach another tenant's webhook.");
+
+        subscribeTenantToChannel(readChannelUuids(webhookId).get(ACCEPTED_CHANNEL_URI), SUBSCRIBED_TENANT_ID);
+
+        assertTrue(containsWebhook(webhookManagementDAOImpl.getSubscriptionAcceptedWebhooksForOrganization(
+                        WEBHOOK_EVENT_PROFILE_NAME, WEBHOOK_SCHEMA_VERSION, ACCEPTED_CHANNEL_URI,
+                        SUBSCRIBED_TENANT_ID, true), webhookId),
+                "A subscribed tenant must reach the owning tenant's webhook.");
+    }
+
+    /**
+     * A channel resolves to the tenant that owns the webhook carrying it, which is how the service layer knows
+     * whose subscription policies a channel belongs to. An unknown channel resolves to no tenant.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testOwningTenantIdResolvesFromChannel() throws Exception {
+
+        String webhookId = UUID.randomUUID().toString();
+        webhookManagementDAOImpl.createWebhook(buildWebhook(webhookId, "https://example.com/webhook-owning-tenant",
+                Arrays.asList(Subscription.builder().channelUri("owning-tenant-channel")
+                        .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build())), TENANT_ID);
+
+        String channelUuid = webhookManagementDAOImpl.getChannelUuid(webhookId, "owning-tenant-channel", TENANT_ID);
+        assertEquals(webhookManagementDAOImpl.getOwningTenantId(channelUuid), TENANT_ID);
+        assertEquals(webhookManagementDAOImpl.getOwningTenantId(UUID.randomUUID().toString()), -1,
+                "A channel that does not exist must resolve to no owning tenant.");
+    }
+
+    /**
+     * Clearing the organization subscriptions of one channel leaves the other channels of the same webhook alone.
+     * The update path depends on that: it replaces the subscriptions of the channels it was given, no others.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testDeleteChannelOrgSubscriptionsClearsOneChannelOnly() throws Exception {
+
+        String webhookId = UUID.randomUUID().toString();
+        webhookManagementDAOImpl.createWebhook(buildWebhook(webhookId, "https://example.com/webhook-sub-delete",
+                Arrays.asList(
+                        Subscription.builder().channelUri("delete-channel-a")
+                                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build(),
+                        Subscription.builder().channelUri("delete-channel-b")
+                                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build())), TENANT_ID);
+
+        Map<String, String> channelUuids = readChannelUuids(webhookId);
+        String channelA = channelUuids.get("delete-channel-a");
+        String channelB = channelUuids.get("delete-channel-b");
+        webhookManagementDAOImpl.addChannelOrgSubscriptions(Arrays.asList(
+                subscriptionOf(channelA, SUB_ORG_TENANT_ID_1, SUB_ORG_ID_1),
+                subscriptionOf(channelB, SUB_ORG_TENANT_ID_2, SUB_ORG_ID_2)));
+
+        webhookManagementDAOImpl.deleteChannelOrgSubscriptions(channelA);
+
+        assertEquals(webhookManagementDAOImpl.getChannelOrgSubscriptionCount(channelA), 0);
+        assertEquals(webhookManagementDAOImpl.getChannelOrgSubscriptionCount(channelB), 1,
+                "Clearing one channel must not touch the subscriptions of another.");
+    }
+
+    /**
+     * When an organization is deleted its subscriptions go with it, across every channel that carried one, while
+     * the subscriptions of other organizations on those same channels stay.
+     */
+    @Test(dependsOnMethods = {"testAddWebhook"})
+    public void testDeleteChannelOrgSubscriptionsByOrgIdSpansChannels() throws Exception {
+
+        String webhookId = UUID.randomUUID().toString();
+        webhookManagementDAOImpl.createWebhook(buildWebhook(webhookId, "https://example.com/webhook-org-delete",
+                Arrays.asList(
+                        Subscription.builder().channelUri("org-delete-channel-a")
+                                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build(),
+                        Subscription.builder().channelUri("org-delete-channel-b")
+                                .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build())), TENANT_ID);
+
+        Map<String, String> channelUuids = readChannelUuids(webhookId);
+        String channelA = channelUuids.get("org-delete-channel-a");
+        String channelB = channelUuids.get("org-delete-channel-b");
+        webhookManagementDAOImpl.addChannelOrgSubscriptions(Arrays.asList(
+                subscriptionOf(channelA, SUB_ORG_TENANT_ID_1, SHARED_ORG_ID),
+                subscriptionOf(channelB, SUB_ORG_TENANT_ID_1, SHARED_ORG_ID),
+                subscriptionOf(channelA, SUB_ORG_TENANT_ID_2, SUB_ORG_ID_2)));
+
+        webhookManagementDAOImpl.deleteChannelOrgSubscriptionsByOrgId(SHARED_ORG_ID);
+
+        assertEquals(webhookManagementDAOImpl.getChannelOrgSubscriptionCount(channelB), 0,
+                "The deleted organization must lose its subscription on every channel.");
+        assertEquals(webhookManagementDAOImpl.getChannelOrgSubscriptionCount(channelA), 1,
+                "Another organization's subscription on the same channel must survive.");
+    }
+
+    private ChannelOrgSubscription subscriptionOf(String channelUuid, int subscribedOrgTenantId,
+                                                  String subscribedOrgId) {
+
+        return ChannelOrgSubscription.builder()
+                .channelUuid(channelUuid)
+                .subscribedOrgTenantId(subscribedOrgTenantId)
+                .subscribedOrgId(subscribedOrgId)
+                .build();
+    }
+
+    private ChannelOrgSubscription orgSubscription(int subscribedOrgTenantId, String subscribedOrgId) {
+
+        return ChannelOrgSubscription.builder()
+                .channelUuid(orgSubChannelUuid)
+                .subscribedOrgTenantId(subscribedOrgTenantId)
+                .subscribedOrgId(subscribedOrgId)
+                .build();
+    }
+
 }

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.webhook.management.internal.dao.impl;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.ChannelOrgSubscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
@@ -124,4 +125,91 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         return getHandler().getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
+
+    /**
+     * Whether the organization fanout is folded in is the adapter type handler's decision, so this
+     * delegates like every other call rather than choosing for it.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksForOrganization(String eventProfileName, String eventProfileVersion,
+                                                          String channelUri, int eventOrgTenantId)
+            throws WebhookMgtException {
+
+        return getHandler().getActiveWebhooksForOrganization(eventProfileName, eventProfileVersion, channelUri,
+                eventOrgTenantId);
+    }
+
+    @Override
+    public List<Webhook> getSubscriptionAcceptedWebhooksForOrganization(String eventProfileName,
+                                                                        String eventProfileVersion,
+                                                                        String channelUri, int eventOrgTenantId,
+                                                                        boolean includeChildOrganizationSubscriptions)
+            throws WebhookMgtException {
+
+        return getHandler().getSubscriptionAcceptedWebhooksForOrganization(eventProfileName, eventProfileVersion,
+                channelUri, eventOrgTenantId, includeChildOrganizationSubscriptions);
+    }
+
+    // --- Organization subscriptions ---
+
+    @Override
+    public void addChannelOrgSubscriptions(List<ChannelOrgSubscription> subscriptions) throws WebhookMgtException {
+
+        getHandler().addChannelOrgSubscriptions(subscriptions);
+    }
+
+    @Override
+    public List<ChannelOrgSubscription> getChannelOrgSubscriptions(String channelUuid) throws WebhookMgtException {
+
+        return getHandler().getChannelOrgSubscriptions(channelUuid);
+    }
+
+    @Override
+    public List<Integer> getSubscribedOrgTenantIds(String channelUuid) throws WebhookMgtException {
+
+        return getHandler().getSubscribedOrgTenantIds(channelUuid);
+    }
+
+    @Override
+    public int getChannelOrgSubscriptionCount(String channelUuid) throws WebhookMgtException {
+
+        return getHandler().getChannelOrgSubscriptionCount(channelUuid);
+    }
+
+    @Override
+    public void deleteChannelOrgSubscriptions(String channelUuid) throws WebhookMgtException {
+
+        getHandler().deleteChannelOrgSubscriptions(channelUuid);
+    }
+
+    @Override
+    public void deleteChannelOrgSubscriptionsByOrgId(String subscribedOrgId) throws WebhookMgtException {
+
+        getHandler().deleteChannelOrgSubscriptionsByOrgId(subscribedOrgId);
+    }
+
+    @Override
+    public List<String> getChannelUuids(String webhookId, int tenantId) throws WebhookMgtException {
+
+        return getHandler().getChannelUuids(webhookId, tenantId);
+    }
+
+    @Override
+    public int getOwningTenantId(String channelUuid) throws WebhookMgtException {
+
+        return getHandler().getOwningTenantId(channelUuid);
+    }
+
+    @Override
+    public String getChannelUuid(String webhookId, String channelUri, int tenantId) throws WebhookMgtException {
+
+        return getHandler().getChannelUuid(webhookId, channelUri, tenantId);
+    }
+
+    @Override
+    public String getChannelUri(String channelUuid) throws WebhookMgtException {
+
+        return getHandler().getChannelUri(channelUuid);
+    }
+
 }
