@@ -207,6 +207,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USERS
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USERS_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_POSTGRESQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USER_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_MYSQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL_OPTIMIZED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_SHARED_ROLE_SQL;
@@ -922,6 +923,33 @@ public class RoleDAOImpl implements RoleDAO {
         clearUserRolesCacheByTenant(tenantId);
     }
 
+    /**
+     * Check whether a role with the given name exists in the given role audience of a tenant.
+     *
+     * @param roleName      Role name.
+     * @param audienceRefId Role audience ref ID.
+     * @param tenantId      Tenant ID.
+     * @param connection    DB connection of the ongoing transaction.
+     * @return True if a role with the given name exists in the role audience.
+     * @throws IdentityRoleManagementException If an error occurs while checking the role name.
+     */
+    private boolean isExistingRoleNameInAudience(String roleName, int audienceRefId, int tenantId,
+                                                 Connection connection) throws IdentityRoleManagementException {
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_EXIST_SQL)) {
+            statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME,
+                    RoleManagementUtils.removeInternalDomain(roleName));
+            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() && resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Error while checking the existence of the role: " + roleName + " in the tenant: " + tenantId, e);
+        }
+    }
+
     private List<RoleDTO> updateSharedHybridRolesNameAndReturnConflicts(List<RoleDTO> sharedRoles, String roleAudience,
                                                                String newRoleName, Connection connection)
             throws IdentityRoleManagementException {
@@ -937,6 +965,10 @@ public class RoleDAOImpl implements RoleDAO {
             if (ORGANIZATION.equals(roleAudience)) {
                 isRoleExist = isExistingRoleName(newRoleName, roleAudience, roleSharedOrganization,
                         roleSharedTenantDomain);
+            } else if (APPLICATION.equals(roleAudience)) {
+                // The same check for the shared application, where the organization may have authored its own roles.
+                isRoleExist = isExistingRoleNameInAudience(newRoleName, roleDTO.getAudienceRefId(),
+                        roleDTO.getTenantId(), connection);
             }
             if (!isRoleExist) {
                 try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_ROLE_NAME_SQL,
@@ -1518,6 +1550,20 @@ public class RoleDAOImpl implements RoleDAO {
         return associatedApplicationIds;
     }
 
+    @Override
+    public List<RoleBasicInfo> getRolesAssociatedWithApplication(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleBasicInfo> roles = new ArrayList<>();
+        for (RoleDTO hybridRole : getHybridRolesByApplication(applicationId, tenantDomain)) {
+            RoleBasicInfo roleBasicInfo = new RoleBasicInfo(hybridRole.getId(), hybridRole.getName());
+            roleBasicInfo.setAudience(APPLICATION);
+            roleBasicInfo.setAudienceId(applicationId);
+            roles.add(roleBasicInfo);
+        }
+        return roles;
+    }
+
     private List<RoleDTO> getHybridRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -1690,7 +1736,11 @@ public class RoleDAOImpl implements RoleDAO {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
 
-                if (APPLICATION.equals(audience) && !isFragmentApp()) {
+                /*
+                 Shared roles provisioned into a fragment application by the role sharing flows are not associated
+                 with the application. Roles created by the organization for the fragment application are associated.
+                 */
+                if (APPLICATION.equals(audience) && (!isFragmentApp() || !isSharedRoleProvisioningFlow())) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -1721,6 +1771,18 @@ public class RoleDAOImpl implements RoleDAO {
             return isFragmentApp;
         }
         return false;
+    }
+
+    /**
+     * Check whether the role is being created by the role sharing flows, as a shared role of a main application
+     * role. The role sharing flows set this thread local property while provisioning shared roles.
+     *
+     * @return True if the role is being created by the role sharing flows.
+     */
+    private boolean isSharedRoleProvisioningFlow() {
+
+        return Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get()
+                .get(RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW));
     }
 
     @Override

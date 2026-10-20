@@ -36,8 +36,10 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationCo
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -390,6 +392,44 @@ public class DefaultApplicationValidatorTest {
 
         assertEquals(validationErrors.isEmpty(), isValid, "Valid app version has been introduced. " +
                 "Please update the test case accordingly.");
+    }
+
+    @DataProvider(name = "subOrgRoleAuthoringConfigDataProvider")
+    public Object[][] subOrgRoleAuthoringConfigDataProvider() {
+
+        return new Object[][]{
+                // isOrganizationCustomRolesEnabled, isEnhancedOrgAuthEnabled, isFragmentApp, expected error count.
+                {false, false, false, 0},
+                {false, true, true, 0},
+                {true, true, false, 0},
+                {true, false, false, 1},
+                {true, true, true, 1},
+                {true, false, true, 2}
+        };
+    }
+
+    @Test(dataProvider = "subOrgRoleAuthoringConfigDataProvider")
+    public void testValidateOrganizationCustomRolesConfig(boolean isOrganizationCustomRolesEnabled,
+                                                      boolean isEnhancedOrgAuthEnabled, boolean isFragmentApp,
+                                                      int expectedErrorCount) throws Exception {
+
+        ServiceProvider sp = new ServiceProvider();
+        sp.setOrganizationCustomRolesEnabled(isOrganizationCustomRolesEnabled);
+        sp.setEnhancedOrganizationAuthenticationEnabled(isEnhancedOrgAuthEnabled);
+        if (isFragmentApp) {
+            ServiceProviderProperty isFragmentAppProperty = new ServiceProviderProperty();
+            isFragmentAppProperty.setName(ApplicationConstants.IS_FRAGMENT_APP);
+            isFragmentAppProperty.setValue(Boolean.TRUE.toString());
+            sp.setSpProperties(new ServiceProviderProperty[]{isFragmentAppProperty});
+        }
+        List<String> validationErrors = new ArrayList<>();
+
+        Method validateOrganizationCustomRolesConfig = DefaultApplicationValidator.class.getDeclaredMethod(
+                "validateOrganizationCustomRolesConfig", List.class, ServiceProvider.class);
+        validateOrganizationCustomRolesConfig.setAccessible(true);
+        validateOrganizationCustomRolesConfig.invoke(new DefaultApplicationValidator(), validationErrors, sp);
+
+        assertEquals(validationErrors.size(), expectedErrorCount);
     }
 
     @Test(description = "Validate error message for discoverable groups in a non-discoverable application")
