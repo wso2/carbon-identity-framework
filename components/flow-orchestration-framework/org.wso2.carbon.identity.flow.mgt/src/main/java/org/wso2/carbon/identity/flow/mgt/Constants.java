@@ -31,6 +31,10 @@ public class Constants {
     public static final String COMPLETE = "COMPLETE";
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
     public static final String END_NODE_ID = "END";
+    public static final String CONDITIONAL_BRANCHING_ENABLED = "FlowExecution.ConditionalBranching.Enable";
+    public static final String MAX_RULE_EVALUATION_NODES =
+            "FlowExecution.ConditionalBranching.MaxRuleEvaluationNodes";
+    public static final int DEFAULT_MAX_RULE_EVALUATION_NODES = 20;
 
     public static final String IDP_NAME = "idpName";
 
@@ -75,6 +79,8 @@ public class Constants {
                 "Unexpected server error while deleting the flow for tenant, %s"),
         ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW("65014", "Error while loading system default flow.",
                 "Unexpected error while loading system default flow for flow type, %s"),
+        ERROR_CODE_GET_CLAIM_METADATA("65015", "Error while retrieving claim metadata.",
+                "Could not read the claims of tenant %s to validate the conditions of the flow."),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -105,6 +111,10 @@ public class Constants {
                         "first nodes are present."),
         ERROR_CODE_UNSUPPORTED_NODE_ID("60013", "Node id is not supported.", "%s cannot be " +
                 "used as a Node ID."),
+        ERROR_CODE_INVALID_DECISION_STEP("60014", "Invalid decision step.",
+                "The decision step %s is not valid."),
+        ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED("60015", "Conditional branching is not enabled.",
+                "The decision step %s cannot be used because conditional branching is not enabled on this server."),
         ;
 
         private static final String ERROR_PREFIX = "RFM";
@@ -190,6 +200,11 @@ public class Constants {
         public static final String DECISION = "DECISION";
         public static final String TASK_EXECUTION = "TASK_EXECUTION";
         public static final String PROMPT_ONLY = "PROMPT_ONLY";
+        /**
+         * A decision made by evaluating rules against the flow context, as opposed to {@link #DECISION}, which is a
+         * decision made by the user pressing something.
+         */
+        public static final String RULE_EVALUATION = "RULE_EVALUATION";
 
         private NodeTypes() {
 
@@ -208,6 +223,7 @@ public class Constants {
         public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
         public static final String END = "END";
+        public static final String RULE_EVALUATION = "RULE_EVALUATION";
 
         private StepTypes() {
 
@@ -235,6 +251,7 @@ public class Constants {
 
         public static final String EXECUTOR = "EXECUTOR";
         public static final String NEXT = "NEXT";
+        public static final String ROUTE = "ROUTE";
 
         private ActionTypes() {
 

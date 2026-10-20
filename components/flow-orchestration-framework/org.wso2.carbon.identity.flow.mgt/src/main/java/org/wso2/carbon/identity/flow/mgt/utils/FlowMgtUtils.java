@@ -121,6 +121,58 @@ public class FlowMgtUtils {
     }
 
     /**
+     * Handle a decision step that is not valid. Every such failure shares one error code and says what is wrong
+     * through its own message and description.
+     *
+     * @param message     Error message.
+     * @param description Error description, formatted with the data.
+     * @param data        The error description data.
+     * @return FlowMgtClientException.
+     */
+    public static FlowMgtClientException handleDecisionStepException(String message, String description,
+                                                                     Object... data) {
+
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new FlowMgtClientException(ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP.getCode(), message,
+                description);
+    }
+
+    /**
+     * Whether conditional branching is enabled on the server. It guards decision steps, from saving and reading them
+     * to evaluating them, so a server without it never reads or writes the branch table.
+     *
+     * @return True if decision steps may be used.
+     */
+    public static boolean isConditionalBranchingEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED));
+    }
+
+    /**
+     * The maximum number of decision steps a flow may have. A missing or invalid value falls back to the default.
+     *
+     * @return The maximum number of rule evaluation nodes in a flow.
+     */
+    public static int getMaxRuleEvaluationNodes() {
+
+        String value = IdentityUtil.getProperty(Constants.MAX_RULE_EVALUATION_NODES);
+        if (StringUtils.isNotBlank(value)) {
+            try {
+                int max = Integer.parseInt(value.trim());
+                if (max > 0) {
+                    return max;
+                }
+            } catch (NumberFormatException e) {
+                LOG.warn("Invalid value configured for " + Constants.MAX_RULE_EVALUATION_NODES + ": " + value
+                        + ". Using the default: " + Constants.DEFAULT_MAX_RULE_EVALUATION_NODES);
+            }
+        }
+        return Constants.DEFAULT_MAX_RULE_EVALUATION_NODES;
+    }
+
+    /**
      * Get the initiator for audit logs.
      *
      * @return Initiator id despite masking.

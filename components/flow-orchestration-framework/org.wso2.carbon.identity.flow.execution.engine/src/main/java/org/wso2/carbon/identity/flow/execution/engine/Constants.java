@@ -181,6 +181,13 @@ public class Constants {
         ERROR_CODE_ORGANIZATION_VALIDATION_FAILURE("65035",
                 "Error while validating organization details.",
                 "Error occurred while validating the organization details of tenant: %s."),
+        ERROR_CODE_BRANCH_EVALUATION_FAILURE("65036",
+                "Error while evaluating a decision.",
+                "The branch %s of the decision step %s could not be evaluated in the %s flow of tenant: %s."),
+        ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED("65037",
+                "Conditional branching is not enabled.",
+                "The decision step %s in the %s flow of tenant: %s cannot run because conditional branching is not "
+                        + "enabled on this server."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
@@ -335,6 +342,8 @@ public class Constants {
 
         public static final String FLOW_EXECUTION_PROPERTY = "FlowExecution";
         public static final String DEFAULT_TTL_PROPERTY = "FlowExecution.DefaultTTL";
+        public static final String REGISTRATION_DEFAULT_USER_STORE_PROPERTY =
+                "FlowExecution.Registration.DefaultUserStore";
         public static final String FLOW_TYPE_TTL_CONFIG_KEY_PREFIX = "FlowTypeTTLs";
         public static final String FLOW_TYPE_TTL_CONFIG_KEY = "FlowTypeTTL";
         public static final String FLOW_TYPE_ATTRIBUTE = "type";

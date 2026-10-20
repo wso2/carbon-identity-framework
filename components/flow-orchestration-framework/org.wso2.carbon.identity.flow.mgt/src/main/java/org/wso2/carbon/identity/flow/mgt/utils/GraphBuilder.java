@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtClientException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
+import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
@@ -58,6 +59,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CO
 import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
+import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.RULE_EVALUATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
@@ -66,12 +68,16 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleClientException;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleDecisionStepException;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 
 /**
  * This class is responsible for building the flow graph.
  */
 public class GraphBuilder {
+
+    private static final int MAX_BRANCH_ID_LENGTH = 100;
+    private static final int MAX_BRANCH_NAME_LENGTH = 255;
 
     private static final Log LOG = LogFactory.getLog(GraphBuilder.class);
 
@@ -98,7 +104,11 @@ public class GraphBuilder {
      */
     public GraphBuilder withSteps(List<StepDTO> steps) throws FlowMgtFrameworkException {
 
+        validateRuleEvaluationStepCount(steps);
         for (StepDTO step : steps) {
+            if (step.getType() == null) {
+                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE, "null");
+            }
             switch (step.getType()) {
                 case VIEW:
                     processViewStep(step);
@@ -110,6 +120,9 @@ public class GraphBuilder {
                     break;
                 case USER_ONBOARD:
                     processUserOnboardStep(step);
+                    break;
+                case Constants.StepTypes.RULE_EVALUATION:
+                    processRuleEvaluationStep(step);
                     break;
                 case END:
                     // Handle the explicitly defined end step.
@@ -158,6 +171,143 @@ public class GraphBuilder {
         NodeConfig executionNodeConfig = createTaskExecutionNode(step.getId(), action.getExecutor());
         nodeMap.put(executionNodeConfig.getId(), executionNodeConfig);
         nodeEdges.add(new NodeEdge(executionNodeConfig.getId(), action.getNextId(), null));
+    }
+
+    /**
+     * A rule evaluation has one outgoing edge per branch rather than a single next step.
+     *
+     * @param step The rule evaluation step.
+     * @throws FlowMgtClientException If the step carries no action or no branches.
+     */
+    private void processRuleEvaluationStep(StepDTO step) throws FlowMgtClientException {
+
+        if (!FlowMgtUtils.isConditionalBranchingEnabled()) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED,
+                    step.getId());
+        }
+        if (step.getData() == null) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
+        }
+        ActionDTO action = step.getData().getAction();
+        if (action == null) {
+            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
+        }
+        if (action.getBranches() == null || action.getBranches().isEmpty()) {
+            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
+        }
+        validateBranches(step.getId(), action.getBranches());
+
+        if (action.getExecutor() != null) {
+            throw handleDecisionStepException("Executor not allowed on a decision step.",
+                    "The decision step %s names the executor %s. A decision only evaluates its branches, so it " +
+                    "carries no executor.", step.getId(), action.getExecutor().getName());
+        }
+
+        NodeConfig ruleEvaluationNode = createRuleEvaluationNode(step.getId());
+        nodeMap.put(ruleEvaluationNode.getId(), ruleEvaluationNode);
+        for (BranchDTO branch : action.getBranches()) {
+            nodeEdges.add(new NodeEdge(ruleEvaluationNode.getId(), branch.getNextId(), branch.getId()));
+        }
+    }
+
+    /**
+     * A flow may have only as many decision steps as the server allows.
+     */
+    private static void validateRuleEvaluationStepCount(List<StepDTO> steps) throws FlowMgtClientException {
+
+        if (!FlowMgtUtils.isConditionalBranchingEnabled()) {
+            return;
+        }
+        long count = steps.stream().filter(step -> Constants.StepTypes.RULE_EVALUATION.equals(step.getType())).count();
+        int max = FlowMgtUtils.getMaxRuleEvaluationNodes();
+        if (count > max) {
+            throw handleDecisionStepException("Too many decision steps.",
+                    "The flow has %d decision steps, more than the %d allowed.", count, max);
+        }
+    }
+
+    /**
+     * A branch's id and name are stored in columns of fixed width, so a longer value is rejected rather than cut
+     * short or failing at the database.
+     */
+    private static void validateLength(String stepId, String attribute, String value, int maxLength)
+            throws FlowMgtClientException {
+
+        if (value.length() > maxLength) {
+            throw handleDecisionStepException("Branch value too long.",
+                    "The %s of a branch of the decision step %s is longer than %d characters.",
+                    attribute, stepId, maxLength);
+        }
+    }
+
+    /**
+     * Reject a decision that cannot work, while the author can still see what they configured.
+     *
+     * @param stepId   Id of the decision step, for the message.
+     * @param branches Branches to check.
+     * @throws FlowMgtClientException If the decision cannot be evaluated as configured.
+     */
+    private void validateBranches(String stepId, List<BranchDTO> branches) throws FlowMgtClientException {
+
+        Set<String> branchIds = new HashSet<>();
+        int defaults = 0;
+
+        for (BranchDTO branch : branches) {
+            validateBranch(stepId, branch);
+            if (!branchIds.add(branch.getId())) {
+                throw handleDecisionStepException("Duplicate branch id.",
+                        "More than one branch of the decision step %s uses the id %s.", stepId, branch.getId());
+            }
+            if (branch.isDefault()) {
+                defaults++;
+            }
+        }
+
+        if (defaults == 0) {
+            throw handleDecisionStepException("No default branch defined.",
+                    "The decision step %s has no default branch. Add a branch without a condition, taken when no " +
+                    "other branch matches.", stepId);
+        }
+        if (defaults > 1) {
+            throw handleDecisionStepException("Multiple default branches defined.",
+                    "The decision step %s has more than one branch without a condition. Only one default branch is " +
+                    "allowed.", stepId);
+        }
+        if (branches.size() == defaults) {
+            throw handleDecisionStepException("No rule branch defined.",
+                    "The decision step %s has only a default branch. Add at least one branch with a rule.",
+                    stepId);
+        }
+    }
+
+    /**
+     * Reject a branch that is missing a part, has a value too long to store, or points back at its own step.
+     *
+     * @param stepId Id of the decision step, for the message.
+     * @param branch Branch to check.
+     * @throws FlowMgtClientException If the branch is not complete.
+     */
+    private void validateBranch(String stepId, BranchDTO branch) throws FlowMgtClientException {
+
+        if (StringUtils.isBlank(branch.getId())) {
+            throw handleDecisionStepException("Branch id not provided.",
+                    "A branch of the decision step %s has no id.", stepId);
+        }
+        if (StringUtils.isBlank(branch.getName())) {
+            throw handleDecisionStepException("Branch name not provided.",
+                    "A branch of the decision step %s has no name.", stepId);
+        }
+        validateLength(stepId, "id", branch.getId(), MAX_BRANCH_ID_LENGTH);
+        validateLength(stepId, "name", branch.getName(), MAX_BRANCH_NAME_LENGTH);
+        if (StringUtils.isBlank(branch.getNextId())) {
+            throw handleDecisionStepException("Branch next step not provided.",
+                    "A branch of the decision step %s does not say which step it goes to.", stepId);
+        }
+        if (stepId.equals(branch.getNextId())) {
+            throw handleDecisionStepException("Branch targets its own step.",
+                    "The branch %s of the decision step %s points back at the same step, which cannot make " +
+                    "progress.", branch.getName(), stepId);
+        }
     }
 
     private void processUserOnboardStep(StepDTO step) {
@@ -329,6 +479,18 @@ public class GraphBuilder {
                 .build();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Created a task execution node " + id + " with executor " + executorDTO.getName() + ".");
+        }
+        return node;
+    }
+
+    private NodeConfig createRuleEvaluationNode(String id) {
+
+        NodeConfig node = new NodeConfig.Builder()
+                .id(id)
+                .type(RULE_EVALUATION)
+                .build();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created a rule evaluation node " + id + ".");
         }
         return node;
     }
