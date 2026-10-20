@@ -25,6 +25,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -47,11 +48,13 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Commo
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationData;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationLoginData;
+import org.wso2.carbon.identity.application.authentication.framework.model.PrimaryAppData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
@@ -64,6 +67,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
@@ -94,6 +98,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -116,6 +121,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_MISMATCHING_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 /**
@@ -132,6 +138,15 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     private static final String ORGANIZATION_ID = "179fa754-dcff-48f3-bd1c-a8ea84c8bbf4";
     private static final String ORG_CALLER_PATH = "/o/179fa754-dcff-48f3-bd1c-a8ea84c8bbf4/";
     private static final String ABSOLUTE_CALLER_PATH = "https://wso2.is.com";
+    private static final String LOGIN_TENANT_DOMAIN = "sub-org.com";
+    private static final String OWNER_TENANT_DOMAIN = "owner-org.com";
+    private static final String OWNER_ORG_ID = "5ec3c8b6-2f1d-4f0e-9a3b-6d8f0e1a2b3c";
+    private static final String MAIN_APP_TENANT_DOMAIN = "root.com";
+    private static final String MAIN_APP_ORG_ID = "10084a8d-113f-4211-a0d5-efe36b082211";
+    private static final String APP_RESOURCE_ID = "8f1c2d3e-4a5b-6c7d-8e9f-0a1b2c3d4e5f";
+    private static final String MAIN_APP_RESOURCE_ID = "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d";
+    private static final int MAIN_APP_TENANT_ID = 5;
+    private static final int PRIMARY_APP_ID = 7;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -1515,5 +1530,220 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
         assertTrue(exception.getCause() instanceof IllegalStateException);
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
+    }
+
+    @Test
+    public void testApplicationOrganizationIsNotSetOutsideAnOrganization() throws Exception {
+
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        AuthenticationContext context = newOrganizationLoginContext();
+
+        invokeSetServiceProviderInfo(context, sequenceOf(application(OWNER_TENANT_DOMAIN, false)),
+                applicationManagementService, organizationManager, false);
+
+        assertNull(context.getServiceProviderOrganizationId());
+        assertNull(context.getServiceProviderTenantDomain());
+        assertEquals(context.getServiceProviderResourceId(), APP_RESOURCE_ID);
+        verify(organizationManager, never()).resolveOrganizationId(anyString());
+    }
+
+    @Test
+    public void testApplicationOrganizationIsTheOwnerOfAnOrganizationApplication() throws Exception {
+
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.resolveOrganizationId(OWNER_TENANT_DOMAIN)).thenReturn(OWNER_ORG_ID);
+        AuthenticationContext context = newOrganizationLoginContext();
+
+        invokeSetServiceProviderInfo(context, sequenceOf(application(OWNER_TENANT_DOMAIN, false)),
+                applicationManagementService, organizationManager, true);
+
+        assertEquals(context.getServiceProviderOrganizationId(), OWNER_ORG_ID);
+        assertEquals(context.getServiceProviderTenantDomain(), OWNER_TENANT_DOMAIN);
+        assertNull(context.getProperty(FrameworkConstants.ENHANCED_ORG_LOGIN_ENABLED));
+    }
+
+    /**
+     * A directly accessed shared application is owned by the organization of its main application, found through
+     * the main application id.
+     */
+    @Test
+    public void testSharedApplicationTakesTheOwnerOfItsMainApplication() throws Exception {
+
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        when(applicationManagementService.getMainAppId(APP_RESOURCE_ID)).thenReturn(MAIN_APP_RESOURCE_ID);
+        when(applicationManagementService.getTenantIdByApp(MAIN_APP_RESOURCE_ID)).thenReturn(MAIN_APP_TENANT_ID);
+        ServiceProvider mainApp = application(MAIN_APP_TENANT_DOMAIN, false);
+        when(applicationManagementService.getApplicationByResourceId(MAIN_APP_RESOURCE_ID, MAIN_APP_TENANT_DOMAIN))
+                .thenReturn(mainApp);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.resolveOrganizationId(MAIN_APP_TENANT_DOMAIN)).thenReturn(MAIN_APP_ORG_ID);
+        AuthenticationContext context = newOrganizationLoginContext();
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(MAIN_APP_TENANT_ID))
+                    .thenReturn(MAIN_APP_TENANT_DOMAIN);
+            invokeSetServiceProviderInfo(context, sequenceOf(application(OWNER_TENANT_DOMAIN, true)),
+                    applicationManagementService, organizationManager, true);
+        }
+
+        assertEquals(context.getServiceProviderOrganizationId(), MAIN_APP_ORG_ID);
+        assertEquals(context.getServiceProviderTenantDomain(), MAIN_APP_TENANT_DOMAIN);
+        assertEquals(context.getProperty(FrameworkConstants.ENHANCED_ORG_LOGIN_ENABLED), Boolean.FALSE);
+        // The resource id stays the shared application's own.
+        assertEquals(context.getServiceProviderResourceId(), APP_RESOURCE_ID);
+    }
+
+    /**
+     * An organization login has already captured the main application as the primary application, so the main
+     * application id is not looked up again.
+     */
+    @Test
+    public void testSharedApplicationOfAnOrganizationLoginUsesThePrimaryApplication() throws Exception {
+
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        ServiceProvider mainApp = application(MAIN_APP_TENANT_DOMAIN, false);
+        mainApp.setEnhancedOrganizationAuthenticationEnabled(true);
+        when(applicationManagementService.getServiceProvider(PRIMARY_APP_ID)).thenReturn(mainApp);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.resolveOrganizationId(MAIN_APP_TENANT_DOMAIN)).thenReturn(MAIN_APP_ORG_ID);
+        AuthenticationContext context = newOrganizationLoginContext();
+        PrimaryAppData primaryAppData = new PrimaryAppData();
+        primaryAppData.setId(PRIMARY_APP_ID);
+        primaryAppData.setTenantDomain(MAIN_APP_TENANT_DOMAIN);
+        OrganizationLoginData organizationLoginData = new OrganizationLoginData();
+        organizationLoginData.setPrimaryAppData(primaryAppData);
+        context.setOrganizationLoginData(organizationLoginData);
+
+        invokeSetServiceProviderInfo(context, sequenceOf(application(OWNER_TENANT_DOMAIN, true)),
+                applicationManagementService, organizationManager, true);
+
+        assertEquals(context.getServiceProviderOrganizationId(), MAIN_APP_ORG_ID);
+        assertEquals(context.getServiceProviderTenantDomain(), MAIN_APP_TENANT_DOMAIN);
+        assertEquals(context.getProperty(FrameworkConstants.ENHANCED_ORG_LOGIN_ENABLED), Boolean.TRUE);
+        verify(applicationManagementService, never()).getMainAppId(anyString());
+    }
+
+    @DataProvider(name = "unresolvableMainApplications")
+    public Object[][] unresolvableMainApplications() {
+
+        return new Object[][]{
+                {null, MAIN_APP_TENANT_ID},
+                {MAIN_APP_RESOURCE_ID, MultitenantConstants.INVALID_TENANT_ID}
+        };
+    }
+
+    /**
+     * A shared application whose main application cannot be found is left without an owner, and the login is not
+     * failed: an unknown tenant id must not reach the tenant lookup, which would throw.
+     */
+    @Test(dataProvider = "unresolvableMainApplications")
+    public void testSharedApplicationWithoutAMainApplicationIsLeftUnresolved(String mainAppId, int mainAppTenantId)
+            throws Exception {
+
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        when(applicationManagementService.getMainAppId(APP_RESOURCE_ID)).thenReturn(mainAppId);
+        when(applicationManagementService.getTenantIdByApp(anyString())).thenReturn(mainAppTenantId);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        AuthenticationContext context = newOrganizationLoginContext();
+
+        invokeSetServiceProviderInfo(context, sequenceOf(application(OWNER_TENANT_DOMAIN, true)),
+                applicationManagementService, organizationManager, true);
+
+        assertNull(context.getServiceProviderOrganizationId());
+        assertNull(context.getServiceProviderTenantDomain());
+        assertNull(context.getProperty(FrameworkConstants.ENHANCED_ORG_LOGIN_ENABLED));
+        verify(applicationManagementService, never()).getApplicationByResourceId(anyString(), anyString());
+    }
+
+    @Test
+    public void testApplicationOrganizationIsLeftUnresolvedWhenTheOwnerCannotBeResolved() throws Exception {
+
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.resolveOrganizationId(OWNER_TENANT_DOMAIN))
+                .thenThrow(new OrganizationManagementException("cannot resolve"));
+        AuthenticationContext context = newOrganizationLoginContext();
+
+        invokeSetServiceProviderInfo(context, sequenceOf(application(OWNER_TENANT_DOMAIN, false)),
+                applicationManagementService, organizationManager, true);
+
+        assertNull(context.getServiceProviderOrganizationId());
+        assertNull(context.getServiceProviderTenantDomain());
+    }
+
+    @Test
+    public void testApplicationOrganizationIsLeftUnresolvedWhenTheOrganizationCheckFails() throws Exception {
+
+        AuthenticationContext context = newOrganizationLoginContext();
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                    .thenThrow(new OrganizationManagementException("cannot check"));
+            Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
+                    "setServiceProviderInfo", AuthenticationContext.class, SequenceConfig.class);
+            method.setAccessible(true);
+            method.invoke(requestCoordinator, context, sequenceOf(application(OWNER_TENANT_DOMAIN, false)));
+        }
+
+        assertNull(context.getServiceProviderOrganizationId());
+        assertNull(context.getServiceProviderTenantDomain());
+    }
+
+    private void invokeSetServiceProviderInfo(AuthenticationContext context, SequenceConfig sequenceConfig,
+                                              ApplicationManagementService applicationManagementService,
+                                              OrganizationManager organizationManager, boolean isOrganizationLogin)
+            throws Exception {
+
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        ApplicationManagementService originalApplicationManagementService =
+                dataHolder.getApplicationManagementService();
+        OrganizationManager originalOrganizationManager = dataHolder.getOrganizationManager();
+        dataHolder.setApplicationManagementService(applicationManagementService);
+        dataHolder.setOrganizationManager(organizationManager);
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(LOGIN_TENANT_DOMAIN))
+                    .thenReturn(isOrganizationLogin);
+            Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
+                    "setServiceProviderInfo", AuthenticationContext.class, SequenceConfig.class);
+            method.setAccessible(true);
+            method.invoke(requestCoordinator, context, sequenceConfig);
+        } finally {
+            dataHolder.setApplicationManagementService(originalApplicationManagementService);
+            dataHolder.setOrganizationManager(originalOrganizationManager);
+        }
+    }
+
+    private static AuthenticationContext newOrganizationLoginContext() {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(LOGIN_TENANT_DOMAIN);
+        return context;
+    }
+
+    private static ServiceProvider application(String tenantDomain, boolean isFragmentApp) {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationResourceId(APP_RESOURCE_ID);
+        serviceProvider.setTenantDomain(tenantDomain);
+        if (isFragmentApp) {
+            ServiceProviderProperty fragmentProperty = new ServiceProviderProperty();
+            fragmentProperty.setName(IS_FRAGMENT_APP);
+            fragmentProperty.setValue(TRUE);
+            serviceProvider.setSpProperties(new ServiceProviderProperty[]{fragmentProperty});
+        }
+        return serviceProvider;
+    }
+
+    private static SequenceConfig sequenceOf(ServiceProvider serviceProvider) {
+
+        ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+        when(applicationConfig.getApplicationName()).thenReturn("test-app");
+        when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
+        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+        when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+        return sequenceConfig;
     }
 }
