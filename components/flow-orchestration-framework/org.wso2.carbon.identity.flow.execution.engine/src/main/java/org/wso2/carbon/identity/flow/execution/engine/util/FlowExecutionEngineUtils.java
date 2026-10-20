@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages;
+import org.wso2.carbon.identity.flow.execution.engine.Constants.FlowExecutionConfigs;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheEntry;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheKey;
@@ -64,6 +65,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -92,6 +94,9 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
+import static org.wso2.carbon.user.core.UserCoreConstants.APPLICATION_DOMAIN;
+import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
+import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 
 /**
  * Utility class for flow engine.
@@ -679,7 +684,9 @@ public class FlowExecutionEngineUtils {
 
     /**
      * Resolve the user store domain of a user who is not identified yet, from the username they gave.
-     * A registering user is created in the primary user store unless the username names another one.
+     * A registering user is created in the user store the username names, or else in the default user
+     * store for registration, falling back to the primary user store -- the same store the provisioning
+     * executor creates them in.
      *
      * @param context Flow execution context.
      */
@@ -693,12 +700,31 @@ public class FlowExecutionEngineUtils {
         if (StringUtils.isBlank(username)) {
             return;
         }
-        // Outside registration, only a username that names its domain says anything about the user's store.
-        boolean registration = Constants.FlowTypes.REGISTRATION.getType().equals(context.getFlowType());
-        boolean namesDomain = StringUtils.isBlank(user.getUserStoreDomain())
-                && username.contains(UserCoreConstants.DOMAIN_SEPARATOR);
-        if (registration || namesDomain) {
-            user.setUserStoreDomain(IdentityUtil.extractDomainFromName(username));
+        if (Constants.FlowTypes.REGISTRATION.getType().equals(context.getFlowType())) {
+            user.setUserStoreDomain(userStoreDomainOf(username));
+            return;
         }
+        // Outside registration, only a username that names its domain says anything about the user's store.
+        if (StringUtils.isBlank(user.getUserStoreDomain())
+                && username.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0) {
+            user.setUserStoreDomain(userStoreDomainOf(username));
+        }
+    }
+
+    private static String userStoreDomainOf(String username) {
+
+        int separatorIndex = username.indexOf(UserCoreConstants.DOMAIN_SEPARATOR);
+        if (separatorIndex > 0) {
+            String domain = username.substring(0, separatorIndex);
+            if (INTERNAL_DOMAIN.equalsIgnoreCase(domain) || WORKFLOW_DOMAIN.equalsIgnoreCase(domain) ||
+                    APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
+                return domain.substring(0, 1).toUpperCase(Locale.ENGLISH)
+                        + domain.substring(1).toLowerCase(Locale.ENGLISH);
+            }
+            return domain.toUpperCase(Locale.ENGLISH);
+        }
+        String defaultDomain = IdentityUtil.getProperty(FlowExecutionConfigs.REGISTRATION_DEFAULT_USER_STORE_PROPERTY);
+        return StringUtils.isNotBlank(defaultDomain) ? defaultDomain.trim().toUpperCase(Locale.ENGLISH)
+                : IdentityUtil.getPrimaryDomainName().toUpperCase(Locale.ENGLISH);
     }
 }

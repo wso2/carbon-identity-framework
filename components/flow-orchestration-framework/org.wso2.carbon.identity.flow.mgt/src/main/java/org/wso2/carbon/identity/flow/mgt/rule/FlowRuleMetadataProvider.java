@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.flow.mgt.rule;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
@@ -249,7 +250,8 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     }
 
     /**
-     * The user stores of the tenant, offered as the values a domain condition may name.
+     * The user stores of the tenant, offered as the values a domain condition may name. The agent user store is left
+     * out: it holds agent identities, which no flow registers or recovers.
      *
      * @param tenantDomain Tenant domain.
      * @return The user store domains.
@@ -263,6 +265,7 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
                     "The user stores of tenant " + tenantDomain + " cannot be read to offer as values.");
         }
 
+        String agentDomain = IdentityUtil.getAgentIdentityUserstoreName();
         Set<String> domains = new LinkedHashSet<>();
         try {
             UserStoreManager primary = (UserStoreManager) realmService
@@ -277,7 +280,7 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
                         .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
                 boolean disabled = Boolean.parseBoolean(store.getRealmConfiguration()
                         .getUserStoreProperty(UserCoreConstants.RealmConfig.USER_STORE_DISABLED));
-                if (StringUtils.isNotBlank(domain) && !disabled) {
+                if (StringUtils.isNotBlank(domain) && !disabled && !domain.equalsIgnoreCase(agentDomain)) {
                     domains.add(domain.toUpperCase());
                 }
             }

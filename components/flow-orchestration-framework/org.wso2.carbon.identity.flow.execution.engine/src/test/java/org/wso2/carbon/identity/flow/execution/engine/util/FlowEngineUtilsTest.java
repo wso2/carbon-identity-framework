@@ -465,6 +465,32 @@ public class FlowEngineUtilsTest {
     }
 
     @Test
+    public void testRegistrationUserStoreDomainFollowsTheDefaultRegistrationUserStore() {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS)) {
+            identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn("PRIMARY");
+            identityUtil.when(() -> IdentityUtil.getProperty("FlowExecution.Registration.DefaultUserStore"))
+                    .thenReturn("customers");
+            FlowUser user = new FlowUser();
+            FlowExecutionContext context = userContext("REGISTRATION", user);
+
+            user.addClaim(USERNAME_CLAIM_URI, "alice");
+            FlowExecutionEngineUtils.resolveUserStoreDomain(context);
+            assertEquals(user.getUserStoreDomain(), "CUSTOMERS");
+
+            // A username that names its user store is created there, whatever the default.
+            user.addClaim(USERNAME_CLAIM_URI, "partners/alice");
+            FlowExecutionEngineUtils.resolveUserStoreDomain(context);
+            assertEquals(user.getUserStoreDomain(), "PARTNERS");
+
+            // A separator with nothing before it names no user store.
+            user.addClaim(USERNAME_CLAIM_URI, "/alice");
+            FlowExecutionEngineUtils.resolveUserStoreDomain(context);
+            assertEquals(user.getUserStoreDomain(), "CUSTOMERS");
+        }
+    }
+
+    @Test
     public void testUserStoreDomainOfAnIdentifiedUserIsKept() {
 
         FlowUser user = new FlowUser();

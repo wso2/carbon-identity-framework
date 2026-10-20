@@ -1959,6 +1959,11 @@
             <Read>
                 <Scope name="internal_flow_view"/>
                 <Scope name="internal_governance_view"/>
+                {% if flow_execution.conditional_branching.enable %}
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                {% endif %}
                 {% if consent_mgt.enable_v2_api %}
                 <Scope name="internal_consent_mgt_purpose_view"/>
                 {% endif %}
@@ -2814,6 +2819,11 @@
             <Read>
                 <Scope name="internal_org_flow_view"/>
                 <Scope name="internal_org_governance_view"/>
+                {% if flow_execution.conditional_branching.enable %}
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                {% endif %}
                 {% if consent_mgt.enable_v2_api %}
                 <Scope name="internal_org_consent_mgt_purpose_view"/>
                 {% endif %}

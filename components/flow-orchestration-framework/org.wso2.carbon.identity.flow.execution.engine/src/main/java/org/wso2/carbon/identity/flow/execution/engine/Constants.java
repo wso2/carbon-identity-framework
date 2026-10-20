@@ -342,6 +342,8 @@ public class Constants {
 
         public static final String FLOW_EXECUTION_PROPERTY = "FlowExecution";
         public static final String DEFAULT_TTL_PROPERTY = "FlowExecution.DefaultTTL";
+        public static final String REGISTRATION_DEFAULT_USER_STORE_PROPERTY =
+                "FlowExecution.Registration.DefaultUserStore";
         public static final String FLOW_TYPE_TTL_CONFIG_KEY_PREFIX = "FlowTypeTTLs";
         public static final String FLOW_TYPE_TTL_CONFIG_KEY = "FlowTypeTTL";
         public static final String FLOW_TYPE_ATTRIBUTE = "type";

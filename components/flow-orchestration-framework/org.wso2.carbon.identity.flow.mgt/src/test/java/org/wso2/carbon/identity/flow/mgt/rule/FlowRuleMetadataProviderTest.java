@@ -196,6 +196,24 @@ public class FlowRuleMetadataProviderTest {
     }
 
     /**
+     * The agent user store holds agent identities, which no flow handles, so it is never offered.
+     */
+    @Test
+    public void testUserDomainLeavesOutTheAgentUserStore() throws Exception {
+
+        FlowMgtServiceDataHolder.getInstance().setRealmService(
+                UserStoreMocks.realmWithUserStores("PRIMARY", new String[]{"LDAP", "agent"}, null));
+        try {
+            FieldDefinition field = fieldsOf(FlowType.PASSWORD_RECOVERY).get(FlowRuleMetadataProvider.USER_DOMAIN);
+            assertEquals(((OptionsInputValue) field.getValue()).getValues().stream().map(OptionsValue::getName)
+                    .toList(), Arrays.asList("PRIMARY", "LDAP"));
+        } finally {
+            FlowMgtServiceDataHolder.getInstance().setRealmService(
+                    UserStoreMocks.realmWithUserStores("PRIMARY", new String[]{"LDAP"}, "ARCHIVED"));
+        }
+    }
+
+    /**
      * Asgardeo names its primary store DEFAULT, and the domain offered follows that name.
      */
     @Test
