@@ -22,6 +22,7 @@
     <test name="webhook-management-service-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.management.service.WebhookManagementServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.service.WebhookManagementServiceDefaultMethodsTest"/>
         </classes>
     </test>
     <test name="webhook-management-dao-test">
@@ -32,11 +33,13 @@
             <class name="org.wso2.carbon.identity.webhook.management.dao.PublisherAdapterTypeHandlerTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.dao.WebhookAdapterTypeHandlerFactoryTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.dao.PublisherSubscriberAdapterTypeHandlerTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.dao.WebhookManagementDAOFacadeOrganizationSubscriptionTest"/>
         </classes>
     </test>
     <test name="webhook-management-internal-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.management.internal.WebhookManagementComponentServiceHolderTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementServiceComponentTest"/>
         </classes>
     </test>
     <test name="webhook-management-util-test">
@@ -45,11 +48,14 @@
             <class name="org.wso2.carbon.identity.webhook.management.util.WebhookSecretProcessorTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.util.WebhookManagementAuditLoggerTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.util.WebhookManagementExceptionHandlerTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.util.OrganizationSubscriptionPolicyUtilTest"/>
         </classes>
     </test>
     <test name="webhook-management-model-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.management.model.OrganizationSubscriptionTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.model.WebhookChannelTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.model.ChannelSubscribedOrganizationsTest"/>
         </classes>
     </test>
     <test name="webhook-management-cache-test">
