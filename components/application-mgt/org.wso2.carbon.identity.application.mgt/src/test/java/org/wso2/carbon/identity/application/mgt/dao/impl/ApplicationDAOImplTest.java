@@ -72,6 +72,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SHARED_APP_ROLE_MANAGEMENT_FEATURE_ENABLED_PROPERTY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -546,6 +547,29 @@ public class ApplicationDAOImplTest {
         assertEquals(associatedRoles.get(0).getId(), "shared-org-role-id");
         assertEquals(associatedRoles.get(1).getId(), "local-org-role-id");
         verify(mockRoleManagementService, never()).getRolesByApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    @Test(description = "Test retrieving the associated roles of a shared application when the main application " +
+            "allows organizations to manage roles, but the feature is disabled for the server.",
+            dependsOnMethods = { "testGetAssociatedRolesOfSharedApplicationWithOrganizationAudience" })
+    public void testGetAssociatedRolesOfSharedApplicationWhenFeatureDisabled() throws Exception {
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        String mainAppId = createMainApplicationAndGetResourceId(applicationDAO, "test-main-app-5", true);
+        String sharedAppId = createApplicationAndGetResourceId(applicationDAO, "test-shared-app-5");
+        addSharedApplication(mainAppId, sharedAppId, "shared-org-id-5");
+
+        mockIdentityUtil.when(() -> IdentityUtil.getProperty(SHARED_APP_ROLE_MANAGEMENT_FEATURE_ENABLED_PROPERTY))
+                .thenReturn("false");
+        try {
+            // The roles are not resolved by the role audience. They are resolved through the main application roles.
+            assertTrue(applicationDAO.getAssociatedRolesOfApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME)
+                    .isEmpty());
+            verify(mockRoleManagementService, never()).getRolesByApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME);
+        } finally {
+            mockIdentityUtil.when(() -> IdentityUtil.getProperty(SHARED_APP_ROLE_MANAGEMENT_FEATURE_ENABLED_PROPERTY))
+                    .thenReturn(null);
+        }
     }
 
     private String createMainApplicationAndGetResourceId(ApplicationDAO applicationDAO, String applicationName,

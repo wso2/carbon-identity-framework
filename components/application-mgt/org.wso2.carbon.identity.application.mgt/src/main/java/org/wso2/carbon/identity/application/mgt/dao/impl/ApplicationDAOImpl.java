@@ -2576,6 +2576,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String getSharedAppRoleManagementAudience(String mainAppId, Connection connection)
             throws IdentityApplicationManagementException {
 
+        if (!ApplicationMgtUtil.isSharedAppRoleManagementFeatureEnabled()) {
+            return null;
+        }
         boolean isSharedAppRoleManagementAllowed = Boolean.parseBoolean(getSPPropertyValueByPropertyKey(mainAppId,
                 IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_NAME, connection))
                 && Boolean.parseBoolean(getSPPropertyValueByPropertyKey(mainAppId,

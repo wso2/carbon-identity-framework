@@ -106,6 +106,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogC
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.ENABLE_V2_AUDIT_LOGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MYACCOUNT_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SHARED_APP_ROLE_MANAGEMENT_FEATURE_ENABLED_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TENANT_DOMAIN_PLACEHOLDER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
@@ -1295,6 +1296,20 @@ public class ApplicationMgtUtil {
     }
 
     /**
+     * Check whether the shared application role management feature is enabled for the server. When it is disabled,
+     * organizations cannot manage roles for shared applications regardless of the main application configuration,
+     * and the roles of shared applications are resolved through the main application roles. The feature is enabled
+     * unless it is explicitly disabled.
+     *
+     * @return True if the shared application role management feature is enabled.
+     */
+    public static boolean isSharedAppRoleManagementFeatureEnabled() {
+
+        return !Boolean.FALSE.toString().equalsIgnoreCase(
+                StringUtils.trim(IdentityUtil.getProperty(SHARED_APP_ROLE_MANAGEMENT_FEATURE_ENABLED_PROPERTY)));
+    }
+
+    /**
      * Check whether organizations can manage application roles for the shared applications of the given main
      * application.
      *
@@ -1304,6 +1319,7 @@ public class ApplicationMgtUtil {
     public static boolean isSharedAppRoleManagementEnabled(ServiceProvider mainApplication) {
 
         return mainApplication != null
+                && isSharedAppRoleManagementFeatureEnabled()
                 && mainApplication.isEnhancedOrganizationAuthenticationEnabled()
                 && mainApplication.isSharedAppRoleManagementAllowed()
                 && mainApplication.getAssociatedRolesConfig() != null
@@ -1324,6 +1340,7 @@ public class ApplicationMgtUtil {
     public static boolean isSharedAppOrganizationRoleManagementEnabled(ServiceProvider mainApplication) {
 
         return mainApplication != null
+                && isSharedAppRoleManagementFeatureEnabled()
                 && mainApplication.isEnhancedOrganizationAuthenticationEnabled()
                 && mainApplication.isSharedAppRoleManagementAllowed()
                 && mainApplication.getAssociatedRolesConfig() != null
