@@ -1537,13 +1537,23 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (LoggerUtils.isLogMaskingEnable) {
             String maskedUsername = LoggerUtils.getMaskedContent(username);
             auditData.put(SessionMgtConstants.AUTHENTICATED_USER, maskedUsername);
-            /* Not resolving the initiatorId for federated users since the subject returned from the external IDP
-             * can be set to any identifier based on the IdP. Authenticated user's subject identifier is sent as the
-             * username and initiatorId, and It could contain PII information. Therefore, the initiatorId will be set
-             * as the masked username for federated users.
+            /* Not resolving the initiatorId from the username for federated users since the subject returned from
+             * the external IDP can be set to any identifier based on the IdP, and it could contain PII information.
+             * Instead, the user id already set on the federated user is used. It is an internal identifier (the
+             * federated user id, or the user id in the resident organization for organization SSO users), so it does
+             * not expose the subject. If it is not available, the initiatorId will be set as the masked username.
              */
             if (!isFederated && StringUtils.isNotBlank(username) && StringUtils.isNotBlank(userTenantDomain)) {
                 initiator = IdentityUtil.getInitiatorId(username, userTenantDomain);
+            } else if (isFederated && authenticatedUser.isUserIdExists()) {
+                try {
+                    initiator = authenticatedUser.getUserId();
+                } catch (UserIdNotFoundException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User id is not available for the federated user. Masked username will be " +
+                                "used as the initiator.");
+                    }
+                }
             }
             if (StringUtils.isBlank(initiator)) {
                 initiator = maskedUsername;
