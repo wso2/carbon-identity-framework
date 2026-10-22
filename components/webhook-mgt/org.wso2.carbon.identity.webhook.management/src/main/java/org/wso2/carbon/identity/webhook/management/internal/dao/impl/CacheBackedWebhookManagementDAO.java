@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCache;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheEntry;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheKey;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.ChannelOrgSubscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 
@@ -39,6 +40,10 @@ import java.util.List;
  * This class adds caching layer to webhook management operations.
  */
 public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
+
+    private static final String ACTIVE_WITH_CHILD_ORGS_SCOPE = "ACTIVE_WITH_CHILD_ORGS";
+    private static final String SUBSCRIBED_SCOPE = "SUBSCRIBED";
+    private static final String SUBSCRIBED_WITH_CHILD_ORGS_SCOPE = "SUBSCRIBED_WITH_CHILD_ORGS";
 
     private static final Log LOG = LogFactory.getLog(CacheBackedWebhookManagementDAO.class);
     private final WebhookManagementDAO webhookManagementDAO;
@@ -209,4 +214,146 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
         }
         return webhooks;
     }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Cached under a scope of its own: this answer carries the webhooks of ancestor organizations that opted
+     * the tenant in, so it differs from {@link #getActiveWebhooks} over the same profile, version, channel and
+     * tenant. One tenant can reach both lookups, so neither entry may be served to the other.
+     * <p>
+     * Entries cached here can be invalidated by a change in a <em>different</em> tenant — the one
+     * that owns the webhook — which is why {@code WebhookManagementServiceImpl} clears the cache of
+     * every subscribed tenant when a webhook or its subscriptions change.
+     */
+    @Override
+    public List<Webhook> getActiveWebhooksForOrganization(String eventProfileName, String eventProfileVersion,
+                                                          String channelUri, int eventOrgTenantId)
+            throws WebhookMgtException {
+
+        ActiveWebhooksCacheKey cacheKey = new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion,
+                channelUri, eventOrgTenantId, ACTIVE_WITH_CHILD_ORGS_SCOPE);
+        ActiveWebhooksCacheEntry cacheEntry = activeWebhooksCache.getValueFromCache(cacheKey, eventOrgTenantId);
+
+        if (cacheEntry != null && cacheEntry.getWebhooks() != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Active webhooks cache hit (including sub organizations) for channel URI: " + channelUri +
+                        ", tenant ID: " + eventOrgTenantId + ". Returning from cache.");
+            }
+            return cacheEntry.getWebhooks();
+        }
+
+        List<Webhook> webhooks = webhookManagementDAO.getActiveWebhooksForOrganization(
+                eventProfileName, eventProfileVersion, channelUri, eventOrgTenantId);
+        if (webhooks != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Active webhooks cache miss (including sub organizations) for channel URI: " + channelUri +
+                        ", tenant ID: " + eventOrgTenantId + ". Adding to cache.");
+            }
+            activeWebhooksCache.addToCache(cacheKey, new ActiveWebhooksCacheEntry(webhooks), eventOrgTenantId);
+        }
+        return webhooks;
+    }
+
+    /**
+     * Cached under a scope of its own: the answer differs from the active-webhook lookups over the same channel
+     * and tenant, and the entries of the two must not be served to each other.
+     */
+    @Override
+    public List<Webhook> getSubscriptionAcceptedWebhooksForOrganization(String eventProfileName,
+                                                                        String eventProfileVersion,
+                                                                        String channelUri, int eventOrgTenantId,
+                                                                        boolean includeChildOrganizationSubscriptions)
+            throws WebhookMgtException {
+
+        String scope = includeChildOrganizationSubscriptions ? SUBSCRIBED_WITH_CHILD_ORGS_SCOPE : SUBSCRIBED_SCOPE;
+        ActiveWebhooksCacheKey cacheKey =
+                new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, eventOrgTenantId, scope);
+        ActiveWebhooksCacheEntry cacheEntry = activeWebhooksCache.getValueFromCache(cacheKey, eventOrgTenantId);
+
+        if (cacheEntry != null && cacheEntry.getWebhooks() != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Accepted channel subscription cache hit for channel URI: " + channelUri + ", tenant ID: " +
+                        eventOrgTenantId + ", scope: " + scope + ". Returning from cache.");
+            }
+            return cacheEntry.getWebhooks();
+        }
+
+        List<Webhook> webhooks = webhookManagementDAO.getSubscriptionAcceptedWebhooksForOrganization(
+                eventProfileName, eventProfileVersion, channelUri, eventOrgTenantId,
+                includeChildOrganizationSubscriptions);
+        if (webhooks != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Accepted channel subscription cache miss for channel URI: " + channelUri + ", tenant ID: " +
+                        eventOrgTenantId + ", scope: " + scope + ". Adding to cache.");
+            }
+            activeWebhooksCache.addToCache(cacheKey, new ActiveWebhooksCacheEntry(webhooks), eventOrgTenantId);
+        }
+        return webhooks;
+    }
+
+    // --- Organization subscriptions ---
+    // Not cached: organization subscriptions are read on the management path, not the publishing path, and a change
+    // to them already clears the active-webhook cache of every tenant it affects.
+
+    @Override
+    public void addChannelOrgSubscriptions(List<ChannelOrgSubscription> subscriptions) throws WebhookMgtException {
+
+        webhookManagementDAO.addChannelOrgSubscriptions(subscriptions);
+    }
+
+    @Override
+    public List<ChannelOrgSubscription> getChannelOrgSubscriptions(String channelUuid) throws WebhookMgtException {
+
+        return webhookManagementDAO.getChannelOrgSubscriptions(channelUuid);
+    }
+
+    @Override
+    public List<Integer> getSubscribedOrgTenantIds(String channelUuid) throws WebhookMgtException {
+
+        return webhookManagementDAO.getSubscribedOrgTenantIds(channelUuid);
+    }
+
+    @Override
+    public int getChannelOrgSubscriptionCount(String channelUuid) throws WebhookMgtException {
+
+        return webhookManagementDAO.getChannelOrgSubscriptionCount(channelUuid);
+    }
+
+    @Override
+    public void deleteChannelOrgSubscriptions(String channelUuid) throws WebhookMgtException {
+
+        webhookManagementDAO.deleteChannelOrgSubscriptions(channelUuid);
+    }
+
+    @Override
+    public void deleteChannelOrgSubscriptionsByOrgId(String subscribedOrgId) throws WebhookMgtException {
+
+        webhookManagementDAO.deleteChannelOrgSubscriptionsByOrgId(subscribedOrgId);
+    }
+
+    @Override
+    public List<String> getChannelUuids(String webhookId, int tenantId) throws WebhookMgtException {
+
+        return webhookManagementDAO.getChannelUuids(webhookId, tenantId);
+    }
+
+    @Override
+    public int getOwningTenantId(String channelUuid) throws WebhookMgtException {
+
+        return webhookManagementDAO.getOwningTenantId(channelUuid);
+    }
+
+    @Override
+    public String getChannelUuid(String webhookId, String channelUri, int tenantId) throws WebhookMgtException {
+
+        return webhookManagementDAO.getChannelUuid(webhookId, channelUri, tenantId);
+    }
+
+    @Override
+    public String getChannelUri(String channelUuid) throws WebhookMgtException {
+
+        return webhookManagementDAO.getChannelUri(channelUuid);
+    }
+
 }

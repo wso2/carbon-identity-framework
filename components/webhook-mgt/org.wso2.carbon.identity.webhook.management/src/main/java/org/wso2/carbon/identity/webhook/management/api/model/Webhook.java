@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretPr
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,6 +45,12 @@ public class Webhook {
     private final WebhookStatus status;
     private final Timestamp createdAt;
     private final Timestamp updatedAt;
+    private final List<OrganizationSubscription> organizationSubscriptions;
+    /**
+     * Tenant that owns this webhook. Set when it is loaded from the database, and null for one built
+     * from an API request, where the caller's tenant is used instead.
+     */
+    private final String ownerTenantDomain;
     private List<Subscription> eventsSubscribed;
     private static final String EVENT_PROFILE_VERSION = "v1";
     private final WebhookSecretProcessor webhookSecretProcessor = new WebhookSecretProcessor();
@@ -62,6 +69,10 @@ public class Webhook {
         this.createdAt = builder.createdAt;
         this.updatedAt = builder.updatedAt;
         this.eventsSubscribed = builder.eventsSubscribed;
+        this.organizationSubscriptions = builder.organizationSubscriptions == null
+                ? Collections.emptyList()
+                : Collections.unmodifiableList(builder.organizationSubscriptions);
+        this.ownerTenantDomain = builder.ownerTenantDomain;
     }
 
     public String getId() {
@@ -84,9 +95,34 @@ public class Webhook {
         return secret;
     }
 
+    /**
+     * Tenant domain of the organization that owns this webhook, or null when it was not loaded
+     * from the database.
+     */
+    public String getOwnerTenantDomain() {
+
+        return ownerTenantDomain;
+    }
+
+    /**
+     * Resolve the endpoint secret.
+     * <p>
+     * The secret store is tenant scoped, and the caller is not always the owner. An event raised in a
+     * sub organization reaches the webhooks of the ancestors that subscribed to it.
+     */
     public String getDecryptedSecret() throws WebhookMgtException {
 
-        return webhookSecretProcessor.decryptAssociatedSecrets(getId());
+        if (ownerTenantDomain == null || ownerTenantDomain.equals(
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain())) {
+            return webhookSecretProcessor.decryptAssociatedSecrets(getId());
+        }
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(ownerTenantDomain, true);
+            return webhookSecretProcessor.decryptAssociatedSecrets(getId());
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
     }
 
     public String getEventProfileName() {
@@ -119,14 +155,25 @@ public class Webhook {
         return updatedAt;
     }
 
+    /**
+     * Organization subscriptions, one per channel. Empty when no channel has organization fanout,
+     * which is the behaviour of every webhook created before the feature existed.
+     */
+    public List<OrganizationSubscription> getOrganizationSubscriptions() {
+
+        return organizationSubscriptions;
+    }
+
     public List<Subscription> getEventsSubscribed() throws WebhookMgtException {
 
         if (eventsSubscribed != null) {
             return eventsSubscribed;
         }
-        // Fetch from service and cache the result
-        this.eventsSubscribed = WebhookManagementServiceImpl.getInstance()
-                .getWebhookEvents(getId(), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        // Fetch from service and cache the result. The channels belong to the webhook, so they are
+        // read from the tenant that owns it rather than from whichever tenant is asking.
+        this.eventsSubscribed = WebhookManagementServiceImpl.getInstance().getWebhookEvents(getId(),
+                ownerTenantDomain != null ? ownerTenantDomain
+                        : PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         return eventsSubscribed;
     }
 
@@ -175,6 +222,8 @@ public class Webhook {
         private Timestamp createdAt;
         private Timestamp updatedAt;
         private List<Subscription> eventsSubscribed = new ArrayList<>();
+        private List<OrganizationSubscription> organizationSubscriptions = new ArrayList<>();
+        private String ownerTenantDomain;
 
         public Builder uuid(String uuid) {
 
@@ -242,9 +291,32 @@ public class Webhook {
             return this;
         }
 
+        /**
+         * Organization subscriptions, one per channel. The policy on each entry discriminates which
+         * of its remaining fields carry meaning.
+         */
+        public Builder organizationSubscriptions(List<OrganizationSubscription> organizationSubscriptions) {
+
+            this.organizationSubscriptions = organizationSubscriptions != null
+                    ? new ArrayList<>(organizationSubscriptions) : new ArrayList<>();
+            return this;
+        }
+
         public Builder addEventSubscribed(Subscription event) {
 
             this.eventsSubscribed.add(event);
+            return this;
+        }
+
+        /**
+         * Set the tenant domain of the organization that owns the webhook.
+         *
+         * @param ownerTenantDomain Tenant domain of the organization that owns the webhook, or null if not known.
+         * @return This builder.
+         */
+        public Builder ownerTenantDomain(String ownerTenantDomain) {
+
+            this.ownerTenantDomain = ownerTenantDomain;
             return this;
         }
 

@@ -124,7 +124,23 @@ public enum ErrorMessage {
             "An error occurred while retrying the webhook: %s."),
     ERROR_CODE_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_ERROR("WEBHOOKMGT-65033",
             "Error occurred while retrieving active webhooks by channel",
-            "An error occurred while retrieving active webhooks for channel: %s and tenant: %s.");
+            "An error occurred while retrieving active webhooks for channel: %s and tenant: %s."),
+
+    ERROR_CODE_CHANNEL_ORG_SUBSCRIPTION_ADD_ERROR("WEBHOOKMGT-65034",
+            "Error occurred while adding organization subscriptions",
+            "An error occurred while adding organization subscriptions for channel: %s."),
+    ERROR_CODE_CHANNEL_ORG_SUBSCRIPTION_LIST_ERROR("WEBHOOKMGT-65035",
+            "Error occurred while retrieving organization subscriptions",
+            "An error occurred while retrieving organization subscriptions for channel: %s."),
+    ERROR_CODE_CHANNEL_ORG_SUBSCRIPTION_DELETE_ERROR("WEBHOOKMGT-65036",
+            "Error occurred while deleting organization subscriptions",
+            "An error occurred while deleting organization subscriptions for channel: %s."),
+    ERROR_CODE_CHANNEL_ORG_SUBSCRIPTION_ORG_DELETE_ERROR("WEBHOOKMGT-65038",
+            "Error occurred while deleting organization subscriptions",
+            "An error occurred while deleting organization subscriptions of organization: %s."),
+    ERROR_CODE_CHANNEL_UUID_RESOLVE_ERROR("WEBHOOKMGT-65040",
+            "Error occurred while resolving the channel",
+            "An error occurred while resolving channel: %s of webhook: %s.");
 
     private final String code;
     private final String message;

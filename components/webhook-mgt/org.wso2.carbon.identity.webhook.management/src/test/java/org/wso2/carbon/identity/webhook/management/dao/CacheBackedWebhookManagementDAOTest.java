@@ -60,6 +60,10 @@ public class CacheBackedWebhookManagementDAOTest {
 
     public static final String WEBHOOK_ID = "webhookId";
     public static final int TENANT_ID = 1;
+    // Mirrors the scope CacheBackedWebhookManagementDAO caches the widened active-webhook lookup under.
+    private static final String ACTIVE_WITH_CHILD_ORGS_SCOPE = "ACTIVE_WITH_CHILD_ORGS";
+    private static final String SUBSCRIBED_SCOPE = "SUBSCRIBED";
+    private static final String SUBSCRIBED_WITH_CHILD_ORGS_SCOPE = "SUBSCRIBED_WITH_CHILD_ORGS";
 
     @BeforeClass
     public void setUpClass() {
@@ -358,5 +362,112 @@ public class CacheBackedWebhookManagementDAOTest {
         verify(activeWebhooksCache).addToCache(org.mockito.ArgumentMatchers.eq(cacheKey),
                 org.mockito.ArgumentMatchers.any(ActiveWebhooksCacheEntry.class),
                 org.mockito.ArgumentMatchers.eq(tenantId));
+    }
+
+    /**
+     * The widened lookup is cached under a scope of its own, so a hit is served from that entry without
+     * reaching the DAO. An entry cached by the tenant-only lookup carries a different scope and cannot be
+     * served here.
+     */
+    @Test
+    public void testGetActiveWebhooksForOrganization_CacheHit() throws Exception {
+
+        ActiveWebhooksCacheKey cacheKey = new ActiveWebhooksCacheKey("profile", "v1", "http://channel", TENANT_ID,
+                ACTIVE_WITH_CHILD_ORGS_SCOPE);
+        List<Webhook> webhooks = Arrays.asList(mock(Webhook.class), mock(Webhook.class));
+        ActiveWebhooksCacheEntry cacheEntry = mock(ActiveWebhooksCacheEntry.class);
+        ActiveWebhooksCache activeWebhooksCache = injectActiveWebhooksCache();
+        when(activeWebhooksCache.getValueFromCache(cacheKey, TENANT_ID)).thenReturn(cacheEntry);
+        when(cacheEntry.getWebhooks()).thenReturn(webhooks);
+
+        List<Webhook> result = cacheBackedWebhookManagementDAO.getActiveWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID);
+
+        assertEquals(result, webhooks);
+        verify(webhookManagementDAO, never()).getActiveWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID);
+    }
+
+    /**
+     * On a miss the widened lookup reads through to the DAO and caches the answer.
+     */
+    @Test
+    public void testGetActiveWebhooksForOrganization_CacheMiss() throws Exception {
+
+        List<Webhook> webhooks = Arrays.asList(mock(Webhook.class), mock(Webhook.class));
+        ActiveWebhooksCache activeWebhooksCache = injectActiveWebhooksCache();
+        when(activeWebhooksCache.getValueFromCache(Mockito.any(ActiveWebhooksCacheKey.class), Mockito.anyInt()))
+                .thenReturn(null);
+        when(webhookManagementDAO.getActiveWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID)).thenReturn(webhooks);
+
+        List<Webhook> result = cacheBackedWebhookManagementDAO.getActiveWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID);
+
+        assertEquals(result, webhooks);
+        verify(activeWebhooksCache).addToCache(Mockito.any(ActiveWebhooksCacheKey.class),
+                Mockito.any(ActiveWebhooksCacheEntry.class), Mockito.eq(TENANT_ID));
+    }
+
+    /**
+     * The accepted-channel-subscription lookup is cached per widening: the boolean picks the scope, so the
+     * widened and non-widened answers over one channel and tenant are held as separate entries.
+     */
+    @Test
+    public void testGetSubscriptionAcceptedWebhooksForOrganization_CacheHitPerScope() throws Exception {
+
+        List<Webhook> widened = Arrays.asList(mock(Webhook.class), mock(Webhook.class));
+        List<Webhook> tenantOnly = Arrays.asList(mock(Webhook.class));
+        ActiveWebhooksCacheEntry widenedEntry = mock(ActiveWebhooksCacheEntry.class);
+        ActiveWebhooksCacheEntry tenantOnlyEntry = mock(ActiveWebhooksCacheEntry.class);
+        when(widenedEntry.getWebhooks()).thenReturn(widened);
+        when(tenantOnlyEntry.getWebhooks()).thenReturn(tenantOnly);
+
+        ActiveWebhooksCache activeWebhooksCache = injectActiveWebhooksCache();
+        when(activeWebhooksCache.getValueFromCache(new ActiveWebhooksCacheKey("profile", "v1", "http://channel",
+                TENANT_ID, SUBSCRIBED_WITH_CHILD_ORGS_SCOPE), TENANT_ID)).thenReturn(widenedEntry);
+        when(activeWebhooksCache.getValueFromCache(new ActiveWebhooksCacheKey("profile", "v1", "http://channel",
+                TENANT_ID, SUBSCRIBED_SCOPE), TENANT_ID)).thenReturn(tenantOnlyEntry);
+
+        assertEquals(cacheBackedWebhookManagementDAO.getSubscriptionAcceptedWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID, true), widened);
+        assertEquals(cacheBackedWebhookManagementDAO.getSubscriptionAcceptedWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID, false), tenantOnly,
+                "The two widenings must not be served each other's entry.");
+
+        verify(webhookManagementDAO, never()).getSubscriptionAcceptedWebhooksForOrganization(
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(),
+                Mockito.anyBoolean());
+    }
+
+    /**
+     * On a miss it reads through to the DAO, passing the widening along, and caches what comes back.
+     */
+    @Test
+    public void testGetSubscriptionAcceptedWebhooksForOrganization_CacheMiss() throws Exception {
+
+        List<Webhook> webhooks = Arrays.asList(mock(Webhook.class), mock(Webhook.class));
+        ActiveWebhooksCache activeWebhooksCache = injectActiveWebhooksCache();
+        when(activeWebhooksCache.getValueFromCache(Mockito.any(ActiveWebhooksCacheKey.class), Mockito.anyInt()))
+                .thenReturn(null);
+        when(webhookManagementDAO.getSubscriptionAcceptedWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID, true)).thenReturn(webhooks);
+
+        assertEquals(cacheBackedWebhookManagementDAO.getSubscriptionAcceptedWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID, true), webhooks);
+
+        verify(webhookManagementDAO).getSubscriptionAcceptedWebhooksForOrganization(
+                "profile", "v1", "http://channel", TENANT_ID, true);
+        verify(activeWebhooksCache).addToCache(Mockito.any(ActiveWebhooksCacheKey.class),
+                Mockito.any(ActiveWebhooksCacheEntry.class), Mockito.eq(TENANT_ID));
+    }
+
+    private ActiveWebhooksCache injectActiveWebhooksCache() throws Exception {
+
+        ActiveWebhooksCache activeWebhooksCache = Mockito.mock(ActiveWebhooksCache.class);
+        Field field = cacheBackedWebhookManagementDAO.getClass().getDeclaredField("activeWebhooksCache");
+        field.setAccessible(true);
+        field.set(cacheBackedWebhookManagementDAO, activeWebhooksCache);
+        return activeWebhooksCache;
     }
 }

@@ -28,10 +28,15 @@ import java.util.Objects;
 public class ActiveWebhooksCacheKey extends CacheKey {
 
     private static final long serialVersionUID = 202506120153L;
+    /**
+     * Scope of a key that does not name one, which is the set of active webhooks.
+     */
+    private static final String DEFAULT_SCOPE = "ACTIVE";
     private final String eventProfileName;
     private final String eventProfileVersion;
     private final String channelUri;
     private final int tenantId;
+    private final String scope;
 
     /**
      * Constructor.
@@ -44,10 +49,29 @@ public class ActiveWebhooksCacheKey extends CacheKey {
     public ActiveWebhooksCacheKey(String eventProfileName, String eventProfileVersion,
                                   String channelUri, int tenantId) {
 
+        this(eventProfileName, eventProfileVersion, channelUri, tenantId, DEFAULT_SCOPE);
+    }
+
+    /**
+     * Constructor naming the set of webhooks the entry holds.
+     * <p>
+     * Two lookups over the same channel and tenant can answer with different sets, so the set is part of the
+     * key and one lookup's entry is never served to the other.
+     *
+     * @param eventProfileName    Event profile name.
+     * @param eventProfileVersion Event profile version.
+     * @param channelUri          Channel URI.
+     * @param tenantId            Tenant ID.
+     * @param scope               Set of webhooks the entry holds. Null names the active webhooks.
+     */
+    public ActiveWebhooksCacheKey(String eventProfileName, String eventProfileVersion,
+                                  String channelUri, int tenantId, String scope) {
+
         this.eventProfileName = eventProfileName;
         this.eventProfileVersion = eventProfileVersion;
         this.channelUri = channelUri;
         this.tenantId = tenantId;
+        this.scope = scope != null ? scope : DEFAULT_SCOPE;
     }
 
     public String getEventProfileName() {
@@ -70,6 +94,11 @@ public class ActiveWebhooksCacheKey extends CacheKey {
         return tenantId;
     }
 
+    public String getScope() {
+
+        return scope;
+    }
+
     @Override
     public boolean equals(Object o) {
 
@@ -83,12 +112,13 @@ public class ActiveWebhooksCacheKey extends CacheKey {
         return tenantId == that.tenantId &&
                 Objects.equals(eventProfileName, that.eventProfileName) &&
                 Objects.equals(eventProfileVersion, that.eventProfileVersion) &&
-                Objects.equals(channelUri, that.channelUri);
+                Objects.equals(channelUri, that.channelUri) &&
+                Objects.equals(scope, that.scope);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(eventProfileName, eventProfileVersion, channelUri, tenantId);
+        return Objects.hash(eventProfileName, eventProfileVersion, channelUri, tenantId, scope);
     }
 }
