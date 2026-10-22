@@ -19,11 +19,13 @@
 package org.wso2.carbon.identity.webhook.management.util;
 
 import org.json.JSONObject;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -36,8 +38,10 @@ import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementAuditLogger;
 import org.wso2.carbon.utils.AuditLog;
 
+import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -48,6 +52,9 @@ import static org.mockito.Mockito.when;
  * Unit test class for WebhookManagementAuditLogger class.
  */
 public class WebhookManagementAuditLoggerTest {
+
+    private static final String ORGANIZATION_ID = "org-123";
+    private static final String FAILURE_REASON = "Error while resolving the channels of the organization.";
 
     private WebhookManagementAuditLogger auditLogger;
     private Webhook webhook;
@@ -161,6 +168,127 @@ public class WebhookManagementAuditLoggerTest {
 
         auditLogger.printAuditLog(WebhookManagementAuditLogger.Operation.DELETE, "webhook-789");
         // No exception means pass.
+    }
+
+    /**
+     * Sides of the organization lifecycle whose subscription alignment can fail, each paired with the log action
+     * it is expected to be audited under.
+     *
+     * @return Operation and the log action it carries.
+     */
+    @DataProvider(name = "organizationSubscriptionFailureOperations")
+    public Object[][] organizationSubscriptionFailureOperations() {
+
+        return new Object[][]{
+                {WebhookManagementAuditLogger.Operation.ORGANIZATION_SUBSCRIPTION_FAILED,
+                        "organization-subscription-failed"},
+                {WebhookManagementAuditLogger.Operation.ORGANIZATION_UNSUBSCRIPTION_FAILED,
+                        "organization-unsubscription-failed"}
+        };
+    }
+
+    /**
+     * Test that a failure to bring an organization's fanout subscriptions into line is audited against the
+     * organization, carrying the organization and the reason the alignment failed.
+     * <p>
+     * The organization lifecycle is not failed over a webhook fanout problem, so this log is the only durable
+     * record of the gap. It is recorded against the organization rather than a webhook because the affected
+     * channels may span several webhooks, or may not have been resolved at all, which is what the target of the
+     * log is asserted for here. Both sides of the lifecycle are covered so that each keeps its own log action.
+     *
+     * @param operation         Side of the lifecycle that failed.
+     * @param expectedLogAction Log action the operation is expected to be audited under.
+     * @throws NoSuchFieldException   If the audit log builder no longer declares the inspected field.
+     * @throws IllegalAccessException If the inspected field cannot be read.
+     */
+    @Test(dataProvider = "organizationSubscriptionFailureOperations")
+    public void testPrintOrganizationSubscriptionFailure(WebhookManagementAuditLogger.Operation operation,
+                                                         String expectedLogAction)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        auditLogger.printOrganizationSubscriptionFailureAuditLog(operation, ORGANIZATION_ID, FAILURE_REASON);
+
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+        Assert.assertNotNull(capturedArg);
+        Assert.assertEquals(extractMapByField("OrganizationId", capturedArg), ORGANIZATION_ID);
+        Assert.assertEquals(extractMapByField("FailureReason", capturedArg), FAILURE_REASON);
+        Assert.assertEquals(extractField("targetId", capturedArg), ORGANIZATION_ID);
+        Assert.assertEquals(extractField("targetType", capturedArg), LoggerUtils.Target.Organization.name());
+        Assert.assertEquals(extractField("action", capturedArg), expectedLogAction);
+        Assert.assertEquals(extractField("initiatorId", capturedArg), "admin@carbon.super");
+    }
+
+    /**
+     * Test that the masked username stands in as the initiator when no initiator can be resolved for the user on
+     * the thread.
+     * <p>
+     * An organization lifecycle failure is recorded on whichever thread performed the lifecycle operation, which
+     * is not guaranteed to carry a resolvable initiator. The log is still worth keeping in that case, so the
+     * username is used instead and is masked on the way out rather than written in the clear.
+     *
+     * @throws NoSuchFieldException   If the audit log builder no longer declares the inspected field.
+     * @throws IllegalAccessException If the inspected field cannot be read.
+     */
+    @Test
+    public void testPrintOrganizationSubscriptionFailureWithMaskedInitiator()
+            throws NoSuchFieldException, IllegalAccessException {
+
+        identityUtil.when(() -> IdentityUtil.getInitiatorId("admin", "carbon.super")).thenReturn("");
+
+        auditLogger.printOrganizationSubscriptionFailureAuditLog(
+                WebhookManagementAuditLogger.Operation.ORGANIZATION_SUBSCRIPTION_FAILED, ORGANIZATION_ID,
+                FAILURE_REASON);
+
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+        Assert.assertEquals(extractField("initiatorId", capturedArg), "****");
+    }
+
+    /**
+     * Capture the builder handed to the audit log event, which carries everything that would be logged.
+     *
+     * @return Captured audit log builder.
+     */
+    private AuditLog.AuditLogBuilder captureTriggerAuditLogEventArgs() {
+
+        ArgumentCaptor<AuditLog.AuditLogBuilder> auditLogBuilderCaptor =
+                ArgumentCaptor.forClass(AuditLog.AuditLogBuilder.class);
+        loggerUtilsMockedStatic.verify(() -> LoggerUtils.triggerAuditLogEvent(auditLogBuilderCaptor.capture()));
+        return auditLogBuilderCaptor.getValue();
+    }
+
+    /**
+     * Read a single entry of the data the builder would log.
+     *
+     * @param fieldName       Name of the data entry to read.
+     * @param auditLogBuilder Builder to read it from.
+     * @return Value of that entry, or null when the builder carries no such entry.
+     * @throws NoSuchFieldException   If the builder no longer declares its data.
+     * @throws IllegalAccessException If the data cannot be read.
+     */
+    private String extractMapByField(String fieldName, AuditLog.AuditLogBuilder auditLogBuilder)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        Field dataField = AuditLog.AuditLogBuilder.class.getDeclaredField("data");
+        dataField.setAccessible(true);
+        Map<String, Object> dataMap = (Map<String, Object>) dataField.get(auditLogBuilder);
+        return (String) dataMap.get(fieldName);
+    }
+
+    /**
+     * Read a field of the builder itself, as opposed to an entry of the data it would log.
+     *
+     * @param fieldName       Name of the field to read.
+     * @param auditLogBuilder Builder to read it from.
+     * @return Value of that field.
+     * @throws NoSuchFieldException   If the builder no longer declares the field.
+     * @throws IllegalAccessException If the field cannot be read.
+     */
+    private String extractField(String fieldName, AuditLog.AuditLogBuilder auditLogBuilder)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        Field field = AuditLog.AuditLogBuilder.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (String) field.get(auditLogBuilder);
     }
 
     // Helper to access private createAuditLogEntry(Webhook) via reflection.
