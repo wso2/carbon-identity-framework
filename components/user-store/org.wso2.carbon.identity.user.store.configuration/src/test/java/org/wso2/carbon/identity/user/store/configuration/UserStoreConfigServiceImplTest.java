@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
@@ -35,6 +36,7 @@ import org.wso2.carbon.ndatasource.core.DataSourceRepository;
 import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -44,6 +46,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.AssertJUnit.assertEquals;
@@ -339,6 +342,35 @@ public class UserStoreConfigServiceImplTest {
             userStoreConfigService.modifyUserStoreState("DBSTORE", true, DB_BASED_REPOSITORY_CLASS);
 
             verify(databaseDAO).updateUserStore(any(UserStoreDTO.class), any(Boolean.class));
+        }
+    }
+
+    @Test
+    public void testAnExplicitFileRepositoryAddGoesToTheFileDao() throws Exception {
+
+        UserStoreDTO userStoreDTO = buildUserStoreDTOWithDomain("FILESTORE");
+        userStoreDTO.setRepositoryClass(FILE_BASED_REPOSITORY_CLASS);
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> util
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(anyString())).thenReturn(new ArrayList<>());
+            UserStoreDAO databaseDAO = mock(UserStoreDAO.class);
+            UserStoreDAO fileDAO = mock(UserStoreDAO.class);
+            mockDatabasePersistence(util, databaseDAO, fileDAO, true);
+
+            userStoreConfigService.addUserStore(userStoreDTO);
+
+            /*
+             A caller that names the file repository must be able to update what it added through the same
+             path, so the add has to land where the update will look for it.
+            */
+            verify(fileDAO).addUserStore(userStoreDTO);
+            verify(databaseDAO, never()).addUserStore(userStoreDTO);
         }
     }
 

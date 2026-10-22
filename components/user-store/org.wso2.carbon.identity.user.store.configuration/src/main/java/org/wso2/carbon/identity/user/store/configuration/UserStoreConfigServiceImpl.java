@@ -100,12 +100,18 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.
                         getInstance().getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
                 userStoreDAOFactory.getInstance().addUserStore(userStoreDTO);
+            } else if (StringUtils.equals(userStoreDTO.getRepositoryClass(), FILE_BASED_REPOSITORY_CLASS)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Repository separation of user-stores has been disabled. Adding user-store " +
+                              userStoreDTO.getDomainId() + " with file-based configuration.");
+                }
+                validateConnectionUrl(userStoreDTO);
+                SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
             } else {
-                if (StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Repository separation of user-stores has been disabled. Adding user-store " +
-                                  userStoreDTO.getDomainId() + " with file-based configuration.");
-                    }
+                if (StringUtils.isNotBlank(userStoreDTO.getRepositoryClass()) && LOG.isDebugEnabled()) {
+                    LOG.debug("Repository separation of user-stores has been disabled. Adding user-store " +
+                              userStoreDTO.getDomainId() + " to the configured repository instead of " +
+                              userStoreDTO.getRepositoryClass());
                 }
                 validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getUserStoreDAO().addUserStore(userStoreDTO);
