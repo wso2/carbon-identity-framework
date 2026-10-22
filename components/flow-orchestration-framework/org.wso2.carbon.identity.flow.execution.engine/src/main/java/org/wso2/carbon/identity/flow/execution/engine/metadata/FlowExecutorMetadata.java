@@ -28,6 +28,7 @@ public class FlowExecutorMetadata {
     private final String icon;
     private final String associatedAuthenticator;
     private final boolean connectionRequired;
+    private final boolean externalClaimResolutionEnabled;
 
     private FlowExecutorMetadata(Builder builder) {
 
@@ -36,6 +37,7 @@ public class FlowExecutorMetadata {
         this.icon = builder.icon;
         this.associatedAuthenticator = builder.associatedAuthenticator;
         this.connectionRequired = builder.connectionRequired;
+        this.externalClaimResolutionEnabled = builder.externalClaimResolutionEnabled;
     }
 
     /**
@@ -88,6 +90,16 @@ public class FlowExecutorMetadata {
         return connectionRequired;
     }
 
+    /**
+     * Whether steps using this executor honor the connection's external claim mappings when resolving user claims.
+     *
+     * @return True if external claim resolution is enabled.
+     */
+    public boolean isExternalClaimResolutionEnabled() {
+
+        return externalClaimResolutionEnabled;
+    }
+
     public static Builder builder() {
 
         return new Builder();
@@ -103,6 +115,7 @@ public class FlowExecutorMetadata {
         private String icon;
         private String associatedAuthenticator;
         private boolean connectionRequired;
+        private boolean externalClaimResolutionEnabled;
 
         private Builder() {
 
@@ -135,6 +148,12 @@ public class FlowExecutorMetadata {
         public Builder connectionRequired(boolean connectionRequired) {
 
             this.connectionRequired = connectionRequired;
+            return this;
+        }
+
+        public Builder externalClaimResolutionEnabled(boolean externalClaimResolutionEnabled) {
+
+            this.externalClaimResolutionEnabled = externalClaimResolutionEnabled;
             return this;
         }
 
