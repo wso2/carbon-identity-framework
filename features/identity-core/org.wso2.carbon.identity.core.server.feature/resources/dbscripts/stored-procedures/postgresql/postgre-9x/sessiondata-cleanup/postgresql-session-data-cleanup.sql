@@ -26,6 +26,10 @@ deleteMappingCount INT := 0;
 deleteAppInfoCount INT := 0;
 deleteMetadataCount INT := 0;
 deleteFederatedSessionMappingCount INT := 0;
+deleteOrphanedFederatedSessionMappingCount INT := 0;
+orphanedFederatedSessionMappingsRemoved boolean := FALSE;
+fedMappingCleanupTimeInMinutes int;
+fedMappingCleanupTime timestamp;
 chunkCount INT := 0;
 batchCount INT := 0;
 
@@ -61,6 +65,7 @@ sleepTime := 2; -- SET SLEEP TIME FOR AVOID TABLE LOCKS     [DEFAULT : 2]
 enableLog := TRUE; -- ENABLE LOGGING [DEFAULT : TRUE]
 logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE , DEBUG
 enableAudit := FALSE;  -- SET TRUE FOR  KEEP TRACK OF ALL THE DELETED RECORDS USING A TABLE  [DEFAULT : FALSE]
+fedMappingCleanupTimeInMinutes := 1440; -- FEDERATED SESSION MAPPINGS WITHOUT A SESSION, CREATED BEFORE THIS MANY MINUTES, WILL BE REMOVED [DEFAULT : 1440]
 
 -- ------------------------------------------
 -- CONSTANT VARIABLES
@@ -360,6 +365,27 @@ auditTable :=  purgingTable||'_auditlog';
             END IF;
 
             batchStatus := 'FINISHED';
+
+            -- After the expired sessions are purged, each call removes one batch of orphaned federated session
+            -- mappings: mappings whose session was removed earlier, for example by the session data cleanup task of
+            -- the server. The call returns CONTINUE until no such mapping is left.
+            IF (operationid = 2)
+            THEN
+                EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingFederatedAuthSessionMappingTable;
+                IF (rowcount = 1)
+                THEN
+                    fedMappingCleanupTime := LOCALTIMESTAMP - (fedMappingCleanupTimeInMinutes * INTERVAL '1 minute');
+                    EXECUTE 'DELETE from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' where id in (select m.id from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' m where m.time_created < $1 and not exists (select 1 from '||quote_ident(purgingTable)||' s where s.session_id = m.session_id) and not exists (select 1 from '||quote_ident(purgingTempTable)||' t where t.session_id = m.session_id) limit '||batchSize||')' USING fedMappingCleanupTime;
+                    GET diagnostics deleteOrphanedFederatedSessionMappingCount := ROW_COUNT;
+
+                    IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+                    notice := 'BATCH DELETE FINISHED ON TABLE '||purgingFederatedAuthSessionMappingTable||' FOR ORPHANED MAPPINGS WITH :'||deleteOrphanedFederatedSessionMappingCount;
+                    RAISE NOTICE '%',notice;
+                    END IF;
+
+                    orphanedFederatedSessionMappingsRemoved := (deleteOrphanedFederatedSessionMappingCount > 0);
+                END IF;
+            END IF;
         ELSE
           IF (enableLog AND logLevel IN ('TRACE','DEBUG')) THEN
           notice := 'CHUNK TABLE '||purgingChunkTable||' CREATED WITH :'||chunkCount;
@@ -494,6 +520,12 @@ auditTable :=  purgingTable||'_auditlog';
             END IF;
         END IF;
     END IF;
+END IF;
+
+-- Ask for another call while orphaned federated session mappings are still being removed.
+IF (orphanedFederatedSessionMappingsRemoved)
+THEN
+    batchStatus := 'CONTINUE';
 END IF;
 
 RETURN (batchStatus);

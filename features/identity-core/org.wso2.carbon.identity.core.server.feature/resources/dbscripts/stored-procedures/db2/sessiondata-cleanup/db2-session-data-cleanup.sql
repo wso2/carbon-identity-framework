@@ -38,6 +38,9 @@ BEGIN
 	DECLARE @operationCleanupTime bigint;
 	DECLARE @OLD_SQL_SAFE_UPDATES INT;
 	DECLARE @SQL_SAFE_UPDATES INT;
+	DECLARE @fedMappingCleanupTimeInMinutes INT;
+	DECLARE @fedMappingCleanupTime TIMESTAMP;
+	DECLARE @orphanedFederatedMappingsCleanupCount INT;
 
 	DECLARE @message VARCHAR(32672);
 	DECLARE @status integer default 0;
@@ -71,6 +74,8 @@ BEGIN
 	SET @operationCleanupCount = 1;
 	SET @tracingEnabled = 1;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
 	SET @sleepTime = 2;          -- Sleep time in seconds.
+	-- Federated session mappings without a session, created more than 1440 minutes (24 h) ago, will be removed.
+	SET @fedMappingCleanupTimeInMinutes = 1440;
 	SET @autocommit = 0;
 
 	SET @sessionCleanUpTempTableCount = 1;
@@ -214,6 +219,27 @@ BEGIN
 	END WHILE;
 
 	DROP TABLE IF EXISTS IDN_AUTH_SESSION_STORE_TMP2;
+
+	-- --------------------------------------------
+	-- REMOVE ORPHANED FEDERATED SESSION MAPPINGS
+	-- --------------------------------------------
+	-- The deletes above remove only the federated session mappings of the sessions they remove. Mappings whose session
+	-- was removed earlier, for example by the session data cleanup task of the server, are removed here.
+
+	IF EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_FED_AUTH_SESSION_MAPPING') THEN
+		SET @fedMappingCleanupTime = CURRENT TIMESTAMP - @fedMappingCleanupTimeInMinutes MINUTES;
+		SET @orphanedFederatedMappingsCleanupCount = 1;
+
+		WHILE (@orphanedFederatedMappingsCleanupCount > 0) DO
+			DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE ID IN (SELECT M.ID FROM IDN_FED_AUTH_SESSION_MAPPING M WHERE M.TIME_CREATED < @fedMappingCleanupTime AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_SESSION_STORE S WHERE S.SESSION_ID = M.SESSION_ID) AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_TEMP_SESSION_STORE T WHERE T.SESSION_ID = M.SESSION_ID) LIMIT @batchSize);
+			GET DIAGNOSTICS @orphanedFederatedMappingsCleanupCount = ROW_COUNT;
+			COMMIT;
+
+			IF (@orphanedFederatedMappingsCleanupCount > 0) THEN
+				CALL dbms_alert.waitone('sleeping',@message,@status,@sleepTime);
+			END IF;
+		END WHILE;
+	END IF;
 
 	SET @SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
 END
