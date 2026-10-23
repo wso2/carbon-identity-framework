@@ -2671,6 +2671,23 @@
         {% endif %}
     </Webhooks>
 
+    {% if identity_context.request.excluded_query_params is defined or identity_context.request.max_query_params is defined %}
+    <IdentityContext>
+        <Request>
+            {% if identity_context.request.excluded_query_params is defined %}
+            <ExcludedQueryParams>
+                {% for param in identity_context.request.excluded_query_params %}
+                <Param>{{param}}</Param>
+                {% endfor %}
+            </ExcludedQueryParams>
+            {% endif %}
+            {% if identity_context.request.max_query_params is defined %}
+            <MaxQueryParams>{{identity_context.request.max_query_params}}</MaxQueryParams>
+            {% endif %}
+        </Request>
+    </IdentityContext>
+    {% endif %}
+
     <LocalAuthenticators>
         <HideUserExistenceOnAuthFlow>{{authentication.local_authenticators.hide_user_existence}}</HideUserExistenceOnAuthFlow>
     </LocalAuthenticators>
