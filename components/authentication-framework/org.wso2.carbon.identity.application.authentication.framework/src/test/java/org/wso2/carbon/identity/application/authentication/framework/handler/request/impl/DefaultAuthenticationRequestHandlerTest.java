@@ -60,6 +60,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -95,6 +98,9 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Spy
     DefaultAuthenticationRequestHandler authenticationRequestHandler;
+
+    private static final String FEDERATED_SUBJECT = "federated.user@example.com";
+    private static final String FEDERATED_USER_ID = "a2dd7997-0fbd-4a13-b79d-349017cec725";
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -721,5 +727,73 @@ public class DefaultAuthenticationRequestHandlerTest {
         Map<String, AuthenticatedIdPData> emptyMerge = invokeMergeAuthenticatedIdPs(null, new HashMap<>());
         assertTrue(emptyMerge.isEmpty());
     }
-}
 
+    @DataProvider(name = "federatedUserAuditLogInitiatorProvider")
+    public Object[][] federatedUserAuditLogInitiatorProvider() {
+
+        return new Object[][]{
+                // The user id set on the federated user is logged as the initiator.
+                {FEDERATED_USER_ID, FEDERATED_USER_ID},
+                // Without a user id, the masked subject is logged as the initiator.
+                {null, LoggerUtils.getMaskedContent(FEDERATED_SUBJECT)}
+        };
+    }
+
+    @Test(description = "Test the session audit log initiator of a federated user when log masking is enabled.",
+            dataProvider = "federatedUserAuditLogInitiatorProvider")
+    public void testAddAuditLogsInitiatorForFederatedUser(String userId, String expectedInitiator) throws Exception {
+
+        AuthenticatedUser authenticatedUser =
+                AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(FEDERATED_SUBJECT);
+        authenticatedUser.setUserName(FEDERATED_SUBJECT);
+        authenticatedUser.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+        authenticatedUser.setFederatedIdPName("ExternalIdP");
+        if (userId != null) {
+            authenticatedUser.setUserId(userId);
+        }
+
+        // In the unit test runtime, the AUDIT_LOG logger writes through java.util.logging.
+        Logger auditLogger = Logger.getLogger("AUDIT_LOG");
+        List<String> auditLogMessages = new ArrayList<>();
+        Handler handler = new Handler() {
+
+            @Override
+            public void publish(LogRecord record) {
+
+                auditLogMessages.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {
+
+            }
+
+            @Override
+            public void close() {
+
+            }
+        };
+        auditLogger.addHandler(handler);
+        boolean isLogMaskingEnabled = LoggerUtils.isLogMaskingEnable;
+        try {
+            LoggerUtils.isLogMaskingEnable = true;
+            invokeAddAuditLogs(authenticatedUser);
+        } finally {
+            LoggerUtils.isLogMaskingEnable = isLogMaskingEnabled;
+            auditLogger.removeHandler(handler);
+        }
+
+        String auditLog = String.join("\n", auditLogMessages);
+        assertTrue(auditLog.contains("Initiator : " + expectedInitiator + " |"), auditLog);
+        assertFalse(auditLog.contains(FEDERATED_SUBJECT), "The federated subject should not be logged unmasked.");
+    }
+
+    private void invokeAddAuditLogs(AuthenticatedUser authenticatedUser) throws Exception {
+
+        Method method = DefaultAuthenticationRequestHandler.class.getDeclaredMethod("addAuditLogs", String.class,
+                AuthenticatedUser.class, String.class, String.class, Long.class, boolean.class);
+        method.setAccessible(true);
+        method.invoke(new DefaultAuthenticationRequestHandler(), "StoreSession", authenticatedUser,
+                UUID.randomUUID().toString(), UUID.randomUUID().toString(), System.currentTimeMillis(), false);
+    }
+}
