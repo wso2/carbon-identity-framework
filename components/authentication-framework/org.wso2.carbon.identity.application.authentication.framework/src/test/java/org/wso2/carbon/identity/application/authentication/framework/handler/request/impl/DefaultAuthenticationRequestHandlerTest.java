@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
@@ -743,14 +744,39 @@ public class DefaultAuthenticationRequestHandlerTest {
             dataProvider = "federatedUserAuditLogInitiatorProvider")
     public void testAddAuditLogsInitiatorForFederatedUser(String userId, String expectedInitiator) throws Exception {
 
+        AuthenticatedUser authenticatedUser = createFederatedAuthenticatedUser();
+        if (userId != null) {
+            authenticatedUser.setUserId(userId);
+        }
+
+        String auditLog = captureMaskedAuditLog(authenticatedUser);
+        assertTrue(auditLog.contains("Initiator : " + expectedInitiator + " |"), auditLog);
+        assertFalse(auditLog.contains(FEDERATED_SUBJECT), "The federated subject should not be logged unmasked.");
+    }
+
+    @Test(description = "Test the session audit log initiator when the user id of a federated user cannot be read.")
+    public void testAddAuditLogsInitiatorWhenFederatedUserIdIsNotAvailable() throws Exception {
+
+        AuthenticatedUser authenticatedUser = spy(createFederatedAuthenticatedUser());
+        doReturn(true).when(authenticatedUser).isUserIdExists();
+        doThrow(new UserIdNotFoundException("User id is not available.")).when(authenticatedUser).getUserId();
+
+        String auditLog = captureMaskedAuditLog(authenticatedUser);
+        assertTrue(auditLog.contains("Initiator : " + LoggerUtils.getMaskedContent(FEDERATED_SUBJECT) + " |"),
+                auditLog);
+    }
+
+    private AuthenticatedUser createFederatedAuthenticatedUser() {
+
         AuthenticatedUser authenticatedUser =
                 AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(FEDERATED_SUBJECT);
         authenticatedUser.setUserName(FEDERATED_SUBJECT);
         authenticatedUser.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
         authenticatedUser.setFederatedIdPName("ExternalIdP");
-        if (userId != null) {
-            authenticatedUser.setUserId(userId);
-        }
+        return authenticatedUser;
+    }
+
+    private String captureMaskedAuditLog(AuthenticatedUser authenticatedUser) throws Exception {
 
         // In the unit test runtime, the AUDIT_LOG logger writes through java.util.logging.
         Logger auditLogger = Logger.getLogger("AUDIT_LOG");
@@ -758,19 +784,21 @@ public class DefaultAuthenticationRequestHandlerTest {
         Handler handler = new Handler() {
 
             @Override
-            public void publish(LogRecord record) {
+            public void publish(LogRecord logRecord) {
 
-                auditLogMessages.add(record.getMessage());
+                auditLogMessages.add(logRecord.getMessage());
             }
 
             @Override
             public void flush() {
 
+                // Nothing to flush, messages are kept in memory.
             }
 
             @Override
             public void close() {
 
+                // Nothing to release.
             }
         };
         auditLogger.addHandler(handler);
@@ -782,10 +810,7 @@ public class DefaultAuthenticationRequestHandlerTest {
             LoggerUtils.isLogMaskingEnable = isLogMaskingEnabled;
             auditLogger.removeHandler(handler);
         }
-
-        String auditLog = String.join("\n", auditLogMessages);
-        assertTrue(auditLog.contains("Initiator : " + expectedInitiator + " |"), auditLog);
-        assertFalse(auditLog.contains(FEDERATED_SUBJECT), "The federated subject should not be logged unmasked.");
+        return String.join("\n", auditLogMessages);
     }
 
     private void invokeAddAuditLogs(AuthenticatedUser authenticatedUser) throws Exception {
