@@ -63,12 +63,12 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     /**
      * What is stored for the user.
      */
-    public static final String USER_CLAIMS = "user.claims";
+    public static final String USER_ATTRIBUTES = "user.attributes";
 
     /**
      * What this run of the flow has gathered so far, whether the user entered it or an executor produced it.
      */
-    public static final String USER_COLLECTED_CLAIMS = "user.collectedClaims";
+    public static final String USER_COLLECTED_ATTRIBUTES = "user.collectedAttributes";
 
     /**
      * The user store the user belongs to.
@@ -109,7 +109,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
      * @param field        Field to resolve, carrying its qualifier where it has one.
      * @param context      Flow execution context.
      * @param tenantDomain Tenant domain.
-     * @return The value, never null. A value that is missing, such as a claim not collected, resolves to no value,
+     * @return The value, never null. A value that is missing, such as an attribute not collected, resolves to no value,
      * or to an empty list for a multi-valued field.
      * @throws RuleEvaluationDataProviderException If the value cannot be known at this point of the flow, or reading
      *                                             it fails. Neither is read as an empty value.
@@ -120,10 +120,10 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         switch (field.getName()) {
             case APPLICATION:
                 return application(field, context);
-            case USER_COLLECTED_CLAIMS:
-                return collectedClaim(field, context);
-            case USER_CLAIMS:
-                return persistedClaim(field, context, tenantDomain);
+            case USER_COLLECTED_ATTRIBUTES:
+                return collectedAttribute(field, context);
+            case USER_ATTRIBUTES:
+                return persistedAttribute(field, context, tenantDomain);
             case USER_DOMAIN:
                 return userStoreDomain(field, context);
             case USER_GROUPS:
@@ -136,12 +136,13 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         }
     }
 
-    private FieldValue collectedClaim(Field field, FlowExecutionContext context)
+    private FieldValue collectedAttribute(Field field, FlowExecutionContext context)
             throws RuleEvaluationDataProviderException {
 
         FlowUser user = context.getFlowUser();
         String rawValue = user == null || user.getClaims() == null ? null : user.getClaims().get(field.getQualifier());
-        return claimValue(field, rawValue, user == null ? null : user.getUserStoreDomain(), context.getTenantDomain());
+        return attributeValue(field, rawValue, user == null ? null : user.getUserStoreDomain(),
+                context.getTenantDomain());
     }
 
     private FieldValue application(Field field, FlowExecutionContext context) {
@@ -223,9 +224,9 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     }
 
     /**
-     * Read a claim from the user store.
+     * Read an attribute of the user from the user store.
      */
-    private FieldValue persistedClaim(Field field, FlowExecutionContext context, String tenantDomain)
+    private FieldValue persistedAttribute(Field field, FlowExecutionContext context, String tenantDomain)
             throws RuleEvaluationDataProviderException {
 
         FlowUser user = identifiedUser(field, context);
@@ -233,7 +234,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         try {
             Map<String, String> claims = userStoreManager(tenantDomain).getUserClaimValuesWithID(
                     user.getUserId(), new String[]{field.getQualifier()}, null);
-            return claimValue(field, claims == null ? null : claims.get(field.getQualifier()),
+            return attributeValue(field, claims == null ? null : claims.get(field.getQualifier()),
                     user.getUserStoreDomain(), tenantDomain);
         } catch (UserStoreException e) {
             throw new RuleEvaluationDataProviderException("Could not read claim " + field.getQualifier()
@@ -253,7 +254,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
         return (FlowExecutionContext) context;
     }
 
-    private FieldValue claimValue(Field field, String rawValue, String userStoreDomain, String tenantDomain)
+    private FieldValue attributeValue(Field field, String rawValue, String userStoreDomain, String tenantDomain)
             throws RuleEvaluationDataProviderException {
 
         Optional<LocalClaim> claim = localClaim(field.getQualifier(), tenantDomain);

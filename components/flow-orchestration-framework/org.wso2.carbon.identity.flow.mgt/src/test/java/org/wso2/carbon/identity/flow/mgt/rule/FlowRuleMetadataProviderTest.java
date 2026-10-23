@@ -95,13 +95,14 @@ public class FlowRuleMetadataProviderTest {
     public void testEachFlowPublishesItsOwnFields() throws Exception {
 
         assertEquals(fieldNamesOf(FlowType.REGISTRATION), Arrays.asList(
-                FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS));
+                FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES,
+                FlowRuleMetadataProvider.USER_DOMAIN));
         assertEquals(fieldNamesOf(FlowType.PASSWORD_RECOVERY), Arrays.asList(
-                FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_CLAIMS,
-                FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS, FlowRuleMetadataProvider.USER_DOMAIN,
+                FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_ATTRIBUTES,
+                FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES, FlowRuleMetadataProvider.USER_DOMAIN,
                 FlowRuleMetadataProvider.USER_GROUPS, FlowRuleMetadataProvider.USER_ROLES));
         assertEquals(fieldNamesOf(FlowType.INVITED_USER_REGISTRATION), Arrays.asList(
-                FlowRuleMetadataProvider.USER_CLAIMS, FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS,
+                FlowRuleMetadataProvider.USER_ATTRIBUTES, FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES,
                 FlowRuleMetadataProvider.USER_DOMAIN));
     }
 
@@ -141,14 +142,14 @@ public class FlowRuleMetadataProviderTest {
     }
 
     /**
-     * The claim is picked from the claims endpoint, by URI, so the console can offer a list rather than a
+     * The attribute is picked from the claims endpoint, by claim URI, so the console can offer a list rather than a
      * text box.
      */
     @Test
-    public void testClaimFieldsArePickedFromTheClaimList() throws Exception {
+    public void testAttributeFieldsArePickedFromTheClaimList() throws Exception {
 
-        for (String name : new String[]{FlowRuleMetadataProvider.USER_CLAIMS,
-                FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS}) {
+        for (String name : new String[]{FlowRuleMetadataProvider.USER_ATTRIBUTES,
+                FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES}) {
             FieldDefinition field = fieldsOf(FlowType.PASSWORD_RECOVERY).get(name);
             assertTrue(field.getField().getQualifier() instanceof OptionsReferenceValue,
                     name + " should be qualified by a list.");
@@ -167,18 +168,19 @@ public class FlowRuleMetadataProviderTest {
     }
 
     /**
-     * A claim may be compared with the other claim fields of the same flow, and only those: a registration has
-     * no stored user to compare with.
+     * An attribute may be compared with the other attribute fields of the same flow, and only those: a registration
+     * has no stored user to compare with.
      */
     @Test
-    public void testClaimValuesMayBeReadFromTheClaimFieldsOfTheFlow() throws Exception {
+    public void testAttributeValuesMayBeReadFromTheAttributeFieldsOfTheFlow() throws Exception {
 
-        assertEquals(fieldsOf(FlowType.PASSWORD_RECOVERY).get(FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS)
+        assertEquals(fieldsOf(FlowType.PASSWORD_RECOVERY).get(FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES)
                         .getValueFieldOptions().getNames(),
-                Arrays.asList(FlowRuleMetadataProvider.USER_CLAIMS, FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS));
-        assertEquals(fieldsOf(FlowType.REGISTRATION).get(FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS)
+                Arrays.asList(FlowRuleMetadataProvider.USER_ATTRIBUTES,
+                        FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES));
+        assertEquals(fieldsOf(FlowType.REGISTRATION).get(FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES)
                         .getValueFieldOptions().getNames(),
-                Collections.singletonList(FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS));
+                Collections.singletonList(FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES));
     }
 
     /**
@@ -249,7 +251,7 @@ public class FlowRuleMetadataProviderTest {
     }
 
     @Test
-    public void testOnlyTheClaimFieldsAreQualified() throws Exception {
+    public void testOnlyTheAttributeFieldsAreQualified() throws Exception {
 
         for (FieldDefinition field : provider.getExpressionMeta(FlowType.PASSWORD_RECOVERY, TENANT_DOMAIN)) {
             String name = field.getField().getName();

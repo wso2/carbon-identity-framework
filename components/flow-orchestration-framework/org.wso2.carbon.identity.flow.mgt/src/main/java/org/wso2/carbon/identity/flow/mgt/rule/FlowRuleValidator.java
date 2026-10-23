@@ -68,7 +68,7 @@ public class FlowRuleValidator {
     private static final Set<String> LIST_OPERATORS = Set.of(IN, NOT_IN);
 
     /**
-     * The only operators a multi-valued claim accepts: they check its entries.
+     * The only operators a multi-valued attribute accepts: they check its entries.
      */
     private static final Set<String> MULTI_VALUED_OPERATORS = Set.of(IN, NOT_IN, "isEmpty", "isNotEmpty");
 
@@ -155,10 +155,10 @@ public class FlowRuleValidator {
 
         for (ANDCombinedRule andCombinedRule : branch.getRule().getRules()) {
             for (Expression expression : andCombinedRule.getExpressions()) {
-                if (isClaimField(expression.getField())) {
-                    validateClaimOperator(branch, expression, claims);
+                if (isAttributeField(expression.getField())) {
+                    validateAttributeOperator(branch, expression, claims);
                 }
-                validateReferencedClaim(branch, expression, claims);
+                validateReferencedAttribute(branch, expression, claims);
             }
         }
     }
@@ -207,10 +207,10 @@ public class FlowRuleValidator {
                 "The rule on branch %s of the decision step %s is not valid: %s", branch.getName(), stepId, reason);
     }
 
-    private static boolean isClaimField(String field) {
+    private static boolean isAttributeField(String field) {
 
-        return FlowRuleMetadataProvider.USER_CLAIMS.equals(field)
-                || FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS.equals(field);
+        return FlowRuleMetadataProvider.USER_ATTRIBUTES.equals(field)
+                || FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES.equals(field);
     }
 
     /**
@@ -222,9 +222,9 @@ public class FlowRuleValidator {
         boolean hasQualifier = StringUtils.isNotBlank(expression.getFieldQualifier());
         if (FlowRuleMetadataProvider.isQualified(expression.getField())) {
             if (!hasQualifier) {
-                if (isClaimField(expression.getField())) {
-                    throw handleDecisionStepException("Claim not selected.",
-                            "A condition on %s in branch %s does not say which claim it compares.",
+                if (isAttributeField(expression.getField())) {
+                    throw handleDecisionStepException("Attribute not selected.",
+                            "A condition on %s in branch %s does not say which attribute it compares.",
                             expression.getField(), branch.getName());
                 }
                 throw handleDecisionStepException("Qualifier not provided.",
@@ -238,13 +238,13 @@ public class FlowRuleValidator {
         }
     }
 
-    private static void validateClaimOperator(BranchDTO branch, Expression expression, ClaimLookup claims)
+    private static void validateAttributeOperator(BranchDTO branch, Expression expression, ClaimLookup claims)
             throws FlowMgtFrameworkException {
 
         LocalClaim claim = claims.find(expression.getFieldQualifier());
         if (claim == null) {
-            throw handleDecisionStepException("Unknown claim.",
-                    "The rule in branch %s compares the claim %s, which is not a claim of this organization.",
+            throw handleDecisionStepException("Unknown attribute.",
+                    "The rule in branch %s compares the attribute %s, which is not an attribute of this organization.",
                     branch.getName(), expression.getFieldQualifier());
         }
 
@@ -258,25 +258,25 @@ public class FlowRuleValidator {
             String reason = multiValued
                     ? "It holds more than one value, so only in, notIn, isEmpty and isNotEmpty apply."
                     : "It holds a single value. Allowed operators are: " + String.join(", ", allowed) + ".";
-            throw handleDecisionStepException("Operator not allowed for this claim.",
-                    "The operator %s cannot be used with the claim %s in branch %s. %s",
+            throw handleDecisionStepException("Operator not allowed for this attribute.",
+                    "The operator %s cannot be used with the attribute %s in branch %s. %s",
                     expression.getOperator(), expression.getFieldQualifier(), branch.getName(), reason);
         }
     }
 
     /**
-     * A value read from a claim field must name a claim that exists, as the expression's own claim must.
+     * A value read from an attribute field must name an attribute that exists, as the expression's own attribute must.
      */
-    private static void validateReferencedClaim(BranchDTO branch, Expression expression, ClaimLookup claims)
+    private static void validateReferencedAttribute(BranchDTO branch, Expression expression, ClaimLookup claims)
             throws FlowMgtFrameworkException {
 
         FieldReference reference = expression.getValue() == null ? null : expression.getValue().getFieldReference();
-        if (reference == null || !isClaimField(reference.getName())) {
+        if (reference == null || !isAttributeField(reference.getName())) {
             return;
         }
         if (claims.find(reference.getQualifier()) == null) {
-            throw handleDecisionStepException("Unknown claim.",
-                    "The rule in branch %s compares the claim %s, which is not a claim of this organization.",
+            throw handleDecisionStepException("Unknown attribute.",
+                    "The rule in branch %s compares the attribute %s, which is not an attribute of this organization.",
                     branch.getName(), reference.getQualifier());
         }
     }

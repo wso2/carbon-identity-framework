@@ -63,12 +63,12 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     /**
      * What is stored for the user, read from the user store.
      */
-    public static final String USER_CLAIMS = "user.claims";
+    public static final String USER_ATTRIBUTES = "user.attributes";
 
     /**
      * What this run of the flow has gathered, whether the user entered it or an executor produced it.
      */
-    public static final String USER_COLLECTED_CLAIMS = "user.collectedClaims";
+    public static final String USER_COLLECTED_ATTRIBUTES = "user.collectedAttributes";
 
     /**
      * The user store the user belongs to.
@@ -89,14 +89,14 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
      * Fields that name a family of values and so need a qualifier to pick one.
      */
     private static final Set<String> QUALIFIED_FIELDS = Collections.unmodifiableSet(new LinkedHashSet<>(
-            Arrays.asList(USER_CLAIMS, USER_COLLECTED_CLAIMS)));
+            Arrays.asList(USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES)));
 
     /**
-     * The fields a claim condition's value may be read from instead of being given, such as a claim collected in this
-     * flow compared with the one already stored for the user.
+     * The fields an attribute condition's value may be read from instead of being given, such as an attribute collected
+     * in this flow compared with the one already stored for the user.
      */
     private static final List<String> COMPARABLE_FIELDS = Collections.unmodifiableList(
-            Arrays.asList(USER_CLAIMS, USER_COLLECTED_CLAIMS));
+            Arrays.asList(USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES));
 
     /**
      * The fields each flow type offers, in the order they are published.
@@ -106,11 +106,11 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     static {
         Map<FlowType, List<String>> fields = new EnumMap<>(FlowType.class);
         fields.put(FlowType.REGISTRATION, Collections.unmodifiableList(Arrays.asList(
-                APPLICATION, USER_COLLECTED_CLAIMS)));
+                APPLICATION, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN)));
         fields.put(FlowType.PASSWORD_RECOVERY, Collections.unmodifiableList(Arrays.asList(
-                APPLICATION, USER_CLAIMS, USER_COLLECTED_CLAIMS, USER_DOMAIN, USER_GROUPS, USER_ROLES)));
+                APPLICATION, USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES)));
         fields.put(FlowType.INVITED_USER_REGISTRATION, Collections.unmodifiableList(Arrays.asList(
-                USER_CLAIMS, USER_COLLECTED_CLAIMS, USER_DOMAIN)));
+                USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN)));
         FIELDS_BY_FLOW_TYPE = Collections.unmodifiableMap(fields);
     }
 
@@ -141,10 +141,10 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     private static final Operator IS_NOT_EMPTY = new Operator("isNotEmpty", "is not empty");
 
     /**
-     * Everything a claim could ever accept. Which of these suit a claim depends on the claim, and is checked when the
-     * flow is saved.
+     * Everything an attribute could ever accept. Which of these suit an attribute depends on its claim, and is checked
+     * when the flow is saved.
      */
-    private static final List<Operator> CLAIM_OPERATORS = Collections.unmodifiableList(Arrays.asList(
+    private static final List<Operator> ATTRIBUTE_OPERATORS = Collections.unmodifiableList(Arrays.asList(
             EQUALS,
             NOT_EQUALS,
             new Operator("contains", "contains"),
@@ -200,18 +200,18 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
             case APPLICATION:
                 return new FieldDefinition(new Field(APPLICATION, "Application"), EQUALITY_OPERATORS,
                         referenceValue(NAME_ATTRIBUTE, APPLICATIONS_ENDPOINT, APPLICATIONS_FILTER_ENDPOINT));
-            case USER_CLAIMS:
-                return claimField(USER_CLAIMS, "User's claim", flowFields);
-            case USER_COLLECTED_CLAIMS:
-                return claimField(USER_COLLECTED_CLAIMS, "User's claim collected in the flow", flowFields);
+            case USER_ATTRIBUTES:
+                return attributeField(USER_ATTRIBUTES, "User attributes", flowFields);
+            case USER_COLLECTED_ATTRIBUTES:
+                return attributeField(USER_COLLECTED_ATTRIBUTES, "User attributes collected", flowFields);
             case USER_DOMAIN:
-                return new FieldDefinition(new Field(USER_DOMAIN, "User's user store domain"), EQUALITY_OPERATORS,
+                return new FieldDefinition(new Field(USER_DOMAIN, "User store domain"), EQUALITY_OPERATORS,
                         new OptionsInputValue(Value.ValueType.STRING, userStoreDomains(tenantDomain)));
             case USER_GROUPS:
-                return new FieldDefinition(new Field(USER_GROUPS, "User's assigned groups"), MEMBERSHIP_OPERATORS,
+                return new FieldDefinition(new Field(USER_GROUPS, "User groups"), MEMBERSHIP_OPERATORS,
                         referenceValue(DISPLAY_NAME_ATTRIBUTE, GROUPS_ENDPOINT, GROUPS_FILTER_ENDPOINT));
             case USER_ROLES:
-                return new FieldDefinition(new Field(USER_ROLES, "User's assigned roles"), MEMBERSHIP_OPERATORS,
+                return new FieldDefinition(new Field(USER_ROLES, "User roles"), MEMBERSHIP_OPERATORS,
                         referenceValue(DISPLAY_NAME_ATTRIBUTE, ROLES_ENDPOINT, ROLES_FILTER_ENDPOINT));
             default:
                 throw new IllegalStateException("No definition for flow condition field: " + fieldName);
@@ -219,9 +219,9 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     }
 
     /**
-     * A claim field.
+     * A user attribute field, qualified by the claim URI of the attribute.
      */
-    private FieldDefinition claimField(String name, String displayName, List<String> flowFields) {
+    private FieldDefinition attributeField(String name, String displayName, List<String> flowFields) {
 
         Value qualifier = new OptionsReferenceValue.Builder()
                 .valueReferenceAttribute(CLAIM_URI_ATTRIBUTE)
@@ -232,7 +232,7 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
 
         List<String> comparable = new ArrayList<>(COMPARABLE_FIELDS);
         comparable.retainAll(flowFields);
-        return new FieldDefinition(new Field(name, displayName, qualifier), CLAIM_OPERATORS,
+        return new FieldDefinition(new Field(name, displayName, qualifier), ATTRIBUTE_OPERATORS,
                 new InputValue(Value.ValueType.STRING), new ValueFieldOptions(comparable));
     }
 
