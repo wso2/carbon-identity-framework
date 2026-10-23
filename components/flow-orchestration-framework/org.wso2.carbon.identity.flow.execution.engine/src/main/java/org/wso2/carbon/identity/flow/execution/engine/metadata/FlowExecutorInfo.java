@@ -119,6 +119,14 @@ public class FlowExecutorInfo {
     }
 
     /**
+     * @return True if steps using this executor honor the connection's external claim mappings.
+     */
+    public boolean isExternalClaimResolutionEnabled() {
+
+        return declaredMetadata.isExternalClaimResolutionEnabled();
+    }
+
+    /**
      * Whether the executor authenticates the user, meaning it extends
      * {@code AuthenticationExecutor}. Such an executor resolves IDP configuration from its step
      * metadata, so an IDP must be bound to the step, and it qualifies as an authentication factor

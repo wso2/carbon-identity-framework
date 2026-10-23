@@ -127,6 +127,7 @@ public class FlowExecutorMetadataServiceTest {
         assertFalse(info.isMetadataDeclared());
         assertFalse(info.isAuthenticationExecutor());
         assertFalse(info.isConnectionRequired());
+        assertFalse(info.isExternalClaimResolutionEnabled());
     }
 
     @Test
@@ -144,6 +145,7 @@ public class FlowExecutorMetadataServiceTest {
                 "An executor that does not extend AuthenticationExecutor must not be reported as "
                         + "authenticating the user.");
         assertTrue(info.isConnectionRequired());
+        assertTrue(info.isExternalClaimResolutionEnabled());
         assertTrue(info.isMetadataDeclared());
         assertEquals(info.getSupportedFlowTypes(), EnumSet.of(REGISTRATION, PASSWORD_RECOVERY));
     }
@@ -433,6 +435,7 @@ public class FlowExecutorMetadataServiceTest {
                     .icon("assets/images/logos/custom-verification.svg")
                     .associatedAuthenticator("CustomVerificationAuthenticator")
                     .connectionRequired(true)
+                    .externalClaimResolutionEnabled(true)
                     .build();
         }
     }
