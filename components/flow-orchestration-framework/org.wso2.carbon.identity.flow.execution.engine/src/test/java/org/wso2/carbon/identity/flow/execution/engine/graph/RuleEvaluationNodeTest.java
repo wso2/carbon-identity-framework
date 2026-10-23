@@ -190,7 +190,7 @@ public class RuleEvaluationNodeTest {
 
         List<BranchDTO> defaultFirst = Arrays.asList(
                 branch("br_default", "Everyone else", GENERIC_STEP, null),
-                branch("br_lk", "Sri Lanka", LK_STEP, ruleOn("user.claims")));
+                branch("br_lk", "Sri Lanka", LK_STEP, ruleOn("user.attributes")));
 
         ruleEvaluationNode.execute(contextFor(node, defaultFirst), node);
 
@@ -334,7 +334,7 @@ public class RuleEvaluationNodeTest {
         stubEvaluation(false);
         NodeConfig node = node();
         List<BranchDTO> guardedOnly = Arrays.asList(
-                branch("br_lk", "Sri Lanka", LK_STEP, ruleOn("user.claims")));
+                branch("br_lk", "Sri Lanka", LK_STEP, ruleOn("user.attributes")));
         FlowExecutionContext context = contextFor(node, guardedOnly);
 
         assertThrows(FlowEngineException.class, () -> ruleEvaluationNode.execute(context, node));
@@ -355,8 +355,8 @@ public class RuleEvaluationNodeTest {
     private List<BranchDTO> guardedThenDefault() {
 
         return Arrays.asList(
-                branch("br_lk", "Sri Lanka", LK_STEP, ruleOn("user.claims")),
-                branch("br_admin", "Internal staff", ADMIN_STEP, ruleOn("user.claims")),
+                branch("br_lk", "Sri Lanka", LK_STEP, ruleOn("user.attributes")),
+                branch("br_admin", "Internal staff", ADMIN_STEP, ruleOn("user.attributes")),
                 branch("br_default", "Everyone else", GENERIC_STEP, null));
     }
 

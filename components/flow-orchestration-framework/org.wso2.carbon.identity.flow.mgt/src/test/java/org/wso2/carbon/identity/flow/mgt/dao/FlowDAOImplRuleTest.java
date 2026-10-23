@@ -168,8 +168,8 @@ public class FlowDAOImplRuleTest {
         ORCombinedRule compared = new ORCombinedRule.Builder()
                 .addRule(new ANDCombinedRule.Builder()
                         .addExpression(new Expression.Builder()
-                                .field("user.collectedClaims").fieldQualifier(COUNTRY_CLAIM).operator("notEquals")
-                                .value(new Value(new FieldReference("user.claims", COUNTRY_CLAIM))).build())
+                                .field("user.collectedAttributes").fieldQualifier(COUNTRY_CLAIM).operator("notEquals")
+                                .value(new Value(new FieldReference("user.attributes", COUNTRY_CLAIM))).build())
                         .build())
                 .build();
         StepDTO step = ruleStep();
@@ -182,7 +182,7 @@ public class FlowDAOImplRuleTest {
                 .getRules().get(0).getExpressions().get(0).getValue();
 
         assertEquals(value.getType(), Value.Type.FIELD);
-        assertEquals(value.getFieldReference().getName(), "user.claims");
+        assertEquals(value.getFieldReference().getName(), "user.attributes");
         assertEquals(value.getFieldReference().getQualifier(), COUNTRY_CLAIM);
     }
 
@@ -243,7 +243,7 @@ public class FlowDAOImplRuleTest {
         return new ORCombinedRule.Builder()
                 .addRule(new ANDCombinedRule.Builder()
                         .addExpression(new Expression.Builder()
-                                .field("user.collectedClaims").fieldQualifier(COUNTRY_CLAIM).operator("equals")
+                                .field("user.collectedAttributes").fieldQualifier(COUNTRY_CLAIM).operator("equals")
                                 .value(new Value(Value.Type.STRING, "Sri Lanka")).build())
                         .build())
                 .build();

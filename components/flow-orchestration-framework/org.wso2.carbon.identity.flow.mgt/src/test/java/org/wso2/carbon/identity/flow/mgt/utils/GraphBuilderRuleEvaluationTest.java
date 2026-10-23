@@ -126,7 +126,7 @@ public class GraphBuilderRuleEvaluationTest {
         for (int i = 0; i < count; i++) {
             List<BranchDTO> branches = Arrays.asList(
                     new BranchDTO.Builder().id("br_lk").name("Sri Lanka").nextId(Constants.END_NODE_ID)
-                            .rule(ruleOn("user.claims")).build(),
+                            .rule(ruleOn("user.attributes")).build(),
                     new BranchDTO.Builder().id("br_default").name("Everyone else")
                             .nextId(Constants.END_NODE_ID).build());
             steps.add(new StepDTO.Builder()
@@ -208,7 +208,7 @@ public class GraphBuilderRuleEvaluationTest {
 
         List<BranchDTO> guardedOnly = new ArrayList<>();
         guardedOnly.add(new BranchDTO.Builder().id("br_lk").name("Sri Lanka")
-                .nextId(Constants.END_NODE_ID).rule(ruleOn("user.claims")).build());
+                .nextId(Constants.END_NODE_ID).rule(ruleOn("user.attributes")).build());
 
         assertThrows(FlowMgtClientException.class, () -> buildGraph(decisionStep(guardedOnly)));
     }
@@ -244,7 +244,7 @@ public class GraphBuilderRuleEvaluationTest {
 
         List<BranchDTO> duplicated = branchesWithDefaultLast();
         duplicated.add(new BranchDTO.Builder().id("br_lk").name("Sri Lanka again")
-                .nextId(Constants.END_NODE_ID).rule(ruleOn("user.claims")).build());
+                .nextId(Constants.END_NODE_ID).rule(ruleOn("user.attributes")).build());
 
         assertThrows(FlowMgtClientException.class, () -> buildGraph(decisionStep(duplicated)));
     }
@@ -257,7 +257,7 @@ public class GraphBuilderRuleEvaluationTest {
 
         List<BranchDTO> unnamed = new ArrayList<>();
         unnamed.add(new BranchDTO.Builder().id("br_lk").nextId(Constants.END_NODE_ID)
-                .rule(ruleOn("user.claims")).build());
+                .rule(ruleOn("user.attributes")).build());
         unnamed.add(new BranchDTO.Builder().id("br_default").name("Everyone else")
                 .nextId(Constants.END_NODE_ID).build());
 
@@ -274,9 +274,9 @@ public class GraphBuilderRuleEvaluationTest {
         String longName = String.join("", Collections.nCopies(256, "x"));
         for (BranchDTO tooLong : Arrays.asList(
                 new BranchDTO.Builder().id(longId).name("Sri Lanka").nextId(Constants.END_NODE_ID)
-                        .rule(ruleOn("user.claims")).build(),
+                        .rule(ruleOn("user.attributes")).build(),
                 new BranchDTO.Builder().id("br_lk").name(longName).nextId(Constants.END_NODE_ID)
-                        .rule(ruleOn("user.claims")).build())) {
+                        .rule(ruleOn("user.attributes")).build())) {
             List<BranchDTO> branches = Arrays.asList(tooLong, new BranchDTO.Builder().id("br_default")
                     .name("Everyone else").nextId(Constants.END_NODE_ID).build());
 
@@ -289,7 +289,7 @@ public class GraphBuilderRuleEvaluationTest {
 
         List<BranchDTO> selfLooping = new ArrayList<>();
         selfLooping.add(new BranchDTO.Builder().id("br_lk").name("Sri Lanka")
-                .nextId(DECISION_STEP_ID).rule(ruleOn("user.claims")).build());
+                .nextId(DECISION_STEP_ID).rule(ruleOn("user.attributes")).build());
         selfLooping.add(new BranchDTO.Builder().id("br_default").name("Everyone else")
                 .nextId(Constants.END_NODE_ID).build());
 
@@ -425,7 +425,7 @@ public class GraphBuilderRuleEvaluationTest {
 
         List<BranchDTO> branches = new ArrayList<>();
         branches.add(new BranchDTO.Builder().id("br_lk").name("Sri Lanka")
-                .nextId(Constants.END_NODE_ID).rule(ruleOn("user.claims")).build());
+                .nextId(Constants.END_NODE_ID).rule(ruleOn("user.attributes")).build());
         branches.add(new BranchDTO.Builder().id("br_admin").name("Internal staff")
                 .nextId(Constants.END_NODE_ID).rule(ruleOn("user.groups")).build());
         // No rule: the default.

@@ -128,7 +128,7 @@ public class FlowRuleEvaluationDataProviderTest {
         FlowUser user = new FlowUser();
         user.addClaim(GROUPS, "admin" + SEPARATOR + "staff");
 
-        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, GROUPS),
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, GROUPS),
                 context(user));
 
         assertEquals(value.getValueType(), ValueType.LIST);
@@ -146,7 +146,7 @@ public class FlowRuleEvaluationDataProviderTest {
         when(userStoreManager.getUserClaimValuesWithID(eq("user-id"), any(String[].class), any()))
                 .thenReturn(stored);
 
-        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_CLAIMS, GROUPS),
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_ATTRIBUTES, GROUPS),
                 context(user));
 
         assertEquals(value.getValueType(), ValueType.LIST);
@@ -159,7 +159,7 @@ public class FlowRuleEvaluationDataProviderTest {
         FlowUser user = new FlowUser();
         user.addClaim(COUNTRY, "LK" + SEPARATOR + "IN");
 
-        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, COUNTRY),
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, COUNTRY),
                 context(user));
 
         assertEquals(value.getValueType(), ValueType.STRING);
@@ -173,7 +173,7 @@ public class FlowRuleEvaluationDataProviderTest {
     @Test
     public void testAbsentMultiValuedClaimIsAnAbsentSet() throws Exception {
 
-        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, GROUPS),
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, GROUPS),
                 context(new FlowUser()));
 
         assertEquals(value.getValueType(), ValueType.LIST);
@@ -189,7 +189,7 @@ public class FlowRuleEvaluationDataProviderTest {
         FlowUser user = new FlowUser();
         user.addClaim(COUNTRY, "");
 
-        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, COUNTRY),
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, COUNTRY),
                 context(user));
 
         assertEquals(value.getValueType(), ValueType.STRING);
@@ -204,7 +204,7 @@ public class FlowRuleEvaluationDataProviderTest {
     public void testStoredClaimBeforeTheUserIsIdentifiedIsAnError() {
 
         expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
-                field(AbstractFlowRuleEvaluationDataProvider.USER_CLAIMS, COUNTRY), context(new FlowUser())));
+                field(AbstractFlowRuleEvaluationDataProvider.USER_ATTRIBUTES, COUNTRY), context(new FlowUser())));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class FlowRuleEvaluationDataProviderTest {
                 .thenThrow(new UserStoreException("store is down"));
 
         expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
-                field(AbstractFlowRuleEvaluationDataProvider.USER_CLAIMS, COUNTRY), context(existingUser())));
+                field(AbstractFlowRuleEvaluationDataProvider.USER_ATTRIBUTES, COUNTRY), context(existingUser())));
     }
 
     /**
@@ -226,7 +226,7 @@ public class FlowRuleEvaluationDataProviderTest {
         FlowUser user = new FlowUser();
         user.addClaim(AGE, "9");
 
-        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, AGE),
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, AGE),
                 context(user));
 
         assertEquals(value.getValueType(), ValueType.NUMBER);
@@ -239,7 +239,7 @@ public class FlowRuleEvaluationDataProviderTest {
         FlowUser user = new FlowUser();
         user.addClaim(AGE, "nine");
 
-        assertNull(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_CLAIMS, AGE), context(user))
+        assertNull(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, AGE), context(user))
                 .getValue());
     }
 

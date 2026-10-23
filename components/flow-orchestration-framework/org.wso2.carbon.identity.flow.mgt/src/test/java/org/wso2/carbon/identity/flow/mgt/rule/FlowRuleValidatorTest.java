@@ -286,7 +286,7 @@ public class FlowRuleValidatorTest {
     public void testClaimConditionWithoutAKeyIsRejected() {
 
         Expression noKey = new Expression.Builder()
-                .field(FlowRuleMetadataProvider.USER_CLAIMS)
+                .field(FlowRuleMetadataProvider.USER_ATTRIBUTES)
                 .operator("equals")
                 .value(scalar("LK"))
                 .build();
@@ -456,8 +456,8 @@ public class FlowRuleValidatorTest {
     public void testCollectedClaimComparedWithTheStoredOneIsAccepted() throws Exception {
 
         Expression compared = new Expression.Builder()
-                .field(FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS).fieldQualifier(COUNTRY).operator("notEquals")
-                .value(new Value(new FieldReference(FlowRuleMetadataProvider.USER_CLAIMS, COUNTRY)))
+                .field(FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES).fieldQualifier(COUNTRY).operator("notEquals")
+                .value(new Value(new FieldReference(FlowRuleMetadataProvider.USER_ATTRIBUTES, COUNTRY)))
                 .build();
 
         FlowRuleValidator.validate(flowWith(compared), TENANT_DOMAIN);
@@ -467,20 +467,20 @@ public class FlowRuleValidatorTest {
     public void testFieldReferenceToAnUnknownClaimIsRejected() {
 
         FlowDTO flow = flowWith(expression(COUNTRY, "equals",
-                new Value(new FieldReference(FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS,
+                new Value(new FieldReference(FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES,
                         "http://wso2.org/claims/notAClaim"))));
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
         assertEquals(e.getErrorCode(), code(Constants.ErrorMessages.ERROR_CODE_INVALID_DECISION_STEP));
-        assertEquals(e.getMessage(), "Unknown claim.");
+        assertEquals(e.getMessage(), "Unknown attribute.");
     }
 
     @Test
     public void testFieldReferenceWithoutAClaimKeyIsRejected() {
 
         FlowDTO flow = flowWith(expression(COUNTRY, "equals",
-                new Value(new FieldReference(FlowRuleMetadataProvider.USER_CLAIMS, null))));
+                new Value(new FieldReference(FlowRuleMetadataProvider.USER_ATTRIBUTES, null))));
 
         assertThrows(FlowMgtClientException.class, () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
     }
@@ -492,7 +492,7 @@ public class FlowRuleValidatorTest {
     public void testMembershipAgainstAFieldIsAccepted() throws Exception {
 
         FlowRuleValidator.validate(flowWith(expression(EMAILS, "in",
-                new Value(new FieldReference(FlowRuleMetadataProvider.USER_COLLECTED_CLAIMS, EMAILS)))),
+                new Value(new FieldReference(FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES, EMAILS)))),
                 TENANT_DOMAIN);
     }
 
@@ -517,7 +517,7 @@ public class FlowRuleValidatorTest {
     private static Expression expression(String claimUri, String operator, Value value) {
 
         return new Expression.Builder()
-                .field(FlowRuleMetadataProvider.USER_CLAIMS)
+                .field(FlowRuleMetadataProvider.USER_ATTRIBUTES)
                 .fieldQualifier(claimUri)
                 .operator(operator)
                 .value(value)
