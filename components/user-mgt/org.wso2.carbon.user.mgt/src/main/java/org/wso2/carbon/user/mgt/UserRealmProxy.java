@@ -55,6 +55,7 @@ import org.wso2.carbon.user.mgt.common.UIPermissionNode;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 import org.wso2.carbon.user.mgt.common.UserRealmInfo;
 import org.wso2.carbon.user.mgt.common.UserStoreInfo;
+import org.wso2.carbon.user.mgt.permission.UIPermissionProvisioner;
 import org.wso2.carbon.user.mgt.internal.UserMgtDSComponent;
 import org.wso2.carbon.user.mgt.permission.ManagementPermissionUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -2054,6 +2055,7 @@ public class UserRealmProxy {
         Registry tenentRegistry = null;
 
         try {
+            UIPermissionProvisioner.ensureProvisioned();
             Registry registry = UserMgtDSComponent.getRegistryService().getGovernanceSystemRegistry();
             if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
                 if (CarbonContext.getThreadLocalCarbonContext().getTenantId() != MultitenantConstants.SUPER_TENANT_ID) {
@@ -2113,6 +2115,7 @@ public class UserRealmProxy {
         Registry tenentRegistry = null;
 
         try {
+            UIPermissionProvisioner.ensureProvisioned();
             Registry registry = UserMgtDSComponent.getRegistryService().getGovernanceSystemRegistry();
             if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
                 regRoot = (Collection) registry.get(UserMgtConstants.UI_PERMISSION_ROOT);
@@ -2497,6 +2500,7 @@ public class UserRealmProxy {
         Registry tenantRegistry = null;
 
         try {
+            UIPermissionProvisioner.ensureProvisioned();
             Registry registry = UserMgtDSComponent.getRegistryService().getGovernanceSystemRegistry();
             if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
                 regRoot = (Collection) registry.get(UserMgtConstants.UI_PERMISSION_ROOT);
