@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.webhook.management.api.model.ChannelOrgSubscript
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Data Access Object interface for webhook management.
@@ -287,4 +288,36 @@ public interface WebhookManagementDAO {
      */
     String getChannelUri(String channelUuid) throws WebhookMgtException;
 
+    /**
+     * Create a webhook and apply its organization subscriptions in one transaction. Implemented by the facade,
+     * which owns the transaction; there, a null or empty plan creates the webhook alone.
+     *
+     * @param webhook  Webhook to create, carrying its generated id.
+     * @param tenantId Tenant of the organization owning the webhook.
+     * @param planned  Organization subscriptions resolved before the transaction is opened.
+     * @return Tenants whose cached publish-path answer is now stale.
+     * @throws WebhookMgtException If the webhook or its subscriptions cannot be stored.
+     */
+    default Set<Integer> createWebhook(Webhook webhook, int tenantId, List<PlannedOrganizationSubscription> planned)
+            throws WebhookMgtException {
+
+        throw new UnsupportedOperationException("Only the webhook management DAO facade opens this transaction.");
+    }
+
+    /**
+     * Update a webhook and apply its organization subscriptions in one transaction. Implemented by the facade,
+     * which owns the transaction; there, a null or empty plan updates the webhook alone.
+     *
+     * @param webhookId Webhook UUID.
+     * @param webhook   Webhook carrying the new values.
+     * @param tenantId  Tenant of the organization owning the webhook.
+     * @param planned   Organization subscriptions resolved before the transaction is opened.
+     * @return Tenants whose cached publish-path answer is now stale.
+     * @throws WebhookMgtException If the webhook or its subscriptions cannot be stored.
+     */
+    default Set<Integer> updateWebhook(String webhookId, Webhook webhook, int tenantId,
+                                       List<PlannedOrganizationSubscription> planned) throws WebhookMgtException {
+
+        throw new UnsupportedOperationException("Only the webhook management DAO facade opens this transaction.");
+    }
 }

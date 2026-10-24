@@ -1648,6 +1648,22 @@ public class IdentityUtil {
     }
 
     /**
+     * Check whether child organization subscriptions are enabled for webhooks. Declared rather than probed,
+     * because the feature needs a database migration an operator has to apply first.
+     *
+     * @return true if child organization subscriptions are enabled.
+     */
+    public static boolean isChildOrganizationSubscriptionEnabled() {
+
+        String childOrganizationSubscriptionEnabled =
+                IdentityUtil.getProperty(IdentityCoreConstants.CHILD_ORGANIZATION_SUBSCRIPTION_ENABLED_PROPERTY);
+        if (StringUtils.isBlank(childOrganizationSubscriptionEnabled)) {
+            return IdentityCoreConstants.DEFAULT_CHILD_ORGANIZATION_SUBSCRIPTION_ENABLED;
+        }
+        return Boolean.parseBoolean(childOrganizationSubscriptionEnabled);
+    }
+
+    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.
