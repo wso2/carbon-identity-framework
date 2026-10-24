@@ -3,3 +3,4 @@ org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../r
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/conf); \
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/conf/flow-defaults); \
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.flow.mgt.server_${feature.version}/INVITED_USER_REGISTRATION.json,target:${installFolder}/../../conf/flow-defaults/INVITED_USER_REGISTRATION.json,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.flow.mgt.server_${feature.version}/PROFILE_UPDATE.json,target:${installFolder}/../../conf/flow-defaults/PROFILE_UPDATE.json,overwrite:true);\

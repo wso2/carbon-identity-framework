@@ -1,0 +1,182 @@
+{
+  "steps": [
+    {
+      "id": "execution_k3vd",
+      "type": "EXECUTION",
+      "data": {
+        "action": {
+          "type": "EXECUTOR",
+          "executor": {
+            "name": "UserVerificationExecutor"
+          },
+          "nextId": "execution_p8wq"
+        }
+      },
+      "height": 99.0,
+      "width": 205.0,
+      "coordinateX": 0.0,
+      "coordinateY": 495.0
+    },
+    {
+      "id": "execution_p8wq",
+      "type": "EXECUTION",
+      "data": {
+        "action": {
+          "type": "EXECUTOR",
+          "executor": {
+            "name": "FlowHandoffExecutor"
+          },
+          "nextId": "ID_7fma"
+        }
+      },
+      "height": 99.0,
+      "width": 205.0,
+      "coordinateX": 300.0,
+      "coordinateY": 495.0
+    },
+    {
+      "id": "ID_7fma",
+      "type": "VIEW",
+      "data": {
+        "components": [
+          {
+            "id": "typography_2nxe",
+            "category": "DISPLAY",
+            "type": "TYPOGRAPHY",
+            "variant": "H3",
+            "configs": {
+              "text": "Verify OTP"
+            }
+          },
+          {
+            "id": "form_6jtc",
+            "category": "BLOCK",
+            "type": "FORM",
+            "components": [
+              {
+                "id": "input_9rzb",
+                "category": "FIELD",
+                "type": "INPUT",
+                "variant": "OTP",
+                "configs": {
+                  "identifier": "otp",
+                  "type": "text",
+                  "hint": "",
+                  "label": "Enter the code sent to your email",
+                  "placeholder": ""
+                }
+              },
+              {
+                "id": "button_4hgs",
+                "category": "ACTION",
+                "type": "BUTTON",
+                "variant": "PRIMARY",
+                "action": {
+                  "type": "EXECUTOR",
+                  "executor": {
+                    "name": "EmailOTPExecutor"
+                  },
+                  "nextId": "ID_c2yl"
+                },
+                "configs": {
+                  "type": "submit",
+                  "text": "Verify"
+                }
+              },
+              {
+                "id": "resend_m5qk",
+                "category": "ACTION",
+                "type": "RESEND",
+                "configs": {
+                  "type": "submit",
+                  "text": "Resend OTP"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "height": 371.0,
+      "width": 350.0,
+      "coordinateX": 600.0,
+      "coordinateY": 359.0
+    },
+    {
+      "id": "ID_c2yl",
+      "type": "VIEW",
+      "data": {
+        "components": [
+          {
+            "id": "typography_w8pd",
+            "category": "DISPLAY",
+            "type": "TYPOGRAPHY",
+            "variant": "H3",
+            "configs": {
+              "text": "Update Profile"
+            }
+          },
+          {
+            "id": "form_t3hv",
+            "category": "BLOCK",
+            "type": "FORM",
+            "components": [
+              {
+                "id": "button_x7nr",
+                "category": "ACTION",
+                "type": "BUTTON",
+                "variant": "PRIMARY",
+                "action": {
+                  "type": "NEXT",
+                  "nextId": "END"
+                },
+                "configs": {
+                  "type": "submit",
+                  "text": "Continue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "height": 291.0,
+      "width": 350.0,
+      "coordinateX": 1050.0,
+      "coordinateY": 319.0
+    },
+    {
+      "id": "END",
+      "type": "END",
+      "data": {
+        "components": [
+          {
+            "id": "typography_u2oz",
+            "category": "DISPLAY",
+            "type": "TYPOGRAPHY",
+            "variant": "H3",
+            "configs": {
+              "text": "Profile Updated Successfully"
+            }
+          },
+          {
+            "id": "display_hgvm",
+            "category": "DISPLAY",
+            "type": "RICH_TEXT",
+            "configs": {
+              "text": "<p class=\"rich-text-paragraph rich-text-align-center\"><span class=\"rich-text-pre-wrap\">Your profile has been updated successfully.</span></p>"
+            }
+          }
+        ],
+        "action": {
+          "type": "EXECUTOR",
+          "executor": {
+            "name": "UserProvisioningExecutor"
+          }
+        }
+      },
+      "height": 310.0,
+      "width": 350.0,
+      "coordinateX": 1500.0,
+      "coordinateY": 400.0
+    }
+  ]
+}
