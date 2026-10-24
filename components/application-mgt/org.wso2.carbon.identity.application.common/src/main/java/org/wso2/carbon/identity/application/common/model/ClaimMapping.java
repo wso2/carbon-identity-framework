@@ -53,6 +53,9 @@ public class ClaimMapping implements Serializable {
     @XmlElement(name = "MandatoryClaim")
     private boolean isMandatory;
 
+    @XmlElement(name = "RuntimeClaim")
+    private boolean isRuntimeValue = false;
+
     /**
      * @param localClaimUri
      * @param remoteClaimUri
@@ -145,6 +148,10 @@ public class ClaimMapping implements Serializable {
 
             if ("MandatoryClaim".equals(elementName)) {
                 claimMapping.setMandatory(Boolean.parseBoolean(element.getText()));
+            }
+
+            if ("RuntimeClaim".equals(elementName)) {
+                claimMapping.setRuntimeValue(Boolean.parseBoolean(element.getText()));
             }
 
         }
@@ -266,5 +273,21 @@ public class ClaimMapping implements Serializable {
     public void setMandatory(boolean isMandatory) {
 
         this.isMandatory = isMandatory;
+    }
+
+    /**
+     * @return
+     */
+    public boolean isRuntimeValue() {
+
+        return isRuntimeValue;
+    }
+
+    /**
+     * @param isRuntimeValue
+     */
+    public void setRuntimeValue(boolean isRuntimeValue) {
+
+        this.isRuntimeValue = isRuntimeValue;
     }
 }
