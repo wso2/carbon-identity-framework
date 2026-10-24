@@ -128,6 +128,10 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.compatibility.settings.core.exception.CompatibilitySettingException;
+import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilitySetting;
+import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilitySettingGroup;
+import org.wso2.carbon.identity.compatibility.settings.core.service.CompatibilitySettingsService;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -143,6 +147,8 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -5288,6 +5294,70 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(
                 FrameworkConstants.Config.USE_RESIDENT_USER_ID_FOR_AUTHENTICATED_SHARED_USERS));
+    }
+
+    /**
+     * Check whether the shared user id of the accessing organization should be used as the subject identifier when a
+     * shared user logs in to the given organization. The value is resolved from the compatibility settings of the
+     * organization.
+     *
+     * @param tenantDomain Tenant domain of the accessing organization.
+     * @return true if enabled, false otherwise.
+     */
+    public static boolean isSharedUserIdAsSubjectEnabled(String tenantDomain) {
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            return false;
+        }
+        CompatibilitySettingsService compatibilitySettingsService =
+                FrameworkServiceDataHolder.getInstance().getCompatibilitySettingsService();
+        if (compatibilitySettingsService == null) {
+            return false;
+        }
+        try {
+            CompatibilitySetting setting = compatibilitySettingsService.getCompatibilitySettingsByGroupAndSetting(
+                    tenantDomain, FrameworkConstants.Config.SHARED_USER_COMPATIBILITY_SETTING_GROUP,
+                    FrameworkConstants.Config.USE_SHARED_USER_ID_AS_SUBJECT_COMPATIBILITY_SETTING);
+            CompatibilitySettingGroup settingGroup = setting.getCompatibilitySetting(
+                    FrameworkConstants.Config.SHARED_USER_COMPATIBILITY_SETTING_GROUP);
+            return settingGroup != null && Boolean.parseBoolean(settingGroup.getSettingValue(
+                    FrameworkConstants.Config.USE_SHARED_USER_ID_AS_SUBJECT_COMPATIBILITY_SETTING));
+        } catch (CompatibilitySettingException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while evaluating the shared user subject compatibility setting for tenant: " +
+                        tenantDomain + ". Resident user id will be used as the subject identifier.", e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Resolve the shared user id of the given shared user in the organization that the user accesses.
+     *
+     * @param user Authenticated shared user.
+     * @return Shared user id in the accessing organization, or null if it cannot be resolved.
+     * @throws OrganizationManagementException If an error occurs while resolving the user association.
+     */
+    public static String resolveSharedUserIdOfAccessingOrganization(AuthenticatedUser user)
+            throws OrganizationManagementException {
+
+        if (StringUtils.isNotBlank(user.getSharedUserId())) {
+            return user.getSharedUserId();
+        }
+        OrganizationUserSharingService organizationUserSharingService =
+                FrameworkServiceDataHolder.getInstance().getOrganizationUserSharingService();
+        if (organizationUserSharingService == null || StringUtils.isBlank(user.getAccessingOrganization())) {
+            return null;
+        }
+        String residentUserId;
+        try {
+            residentUserId = user.getUserId();
+        } catch (UserIdNotFoundException e) {
+            return null;
+        }
+        UserAssociation association = organizationUserSharingService.getUserAssociationOfAssociatedUserByOrgId(
+                residentUserId, user.getAccessingOrganization());
+        return association != null ? association.getUserId() : null;
     }
 
     /**

@@ -82,6 +82,10 @@
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.compatibility.settings.core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.organization.management</groupId>
             <artifactId>org.wso2.carbon.identity.organization.management.organization.user.sharing</artifactId>
             <exclusions>
@@ -312,6 +316,12 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt.util; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.compatibility.settings.core.exception;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.compatibility.settings.core.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.compatibility.settings.core.service;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.functions.library.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.multi.attribute.login.mgt.*;
                             version="${carbon.identity.package.import.version.range}",
