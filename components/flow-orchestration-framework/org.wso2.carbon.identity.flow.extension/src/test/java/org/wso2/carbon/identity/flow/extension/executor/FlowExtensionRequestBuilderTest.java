@@ -34,12 +34,14 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionOrganization;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionUser;
 
 import java.util.Arrays;
@@ -218,6 +220,37 @@ public class FlowExtensionRequestBuilderTest {
     }
 
     @Test
+    public void testBuildRequestWithFlowOrganizationAttributes() throws Exception {
+
+        FlowExecutionContext execCtx = execContext();
+        FlowOrganization organization = execCtx.getFlowOrganization();
+        organization.setOrganizationName("Acme");
+        organization.setOrganizationHandle("acme");
+        organization.setOrganizationDescription("Acme organization");
+        organization.setAttribute("taxId", "123");
+
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(
+                        new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH, false),
+                        new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_HANDLE_PATH, false),
+                        new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_DESCRIPTION_PATH, false),
+                        new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH
+                                + "/taxId", false)),
+                Collections.emptyList());
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execCtx), actionContext(accessConfig));
+
+        FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
+        FlowExtensionOrganization flowOrganization = (FlowExtensionOrganization) event.getOrganization();
+        assertNotNull(flowOrganization);
+        assertEquals(flowOrganization.getName(), "Acme");
+        assertEquals(flowOrganization.getOrgHandle(), "acme");
+        assertEquals(flowOrganization.getDescription(), "Acme organization");
+        assertEquals(flowOrganization.getAttributes().get("taxId"), "123");
+    }
+
+    @Test
     public void testUnencryptedCredentialWrappedAsTypedObject() throws Exception {
 
         // A plaintext-exposed credential is wrapped as {"type":"PLAIN_TEXT","value":"<secret>"} and
@@ -364,7 +397,10 @@ public class FlowExtensionRequestBuilderTest {
     public void testNonModifiablePathNotAdvertisedAsModifiable() throws Exception {
 
         AccessConfig accessConfig = new AccessConfig(null, Arrays.asList(
-                new ContextPath(USER_ID_CLAIM_PATH, false), new ContextPath(CLAIM_PATH, false)));
+                new ContextPath(USER_ID_CLAIM_PATH, false), new ContextPath(CLAIM_PATH, false),
+                new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH, false),
+                new ContextPath(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH
+                        + "/organizationName", false)));
 
         ActionExecutionRequest request = buildWithNonModifiablePaths(
                 accessConfig, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION, USER_ID_CLAIM_PATH);
@@ -373,7 +409,11 @@ public class FlowExtensionRequestBuilderTest {
         assertNotNull(replaceOp);
         assertFalse(replaceOp.getPaths().contains(USER_ID_CLAIM_PATH),
                 "A non-modifiable path must not be advertised as modifiable.");
+        assertFalse(replaceOp.getPaths().contains(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH),
+                "A core organization path must not be advertised as modifiable.");
         assertTrue(replaceOp.getPaths().contains(CLAIM_PATH));
+        assertTrue(replaceOp.getPaths().contains(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH
+                + "/organizationName"));
     }
 
     @Test
