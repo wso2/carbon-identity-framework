@@ -23,6 +23,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfiguratorTest"/>
             <class name="org.wso2.carbon.identity.user.store.configuration.UserStoreConfigServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtilTest"/>
         </classes>
     </test>
 </suite>
