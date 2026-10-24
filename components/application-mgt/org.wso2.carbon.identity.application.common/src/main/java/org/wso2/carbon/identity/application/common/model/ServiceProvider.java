@@ -57,6 +57,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
     private static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED =
             "IsEnhancedOrganizationAuthenticationEnabled";
+    private static final String ALLOW_SHARED_APP_ROLE_MANAGEMENT = "AllowSharedAppRoleManagement";
     private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
@@ -159,6 +160,14 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED)
     private boolean isEnhancedOrganizationAuthenticationEnabled;
+
+    /*
+     Kept as a wrapper so that an update which does not carry the setting (e.g. importing a file without the element)
+     can be told apart from one that turns it off. The stored value is kept for such updates.
+     */
+    @IgnoreNullElement
+    @XmlElement(name = ALLOW_SHARED_APP_ROLE_MANAGEMENT)
+    private Boolean allowSharedAppRoleManagement;
 
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
@@ -718,6 +727,42 @@ public class ServiceProvider implements Serializable {
     public void setEnhancedOrganizationAuthenticationEnabled(boolean isEnhancedOrganizationAuthenticationEnabled) {
 
         this.isEnhancedOrganizationAuthenticationEnabled = isEnhancedOrganizationAuthenticationEnabled;
+    }
+
+    /**
+     * Check whether sub organizations are allowed to manage their own roles for the shared applications of this
+     * service provider. For application audience roles, organizations can create application roles for the shared
+     * applications and have them resolved. For organization audience roles, the organization roles of the
+     * organizations are associated with the shared applications.
+     *
+     * @return true if role management for shared applications is allowed, false otherwise.
+     */
+    public boolean isSharedAppRoleManagementAllowed() {
+
+        return Boolean.TRUE.equals(allowSharedAppRoleManagement);
+    }
+
+    /**
+     * Check whether the shared application role management setting is specified for this service provider instance.
+     * It is not specified when the instance is built from a source that does not carry it, e.g. an imported file
+     * without the element.
+     *
+     * @return true if the setting is specified, false otherwise.
+     */
+    public boolean hasSharedAppRoleManagementSetting() {
+
+        return allowSharedAppRoleManagement != null;
+    }
+
+    /**
+     * Set whether sub organizations are allowed to manage their own roles for the shared applications of this service
+     * provider.
+     *
+     * @param allowSharedAppRoleManagement true to allow role management for shared applications, false to disallow.
+     */
+    public void setSharedAppRoleManagementAllowed(boolean allowSharedAppRoleManagement) {
+
+        this.allowSharedAppRoleManagement = allowSharedAppRoleManagement;
     }
 
     public boolean isAPIBasedAuthenticationEnabled() {

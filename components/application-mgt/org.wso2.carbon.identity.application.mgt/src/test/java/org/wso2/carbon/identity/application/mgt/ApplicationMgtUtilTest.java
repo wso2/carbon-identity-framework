@@ -30,6 +30,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -97,6 +98,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFA
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SHARED_APP_ROLE_MANAGEMENT_FEATURE_ENABLED_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.PATH_CONSTANT;
 import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SHARE_WITH_ALL_CHILDREN;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
@@ -721,7 +723,7 @@ public class ApplicationMgtUtilTest {
             }
         }
     }
-  
+
     @Test
     void testGetSecureSaxParserFactory_ShouldUnmarshalValidXML() throws Exception {
 
@@ -974,5 +976,83 @@ public class ApplicationMgtUtilTest {
         when(mockPrivilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(mockPrivilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(mockPrivilegedCarbonContext.getUsername()).thenReturn("admin");
+    }
+
+    @DataProvider(name = "sharedAppRoleManagementConfigProvider")
+    public Object[][] sharedAppRoleManagementConfigProvider() {
+
+        return new Object[][]{
+                // isEnhancedOrgAuthEnabled, isSharedAppRoleManagementAllowed, allowedAudience, expected,
+                // expected for organization audience.
+                {true, true, "application", true, false},
+                {true, true, "organization", false, true},
+                {true, false, "application", false, false},
+                {true, false, "organization", false, false},
+                {false, true, "application", false, false},
+                {false, true, "organization", false, false},
+                {true, true, null, false, false}
+        };
+    }
+
+    @Test(dataProvider = "sharedAppRoleManagementConfigProvider")
+    public void testIsSharedAppRoleManagementEnabled(boolean isEnhancedOrgAuthEnabled,
+                                                   boolean isSharedAppRoleManagementAllowed, String allowedAudience,
+                                                   boolean expected, boolean expectedForOrganizationAudience) {
+
+        ServiceProvider mainApplication = new ServiceProvider();
+        mainApplication.setEnhancedOrganizationAuthenticationEnabled(isEnhancedOrgAuthEnabled);
+        mainApplication.setSharedAppRoleManagementAllowed(isSharedAppRoleManagementAllowed);
+        if (allowedAudience != null) {
+            AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+            associatedRolesConfig.setAllowedAudience(allowedAudience);
+            mainApplication.setAssociatedRolesConfig(associatedRolesConfig);
+        }
+
+        assertEquals(ApplicationMgtUtil.isSharedAppRoleManagementEnabled(mainApplication), expected);
+        assertEquals(ApplicationMgtUtil.isSharedAppOrganizationRoleManagementEnabled(mainApplication),
+                expectedForOrganizationAudience);
+    }
+
+    @DataProvider(name = "sharedAppRoleManagementFeatureConfigProvider")
+    public Object[][] sharedAppRoleManagementFeatureConfigProvider() {
+
+        return new Object[][]{
+                // Configured value, expected.
+                {null, true},
+                {"", true},
+                {"true", true},
+                {"false", false},
+                {" FALSE ", false}
+        };
+    }
+
+    @Test(dataProvider = "sharedAppRoleManagementFeatureConfigProvider")
+    public void testIsSharedAppRoleManagementFeatureEnabled(String configuredValue, boolean expected) {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(SHARED_APP_ROLE_MANAGEMENT_FEATURE_ENABLED_PROPERTY))
+                    .thenReturn(configuredValue);
+            assertEquals(ApplicationMgtUtil.isSharedAppRoleManagementFeatureEnabled(), expected);
+        }
+    }
+
+    @Test
+    public void testIsSharedAppRoleManagementEnabledWhenFeatureDisabled() {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(SHARED_APP_ROLE_MANAGEMENT_FEATURE_ENABLED_PROPERTY))
+                    .thenReturn("false");
+            for (String allowedAudience : new String[]{"application", "organization"}) {
+                ServiceProvider mainApplication = new ServiceProvider();
+                mainApplication.setEnhancedOrganizationAuthenticationEnabled(true);
+                mainApplication.setSharedAppRoleManagementAllowed(true);
+                AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+                associatedRolesConfig.setAllowedAudience(allowedAudience);
+                mainApplication.setAssociatedRolesConfig(associatedRolesConfig);
+
+                assertFalse(ApplicationMgtUtil.isSharedAppRoleManagementEnabled(mainApplication));
+                assertFalse(ApplicationMgtUtil.isSharedAppOrganizationRoleManagementEnabled(mainApplication));
+            }
+        }
     }
 }

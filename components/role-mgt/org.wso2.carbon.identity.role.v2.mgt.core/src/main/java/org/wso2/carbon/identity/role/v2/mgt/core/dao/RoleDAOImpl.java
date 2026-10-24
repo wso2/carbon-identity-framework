@@ -230,7 +230,6 @@ public class RoleDAOImpl implements RoleDAO {
     private static final String PERMISSIONS = "permissions";
     private static final String ASSOCIATED_APPLICATIONS = "associatedApplications";
     private static final String PROPERTIES = "properties";
-    private static final String IS_FRAGMENT_APP = "isFragmentApp";
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -931,11 +930,16 @@ public class RoleDAOImpl implements RoleDAO {
             String roleSharedTenantDomain = IdentityTenantUtil.getTenantDomain(roleDTO.getTenantId());
             String roleSharedOrganization = RoleManagementUtils.getOrganizationId(roleSharedTenantDomain);
             boolean isRoleExist = false;
-            // If the role audience is ORGANIZATION, then we need to check whether a role is already exists with the
-            // new role name in the targeted organization. If the role exists, then we need to skip the role name
-            // update and log the conflict.
+            // Check whether a role already exists with the new role name for the shared role's audience in the
+            // targeted organization. If the role exists, then we need to skip the role name update and log the
+            // conflict. For APPLICATION audience, the audience is the shared application of that organization,
+            // where the organization may have authored its own roles.
             if (ORGANIZATION.equals(roleAudience)) {
                 isRoleExist = isExistingRoleName(newRoleName, roleAudience, roleSharedOrganization,
+                        roleSharedTenantDomain);
+            } else if (APPLICATION.equals(roleAudience)) {
+                RoleAudience sharedRoleAudience = getAudienceByRoleID(roleDTO.getId(), roleSharedTenantDomain);
+                isRoleExist = isExistingRoleName(newRoleName, APPLICATION, sharedRoleAudience.getAudienceId(),
                         roleSharedTenantDomain);
             }
             if (!isRoleExist) {
@@ -1518,6 +1522,20 @@ public class RoleDAOImpl implements RoleDAO {
         return associatedApplicationIds;
     }
 
+    @Override
+    public List<RoleBasicInfo> getRolesByApplication(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleBasicInfo> roles = new ArrayList<>();
+        for (RoleDTO hybridRole : getHybridRolesByApplication(applicationId, tenantDomain)) {
+            RoleBasicInfo roleBasicInfo = new RoleBasicInfo(hybridRole.getId(), hybridRole.getName());
+            roleBasicInfo.setAudience(APPLICATION);
+            roleBasicInfo.setAudienceId(applicationId);
+            roles.add(roleBasicInfo);
+        }
+        return roles;
+    }
+
     private List<RoleDTO> getHybridRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -1690,7 +1708,11 @@ public class RoleDAOImpl implements RoleDAO {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
 
-                if (APPLICATION.equals(audience) && !isFragmentApp()) {
+                /*
+                 Inherited roles provisioned into an organization by the role sharing flows are not associated with
+                 the shared application. Their association is resolved through the main application roles.
+                 */
+                if (APPLICATION.equals(audience) && !isSharedRoleProvisioningFlow()) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -1707,20 +1729,15 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     /**
-     * Check whether the corresponding application is a fragment application. This check is using a thread local
-     * property which is set from the default role management listener.
+     * Check whether the role is being created by the role sharing flows, as an inherited role of a main application
+     * role. The role sharing flows set this thread local property while provisioning inherited roles.
      *
-     * @return True if the application is a fragment application.
+     * @return True if the role is being created by the role sharing flows.
      */
-    private boolean isFragmentApp() {
+    private boolean isSharedRoleProvisioningFlow() {
 
-        if (IdentityUtil.threadLocalProperties.get().get(IS_FRAGMENT_APP) != null) {
-            boolean isFragmentApp = Boolean.parseBoolean(IdentityUtil.threadLocalProperties.get().
-                    get(IS_FRAGMENT_APP).toString());
-            IdentityUtil.threadLocalProperties.get().remove(IS_FRAGMENT_APP);
-            return isFragmentApp;
-        }
-        return false;
+        return Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get()
+                .get(RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW));
     }
 
     @Override

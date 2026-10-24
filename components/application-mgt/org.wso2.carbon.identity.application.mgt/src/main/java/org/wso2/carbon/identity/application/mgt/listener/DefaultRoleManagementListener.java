@@ -19,16 +19,19 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
+import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
@@ -38,7 +41,10 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderBy
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
@@ -56,13 +62,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
 /**
@@ -527,13 +536,13 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
         } catch (IdentityRoleManagementException | IdentityApplicationManagementException e) {
             throw new IdentityRoleManagementException(
                 String.format("Error occurred while getting associated apps of role : %s in tenant domain : %s",
-                        tenantDomain), e);
+                        roleId, tenantDomain), e);
         }
     }
 
     /**
-     * Validate application type and the role audience of the application. The application type will be set to the
-     * thread local properties.
+     * Validate application type and the role audience of the application. For a shared (fragment) application, role
+     * authoring by the sub organization is allowed only if the main application allows it.
      *
      * @param applicationId Application ID.
      * @param tenantDomain  Tenant domain.
@@ -561,11 +570,6 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                         "Application: " + applicationId + " does not have Application role audience type");
             }
 
-            // Set thread local property to identify that the application is a fragment application. This property
-            // will be used in the role management component to identify the application type.
-            if (IdentityUtil.threadLocalProperties.get().get(ApplicationConstants.IS_FRAGMENT_APP) != null) {
-                IdentityUtil.threadLocalProperties.get().remove(ApplicationConstants.IS_FRAGMENT_APP);
-            }
             // If the mainAppId is not null, the passed applicationId is a fragment application.
             String mainAppId = ApplicationManagementService.getInstance().getMainAppId(applicationId);
             if (mainAppId != null) {
@@ -573,11 +577,39 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                     LOG.debug("Application: " + applicationId +
                             " is identified as a fragment application with mainAppId: " + mainAppId);
                 }
-                IdentityUtil.threadLocalProperties.get().put(ApplicationConstants.IS_FRAGMENT_APP, Boolean.TRUE);
+                validateSharedAppRoleCreationAllowed(applicationId, mainAppId);
             }
         } catch (IdentityApplicationManagementException e) {
             String errorMessage = "Error while retrieving the application for the given id: " + applicationId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Validate whether a role can be authored in a sub organization against the given shared application. The main
+     * application must use application audience roles and have enhanced organization authentication and shared
+     * application role management enabled. Inherited roles provisioned by the role sharing flows are not subjected to
+     * this validation.
+     *
+     * @param sharedAppId Shared application ID.
+     * @param mainAppId   Main application ID of the shared application.
+     * @throws IdentityRoleManagementException If application role creation is not allowed for the shared application.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the main application.
+     */
+    private void validateSharedAppRoleCreationAllowed(String sharedAppId, String mainAppId)
+            throws IdentityRoleManagementException, IdentityApplicationManagementException {
+
+        if (Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get().get(IS_SHARED_ROLE_PROVISIONING_FLOW))) {
+            return;
+        }
+        ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
+        String mainAppTenantDomain =
+                IdentityTenantUtil.getTenantDomain(applicationManagementService.getTenantIdByApp(mainAppId));
+        ServiceProvider mainApp = applicationManagementService.getApplicationByResourceId(mainAppId,
+                mainAppTenantDomain);
+        if (!ApplicationMgtUtil.isSharedAppRoleManagementEnabled(mainApp)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Creating application roles is not allowed for the shared application: " + sharedAppId);
         }
     }
 
@@ -603,6 +635,59 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                         "Permission : " + permission.getName() + " is not authorized for application " +
                                 "with ID: " + applicationId);
             }
+        }
+        if (!isOrganization(tenantDomain)) {
+            return;
+        }
+        /*
+         Roles in an organization can only have permissions of the API resources available to organizations, i.e.
+         organization, business and other organization level API resources. Management API resources authorized for
+         the application, e.g. for the main application of a shared application, are not allowed.
+         */
+        Set<String> organizationScopes = getOrganizationScopes(tenantDomain);
+        for (Permission permission : permissions) {
+            if (!organizationScopes.contains(permission.getName())) {
+                throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
+                        "Permission : " + permission.getName() + " is not allowed for roles in organizations.");
+            }
+        }
+    }
+
+    /**
+     * Get the scopes of the API resources available to the given organization. Management API resources are not
+     * available to organizations.
+     *
+     * @param tenantDomain Tenant domain of the organization.
+     * @return Scopes of the API resources available to the organization.
+     * @throws IdentityRoleManagementException Error occurred while retrieving the scopes.
+     */
+    private Set<String> getOrganizationScopes(String tenantDomain) throws IdentityRoleManagementException {
+
+        try {
+            return ApplicationManagementServiceComponentHolder.getInstance().getAPIResourceManager()
+                    .getScopesByTenantDomain(tenantDomain, StringUtils.EMPTY).stream()
+                    .map(Scope::getName)
+                    .collect(Collectors.toSet());
+        } catch (APIResourceMgtException e) {
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Error while retrieving the scopes of the organization: " + tenantDomain, e);
+        }
+    }
+
+    /**
+     * Check whether the given tenant domain belongs to an organization.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return True if the tenant domain belongs to an organization.
+     * @throws IdentityRoleManagementException Error occurred while resolving the organization.
+     */
+    private boolean isOrganization(String tenantDomain) throws IdentityRoleManagementException {
+
+        try {
+            return OrganizationManagementUtil.isOrganization(tenantDomain);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Error while resolving the organization of the tenant: " + tenantDomain, e);
         }
     }
 

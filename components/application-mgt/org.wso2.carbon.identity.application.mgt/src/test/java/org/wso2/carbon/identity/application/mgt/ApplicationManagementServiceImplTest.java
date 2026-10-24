@@ -677,14 +677,14 @@ public class ApplicationManagementServiceImplTest {
     @Test(dataProvider = "organizationDataProvider")
     public void testCreateAndGetApplicationWithProtocolService(boolean isOrganization) throws
             IdentityApplicationManagementException {
-        
+
         ApplicationDTO.Builder applicationDTOBuilder = new ApplicationDTO.Builder();
         ServiceProvider inputSP1 = new ServiceProvider();
         inputSP1.setApplicationName(APPLICATION_NAME_1);
         // Adding application configurations except inbound protocol configurations.
         addApplicationConfigurations(inputSP1);
         applicationDTOBuilder.serviceProvider(inputSP1);
-        
+
         // Creating OAuth2 inbound protocol configurations.
         InboundProtocolsDTO inbounds = setInboundProtocol();
         inbounds.addProtocolConfiguration(() -> ApplicationConstants.StandardInboundProtocols.SAML2);
@@ -758,27 +758,27 @@ public class ApplicationManagementServiceImplTest {
         }
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
-    
+
     private ApplicationInboundAuthConfigHandler customSAML2InboundAuthConfigHandler(boolean isOrganization) {
-        
+
         return new ApplicationInboundAuthConfigHandler() {
             @Override
             public boolean canHandle(InboundProtocolsDTO inboundProtocolsDTO) {
-                
+
                 return !isOrganization;
             }
-            
+
             @Override
             public boolean canHandle(String protocolName) {
-                
+
                 return ApplicationConstants.StandardInboundProtocols.SAML2.equals(protocolName);
             }
-            
+
             @Override
             public InboundAuthenticationRequestConfig handleConfigCreation(ServiceProvider serviceProvider,
                                                                            InboundProtocolsDTO inboundProtocolsDTO)
                     throws IdentityApplicationManagementException {
-                
+
                 InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = new
                         InboundAuthenticationRequestConfig();
                 inboundAuthenticationRequestConfig.setInboundAuthKey(APPLICATION_INBOUND_AUTH_KEY_1);
@@ -786,24 +786,24 @@ public class ApplicationManagementServiceImplTest {
                         ApplicationConstants.StandardInboundProtocols.SAML2);
                 return inboundAuthenticationRequestConfig;
             }
-            
+
             @Override
             public InboundAuthenticationRequestConfig handleConfigUpdate(
                     ServiceProvider application, InboundProtocolConfigurationDTO inboundProtocolsDTO)
                     throws IdentityApplicationManagementException {
-                
+
                 return null;
             }
-            
+
             @Override
             public void handleConfigDeletion(String appId) throws IdentityApplicationManagementException {
-            
+
             }
-            
+
             @Override
             public InboundProtocolConfigurationDTO handleConfigRetrieval(String appId)
                     throws IdentityApplicationManagementException {
-                
+
                 return null;
             }
         };
@@ -2295,7 +2295,7 @@ public class ApplicationManagementServiceImplTest {
         inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(authRequests);
         serviceProvider.setInboundAuthenticationConfig(inboundAuthenticationConfig);
     }
-    
+
     private InboundProtocolsDTO setInboundProtocol() {
 
         InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
@@ -2709,6 +2709,61 @@ public class ApplicationManagementServiceImplTest {
                                 SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME));
                 Assert.assertEquals(exception.getErrorCode(), INVALID_REQUEST.getCode());
             }
+        } finally {
+            applicationManagementService.deleteApplication(appName, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        }
+    }
+
+    @DataProvider(name = "sharedAppRoleManagementUpdateDataProvider")
+    public Object[][] sharedAppRoleManagementUpdateDataProvider() {
+
+        return new Object[][]{
+                // Setting carried by the update, expected stored setting.
+                {null, true},    // Not carried, e.g. an imported file without the element: stored value kept.
+                {false, false},  // Explicitly turned off.
+                {true, true}
+        };
+    }
+
+    /**
+     * Test that an update which does not carry the shared application role management setting keeps the stored value.
+     */
+    @Test(dataProvider = "sharedAppRoleManagementUpdateDataProvider")
+    public void testUpdateApplicationKeepsSharedAppRoleManagementSetting(Boolean updatedSetting,
+                                                                         boolean expectedSetting) throws Exception {
+
+        String appName = "TestSharedAppRoleManagementUpdateApp";
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(appName);
+        addApplicationConfigurations(inputSP);
+        inputSP.setEnhancedOrganizationAuthenticationEnabled(true);
+        inputSP.setSharedAppRoleManagementAllowed(true);
+
+        try {
+            String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+            ServiceProvider storedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            Assert.assertTrue(storedSP.isSharedAppRoleManagementAllowed());
+
+            ServiceProvider spForUpdate = new ServiceProvider();
+            spForUpdate.setApplicationName(appName);
+            spForUpdate.setApplicationID(storedSP.getApplicationID());
+            spForUpdate.setApplicationResourceId(resourceId);
+            spForUpdate.setApplicationVersion(storedSP.getApplicationVersion());
+            addApplicationConfigurations(spForUpdate);
+            spForUpdate.setEnhancedOrganizationAuthenticationEnabled(true);
+            if (updatedSetting != null) {
+                spForUpdate.setSharedAppRoleManagementAllowed(updatedSetting);
+            }
+            Assert.assertEquals(spForUpdate.hasSharedAppRoleManagementSetting(), updatedSetting != null);
+
+            applicationManagementService.updateApplication(spForUpdate, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+
+            ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            Assert.assertEquals(retrievedSP.isSharedAppRoleManagementAllowed(), expectedSetting);
         } finally {
             applicationManagementService.deleteApplication(appName, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
         }
