@@ -1526,6 +1526,7 @@
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
   "console.webhooks.enabled": true,
   "console.webhooks.disabled_features": [
+    "webhooks.childOrgSubscription",
     "webhooks.settings"
   ],
   "console.agents.disabled_features": [
