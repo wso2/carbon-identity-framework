@@ -27,6 +27,9 @@ CREATE OR REPLACE PROCEDURE wso2_session_cleanup_sp IS
     opmetadatacleanupcount           INT := 0;
     opcleanupcount                   INT := 0;
     expiredsessioncount              INT := 0;
+    deletedfedsessionmappings        INT := 0;
+    fedmappingcleanupcount           INT := 0;
+    fedmappingcleanuptime            TIMESTAMP;
 
 -- ------------------------------------------
 -- CONFIGURABLE VARIABLES
@@ -38,6 +41,7 @@ CREATE OR REPLACE PROCEDURE wso2_session_cleanup_sp IS
     sleeptime                        INT := 2;          -- Sleep time in seconds.
     sessnclntiminminits              INT := 120;      -- Expired Session data older than 120 minutes (2 hours) will be removed.
     opertnclntimeinminits            INT := 720;        -- Operational data older than 720 minutes (12 h) will be removed.
+    fedmappingclntimeinminits        INT := 1440;       -- Federated session mappings without a session, created more than 1440 minutes (24 h) ago, will be removed.
 
 BEGIN
 
@@ -140,6 +144,20 @@ BEGIN
                 EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED SESSIONS COMPLETED WITH '|| sessioncleanupcount||''')';
                 COMMIT;
             END IF;
+
+            -- Deleting federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+            SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_FED_AUTH_SESSION_MAPPING');
+            IF (ROWCOUNT = 1) then
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
+                fedmappingcleanupcount := SQL%rowcount;
+                COMMIT;
+                IF ( tracingenabled ) THEN
+                    deletedfedsessionmappings := deletedfedsessionmappings + fedmappingcleanupcount;
+                    EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED FEDERATED SESSION MAPPINGS COMPLETED WITH '|| fedmappingcleanupcount||''')';
+                    COMMIT;
+                END IF;
+            END IF;
+            -- End of deleting federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
 
             EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE ROW_ID IN (SELECT ROW_ID FROM TEMP_SESSION_BATCH)';
             COMMIT;
@@ -426,6 +444,20 @@ BEGIN
             END IF;
             -- End of deleting operational data related session metadata from 'IDN_AUTH_SESSION_META_DATA' table
 
+            -- Deleting operational data related federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+            SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_FED_AUTH_SESSION_MAPPING');
+            IF (ROWCOUNT = 1) then
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
+                fedmappingcleanupcount := SQL%rowcount;
+                COMMIT;
+                IF ( tracingenabled ) THEN
+                    deletedfedsessionmappings := deletedfedsessionmappings + fedmappingcleanupcount;
+                    EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED OPERATIONAL FEDERATED SESSION MAPPINGS COMPLETED WITH '|| fedmappingcleanupcount||''')';
+                    COMMIT;
+                END IF;
+            END IF;
+            -- End of deleting operational data related federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+
             EXECUTE IMMEDIATE 'DELETE IDN_AUTH_SESSION_STORE_TMP where ROW_ID in (select ROW_ID from TEMP_SESSION_BATCH)';
             COMMIT;
 
@@ -452,6 +484,46 @@ BEGIN
     IF ( tracingenabled ) THEN
         EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''OPERATION_CLEANUP_TASK COMPLETED REMOVING '||deletedstoreoperations||' OPERATIONS'')';
         COMMIT;
+    END IF;
+
+-- --------------------------------------------
+-- REMOVE ORPHANED FEDERATED SESSION MAPPINGS
+-- --------------------------------------------
+-- The deletes above remove only the federated session mappings of the sessions they remove. Mappings whose session
+-- was removed earlier, for example by the session data cleanup task of the server, are removed here.
+
+    SELECT COUNT(*) INTO rowcount from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_FED_AUTH_SESSION_MAPPING');
+    IF (rowcount = 1) THEN
+
+        IF ( tracingenabled ) THEN
+            EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),'' '')';
+            EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''ORPHANED_FEDERATED_SESSION_MAPPING_CLEANUP_TASK STARTED .... !'')';
+            COMMIT;
+        END IF;
+
+        fedmappingcleanuptime := LOCALTIMESTAMP - NUMTODSINTERVAL(fedmappingclntimeinminits, 'MINUTE');
+
+        LOOP
+            EXECUTE IMMEDIATE 'DELETE FROM IDN_FED_AUTH_SESSION_MAPPING M WHERE M.TIME_CREATED < :fedMappingCleanupTime AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_SESSION_STORE S WHERE S.SESSION_ID = M.SESSION_ID) AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_TEMP_SESSION_STORE T WHERE T.SESSION_ID = M.SESSION_ID) AND rownum <= :batchSize'
+            USING fedmappingcleanuptime, batchsize;
+            fedmappingcleanupcount := SQL%rowcount;
+            COMMIT;
+
+            IF ( tracingenabled ) THEN
+                deletedfedsessionmappings := deletedfedsessionmappings + fedmappingcleanupcount;
+                EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED ORPHANED FEDERATED SESSION MAPPINGS COMPLETED WITH '|| fedmappingcleanupcount||''')';
+                COMMIT;
+            END IF;
+
+            EXIT WHEN fedmappingcleanupcount = 0;
+
+            dbms_lock.sleep(sleeptime);
+        END LOOP;
+
+        IF ( tracingenabled ) THEN
+            EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''SESSION_CLEANUP_TASK COMPLETED REMOVING '||deletedfedsessionmappings||' FEDERATED SESSION MAPPINGS'')';
+            COMMIT;
+        END IF;
     END IF;
 
     IF ( tracingenabled ) THEN
