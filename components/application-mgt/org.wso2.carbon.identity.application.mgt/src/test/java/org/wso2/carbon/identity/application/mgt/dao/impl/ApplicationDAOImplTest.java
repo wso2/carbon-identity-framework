@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
@@ -50,6 +51,8 @@ import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,6 +63,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -421,6 +426,163 @@ public class ApplicationDAOImplTest {
                 .getApplication("test-update-fragment-app", SUPER_TENANT_DOMAIN_NAME);
         assertEquals(serviceProvider2.getApplicationName(), "test-update-fragment-app");
         assertEquals(serviceProvider2.getAssociatedRolesConfig().getRoles().length, 0);
+    }
+
+    @Test(description = "Test persisting the shared application role creation configuration of an application.",
+            dependsOnMethods = { "testUpdateApplicationForFragmentApp" })
+    public void testSharedAppRoleManagementConfig() throws IdentityApplicationManagementException {
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("test-sub-org-role-authoring-app");
+        serviceProvider.setApplicationVersion("v1.0.0");
+        serviceProvider.setEnhancedOrganizationAuthenticationEnabled(true);
+        serviceProvider.setSharedAppRoleManagementEnabled(true);
+        applicationDAO.createApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+
+        ServiceProvider storedServiceProvider =
+                applicationDAO.getApplication("test-sub-org-role-authoring-app", SUPER_TENANT_DOMAIN_NAME);
+        assertTrue(storedServiceProvider.isSharedAppRoleManagementEnabled());
+
+        storedServiceProvider.setSharedAppRoleManagementEnabled(false);
+        applicationDAO.updateApplication(storedServiceProvider, SUPER_TENANT_DOMAIN_NAME);
+        assertFalse(applicationDAO.getApplication("test-sub-org-role-authoring-app", SUPER_TENANT_DOMAIN_NAME)
+                .isSharedAppRoleManagementEnabled());
+    }
+
+    @Test(description = "Test retrieving the associated roles of a shared application.",
+            dependsOnMethods = { "testSharedAppRoleManagementConfig" })
+    public void testGetAssociatedRolesOfSharedApplication() throws Exception {
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        String mainAppId = createMainApplicationAndGetResourceId(applicationDAO, "test-main-app", true);
+        String sharedAppId = createApplicationAndGetResourceId(applicationDAO, "test-shared-app");
+        addSharedApplication(mainAppId, sharedAppId, "shared-org-id");
+
+        // Roles in the shared application organization: an inherited role and a role authored by the organization.
+        RoleBasicInfo inheritedRole = new RoleBasicInfo("inherited-role-id", "inherited-role");
+        RoleBasicInfo organizationRole = new RoleBasicInfo("org-role-id", "org-role");
+        when(mockRoleManagementService.getRolesByApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME))
+                .thenReturn(Arrays.asList(inheritedRole, organizationRole));
+
+        List<RoleV2> associatedRoles =
+                applicationDAO.getAssociatedRolesOfApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME);
+
+        assertEquals(associatedRoles.size(), 2);
+        assertEquals(associatedRoles.get(0).getId(), "inherited-role-id");
+        assertEquals(associatedRoles.get(0).getName(), "inherited-role");
+        assertEquals(associatedRoles.get(1).getId(), "org-role-id");
+        assertEquals(associatedRoles.get(1).getName(), "org-role");
+        // Role names are not resolved one by one.
+        verify(mockRoleManagementService, never()).getRoleBasicInfoById("org-role-id", SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    @Test(description = "Test retrieving the associated roles of a shared application when the role management " +
+            "service is not available.", dependsOnMethods = { "testGetAssociatedRolesOfSharedApplication" })
+    public void testGetAssociatedRolesOfSharedApplicationWithoutRoleManagementService() throws Exception {
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        String mainAppId = createMainApplicationAndGetResourceId(applicationDAO, "test-main-app-2", true);
+        String sharedAppId = createApplicationAndGetResourceId(applicationDAO, "test-shared-app-2");
+        addSharedApplication(mainAppId, sharedAppId, "shared-org-id-2");
+
+        when(mockComponentHolder.getRoleManagementServiceV2()).thenReturn(null);
+        try {
+            assertTrue(applicationDAO.getAssociatedRolesOfApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME)
+                    .isEmpty());
+        } finally {
+            when(mockComponentHolder.getRoleManagementServiceV2()).thenReturn(mockRoleManagementService);
+        }
+    }
+
+    @Test(description = "Test retrieving the associated roles of a shared application when the main application does " +
+            "not allow organizations to create application roles.",
+            dependsOnMethods = { "testGetAssociatedRolesOfSharedApplicationWithoutRoleManagementService" })
+    public void testGetAssociatedRolesOfSharedApplicationWhenRoleCreationNotAllowed() throws Exception {
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        String mainAppId = createMainApplicationAndGetResourceId(applicationDAO, "test-main-app-3", false);
+        String sharedAppId = createApplicationAndGetResourceId(applicationDAO, "test-shared-app-3");
+        addSharedApplication(mainAppId, sharedAppId, "shared-org-id-3");
+
+        // The roles are not resolved by the role audience. They are resolved through the main application roles.
+        assertTrue(applicationDAO.getAssociatedRolesOfApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME).isEmpty());
+        verify(mockRoleManagementService, never()).getRolesByApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    @Test(description = "Test retrieving the associated roles of a shared application when the main application uses " +
+            "organization audience roles and allows organizations to manage roles.",
+            dependsOnMethods = { "testGetAssociatedRolesOfSharedApplicationWhenRoleCreationNotAllowed" })
+    public void testGetAssociatedRolesOfSharedApplicationWithOrganizationAudience() throws Exception {
+
+        // Organization roles of the organization: a role shared from the parent and a role created by it.
+        RoleBasicInfo sharedRole = new RoleBasicInfo("shared-org-role-id", "shared-org-role");
+        RoleBasicInfo organizationRole = new RoleBasicInfo("local-org-role-id", "local-org-role");
+        when(mockRoleManagementService.getRoles(eq(RoleConstants.AUDIENCE + " " + RoleConstants.EQ + " " +
+                        RoleConstants.ORGANIZATION), nullable(Integer.class), nullable(Integer.class),
+                nullable(String.class), nullable(String.class), eq(SUPER_TENANT_DOMAIN_NAME)))
+                .thenReturn(Arrays.asList(sharedRole, organizationRole));
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        ServiceProvider mainApplication = new ServiceProvider();
+        mainApplication.setApplicationName("test-main-app-4");
+        mainApplication.setApplicationVersion("v1.0.0");
+        mainApplication.setEnhancedOrganizationAuthenticationEnabled(true);
+        mainApplication.setSharedAppRoleManagementEnabled(true);
+        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+        associatedRolesConfig.setAllowedAudience(RoleConstants.ORGANIZATION);
+        mainApplication.setAssociatedRolesConfig(associatedRolesConfig);
+        applicationDAO.createApplication(mainApplication, SUPER_TENANT_DOMAIN_NAME);
+        String mainAppId = applicationDAO.getApplication("test-main-app-4", SUPER_TENANT_DOMAIN_NAME)
+                .getApplicationResourceId();
+        String sharedAppId = createApplicationAndGetResourceId(applicationDAO, "test-shared-app-4");
+        addSharedApplication(mainAppId, sharedAppId, "shared-org-id-4");
+
+        List<RoleV2> associatedRoles =
+                applicationDAO.getAssociatedRolesOfApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME);
+
+        // All organization roles of the organization are associated, including the ones created by it.
+        assertEquals(associatedRoles.size(), 2);
+        assertEquals(associatedRoles.get(0).getId(), "shared-org-role-id");
+        assertEquals(associatedRoles.get(1).getId(), "local-org-role-id");
+        verify(mockRoleManagementService, never()).getRolesByApplication(sharedAppId, SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    private String createMainApplicationAndGetResourceId(ApplicationDAO applicationDAO, String applicationName,
+                                                         boolean isSharedAppRoleManagementEnabled)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(applicationName);
+        serviceProvider.setApplicationVersion("v1.0.0");
+        serviceProvider.setEnhancedOrganizationAuthenticationEnabled(true);
+        serviceProvider.setSharedAppRoleManagementEnabled(isSharedAppRoleManagementEnabled);
+        applicationDAO.createApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+        return applicationDAO.getApplication(applicationName, SUPER_TENANT_DOMAIN_NAME).getApplicationResourceId();
+    }
+
+    private void addSharedApplication(String mainAppId, String sharedAppId, String sharedOrgId) throws Exception {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+             PreparedStatement statement = connection.prepareStatement("INSERT INTO SP_SHARED_APP (MAIN_APP_ID, " +
+                     "OWNER_ORG_ID, SHARED_APP_ID, SHARED_ORG_ID) VALUES (?, ?, ?, ?)")) {
+            statement.setString(1, mainAppId);
+            statement.setString(2, "owner-org-id");
+            statement.setString(3, sharedAppId);
+            statement.setString(4, sharedOrgId);
+            statement.executeUpdate();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        }
+    }
+
+    private String createApplicationAndGetResourceId(ApplicationDAO applicationDAO, String applicationName)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(applicationName);
+        serviceProvider.setApplicationVersion("v1.0.0");
+        applicationDAO.createApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+        return applicationDAO.getApplication(applicationName, SUPER_TENANT_DOMAIN_NAME).getApplicationResourceId();
     }
 
     /**

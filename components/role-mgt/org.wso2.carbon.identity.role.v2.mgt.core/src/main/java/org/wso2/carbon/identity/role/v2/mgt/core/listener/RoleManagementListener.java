@@ -719,6 +719,27 @@ public interface RoleManagementListener {
     default void postGetAssociatedApplicationIdsByRoleId(List<String> associatedApplicationByRoleId, String roleId,
                                                  String tenantDomain) throws IdentityRoleManagementException {};
 
+    /**
+     * Invoked before getting the roles whose audience is the given application.
+     *
+     * @param applicationId The unique identifier of the application.
+     * @param tenantDomain  The domain in which the operation was performed.
+     * @throws IdentityRoleManagementException If an error occurs while executing pre-listeners.
+     */
+    default void preGetRolesByApplication(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {}
+
+    /**
+     * Invoked after getting the roles whose audience is the given application.
+     *
+     * @param roles         The roles whose audience is the application.
+     * @param applicationId The unique identifier of the application.
+     * @param tenantDomain  The domain in which the operation was performed.
+     * @throws IdentityRoleManagementException If an error occurs while executing post-listeners.
+     */
+    default void postGetRolesByApplication(List<RoleBasicInfo> roles, String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {}
+
     default void preGetPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {}
 

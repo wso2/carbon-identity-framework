@@ -27,6 +27,7 @@
             <class name="org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImplTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImplMockUnitTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.AdminRoleListenerTest"/>
+            <class name="org.wso2.carbon.identity.application.mgt.DefaultRoleManagementListenerTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListenerTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImplTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.listener.ConsoleAuthorizedAPIListenerTest"/>

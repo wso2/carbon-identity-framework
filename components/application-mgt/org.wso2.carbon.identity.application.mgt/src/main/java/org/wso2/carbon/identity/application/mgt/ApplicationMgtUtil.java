@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -1291,6 +1292,40 @@ public class ApplicationMgtUtil {
     private static String getAbsolutePublicUrlWithoutPath() throws URLBuilderException {
 
         return ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+    }
+
+    /**
+     * Check whether organizations can manage application roles for the shared applications of the given main
+     * application.
+     *
+     * @param mainApplication Main application.
+     * @return True if application role management is enabled for the shared applications of the main application.
+     */
+    public static boolean isSharedAppRoleManagementEnabled(ServiceProvider mainApplication) {
+
+        return mainApplication != null
+                && mainApplication.isEnhancedOrganizationAuthenticationEnabled()
+                && mainApplication.isSharedAppRoleManagementEnabled()
+                && mainApplication.getAssociatedRolesConfig() != null
+                && RoleConstants.APPLICATION.equalsIgnoreCase(
+                        mainApplication.getAssociatedRolesConfig().getAllowedAudience());
+    }
+
+    /**
+     * Check whether the organization audience roles of organizations are honoured for the shared applications of the
+     * given main application.
+     *
+     * @param mainApplication Main application.
+     * @return True if the organization audience roles of organizations are honoured for the shared applications.
+     */
+    public static boolean isSharedAppOrganizationRoleManagementEnabled(ServiceProvider mainApplication) {
+
+        return mainApplication != null
+                && mainApplication.isEnhancedOrganizationAuthenticationEnabled()
+                && mainApplication.isSharedAppRoleManagementEnabled()
+                && mainApplication.getAssociatedRolesConfig() != null
+                && RoleConstants.ORGANIZATION.equalsIgnoreCase(
+                        mainApplication.getAssociatedRolesConfig().getAllowedAudience());
     }
 
     /**
