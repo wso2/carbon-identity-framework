@@ -79,6 +79,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private static final String IDN_AUTH_USER_SESSION_MAPPING_TABLE = "IDN_AUTH_USER_SESSION_MAPPING";
     private static final String IDN_AUTH_SESSION_APP_INFO_TABLE = "IDN_AUTH_SESSION_APP_INFO_TABLE";
     private static final String IDN_AUTH_SESSION_META_DATA_TABLE = "IDN_AUTH_SESSION_META_DATA";
+    private static final String IDN_FED_AUTH_SESSION_MAPPING_TABLE = "IDN_FED_AUTH_SESSION_MAPPING";
     private static final String COLUMN_SESSION_ID = "SESSION_ID";
     private static final String COLUMN_SUBJECT = "SUBJECT";
     private static final String COLUMN_APP_ID = "APP_ID";
@@ -624,8 +625,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         }
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        String[] removedSessions;
         try {
-            jdbcTemplate.withTransaction(template -> {
+            removedSessions = jdbcTemplate.withTransaction(template -> {
                 Set<String> terminatedAuthSessionIds = getSessionsTerminated(template);
                 String[] sessionsToRemove = terminatedAuthSessionIds.toArray(new String[0]);
 
@@ -647,10 +649,14 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                         log.debug("No expired sessions found to remove.");
                     }
                 }
-                return null;
+                return sessionsToRemove;
             });
         } catch (TransactionException e) {
             log.error("Error while removing expired session information from the database.", e);
+            return;
+        }
+        if (removedSessions.length > 0) {
+            removeFederatedAuthSessionMappings(removedSessions);
         }
     }
 
@@ -681,6 +687,29 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             });
         } catch (TransactionException e) {
             log.error("Error while removing the terminated session information from the database.", e);
+            return;
+        }
+        removeFederatedAuthSessionMappings(sessionsToRemove);
+    }
+
+    /**
+     * Remove the federated authentication session mappings of the given sessions. The mappings are stored in the
+     * identity database, while the other session records are stored in the session database.
+     *
+     * @param sessionsToRemove array of session ids whose mappings should be removed
+     */
+    private void removeFederatedAuthSessionMappings(String[] sessionsToRemove) {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                deleteSessionDataFromTable(sessionsToRemove, template, IDN_FED_AUTH_SESSION_MAPPING_TABLE,
+                        SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO);
+                return null;
+            });
+        } catch (TransactionException e) {
+            log.error("Error while removing the federated authentication session mappings of the removed sessions " +
+                    "from the database.", e);
         }
     }
 
