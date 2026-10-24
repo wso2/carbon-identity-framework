@@ -68,6 +68,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private Map<String, String> authenticatorProperties = new HashMap<>();
     private String serviceProviderName;
     private String serviceProviderResourceId;
+    private String serviceProviderOrganizationId;
+    private String serviceProviderTenantDomain;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
     private String redirectURL;
@@ -318,6 +320,22 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setServiceProviderResourceId(String serviceProviderResourceId) {
 
         this.serviceProviderResourceId = serviceProviderResourceId;
+    }
+
+    public String getServiceProviderOrganizationId() {
+        return serviceProviderOrganizationId;
+    }
+
+    public void setServiceProviderOrganizationId(String serviceProviderOrganizationId) {
+        this.serviceProviderOrganizationId = serviceProviderOrganizationId;
+    }
+
+    public String getServiceProviderTenantDomain() {
+        return serviceProviderTenantDomain;
+    }
+
+    public void setServiceProviderTenantDomain(String serviceProviderTenantDomain) {
+        this.serviceProviderTenantDomain = serviceProviderTenantDomain;
     }
 
     public boolean isForceAuthenticate() {

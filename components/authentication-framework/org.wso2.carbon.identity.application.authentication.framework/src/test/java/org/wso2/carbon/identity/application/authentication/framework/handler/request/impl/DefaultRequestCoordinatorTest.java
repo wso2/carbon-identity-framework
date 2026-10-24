@@ -65,6 +65,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
 import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.IOException;
@@ -670,7 +671,11 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
              MockedStatic<ConfigurationFacade> configurationFacadeMockedStatic = mockStatic(ConfigurationFacade.class);
              MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class);
              MockedStatic<ApplicationManagementService> applicationManagementServiceMockedStatic = mockStatic(
-                     ApplicationManagementService.class)) {
+                     ApplicationManagementService.class);
+             MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic =
+                     mockStatic(OrganizationManagementUtil.class)) {
+            organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                    .thenReturn(false);
 
             // Mock LoggerUtils.
             loggerUtilsMockedStatic.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);

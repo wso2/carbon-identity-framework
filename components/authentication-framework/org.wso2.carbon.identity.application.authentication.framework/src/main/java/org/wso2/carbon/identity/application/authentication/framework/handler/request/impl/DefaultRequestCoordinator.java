@@ -1726,6 +1726,65 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             context.setServiceProviderResourceId(
                     effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId());
         }
+
+        try {
+            if (OrganizationManagementUtil.isOrganization(context.getTenantDomain())) {
+                if (effectiveSequence.getApplicationConfig().getServiceProvider() != null && StringUtils.isNotBlank(
+                        effectiveSequence.getApplicationConfig().getServiceProvider().getTenantDomain())) {
+                    ServiceProvider serviceProvider = effectiveSequence.getApplicationConfig().getServiceProvider();
+                    boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
+                            .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                                    Boolean.parseBoolean(property.getValue()));
+                    try {
+                        if (isFragmentApp) {
+                            String mainAppId = FrameworkServiceDataHolder.getInstance().
+                                    getApplicationManagementService().getMainAppId(
+                                            effectiveSequence.getApplicationConfig().getServiceProvider().
+                                                    getApplicationResourceId());
+                            String mainAppTenantDomain = IdentityTenantUtil.getTenantDomain(FrameworkServiceDataHolder.
+                                    getInstance().getApplicationManagementService().getTenantIdByApp(mainAppId));
+                            ServiceProvider mainSp = FrameworkServiceDataHolder.getInstance().
+                                    getApplicationManagementService().getApplicationByResourceId(mainAppId,
+                                            mainAppTenantDomain);
+                            if (mainSp == null) {
+                                /*
+                                 The main application is the only thing that can answer which organization owns
+                                 the shared one. Without it the owner is left unresolved rather than guessed at,
+                                 and the login continues: this information is descriptive.
+                                 */
+                                log.warn("Main application not found for resource id: " + mainAppId +
+                                        " in tenant domain: " + mainAppTenantDomain +
+                                        ". The organization owning the application is left unresolved.");
+                            } else {
+                                String mainAppOrgId = FrameworkServiceDataHolder.getInstance().
+                                        getOrganizationManager().resolveOrganizationId(mainAppTenantDomain);
+                                /*
+                                 The resource id is deliberately left as the shared application's own. The
+                                 organization qualified callback flow looks the application up by it in the
+                                 organization being accessed, where only the shared application exists.
+                                 */
+                                context.setServiceProviderOrganizationId(mainAppOrgId);
+                                context.setServiceProviderTenantDomain(mainAppTenantDomain);
+                                context.getProperties().put("enhancedOrgLoginEnabled",
+                                        mainSp.isEnhancedOrganizationAuthenticationEnabled());
+                            }
+                        } else {
+                            String appOrgId = FrameworkServiceDataHolder.getInstance().
+                                    getOrganizationManager().resolveOrganizationId(
+                                            effectiveSequence.getApplicationConfig().
+                                                    getServiceProvider().getTenantDomain());
+                            context.setServiceProviderOrganizationId(appOrgId);
+                            context.setServiceProviderTenantDomain(
+                                    effectiveSequence.getApplicationConfig().getServiceProvider().getTenantDomain());
+                        }
+                    } catch (OrganizationManagementException | IdentityApplicationManagementException e) {
+                        log.warn("Application organization resolving is failed. " + e.getMessage(), e);
+                    }
+                }
+            }
+        } catch (OrganizationManagementException e) {
+            log.warn("Organization check failed. " + e.getMessage(), e);
+        }
     }
 
     /**
