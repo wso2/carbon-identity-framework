@@ -94,8 +94,9 @@ public final class WebhookSQLConstants {
         public static final String GET_WEBHOOK_BY_ID =
                 "SELECT * FROM IDN_WEBHOOK WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
 
+        // Ordered so that a page sliced from the result is stable across calls on every database.
         public static final String GET_WEBHOOKS_BY_TENANT =
-                "SELECT * FROM IDN_WEBHOOK WHERE TENANT_ID = :TENANT_ID;";
+                "SELECT * FROM IDN_WEBHOOK WHERE TENANT_ID = :TENANT_ID; ORDER BY ID";
 
         public static final String GET_WEBHOOK_INTERNAL_ID_BY_ID =
                 "SELECT ID FROM IDN_WEBHOOK WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";

@@ -45,6 +45,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -378,6 +379,33 @@ public class WebhookManagementDAOImplTest {
 
         assertTrue(foundOriginal, "Original webhook not found in results");
         assertTrue(foundSecond, "Second webhook not found in results");
+    }
+
+    /**
+     * Webhooks are listed in creation order, and an update does not move one: pages are sliced from this list,
+     * so its order must not change between calls. A tenant of its own keeps other tests' webhooks out.
+     */
+    @Test
+    public void testGetWebhooksListsInCreationOrderAcrossAnUpdate() throws WebhookMgtException {
+
+        int orderingTenantId = 23;
+        List<String> createdIds = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            Webhook webhook = buildWebhook(UUID.randomUUID().toString(), "https://example.com/webhook-order-" + i,
+                    Collections.singletonList(Subscription.builder().channelUri("order-channel")
+                            .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build()));
+            webhookManagementDAOImpl.createWebhook(webhook, orderingTenantId);
+            createdIds.add(webhook.getId());
+        }
+        webhookManagementDAOImpl.updateWebhook(buildWebhook(createdIds.get(0), "https://example.com/webhook-order-0",
+                Collections.singletonList(Subscription.builder().channelUri("order-channel")
+                        .status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED).build())), orderingTenantId);
+
+        List<String> listedIds = new ArrayList<>();
+        for (Webhook webhook : webhookManagementDAOImpl.getWebhooks(orderingTenantId)) {
+            listedIds.add(webhook.getId());
+        }
+        assertEquals(listedIds, createdIds);
     }
 
     @Test(dependsOnMethods = {"testGetWebhooks"})
