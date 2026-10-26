@@ -36,16 +36,23 @@ import org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistra
 import org.wso2.carbon.identity.device.registration.model.VerifiedDevice;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadata;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadataService;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -54,6 +61,8 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.INVITED_USER_REGISTRATION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
 
 /**
  * Flow executor implementing the two-phase device registration challenge-response protocol.
@@ -82,6 +91,16 @@ public class DeviceRegistrationExecutor implements Executor {
     @Override
     public ExecutorResponse execute(FlowExecutionContext context) throws FlowEngineException {
 
+        if (!isUserAuthenticated(context)) {
+            diagnosticLogger.logRegistrationFailure("User must be authenticated before registering a device.");
+            ExecutorResponse response = new ExecutorResponse();
+            response.setResult(STATUS_ERROR);
+            response.setErrorCode(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
+            response.setErrorMessage(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getMessage());
+            response.setErrorDescription(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getDescription());
+            return response;
+        }
+
         String registrationId = (String) context.getProperty(DeviceRegistrationConstants.CTX_REGISTRATION_ID);
 
         if (registrationId == null) {
@@ -103,6 +122,44 @@ public class DeviceRegistrationExecutor implements Executor {
     public List<String> getInitiationData() {
 
         return Collections.singletonList(USERNAME_CLAIM_URI);
+    }
+
+    @Override
+    public Set<FlowTypes> getSupportedFlowTypes() {
+
+        return EnumSet.of(REGISTRATION, INVITED_USER_REGISTRATION);
+    }
+
+    @Override
+    public FlowExecutorMetadata getExecutorMetadata() {
+
+        return FlowExecutorMetadata.builder()
+                .displayName("Device Registration")
+                .description("Register the user's device.")
+                .icon("assets/images/icons/device-registration.svg")
+                .build();
+    }
+
+    /**
+     * Identifying the user, for example with a user resolve step, does not prove who is registering the device.
+     * Require an authentication executor to have completed earlier on the executed path so the device can only be
+     * bound to an authenticated user.
+     *
+     * @param context Flow execution context.
+     * @return True if an authentication executor has completed in this flow.
+     */
+    private boolean isUserAuthenticated(FlowExecutionContext context) {
+
+        for (NodeConfig completedNode : context.getCompletedNodes()) {
+            ExecutorDTO executorConfig = completedNode.getExecutorConfig();
+            if (executorConfig != null && FlowExecutorMetadataService.getInstance()
+                    .getExecutor(executorConfig.getName())
+                    .map(FlowExecutorInfo::isAuthenticationExecutor)
+                    .orElse(false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ExecutorResponse initiateRegistration(FlowExecutionContext context) {
