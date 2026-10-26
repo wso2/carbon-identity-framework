@@ -36,16 +36,20 @@ import org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistra
 import org.wso2.carbon.identity.device.registration.model.VerifiedDevice;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadata;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -54,6 +58,9 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.DEVICE_REGISTRATION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.INVITED_USER_REGISTRATION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
 
 /**
  * Flow executor implementing the two-phase device registration challenge-response protocol.
@@ -103,6 +110,22 @@ public class DeviceRegistrationExecutor implements Executor {
     public List<String> getInitiationData() {
 
         return Collections.singletonList(USERNAME_CLAIM_URI);
+    }
+
+    @Override
+    public Set<FlowTypes> getSupportedFlowTypes() {
+
+        return EnumSet.of(DEVICE_REGISTRATION, REGISTRATION, INVITED_USER_REGISTRATION);
+    }
+
+    @Override
+    public FlowExecutorMetadata getExecutorMetadata() {
+
+        return FlowExecutorMetadata.builder()
+                .displayName("Device Registration")
+                .description("Register the user's device.")
+                .icon("assets/images/icons/device-registration.svg")
+                .build();
     }
 
     private ExecutorResponse initiateRegistration(FlowExecutionContext context) {

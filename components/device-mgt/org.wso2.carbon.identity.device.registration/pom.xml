@@ -166,6 +166,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.flow.execution.engine.listener;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.flow.execution.engine.metadata;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.flow.execution.engine.model;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.flow.mgt;
