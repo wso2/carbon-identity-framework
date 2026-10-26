@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.device.registration.internal.component;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -28,9 +29,11 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.registration.executor.DeviceRegistrationExecutor;
+import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
 import org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListener;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
@@ -53,6 +56,11 @@ public class DeviceRegistrationServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
+        if (isExecutorDisabled()) {
+            LOG.debug("Device registration executor is disabled by configuration. Skipping registration.");
+            return;
+        }
+
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(
@@ -67,6 +75,17 @@ public class DeviceRegistrationServiceComponent {
         } catch (Exception e) {
             LOG.error("Error while activating device registration executor bundle.", e);
         }
+    }
+
+    /**
+     * The executor stays disabled unless the configuration explicitly enables it.
+     *
+     * @return True if the device registration executor should not be registered.
+     */
+    private boolean isExecutorDisabled() {
+
+        String disabled = IdentityUtil.getProperty(DeviceRegistrationConstants.DISABLE_REGISTRATION_EXECUTOR_CONFIG);
+        return !Boolean.FALSE.toString().equalsIgnoreCase(StringUtils.trim(disabled));
     }
 
     @Deactivate
