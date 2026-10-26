@@ -126,7 +126,7 @@ public class FlowRuleEvaluationDataProviderTest {
     public void testMultiValuedCollectedClaimIsSplitIntoASet() throws Exception {
 
         FlowUser user = new FlowUser();
-        user.addClaim(GROUPS, "admin" + SEPARATOR + "staff");
+        user.addUpdatedClaim(GROUPS, "admin" + SEPARATOR + "staff");
 
         FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, GROUPS),
                 context(user));
@@ -141,6 +141,7 @@ public class FlowRuleEvaluationDataProviderTest {
 
         FlowUser user = new FlowUser();
         user.setUserId("user-id");
+        user.addUpdatedClaim(GROUPS, "guest");
         Map<String, String> stored = new HashMap<>();
         stored.put(GROUPS, "admin" + SEPARATOR + "staff");
         when(userStoreManager.getUserClaimValuesWithID(eq("user-id"), any(String[].class), any()))
@@ -157,7 +158,7 @@ public class FlowRuleEvaluationDataProviderTest {
     public void testSingleValuedClaimStaysAString() throws Exception {
 
         FlowUser user = new FlowUser();
-        user.addClaim(COUNTRY, "LK" + SEPARATOR + "IN");
+        user.addUpdatedClaim(COUNTRY, "LK" + SEPARATOR + "IN");
 
         FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, COUNTRY),
                 context(user));
@@ -187,7 +188,7 @@ public class FlowRuleEvaluationDataProviderTest {
     public void testEmptyCollectedClaimIsNoValue() throws Exception {
 
         FlowUser user = new FlowUser();
-        user.addClaim(COUNTRY, "");
+        user.addUpdatedClaim(COUNTRY, "");
 
         FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, COUNTRY),
                 context(user));
@@ -212,9 +213,63 @@ public class FlowRuleEvaluationDataProviderTest {
 
         when(userStoreManager.getUserClaimValuesWithID(anyString(), any(), any()))
                 .thenThrow(new UserStoreException("store is down"));
+        FlowUser user = existingUser();
+        user.addUpdatedClaim(COUNTRY, "IN");
 
         expectThrows(RuleEvaluationDataProviderException.class, () -> resolve(
-                field(AbstractFlowRuleEvaluationDataProvider.USER_ATTRIBUTES, COUNTRY), context(existingUser())));
+                field(AbstractFlowRuleEvaluationDataProvider.USER_ATTRIBUTES, COUNTRY), context(user)));
+    }
+
+    /**
+     * The flow user holds the stored attributes of an identified user, so one the flow has not updated is read
+     * from there rather than from the user store.
+     */
+    @Test
+    public void testStoredClaimTheFlowDidNotUpdateIsReadFromTheFlowUser() throws Exception {
+
+        FlowUser user = existingUser();
+        user.addClaim(COUNTRY, "LK");
+
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_ATTRIBUTES, COUNTRY),
+                context(user));
+
+        assertEquals(value.getValue(), "LK");
+        verify(userStoreManager, never()).getUserClaimValuesWithID(anyString(), any(), any());
+    }
+
+    /**
+     * A stored attribute the flow has updated holds the new value on the flow user, so the stored one is read
+     * from the user store.
+     */
+    @Test
+    public void testStoredClaimTheFlowUpdatedIsReadFromTheUserStore() throws Exception {
+
+        FlowUser user = existingUser();
+        user.addUpdatedClaim(COUNTRY, "IN");
+        Map<String, String> stored = new HashMap<>();
+        stored.put(COUNTRY, "LK");
+        when(userStoreManager.getUserClaimValuesWithID(eq("user-1"), any(String[].class), any()))
+                .thenReturn(stored);
+
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_ATTRIBUTES, COUNTRY),
+                context(user));
+
+        assertEquals(value.getValue(), "LK");
+    }
+
+    /**
+     * A stored attribute the flow has not updated was not collected, so it is no value as a collected attribute.
+     */
+    @Test
+    public void testStoredClaimTheFlowDidNotUpdateIsNotCollected() throws Exception {
+
+        FlowUser user = existingUser();
+        user.addClaim(COUNTRY, "LK");
+
+        FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, COUNTRY),
+                context(user));
+
+        assertNull(value.getValue());
     }
 
     /**
@@ -224,7 +279,7 @@ public class FlowRuleEvaluationDataProviderTest {
     public void testNumberClaimIsANumber() throws Exception {
 
         FlowUser user = new FlowUser();
-        user.addClaim(AGE, "9");
+        user.addUpdatedClaim(AGE, "9");
 
         FieldValue value = resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, AGE),
                 context(user));
@@ -237,7 +292,7 @@ public class FlowRuleEvaluationDataProviderTest {
     public void testNumberClaimThatIsNotANumberIsNoValue() throws Exception {
 
         FlowUser user = new FlowUser();
-        user.addClaim(AGE, "nine");
+        user.addUpdatedClaim(AGE, "nine");
 
         assertNull(resolve(field(AbstractFlowRuleEvaluationDataProvider.USER_COLLECTED_ATTRIBUTES, AGE), context(user))
                 .getValue());

@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.rule.management.api.model.Value;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,6 +143,7 @@ public class RuleEvaluationNodeTest {
         user.setUserId("user-1");
         user.setUserStoreDomain("PRIMARY");
         user.addClaim("http://wso2.org/claims/country", "LK");
+        user.addUpdatedClaim("http://wso2.org/claims/givenname", "Jane");
         user.getUserCredentials().put("password", "secret".toCharArray());
         context.getUserInputData().put("http://wso2.org/claims/country", "LK");
 
@@ -161,6 +163,8 @@ public class RuleEvaluationNodeTest {
         assertEquals(ruleContext.getFlowUser().getUserStoreDomain(), "PRIMARY");
         assertEquals(ruleContext.getFlowUser().getClaims(), user.getClaims());
         assertNotSame(ruleContext.getFlowUser().getClaims(), user.getClaims());
+        assertEquals(ruleContext.getFlowUser().getUpdatedClaimUris(),
+                Collections.singleton("http://wso2.org/claims/givenname"));
         assertTrue(ruleContext.getFlowUser().getUserCredentials().isEmpty());
         assertTrue(ruleContext.getUserInputData().isEmpty());
         assertNull(ruleContext.getGraphConfig());

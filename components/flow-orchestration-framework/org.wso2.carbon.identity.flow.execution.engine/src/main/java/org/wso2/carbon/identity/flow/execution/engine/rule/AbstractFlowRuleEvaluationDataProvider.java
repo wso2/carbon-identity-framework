@@ -140,9 +140,15 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
             throws RuleEvaluationDataProviderException {
 
         FlowUser user = context.getFlowUser();
-        String rawValue = user == null || user.getClaims() == null ? null : user.getClaims().get(field.getQualifier());
+        String rawValue = isUpdatedInFlow(user, field.getQualifier())
+                ? (String) user.getClaim(field.getQualifier()) : null;
         return attributeValue(field, rawValue, user == null ? null : user.getUserStoreDomain(),
                 context.getTenantDomain());
+    }
+
+    private boolean isUpdatedInFlow(FlowUser user, String claimUri) {
+
+        return user != null && user.getUpdatedClaimUris().contains(claimUri);
     }
 
     private FieldValue application(Field field, FlowExecutionContext context) {
@@ -223,13 +229,14 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                 .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain)).getUserStoreManager();
     }
 
-    /**
-     * Read an attribute of the user from the user store.
-     */
     private FieldValue persistedAttribute(Field field, FlowExecutionContext context, String tenantDomain)
             throws RuleEvaluationDataProviderException {
 
         FlowUser user = identifiedUser(field, context);
+        if (!isUpdatedInFlow(user, field.getQualifier())) {
+            return attributeValue(field, (String) user.getClaim(field.getQualifier()), user.getUserStoreDomain(),
+                    tenantDomain);
+        }
 
         try {
             Map<String, String> claims = userStoreManager(tenantDomain).getUserClaimValuesWithID(

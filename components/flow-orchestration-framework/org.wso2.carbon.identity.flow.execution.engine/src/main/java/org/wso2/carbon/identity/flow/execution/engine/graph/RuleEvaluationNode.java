@@ -184,6 +184,8 @@ public class RuleEvaluationNode implements Node {
         userCopy.setUserStoreDomain(user.getUserStoreDomain());
         if (user.getClaims() != null) {
             userCopy.addClaims(new HashMap<>(user.getClaims()));
+            user.getUpdatedClaimUris().forEach(claimUri ->
+                    userCopy.addUpdatedClaim(claimUri, user.getClaims().get(claimUri)));
         }
         copy.setFlowUser(userCopy);
         return copy;
