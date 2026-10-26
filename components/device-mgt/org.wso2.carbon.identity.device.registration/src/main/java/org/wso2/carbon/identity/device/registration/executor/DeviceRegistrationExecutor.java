@@ -61,7 +61,6 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
-import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.DEVICE_REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.INVITED_USER_REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
 
@@ -128,7 +127,7 @@ public class DeviceRegistrationExecutor implements Executor {
     @Override
     public Set<FlowTypes> getSupportedFlowTypes() {
 
-        return EnumSet.of(DEVICE_REGISTRATION, REGISTRATION, INVITED_USER_REGISTRATION);
+        return EnumSet.of(REGISTRATION, INVITED_USER_REGISTRATION);
     }
 
     @Override

@@ -30,8 +30,6 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.core.ServiceURL;
-import org.wso2.carbon.identity.core.context.IdentityContext;
-import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
@@ -41,7 +39,6 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListener;
-import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -52,7 +49,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -61,7 +57,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
@@ -169,41 +164,6 @@ public class FlowServiceTest {
                             .executeFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, null, null,
                                     FLOW_TYPE, null);
             assertEquals(returnedStep, expectedStep);
-        }
-    }
-
-    @Test
-    public void testDeviceRegistrationFlowEntersIdentityContextFlow() throws Exception {
-
-        FlowExecutionContext deviceRegistrationContext = initTestContext();
-        deviceRegistrationContext.setFlowType(Constants.FlowTypes.DEVICE_REGISTRATION.getType());
-        FlowExecutionStep expectedStep = new FlowExecutionStep.Builder()
-                .flowId(deviceRegistrationContext.getContextIdentifier())
-                .flowStatus("INCOMPLETE")
-                .stepType("VIEW")
-                .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
-                .build();
-        AtomicReference<Flow> flowDuringExecution = new AtomicReference<>();
-
-        try (MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
-                FlowExecutionEngineUtils.class);
-             MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class)) {
-            utilsMockedStatic.when(
-                            () -> FlowExecutionEngineUtils.initiateContext(anyString(), anyString(), anyString()))
-                    .thenReturn(deviceRegistrationContext);
-            engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
-            when(engineMock.execute(deviceRegistrationContext)).thenAnswer(invocation -> {
-                flowDuringExecution.set(IdentityContext.getThreadLocalIdentityContext().getCurrentFlow());
-                return expectedStep;
-            });
-
-            FlowExecutionStep returnedStep = FlowExecutionService.getInstance().executeFlow(TENANT_DOMAIN,
-                    TEST_APPLICATION_ID, null, null, Constants.FlowTypes.DEVICE_REGISTRATION.getType(), null);
-
-            assertEquals(returnedStep, expectedStep);
-            assertNotNull(flowDuringExecution.get());
-            assertEquals(flowDuringExecution.get().getName(), Flow.Name.DEVICE_REGISTER);
-            assertEquals(flowDuringExecution.get().getInitiatingPersona(), Flow.InitiatingPersona.USER);
         }
     }
 

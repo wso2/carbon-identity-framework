@@ -75,7 +75,6 @@ public class FlowMgtConfigUtilsTest {
     private static final String FLOW_TYPE_REGISTRATION = "REGISTRATION";
     private static final String FLOW_TYPE_PASSWORD_RECOVERY = "PASSWORD_RECOVERY";
     private static final String FLOW_TYPE_INVITED_USER_REGISTRATION = "INVITED_USER_REGISTRATION";
-    private static final String FLOW_TYPE_DEVICE_REGISTRATION = "DEVICE_REGISTRATION";
 
     @BeforeMethod
     public void setUp() {
@@ -238,10 +237,9 @@ public class FlowMgtConfigUtilsTest {
         List<FlowConfigDTO> result = FlowMgtConfigUtils.getFlowConfigs(TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(result.size(), 4);
+        Assert.assertEquals(result.size(), 3);
 
-        List<String> flowTypes = Arrays.asList("REGISTRATION", "PASSWORD_RECOVERY", "INVITED_USER_REGISTRATION",
-                "DEVICE_REGISTRATION");
+        List<String> flowTypes = Arrays.asList("REGISTRATION", "PASSWORD_RECOVERY", "INVITED_USER_REGISTRATION");
         for (String flowType : flowTypes) {
             Assert.assertTrue(result.stream().anyMatch(config -> config.getFlowType().equals(flowType)));
         }
@@ -255,7 +253,7 @@ public class FlowMgtConfigUtilsTest {
         List<FlowConfigDTO> result = FlowMgtConfigUtils.getFlowConfigs(TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(result.size(), 4);
+        Assert.assertEquals(result.size(), 3);
         for (FlowConfigDTO config : result) {
 
             Assert.assertFalse(config.getIsEnabled());
@@ -272,7 +270,6 @@ public class FlowMgtConfigUtilsTest {
                     break;
                 case FLOW_TYPE_PASSWORD_RECOVERY:
                 case FLOW_TYPE_INVITED_USER_REGISTRATION:
-                case FLOW_TYPE_DEVICE_REGISTRATION:
                     Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
                             Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
                     break;
@@ -292,7 +289,7 @@ public class FlowMgtConfigUtilsTest {
         List<FlowConfigDTO> result = FlowMgtConfigUtils.getFlowConfigs(TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(result.size(), 4);
+        Assert.assertEquals(result.size(), 3);
     }
 
     @Test
@@ -305,7 +302,7 @@ public class FlowMgtConfigUtilsTest {
         List<FlowConfigDTO> result = FlowMgtConfigUtils.getFlowConfigs(TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(result.size(), 4);
+        Assert.assertEquals(result.size(), 3);
         for (FlowConfigDTO config : result) {
             Assert.assertFalse(config.getIsEnabled());
             Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
@@ -321,7 +318,6 @@ public class FlowMgtConfigUtilsTest {
                     break;
                 case FLOW_TYPE_PASSWORD_RECOVERY:
                 case FLOW_TYPE_INVITED_USER_REGISTRATION:
-                case FLOW_TYPE_DEVICE_REGISTRATION:
                     Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
                             Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
                     break;
@@ -482,7 +478,7 @@ public class FlowMgtConfigUtilsTest {
         List<FlowConfigDTO> result = FlowMgtConfigUtils.getFlowConfigs(TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(result.size(), 4);
+        Assert.assertEquals(result.size(), 3);
         for (FlowConfigDTO config : result) {
             Assert.assertFalse(config.getIsEnabled());
             Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
@@ -505,7 +501,7 @@ public class FlowMgtConfigUtilsTest {
         List<FlowConfigDTO> result = FlowMgtConfigUtils.getFlowConfigs(TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(result.size(), 4);
+        Assert.assertEquals(result.size(), 3);
 
         long registrationCount = result.stream()
                 .filter(config -> "REGISTRATION".equals(config.getFlowType()))

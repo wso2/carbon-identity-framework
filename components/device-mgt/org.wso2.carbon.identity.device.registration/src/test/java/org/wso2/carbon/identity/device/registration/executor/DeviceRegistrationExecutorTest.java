@@ -197,8 +197,8 @@ public class DeviceRegistrationExecutorTest {
     @Test
     public void testGetSupportedFlowTypes() {
 
-        assertEquals(executor.getSupportedFlowTypes(), EnumSet.of(FlowTypes.DEVICE_REGISTRATION,
-                FlowTypes.REGISTRATION, FlowTypes.INVITED_USER_REGISTRATION));
+        assertEquals(executor.getSupportedFlowTypes(), EnumSet.of(FlowTypes.REGISTRATION,
+                FlowTypes.INVITED_USER_REGISTRATION));
     }
 
     @Test
@@ -643,7 +643,7 @@ public class DeviceRegistrationExecutorTest {
 
         FlowExecutionContext context = newContext();
         context.getFlowUser().setUserId(USER_ID);
-        context.setFlowType(FlowTypes.DEVICE_REGISTRATION.getType());
+        context.setFlowType(FlowTypes.REGISTRATION.getType());
 
         ExecutorResponse response;
         try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {

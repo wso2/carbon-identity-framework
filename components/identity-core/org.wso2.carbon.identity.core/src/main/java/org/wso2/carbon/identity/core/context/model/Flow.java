@@ -157,10 +157,6 @@ public class Flow {
         FLOW_DEFINITIONS.put(Name.ORGANIZATION_DISABLE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
-
-        // ------------------------------ Device management flows ----------------------------------------
-        FLOW_DEFINITIONS.put(Name.DEVICE_REGISTER, EnumSet.of(InitiatingPersona.USER));
-        // -----------------------------------------------------------------------------------------------
     }
 
     /**
@@ -252,11 +248,7 @@ public class Flow {
         ORGANIZATION_UPDATE,
         ORGANIZATION_DELETE,
         ORGANIZATION_ENABLE,
-        ORGANIZATION_DISABLE,
-        // --------------------------------------------------
-
-        // ---------Device management flows------------------
-        DEVICE_REGISTER
+        ORGANIZATION_DISABLE
         // --------------------------------------------------
     }
 
