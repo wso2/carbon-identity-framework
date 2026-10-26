@@ -43,6 +43,10 @@ import org.wso2.carbon.identity.device.registration.internal.handler.DeviceRegis
 import org.wso2.carbon.identity.device.registration.internal.model.DeviceRegistrationChallenge;
 import org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistrationExceptionHandler;
 import org.wso2.carbon.identity.device.registration.model.VerifiedDevice;
+import org.wso2.carbon.identity.flow.execution.engine.graph.AuthenticationExecutor;
+import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
+import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadata;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
@@ -53,7 +57,10 @@ import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -86,6 +93,7 @@ public class DeviceRegistrationExecutorTest {
     private static final String TENANT_DOMAIN = "test.com";
     private static final int TENANT_ID = 1;
     private static final String USER_ID = "user-123";
+    private static final String AUTHENTICATION_EXECUTOR_NAME = "EmailOTPExecutor";
     private static final String USERNAME = "alice";
     private static final String REGISTRATION_ID = "reg-abc-123";
     private static final String CHALLENGE = "challenge-b64url";
@@ -98,6 +106,7 @@ public class DeviceRegistrationExecutorTest {
 
     private AutoCloseable closeable;
     private DeviceRegistrationExecutor executor;
+    private AuthenticationExecutor authenticationExecutor;
 
     @Mock
     private DeviceManagementService deviceManagementService;
@@ -116,6 +125,8 @@ public class DeviceRegistrationExecutorTest {
 
         closeable = MockitoAnnotations.openMocks(this);
         executor = new DeviceRegistrationExecutor();
+        authenticationExecutor = mock(AuthenticationExecutor.class);
+        when(authenticationExecutor.getName()).thenReturn(AUTHENTICATION_EXECUTOR_NAME);
 
         // "test.com" is not a real registered tenant, so anything that resolves it via
         // IdentityTenantUtil (diagnostic logging, FlowUser's claim resolution) needs this stubbed —
@@ -156,6 +167,7 @@ public class DeviceRegistrationExecutorTest {
     public void setUp() {
 
         reset(deviceManagementService, devicePolicyEvaluator);
+        FlowExecutionEngineDataHolder.getInstance().addExecutor(authenticationExecutor);
         // The executor's diagnostic logger (and FlowUser's own claim-resolution fallback) reads the
         // tenant domain off the thread-local carbon context, not off FlowExecutionContext — seed it
         // here so those calls resolve instead of failing with "Invalid tenant domain null".
@@ -166,6 +178,7 @@ public class DeviceRegistrationExecutorTest {
     @AfterMethod
     public void tearDownMethod() {
 
+        FlowExecutionEngineDataHolder.getInstance().removeExecutor(authenticationExecutor);
         PrivilegedCarbonContext.endTenantFlow();
     }
 
@@ -179,6 +192,23 @@ public class DeviceRegistrationExecutorTest {
     public void testGetInitiationDataReturnsUsernameClaim() {
 
         assertEquals(executor.getInitiationData(), java.util.Collections.singletonList(USERNAME_CLAIM_URI));
+    }
+
+    @Test
+    public void testGetSupportedFlowTypes() {
+
+        assertEquals(executor.getSupportedFlowTypes(), EnumSet.of(FlowTypes.DEVICE_REGISTRATION,
+                FlowTypes.REGISTRATION, FlowTypes.INVITED_USER_REGISTRATION));
+    }
+
+    @Test
+    public void testGetExecutorMetadata() {
+
+        FlowExecutorMetadata metadata = executor.getExecutorMetadata();
+        assertNotNull(metadata);
+        assertEquals(metadata.getDisplayName(), "Device Registration");
+        assertEquals(metadata.getIcon(), "assets/images/icons/device-registration.svg");
+        assertNotNull(metadata.getDescription());
     }
 
     // ----- execute() : initiation leg -----
@@ -557,6 +587,70 @@ public class DeviceRegistrationExecutorTest {
 
     // ----- helpers -----
 
+    // ----- execute() : authentication requirement -----
+
+    @Test
+    public void testExecuteRejectsUnauthenticatedUser() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setCompletedNodes(new ArrayList<>());
+
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockStatic(DeviceRegistrationHandler.class)) {
+            ExecutorResponse response = executor.execute(context);
+            assertEquals(response.getResult(), STATUS_ERROR);
+            assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
+            mocked.verify(() -> DeviceRegistrationHandler.initiate(any(), any()), never());
+        }
+    }
+
+    @Test
+    public void testExecuteRejectsUserOnlyIdentified() throws Exception {
+
+        Executor userResolveExecutor = mock(Executor.class);
+        when(userResolveExecutor.getName()).thenReturn("UserResolveExecutor");
+        FlowExecutionEngineDataHolder.getInstance().addExecutor(userResolveExecutor);
+        try {
+            FlowExecutionContext context = newContext();
+            context.getFlowUser().setUserId(USER_ID);
+            context.setCompletedNodes(new ArrayList<>(Collections.singletonList(
+                    completedNode("UserResolveExecutor"))));
+
+            ExecutorResponse response = executor.execute(context);
+            assertEquals(response.getResult(), STATUS_ERROR);
+            assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
+        } finally {
+            FlowExecutionEngineDataHolder.getInstance().removeExecutor(userResolveExecutor);
+        }
+    }
+
+    @Test
+    public void testExecuteRejectsUnauthenticatedUserInRegistrationFlow() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setFlowType(FlowTypes.REGISTRATION.getType());
+        context.setCompletedNodes(new ArrayList<>());
+
+        ExecutorResponse response = executor.execute(context);
+        assertEquals(response.getResult(), STATUS_ERROR);
+        assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
+    }
+
+    @Test
+    public void testExecuteProceedsAfterAuthentication() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setFlowType(FlowTypes.DEVICE_REGISTRATION.getType());
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+            response = executor.execute(context);
+        }
+        assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+    }
+
     private FlowExecutionContext newContext() {
 
         FlowExecutionContext context = new FlowExecutionContext();
@@ -568,7 +662,15 @@ public class DeviceRegistrationExecutorTest {
         // has to fall through to its own resolution fallback (tenant config lookup, random UUID),
         // which needs runtime dependencies this test module doesn't have on its classpath.
         context.getFlowUser().setUsername(USERNAME);
+        // The executor only runs once the user has been authenticated earlier in the flow.
+        context.addCompletedNode(completedNode(AUTHENTICATION_EXECUTOR_NAME));
         return context;
+    }
+
+    private NodeConfig completedNode(String executorName) {
+
+        return new NodeConfig.Builder().id(executorName + "Node").type("TASK_EXECUTION")
+                .executorConfig(new ExecutorDTO(executorName)).build();
     }
 
     private NodeConfig nodeConfigWithPolicy(String policyName) {

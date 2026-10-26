@@ -34,6 +34,8 @@ public enum ErrorMessage {
     ERROR_DEVICE_DATA_REQUIRED("DR-60005", "Device data required.",
             "A compliance policy is configured for this executor but no device data was submitted. " +
                     "Send device attributes as a JSON object under the 'deviceData' key."),
+    ERROR_USER_NOT_AUTHENTICATED("DR-60006", "User not authenticated.",
+            "The user must be authenticated earlier in the flow before a device can be registered."),
 
     ERROR_WHILE_VERIFYING_SIGNATURE("DR-65001", "Error while verifying device signature.",
             "An unexpected error occurred during signature verification for registration ID: %s."),

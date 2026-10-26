@@ -36,10 +36,14 @@ import org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistra
 import org.wso2.carbon.identity.device.registration.model.VerifiedDevice;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
 import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadata;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadataService;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO.MessageType;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.util.ArrayList;
@@ -89,6 +93,17 @@ public class DeviceRegistrationExecutor implements Executor {
     @Override
     public ExecutorResponse execute(FlowExecutionContext context) throws FlowEngineException {
 
+        if (!isUserAuthenticated(context)) {
+            diagnosticLogger.logRegistrationFailure("User must be authenticated before registering a device.");
+            ExecutorResponse response = new ExecutorResponse();
+            response.setResult(STATUS_ERROR);
+            response.setErrorCode(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
+            response.addMessage(MessageType.ERROR, ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getMessage(),
+                    DeviceRegistrationConstants.I18N_USER_NOT_AUTHENTICATED);
+            response.setErrorDescription(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getDescription());
+            return response;
+        }
+
         String registrationId = (String) context.getProperty(DeviceRegistrationConstants.CTX_REGISTRATION_ID);
 
         if (registrationId == null) {
@@ -126,6 +141,28 @@ public class DeviceRegistrationExecutor implements Executor {
                 .description("Register the user's device.")
                 .icon("assets/images/icons/device-registration.svg")
                 .build();
+    }
+
+    /**
+     * Identifying the user, for example with a user resolve step, does not prove who is registering the device.
+     * Require an authentication executor to have completed earlier on the executed path so the device can only be
+     * bound to an authenticated user.
+     *
+     * @param context Flow execution context.
+     * @return True if an authentication executor has completed in this flow.
+     */
+    private boolean isUserAuthenticated(FlowExecutionContext context) {
+
+        for (NodeConfig completedNode : context.getCompletedNodes()) {
+            ExecutorDTO executorConfig = completedNode.getExecutorConfig();
+            if (executorConfig != null && FlowExecutorMetadataService.getInstance()
+                    .getExecutor(executorConfig.getName())
+                    .map(FlowExecutorInfo::isAuthenticationExecutor)
+                    .orElse(false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ExecutorResponse initiateRegistration(FlowExecutionContext context) {

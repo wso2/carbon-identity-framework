@@ -47,6 +47,7 @@ public class DeviceRegistrationConstants {
     public static final String FIELD_DEVICE_NAME = "deviceName";
 
     public static final String META_POLICY_NAME = "policyName";
+    public static final String I18N_USER_NOT_AUTHENTICATED = "{{device.registration.user.not.authenticated}}";
 
     private DeviceRegistrationConstants() {
 
