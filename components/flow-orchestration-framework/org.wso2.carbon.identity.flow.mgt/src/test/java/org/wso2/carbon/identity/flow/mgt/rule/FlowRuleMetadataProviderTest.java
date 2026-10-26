@@ -103,7 +103,8 @@ public class FlowRuleMetadataProviderTest {
                 FlowRuleMetadataProvider.USER_GROUPS, FlowRuleMetadataProvider.USER_ROLES));
         assertEquals(fieldNamesOf(FlowType.INVITED_USER_REGISTRATION), Arrays.asList(
                 FlowRuleMetadataProvider.USER_ATTRIBUTES, FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES,
-                FlowRuleMetadataProvider.USER_DOMAIN));
+                FlowRuleMetadataProvider.USER_DOMAIN, FlowRuleMetadataProvider.USER_GROUPS,
+                FlowRuleMetadataProvider.USER_ROLES));
     }
 
     @Test
