@@ -5618,4 +5618,9 @@
         <Enabled>{{openid4vp.enabled}}</Enabled>
     </OpenID4VP>
     {% endif %}
+
+    <DeviceManagement>
+        <!-- Disables the device management and policy management REST APIs. -->
+        <DisableAPIs>{{device_management.disable_apis}}</DisableAPIs>
+    </DeviceManagement>
 </Server>
