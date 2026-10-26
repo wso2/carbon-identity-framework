@@ -600,6 +600,7 @@ public class DeviceRegistrationExecutorTest {
             ExecutorResponse response = executor.execute(context);
             assertEquals(response.getResult(), STATUS_ERROR);
             assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
+            assertEquals(response.getErrorMessage(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getMessage());
             mocked.verify(() -> DeviceRegistrationHandler.initiate(any(), any()), never());
         }
     }

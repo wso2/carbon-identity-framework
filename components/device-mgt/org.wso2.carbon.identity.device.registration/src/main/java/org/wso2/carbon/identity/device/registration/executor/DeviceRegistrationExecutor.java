@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
-import org.wso2.carbon.identity.flow.mgt.model.MessageDTO.MessageType;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.util.ArrayList;
@@ -98,8 +97,7 @@ public class DeviceRegistrationExecutor implements Executor {
             ExecutorResponse response = new ExecutorResponse();
             response.setResult(STATUS_ERROR);
             response.setErrorCode(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
-            response.addMessage(MessageType.ERROR, ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getMessage(),
-                    DeviceRegistrationConstants.I18N_USER_NOT_AUTHENTICATED);
+            response.setErrorMessage(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getMessage());
             response.setErrorDescription(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getDescription());
             return response;
         }

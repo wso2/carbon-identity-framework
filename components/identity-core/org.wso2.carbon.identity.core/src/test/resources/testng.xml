@@ -44,6 +44,7 @@
             <class name="org.wso2.carbon.identity.core.circuitbreaker.StaticPolicyTest"/>
             <class name="org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyResolverTest"/>
             <class name="org.wso2.carbon.identity.core.context.model.RequestTest"/>
+            <class name="org.wso2.carbon.identity.core.context.model.FlowTest"/>
         </classes>
     </test>
 </suite>
