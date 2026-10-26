@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.device.policy.internal.service.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
@@ -43,6 +44,13 @@ import java.util.Map;
 /**
  * Default implementation of {@link DevicePolicyEvaluator}.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator",
+                "service.scope=singleton"
+        }
+)
 public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
 
     private static final Log LOG = LogFactory.getLog(DevicePolicyEvaluatorImpl.class);

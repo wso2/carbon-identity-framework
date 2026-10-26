@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.policy.management.internal.service.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
@@ -48,6 +49,13 @@ import java.util.UUID;
  * Dispatches per-resource create/enrich/delete to the {@link PolicyResourceManager} registered for
  * each resource's type, and orchestrates best-effort saga compensation around the DAO layer.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService",
+                "service.scope=singleton"
+        }
+)
 public class PolicyManagementServiceImpl implements PolicyManagementService {
 
     private static final Log LOG = LogFactory.getLog(PolicyManagementServiceImpl.class);

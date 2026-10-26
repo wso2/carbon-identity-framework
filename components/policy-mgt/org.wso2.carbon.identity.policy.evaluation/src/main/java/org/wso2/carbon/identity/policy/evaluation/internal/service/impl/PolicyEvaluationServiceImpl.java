@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.policy.evaluation.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.policy.evaluation.api.evaluator.PolicyResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
@@ -39,6 +40,13 @@ import java.util.List;
 /**
  * Default implementation of {@link PolicyEvaluationService}.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService",
+                "service.scope=singleton"
+        }
+)
 public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
 
     private static final Log LOG = LogFactory.getLog(PolicyEvaluationServiceImpl.class);
