@@ -105,6 +105,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogC
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.ENABLE_V2_AUDIT_LOGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MYACCOUNT_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TENANT_DOMAIN_PLACEHOLDER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
@@ -1291,6 +1292,39 @@ public class ApplicationMgtUtil {
     private static String getAbsolutePublicUrlWithoutPath() throws URLBuilderException {
 
         return ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+    }
+
+    /**
+     * Check whether the organization custom roles feature is enabled for the server. When it is disabled, organizations
+     * cannot create custom roles for shared applications regardless of the main application configuration, and the
+     * roles of shared applications are resolved through the main application roles. The feature is enabled unless it
+     * is explicitly disabled.
+     *
+     * @return True if the organization custom roles feature is enabled.
+     */
+    public static boolean isOrganizationCustomRolesFeatureEnabled() {
+
+        return !Boolean.FALSE.toString().equalsIgnoreCase(
+                StringUtils.trim(IdentityUtil.getProperty(ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY)));
+    }
+
+    /**
+     * Check whether organization custom roles of the given role audience are enabled for the shared applications of
+     * the given main application.
+     *
+     * @param mainApplication Main application.
+     * @param roleAudience    Role audience, i.e. {@code application} or {@code organization}.
+     * @return True if organization custom roles of the given audience are enabled for the shared applications.
+     */
+    public static boolean isOrganizationCustomRolesEnabled(ServiceProvider mainApplication, String roleAudience) {
+
+        return mainApplication != null
+                && isOrganizationCustomRolesFeatureEnabled()
+                && mainApplication.isEnhancedOrganizationAuthenticationEnabled()
+                && mainApplication.isOrganizationCustomRolesEnabled()
+                && mainApplication.getAssociatedRolesConfig() != null
+                && StringUtils.equalsIgnoreCase(roleAudience,
+                        mainApplication.getAssociatedRolesConfig().getAllowedAudience());
     }
 
     /**

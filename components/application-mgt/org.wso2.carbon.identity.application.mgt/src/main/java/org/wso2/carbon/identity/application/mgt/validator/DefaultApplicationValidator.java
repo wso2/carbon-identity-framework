@@ -127,6 +127,10 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String NO_GROUP_ID = "Group ID is not defined for the group indexed at %d for the user " +
             "store: '%s' in the discoverable groups configuration.";
     private static final String NO_GROUP_WITH_GIVEN_ID = "No group found for the given group ID: '%s'.";
+    private static final String ORGANIZATION_CUSTOM_ROLES_WITHOUT_ENHANCED_ORG_AUTH = "Organization custom roles can " +
+            "only be enabled when enhanced organization authentication is enabled.";
+    private static final String ORGANIZATION_CUSTOM_ROLES_FOR_FRAGMENT_APP = "Organization custom roles can only be " +
+            "configured on the main application.";
     public static final String IS_HANDLER = "IS_HANDLER";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
@@ -168,12 +172,35 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                         .getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri() : null,
                 tenantDomain, serviceProvider.getApplicationName());
         validateRoleConfigs(validationErrors, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
+        validateOrganizationCustomRolesConfig(validationErrors, serviceProvider);
         if (isAuthenticationScriptAvailableConfig(serviceProvider)) {
             validateAdaptiveAuthScript(validationErrors,
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
         }
 
         return validationErrors;
+    }
+
+    /**
+     * Validate that organization custom roles are enabled only on a main application which has enhanced
+     * organization authentication enabled. This applies to both application and organization audience roles.
+     *
+     * @param validationErrors List of validation errors.
+     * @param serviceProvider  Service provider.
+     */
+    private void validateOrganizationCustomRolesConfig(List<String> validationErrors, ServiceProvider serviceProvider) {
+
+        if (!serviceProvider.isOrganizationCustomRolesEnabled()) {
+            return;
+        }
+        if (!serviceProvider.isEnhancedOrganizationAuthenticationEnabled()) {
+            validationErrors.add(ORGANIZATION_CUSTOM_ROLES_WITHOUT_ENHANCED_ORG_AUTH);
+        }
+        if (serviceProvider.getSpProperties() != null && Arrays.stream(serviceProvider.getSpProperties())
+                .anyMatch(property -> ApplicationConstants.IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()))) {
+            validationErrors.add(ORGANIZATION_CUSTOM_ROLES_FOR_FRAGMENT_APP);
+        }
     }
 
     /**

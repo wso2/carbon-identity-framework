@@ -1018,6 +1018,26 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public List<RoleBasicInfo> getRolesByApplication(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleManagementListener> roleManagementListenerList =
+                RoleManagementServiceComponentHolder.getInstance().getRoleManagementListenerList();
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.preGetRolesByApplication(applicationId, tenantDomain);
+            }
+        }
+        List<RoleBasicInfo> roles = roleDAO.getRolesByApplication(applicationId, tenantDomain);
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.postGetRolesByApplication(roles, applicationId, tenantDomain);
+            }
+        }
+        return roles;
+    }
+
+    @Override
     public List<RoleDTO> getSharedHybridRoles(String roleId, int mainTenantId) throws IdentityRoleManagementException {
 
         return roleDAO.getSharedHybridRoles(roleId, mainTenantId);
