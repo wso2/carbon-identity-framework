@@ -51,6 +51,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY;
 
 /**
  * Contains the unit tests for the default role management listener.
@@ -123,8 +124,11 @@ public class DefaultRoleManagementListenerTest {
 
         try (MockedStatic<ApplicationManagementService> applicationManagementServiceMockedStatic =
                      mockStatic(ApplicationManagementService.class);
-             MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+             MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
 
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(
+                    ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY)).thenReturn("true");
             ApplicationManagementService applicationManagementService =
                     mockApplicationManagementService(applicationManagementServiceMockedStatic, APPLICATION_AUD);
             mockMainApplication(applicationManagementService, identityTenantUtilMockedStatic,
