@@ -2447,6 +2447,7 @@
   "webappscommon.inherit_app_level_custom_layout": true,
 
   "enhanced_organization_authentication_feature.enabled": true,
+  "organization_custom_roles_feature.enabled": true,
 
   "workflow_engine.max_approver_notifications": 15,
   "use_resident_user_id_for_authenticated_shared_users.enabled": true,

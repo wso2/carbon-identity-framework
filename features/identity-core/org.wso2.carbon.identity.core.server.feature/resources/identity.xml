@@ -3114,6 +3114,7 @@
 
     <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
     <EnhancedOrganizationAuthenticationFeatureEnabled>true</EnhancedOrganizationAuthenticationFeatureEnabled>
+    <OrganizationCustomRolesFeatureEnabled>true</OrganizationCustomRolesFeatureEnabled>
     <WorkflowEngine>
         <MaxApproverNotifications>15</MaxApproverNotifications>
     </WorkflowEngine>

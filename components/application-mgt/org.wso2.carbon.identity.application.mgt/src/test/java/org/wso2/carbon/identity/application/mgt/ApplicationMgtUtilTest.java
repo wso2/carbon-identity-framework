@@ -98,6 +98,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFA
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.PATH_CONSTANT;
 import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SHARE_WITH_ALL_CHILDREN;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
@@ -1010,5 +1011,47 @@ public class ApplicationMgtUtilTest {
         assertEquals(ApplicationMgtUtil.isOrganizationCustomRolesEnabled(mainApplication, "application"), expected);
         assertEquals(ApplicationMgtUtil.isOrganizationCustomRolesEnabled(mainApplication, "organization"),
                 expectedForOrganizationAudience);
+    }
+
+    @DataProvider(name = "organizationCustomRolesFeatureConfigProvider")
+    public Object[][] organizationCustomRolesFeatureConfigProvider() {
+
+        return new Object[][]{
+                // Configured value, expected.
+                {null, true},
+                {"", true},
+                {"true", true},
+                {"false", false},
+                {" FALSE ", false}
+        };
+    }
+
+    @Test(dataProvider = "organizationCustomRolesFeatureConfigProvider")
+    public void testIsOrganizationCustomRolesFeatureEnabled(String configuredValue, boolean expected) {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY))
+                    .thenReturn(configuredValue);
+            assertEquals(ApplicationMgtUtil.isOrganizationCustomRolesFeatureEnabled(), expected);
+        }
+    }
+
+    @Test
+    public void testIsOrganizationCustomRolesEnabledWhenFeatureDisabled() {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY))
+                    .thenReturn("false");
+            for (String allowedAudience : new String[]{"application", "organization"}) {
+                ServiceProvider mainApplication = new ServiceProvider();
+                mainApplication.setEnhancedOrganizationAuthenticationEnabled(true);
+                mainApplication.setOrganizationCustomRolesEnabled(true);
+                AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+                associatedRolesConfig.setAllowedAudience(allowedAudience);
+                mainApplication.setAssociatedRolesConfig(associatedRolesConfig);
+
+                assertFalse(ApplicationMgtUtil.isOrganizationCustomRolesEnabled(mainApplication, allowedAudience));
+            }
+        }
     }
 }
