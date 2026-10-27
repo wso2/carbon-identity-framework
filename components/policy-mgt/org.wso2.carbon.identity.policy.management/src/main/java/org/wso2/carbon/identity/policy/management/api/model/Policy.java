@@ -31,13 +31,14 @@ import java.util.Set;
 /**
  * Represents a policy.
  * Instances are created through {@link Builder}, which validates the resource list so that a policy
- * holding invalid or conflicting resources can never exist. The name is not validated here because it
- * is optional on update, where the stored name is retained.
+ * holding invalid or conflicting resources can never exist. The name and type are not validated here because
+ * they are optional on update, where the stored values are retained.
  */
 public class Policy {
 
     private final String id;
     private final String name;
+    private final String type;
     private final String tenantDomain;
     private final List<PolicyResource> resources;
 
@@ -45,6 +46,7 @@ public class Policy {
 
         this.id = builder.id;
         this.name = builder.name;
+        this.type = builder.type;
         this.tenantDomain = builder.tenantDomain;
         this.resources = builder.resources != null
                 ? Collections.unmodifiableList(new ArrayList<>(builder.resources)) : Collections.emptyList();
@@ -58,6 +60,11 @@ public class Policy {
     public String getName() {
 
         return name;
+    }
+
+    public String getType() {
+
+        return type;
     }
 
     public String getTenantDomain() {
@@ -79,6 +86,7 @@ public class Policy {
 
         private String id;
         private String name;
+        private String type;
         private String tenantDomain;
         private List<PolicyResource> resources;
 
@@ -98,6 +106,7 @@ public class Policy {
 
             this.id = policy.getId();
             this.name = policy.getName();
+            this.type = policy.getType();
             this.tenantDomain = policy.getTenantDomain();
             this.resources = policy.getResources();
         }
@@ -123,6 +132,19 @@ public class Policy {
         public Builder name(String name) {
 
             this.name = name;
+            return this;
+        }
+
+        /**
+         * Sets the policy type. The type must be registered through a
+         * {@link org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition}.
+         *
+         * @param type Policy type, for example {@code DEVICE}.
+         * @return This builder.
+         */
+        public Builder type(String type) {
+
+            this.type = type;
             return this;
         }
 

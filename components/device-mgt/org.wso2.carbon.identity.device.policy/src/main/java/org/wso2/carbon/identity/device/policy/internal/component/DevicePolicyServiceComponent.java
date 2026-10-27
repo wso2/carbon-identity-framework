@@ -39,8 +39,10 @@ import org.wso2.carbon.identity.device.policy.internal.resolver.DeviceDataResolv
 import org.wso2.carbon.identity.device.policy.internal.rule.DevicePolicyEvaluationDataProvider;
 import org.wso2.carbon.identity.device.policy.internal.service.IntegrityDataEnricher;
 import org.wso2.carbon.identity.device.policy.internal.service.impl.DevicePolicyEvaluatorImpl;
+import org.wso2.carbon.identity.device.policy.internal.type.DevicePolicyTypeDefinition;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
+import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 
 /**
@@ -77,6 +79,7 @@ public class DevicePolicyServiceComponent {
                     new DevicePolicyEvaluationDataProvider(), null);
             bundleCtx.registerService(DeviceDataResolver.class.getName(),
                     new DeviceDataResolverImpl(), null);
+            bundleCtx.registerService(PolicyTypeDefinition.class.getName(), new DevicePolicyTypeDefinition(), null);
 
             DevicePolicyComponentServiceHolder holder = DevicePolicyComponentServiceHolder.getInstance();
             holder.setDevicePolicyEvaluator(devicePolicyEvaluator);

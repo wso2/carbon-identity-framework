@@ -20,11 +20,13 @@ package org.wso2.carbon.identity.policy.management.internal.component;
 
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
+import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 import org.wso2.carbon.identity.policy.management.internal.resourcemanager.PolicyResourceManager;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Service holder for the policy management component.
@@ -37,6 +39,7 @@ public class PolicyMgtComponentServiceHolder {
     private RuleManagementService ruleManagementService;
     private PolicyManagementService policyManagementService;
     private final Map<ResourceType, PolicyResourceManager> resourceManagers = new EnumMap<>(ResourceType.class);
+    private final Map<String, PolicyTypeDefinition> policyTypes = new ConcurrentHashMap<>();
 
     private PolicyMgtComponentServiceHolder() {
 
@@ -111,5 +114,36 @@ public class PolicyMgtComponentServiceHolder {
     public PolicyResourceManager getResourceManager(ResourceType resourceType) {
 
         return resourceManagers.get(resourceType);
+    }
+
+    /**
+     * Registers a policy type definition, keyed by its type.
+     *
+     * @param policyTypeDefinition Policy type definition.
+     */
+    public void addPolicyType(PolicyTypeDefinition policyTypeDefinition) {
+
+        policyTypes.put(policyTypeDefinition.getType(), policyTypeDefinition);
+    }
+
+    /**
+     * Removes a policy type definition.
+     *
+     * @param policyTypeDefinition Policy type definition.
+     */
+    public void removePolicyType(PolicyTypeDefinition policyTypeDefinition) {
+
+        policyTypes.remove(policyTypeDefinition.getType(), policyTypeDefinition);
+    }
+
+    /**
+     * Returns the definition registered for the given policy type.
+     *
+     * @param type Policy type.
+     * @return Policy type definition, or {@code null} if the type is not registered.
+     */
+    public PolicyTypeDefinition getPolicyType(String type) {
+
+        return type == null ? null : policyTypes.get(type);
     }
 }

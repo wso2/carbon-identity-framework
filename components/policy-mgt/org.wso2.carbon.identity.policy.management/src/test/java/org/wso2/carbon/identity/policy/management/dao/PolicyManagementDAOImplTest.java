@@ -53,6 +53,8 @@ public class PolicyManagementDAOImplTest {
     private static final int TENANT_ID = -1234;
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String TEST_POLICY_NAME = "TestPolicy";
+    private static final String POLICY_TYPE = "DEVICE";
+    private static final String OTHER_POLICY_TYPE = "OTHER";
     private static final String TEST_RULE_ID = UUID.randomUUID().toString();
 
     private PolicyManagementDAOImpl policyManagementDAO;
@@ -85,6 +87,7 @@ public class PolicyManagementDAOImplTest {
         Policy policy = new Policy.Builder()
                 .id(UUID.randomUUID().toString())
                 .name(TEST_POLICY_NAME)
+                .type(POLICY_TYPE)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(resources)
                 .build();
@@ -107,6 +110,7 @@ public class PolicyManagementDAOImplTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getId(), createdPolicyId);
         Assert.assertEquals(result.getName(), TEST_POLICY_NAME);
+        Assert.assertEquals(result.getType(), POLICY_TYPE);
         Assert.assertEquals(result.getResources().size(), 1);
         Assert.assertEquals(result.getResources().get(0).getResourceId(), TEST_RULE_ID);
     }
@@ -123,6 +127,7 @@ public class PolicyManagementDAOImplTest {
         Policy updatedPolicy = new Policy.Builder()
                 .id(createdPolicyId)
                 .name(updatedName)
+                .type(POLICY_TYPE)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(updatedResources)
                 .build();
@@ -155,9 +160,15 @@ public class PolicyManagementDAOImplTest {
 
     private String addPolicy(String name) throws PolicyManagementException {
 
+        return addPolicy(name, POLICY_TYPE);
+    }
+
+    private String addPolicy(String name, String type) throws PolicyManagementException {
+
         Policy policy = new Policy.Builder()
                 .id(UUID.randomUUID().toString())
                 .name(name)
+                .type(type)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Collections.emptyList())
                 .build();
@@ -171,15 +182,15 @@ public class PolicyManagementDAOImplTest {
         addPolicy("PageTestBeta");
         addPolicy("PageTestGamma");
 
-        Assert.assertEquals(policyManagementDAO.getPolicyCount(TENANT_ID, "PageTest"), 3);
+        Assert.assertEquals(policyManagementDAO.getPolicyCount(TENANT_ID, POLICY_TYPE, "PageTest"), 3);
 
         // Results are ordered by creation time, newest first. The two pages must together return all
         // three policies exactly once, with no overlap (asserted on the set, since policies created in
         // the same millisecond tie on CREATED_AT and fall back to the ID tiebreaker).
-        List<PolicyBasicInfo> firstPage = policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 0, 2);
+        List<PolicyBasicInfo> firstPage = policyManagementDAO.getPolicies(TENANT_ID, POLICY_TYPE, "PageTest", 0, 2);
         Assert.assertEquals(firstPage.size(), 2);
 
-        List<PolicyBasicInfo> secondPage = policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 2, 2);
+        List<PolicyBasicInfo> secondPage = policyManagementDAO.getPolicies(TENANT_ID, POLICY_TYPE, "PageTest", 2, 2);
         Assert.assertEquals(secondPage.size(), 1);
 
         Set<String> pagedNames = new HashSet<>();
@@ -189,7 +200,7 @@ public class PolicyManagementDAOImplTest {
                 new HashSet<>(Arrays.asList("PageTestAlpha", "PageTestBeta", "PageTestGamma")));
 
         // A non-positive limit yields an empty page.
-        Assert.assertTrue(policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 0, 0).isEmpty());
+        Assert.assertTrue(policyManagementDAO.getPolicies(TENANT_ID, POLICY_TYPE, "PageTest", 0, 0).isEmpty());
     }
 
     @Test(priority = 7)
@@ -197,8 +208,9 @@ public class PolicyManagementDAOImplTest {
 
         addPolicy("FilterTestUnique");
 
-        Assert.assertEquals(policyManagementDAO.getPolicyCount(TENANT_ID, "FilterTestUnique"), 1);
-        List<PolicyBasicInfo> result = policyManagementDAO.getPolicies(TENANT_ID, "FilterTestUnique", 0, 10);
+        Assert.assertEquals(policyManagementDAO.getPolicyCount(TENANT_ID, POLICY_TYPE, "FilterTestUnique"), 1);
+        List<PolicyBasicInfo> result =
+                policyManagementDAO.getPolicies(TENANT_ID, POLICY_TYPE, "FilterTestUnique", 0, 10);
         Assert.assertEquals(result.size(), 1);
         Assert.assertEquals(result.get(0).getName(), "FilterTestUnique");
     }
@@ -208,9 +220,11 @@ public class PolicyManagementDAOImplTest {
 
         addPolicy("NameLookupPolicy");
 
-        Policy result = policyManagementDAO.getPolicyByName("NameLookupPolicy", TENANT_ID);
+        Policy result = policyManagementDAO.getPolicyByName(POLICY_TYPE, "NameLookupPolicy", TENANT_ID);
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getName(), "NameLookupPolicy");
+        Assert.assertEquals(result.getType(), POLICY_TYPE);
+        Assert.assertNull(policyManagementDAO.getPolicyByName(OTHER_POLICY_TYPE, "NameLookupPolicy", TENANT_ID));
     }
 
     @Test(priority = 9)
@@ -220,6 +234,7 @@ public class PolicyManagementDAOImplTest {
         Policy policy = new Policy.Builder()
                 .id(UUID.randomUUID().toString())
                 .name("ResourceRoundTrip")
+                .type(POLICY_TYPE)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Collections.singletonList(new RulePolicyResource.Builder()
                         .target("ios")
@@ -243,6 +258,7 @@ public class PolicyManagementDAOImplTest {
         Policy policy = new Policy.Builder()
                 .id(UUID.randomUUID().toString())
                 .name("DuplicateTargetPolicy")
+                .type(POLICY_TYPE)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Arrays.asList(new RulePolicyResource.Builder()
                         .target("ios")
@@ -254,5 +270,39 @@ public class PolicyManagementDAOImplTest {
                 .build();
 
         policyManagementDAO.addPolicy(policy, TENANT_ID);
+    }
+
+    @Test(priority = 11)
+    public void testSameNameAllowedForDifferentTypes() throws PolicyManagementException {
+
+        String deviceId = addPolicy("SharedNamePolicy", POLICY_TYPE);
+        String otherId = addPolicy("SharedNamePolicy", OTHER_POLICY_TYPE);
+
+        Assert.assertNotEquals(deviceId, otherId);
+        Assert.assertEquals(policyManagementDAO.getPolicyIdByName(POLICY_TYPE, "SharedNamePolicy", TENANT_ID),
+                deviceId);
+        Assert.assertEquals(
+                policyManagementDAO.getPolicyIdByName(OTHER_POLICY_TYPE, "SharedNamePolicy", TENANT_ID), otherId);
+    }
+
+    @Test(priority = 12, expectedExceptions = PolicyManagementException.class)
+    public void testSameNameRejectedForSameType() throws PolicyManagementException {
+
+        addPolicy("DuplicateNamePolicy", POLICY_TYPE);
+        addPolicy("DuplicateNamePolicy", POLICY_TYPE);
+    }
+
+    @Test(priority = 13)
+    public void testGetPoliciesReturnsOnlyRequestedType() throws PolicyManagementException {
+
+        addPolicy("TypeScopedDevice", POLICY_TYPE);
+        addPolicy("TypeScopedOther", OTHER_POLICY_TYPE);
+
+        List<PolicyBasicInfo> result =
+                policyManagementDAO.getPolicies(TENANT_ID, OTHER_POLICY_TYPE, "TypeScoped", 0, 10);
+        Assert.assertEquals(result.size(), 1);
+        Assert.assertEquals(result.get(0).getName(), "TypeScopedOther");
+        Assert.assertEquals(result.get(0).getType(), OTHER_POLICY_TYPE);
+        Assert.assertEquals(policyManagementDAO.getPolicyCount(TENANT_ID, OTHER_POLICY_TYPE, "TypeScoped"), 1);
     }
 }

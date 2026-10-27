@@ -51,6 +51,7 @@ public class PolicyManagementAuditLoggerTest {
 
     private static final String POLICY_ID = "policy-123";
     private static final String POLICY_NAME = "Test Policy";
+    private static final String POLICY_TYPE = "DEVICE";
     private static final String TENANT_DOMAIN = "carbon.super";
 
     private PolicyManagementAuditLogger auditLogger;
@@ -87,6 +88,7 @@ public class PolicyManagementAuditLoggerTest {
         policy = new Policy.Builder()
                 .id(POLICY_ID)
                 .name(POLICY_NAME)
+                .type(POLICY_TYPE)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Collections.singletonList(new RulePolicyResource.Builder()
                         .target("android")
@@ -116,6 +118,7 @@ public class PolicyManagementAuditLoggerTest {
         JSONObject data = invokeCreateAuditLogEntry(policy);
         Assert.assertEquals(data.get("Id"), POLICY_ID);
         Assert.assertEquals(data.get("Name"), POLICY_NAME);
+        Assert.assertEquals(data.get("Type"), POLICY_TYPE);
         Assert.assertEquals(data.get("TenantDomain"), TENANT_DOMAIN);
 
         JSONArray resources = (JSONArray) data.get("Resources");

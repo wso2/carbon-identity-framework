@@ -33,21 +33,24 @@ public interface PolicyManagementService {
     /**
      * Creates a new policy. The supplied ID is ignored; a server-generated UUID is assigned.
      *
-     * @param policy       Policy to create. Name must be non-blank.
+     * @param policy       Policy to create. Name must be non-blank, the type must be registered, and every resource
+     *                     target must be supported by the type.
      * @param tenantDomain Tenant domain.
      * @return Created policy with the server-assigned ID.
-     * @throws PolicyManagementException If the policy name is blank or persistence fails.
+     * @throws PolicyManagementException If the policy is invalid, a policy of the same type and name exists, or
+     *                                   persistence fails.
      */
     Policy addPolicy(Policy policy, String tenantDomain) throws PolicyManagementException;
 
     /**
      * Updates an existing policy's resources. Policy ID is immutable and must match an existing policy;
-     * policy name is also immutable: attempting to update the policy name will throw an exception.
+     * policy name and type are also immutable: attempting to update either will throw an exception.
      *
      * @param policy       Policy with the new state. ID must reference an existing policy.
      * @param tenantDomain Tenant domain.
      * @return Updated policy as persisted.
-     * @throws PolicyManagementException If the policy is not found, name update is attempted, or persistence fails.
+     * @throws PolicyManagementException If the policy is not found, a name or type update is attempted, a resource
+     *                                   target is not supported by the policy type, or persistence fails.
      */
     Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException;
 
@@ -71,47 +74,54 @@ public interface PolicyManagementService {
     Policy getPolicyById(String policyId, String tenantDomain) throws PolicyManagementException;
 
     /**
-     * Returns the policy by name with each rule-typed {@link PolicyResource} enriched from rule-mgt.
+     * Returns the policy of the given type by name with each rule-typed {@link PolicyResource} enriched from
+     * rule-mgt.
      *
+     * @param policyType   Policy type.
      * @param policyName   Policy name.
      * @param tenantDomain Tenant domain.
      * @return Policy with enriched rules, or {@code null} if not found.
-     * @throws PolicyManagementException If retrieval or rule enrichment fails.
+     * @throws PolicyManagementException If the type is not registered, or retrieval or rule enrichment fails.
      */
-    Policy getPolicyByName(String policyName, String tenantDomain) throws PolicyManagementException;
+    Policy getPolicyByName(String policyType, String policyName, String tenantDomain)
+            throws PolicyManagementException;
 
     /**
      * Resolves a policy name to its immutable policy ID. Useful for callers that reference a policy
      * by name but need its ID (e.g. to evaluate the policy by ID).
      *
+     * @param policyType   Policy type.
      * @param policyName   Policy name.
      * @param tenantDomain Tenant domain.
-     * @return Policy ID, or {@code null} if no policy with the given name exists.
-     * @throws PolicyManagementException If retrieval fails.
+     * @return Policy ID, or {@code null} if no policy of the type exists with the given name.
+     * @throws PolicyManagementException If the type is not registered or retrieval fails.
      */
-    String getPolicyIdByName(String policyName, String tenantDomain) throws PolicyManagementException;
-
-    /**
-     * Returns a page of policy summaries for the tenant, optionally filtered by name. Summaries are
-     * lightweight (no enriched rules); call {@link #getPolicyById} for the full enriched policy.
-     *
-     * @param tenantDomain Tenant domain.
-     * @param filter       Name filter; {@code null} or blank returns all policies.
-     * @param offset       Zero-based start index.
-     * @param limit        Maximum number of results to return.
-     * @return Page of policy summaries (never {@code null}).
-     * @throws PolicyManagementException If retrieval fails.
-     */
-    List<PolicyBasicInfo> getPolicies(String tenantDomain, String filter, int offset, int limit)
+    String getPolicyIdByName(String policyType, String policyName, String tenantDomain)
             throws PolicyManagementException;
 
     /**
-     * Returns the total number of policies matching the given filter, for pagination.
+     * Returns a page of summaries of the policies of the given type, optionally filtered by name. Summaries are
+     * lightweight (no enriched rules); call {@link #getPolicyById} for the full enriched policy.
      *
      * @param tenantDomain Tenant domain.
-     * @param filter       Name filter; {@code null} or blank counts all policies.
-     * @return Total number of matching policies.
-     * @throws PolicyManagementException If retrieval fails.
+     * @param policyType   Policy type.
+     * @param filter       Name filter; {@code null} or blank returns all policies of the type.
+     * @param offset       Zero-based start index.
+     * @param limit        Maximum number of results to return.
+     * @return Page of policy summaries (never {@code null}).
+     * @throws PolicyManagementException If the type is not registered or retrieval fails.
      */
-    int getPolicyCount(String tenantDomain, String filter) throws PolicyManagementException;
+    List<PolicyBasicInfo> getPolicies(String tenantDomain, String policyType, String filter, int offset, int limit)
+            throws PolicyManagementException;
+
+    /**
+     * Returns the total number of policies of the given type matching the given filter, for pagination.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param policyType   Policy type.
+     * @param filter       Name filter; {@code null} or blank counts all policies of the type.
+     * @return Total number of matching policies.
+     * @throws PolicyManagementException If the type is not registered or retrieval fails.
+     */
+    int getPolicyCount(String tenantDomain, String policyType, String filter) throws PolicyManagementException;
 }

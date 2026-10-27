@@ -57,6 +57,7 @@ import static org.testng.Assert.assertNull;
 public class CacheBackedPolicyManagementDAOTest {
 
     private static final String POLICY_ID = "policyId";
+    private static final String POLICY_TYPE = "DEVICE";
     private static final String POLICY_NAME = "TestPolicy";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final int TENANT_ID = 1;
@@ -87,6 +88,7 @@ public class CacheBackedPolicyManagementDAOTest {
         return new Policy.Builder()
                 .id(POLICY_ID)
                 .name(POLICY_NAME)
+                .type(POLICY_TYPE)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Collections.emptyList())
                 .build();
@@ -101,7 +103,7 @@ public class CacheBackedPolicyManagementDAOTest {
 
         verify(policyManagementDAO).addPolicy(policy, TENANT_ID);
         assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_ID), TENANT_ID));
-        assertNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(POLICY_NAME), TENANT_ID));
+        assertNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), TENANT_ID));
     }
 
     @Test
@@ -136,14 +138,14 @@ public class CacheBackedPolicyManagementDAOTest {
     public void testGetPolicyByNameCacheMissPopulatesIndexAndIdCaches() throws PolicyManagementException {
 
         Policy policy = policy();
-        when(policyManagementDAO.getPolicyByName(POLICY_NAME, TENANT_ID)).thenReturn(policy);
+        when(policyManagementDAO.getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID)).thenReturn(policy);
 
-        Policy result = cacheBackedPolicyManagementDAO.getPolicyByName(POLICY_NAME, TENANT_ID);
+        Policy result = cacheBackedPolicyManagementDAO.getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
 
         assertEquals(result, policy);
-        verify(policyManagementDAO).getPolicyByName(POLICY_NAME, TENANT_ID);
+        verify(policyManagementDAO).getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
         assertEquals(policyIdByNameCache.getValueFromCache(
-                new PolicyNameCacheKey(POLICY_NAME), TENANT_ID).getPolicyId(), POLICY_ID);
+                new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), TENANT_ID).getPolicyId(), POLICY_ID);
         assertEquals(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_ID), TENANT_ID).getPolicy(), policy);
 
         // A subsequent getPolicyById call is now served entirely from the canonical cache.
@@ -156,14 +158,14 @@ public class CacheBackedPolicyManagementDAOTest {
     public void testGetPolicyByNameResolvesViaWarmIndexAndColdIdCache() throws PolicyManagementException {
 
         policyIdByNameCache.addToCacheOnRead(
-                new PolicyNameCacheKey(POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
+                new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
         Policy policy = policy();
         when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(policy);
 
-        Policy result = cacheBackedPolicyManagementDAO.getPolicyByName(POLICY_NAME, TENANT_ID);
+        Policy result = cacheBackedPolicyManagementDAO.getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
 
         assertEquals(result, policy);
-        verify(policyManagementDAO, never()).getPolicyByName(POLICY_NAME, TENANT_ID);
+        verify(policyManagementDAO, never()).getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
         verify(policyManagementDAO).getPolicyById(POLICY_ID, TENANT_ID);
     }
 
@@ -171,25 +173,25 @@ public class CacheBackedPolicyManagementDAOTest {
     public void testGetPolicyIdByNameCacheHit() throws PolicyManagementException {
 
         policyIdByNameCache.addToCacheOnRead(
-                new PolicyNameCacheKey(POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
+                new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
 
-        String result = cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_NAME, TENANT_ID);
+        String result = cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
 
         assertEquals(result, POLICY_ID);
-        verify(policyManagementDAO, never()).getPolicyIdByName(POLICY_NAME, TENANT_ID);
+        verify(policyManagementDAO, never()).getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
     }
 
     @Test
     public void testGetPolicyIdByNameCacheMissWarmsIndex() throws PolicyManagementException {
 
-        when(policyManagementDAO.getPolicyIdByName(POLICY_NAME, TENANT_ID)).thenReturn(POLICY_ID);
+        when(policyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID)).thenReturn(POLICY_ID);
 
-        String result = cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_NAME, TENANT_ID);
+        String result = cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
 
         assertEquals(result, POLICY_ID);
-        verify(policyManagementDAO).getPolicyIdByName(POLICY_NAME, TENANT_ID);
+        verify(policyManagementDAO).getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
         assertEquals(policyIdByNameCache.getValueFromCache(
-                new PolicyNameCacheKey(POLICY_NAME), TENANT_ID).getPolicyId(), POLICY_ID);
+                new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), TENANT_ID).getPolicyId(), POLICY_ID);
     }
 
     @Test
@@ -198,7 +200,7 @@ public class CacheBackedPolicyManagementDAOTest {
         Policy policy = policy();
         policyCache.addToCacheOnRead(new PolicyCacheKey(POLICY_ID), new PolicyCacheEntry(policy), TENANT_ID);
         policyIdByNameCache.addToCacheOnRead(
-                new PolicyNameCacheKey(POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
+                new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
         when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(policy);
         when(policyManagementDAO.updatePolicy(policy, TENANT_ID)).thenReturn(policy);
 
@@ -207,7 +209,8 @@ public class CacheBackedPolicyManagementDAOTest {
         verify(policyManagementDAO).updatePolicy(policy, TENANT_ID);
         assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_ID), TENANT_ID));
         // Name-to-ID mapping is unaffected by a plain content update.
-        assertNotNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(POLICY_NAME), TENANT_ID));
+        assertNotNull(policyIdByNameCache.getValueFromCache(
+                new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), TENANT_ID));
     }
 
     @Test
@@ -217,25 +220,27 @@ public class CacheBackedPolicyManagementDAOTest {
         Policy existing = new Policy.Builder()
                 .id(POLICY_ID)
                 .name(oldName)
+                .type(POLICY_TYPE)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Collections.emptyList())
                 .build();
         Policy renamed = new Policy.Builder()
                 .id(POLICY_ID)
                 .name(POLICY_NAME)
+                .type(POLICY_TYPE)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Collections.emptyList())
                 .build();
         policyCache.addToCacheOnRead(new PolicyCacheKey(POLICY_ID), new PolicyCacheEntry(existing), TENANT_ID);
         policyIdByNameCache.addToCacheOnRead(
-                new PolicyNameCacheKey(oldName), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
+                new PolicyNameCacheKey(POLICY_TYPE, oldName), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
         when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(existing);
         when(policyManagementDAO.updatePolicy(renamed, TENANT_ID)).thenReturn(renamed);
 
         cacheBackedPolicyManagementDAO.updatePolicy(renamed, TENANT_ID);
 
         assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_ID), TENANT_ID));
-        assertNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(oldName), TENANT_ID));
+        assertNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(POLICY_TYPE, oldName), TENANT_ID));
     }
 
     @Test
@@ -244,13 +249,26 @@ public class CacheBackedPolicyManagementDAOTest {
         Policy policy = policy();
         policyCache.addToCacheOnRead(new PolicyCacheKey(POLICY_ID), new PolicyCacheEntry(policy), TENANT_ID);
         policyIdByNameCache.addToCacheOnRead(
-                new PolicyNameCacheKey(POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
+                new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
         when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(policy);
 
         cacheBackedPolicyManagementDAO.deletePolicy(POLICY_ID, TENANT_ID);
 
         verify(policyManagementDAO).deletePolicy(POLICY_ID, TENANT_ID);
         assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_ID), TENANT_ID));
-        assertNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(POLICY_NAME), TENANT_ID));
+        assertNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), TENANT_ID));
+    }
+
+    @Test
+    public void testNameIndexIsScopedByType() throws PolicyManagementException {
+
+        policyIdByNameCache.addToCacheOnRead(
+                new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), new PolicyIdCacheEntry(POLICY_ID), TENANT_ID);
+        when(policyManagementDAO.getPolicyIdByName("OTHER", POLICY_NAME, TENANT_ID)).thenReturn(null);
+
+        String result = cacheBackedPolicyManagementDAO.getPolicyIdByName("OTHER", POLICY_NAME, TENANT_ID);
+
+        assertNull(result);
+        verify(policyManagementDAO).getPolicyIdByName("OTHER", POLICY_NAME, TENANT_ID);
     }
 }
