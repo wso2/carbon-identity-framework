@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -201,6 +203,23 @@ public class SharedUserSubjectIdentifierTest {
         PostAuthenticatedSubjectIdentifierHandler.getInstance().handle(request, response, context);
 
         assertEquals(authenticatedUser.getAuthenticatedSubjectIdentifier(), "alice");
+    }
+
+    @Test
+    public void testSubjectIdentifierForFragmentApplication() {
+
+        ServiceProviderProperty fragmentAppProperty = new ServiceProviderProperty();
+        fragmentAppProperty.setName("isFragmentApp");
+        fragmentAppProperty.setValue("true");
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setSpProperties(new ServiceProviderProperty[]{fragmentAppProperty});
+        when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
+        mockUserIdSubjectClaim();
+
+        PostAuthenticatedSubjectIdentifierHandler.getInstance().handle(request, response, context);
+
+        assertEquals(authenticatedUser.getAuthenticatedSubjectIdentifier(), RESIDENT_USER_ID);
+        frameworkUtils.verify(() -> FrameworkUtils.isSharedUserIdAsSubjectEnabled(any()), never());
     }
 
     private void mockUserIdSubjectClaim() {

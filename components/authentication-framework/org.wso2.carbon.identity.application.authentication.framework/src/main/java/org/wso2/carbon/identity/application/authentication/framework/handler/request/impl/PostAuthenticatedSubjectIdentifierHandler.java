@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
@@ -34,6 +35,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.Arrays;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -41,6 +44,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ALLOW_AUTHENTICATED_SUB_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 
 /**
  * This PostAuthenticationHandler is responsible for setting subject identifier related with authenticated user.
@@ -219,6 +223,8 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
      * Get the shared user id of the accessing organization to use as the subject identifier, if the authenticated
      * user is a shared user and the accessing organization enables the shared user subject compatibility setting.
      * Only the subject identifier changes. The authenticated user keeps the resident user details.
+     * Applications shared from a parent organization (fragment applications) are excluded, because the parent
+     * organization login resolves the user from the subject identifier of these applications.
      *
      * @param authenticatedUser Authenticated user.
      * @param context           Authentication context.
@@ -232,6 +238,9 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
         String accessingOrganization = authenticatedUser.getAccessingOrganization();
         if (StringUtils.isBlank(accessingOrganization) ||
                 StringUtils.equals(accessingOrganization, authenticatedUser.getUserResidentOrganization())) {
+            return null;
+        }
+        if (isFragmentApplication(context.getSequenceConfig())) {
             return null;
         }
         if (!FrameworkUtils.isSharedUserIdAsSubjectEnabled(context.getTenantDomain())) {
@@ -251,5 +260,17 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
                     ". Resident user id will be used as the subject identifier.", e);
             return null;
         }
+    }
+
+    private boolean isFragmentApplication(SequenceConfig sequenceConfig) {
+
+        ApplicationConfig applicationConfig = sequenceConfig.getApplicationConfig();
+        if (applicationConfig == null || applicationConfig.getServiceProvider() == null ||
+                applicationConfig.getServiceProvider().getSpProperties() == null) {
+            return false;
+        }
+        return Arrays.stream(applicationConfig.getServiceProvider().getSpProperties())
+                .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 }
