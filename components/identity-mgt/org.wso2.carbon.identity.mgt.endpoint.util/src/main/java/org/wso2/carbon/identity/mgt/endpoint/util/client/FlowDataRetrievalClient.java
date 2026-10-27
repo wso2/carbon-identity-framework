@@ -117,7 +117,11 @@ public class FlowDataRetrievalClient {
                 }
 
                 HttpPost postRequest = new HttpPost(uriBuilder.build());
-                postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+                boolean callerSuppliedAccept = headerParams != null && headerParams.keySet().stream()
+                        .anyMatch(HttpHeaders.ACCEPT::equalsIgnoreCase);
+                if (!callerSuppliedAccept) {
+                    postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+                }
                 if (headerParams != null) {
                     Set<String> excludedHeaders = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
                     excludedHeaders.addAll(HOP_BY_HOP_HEADERS);
