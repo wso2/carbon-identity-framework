@@ -109,6 +109,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
+        </dependency>
 
         <!-- Rule evaluation -->
         <dependency>
@@ -219,6 +223,8 @@
                             org.wso2.carbon.identity.device.mgt.api.service;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.api.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.metadata.api.model;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.evaluation.api.exception;
                             version="${carbon.identity.package.import.version.range}",

@@ -40,15 +40,22 @@ import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagement
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResourceMetadata;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
+import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResourceMetadata;
 import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
+import org.wso2.carbon.identity.policy.management.api.type.RuleResourceTypeHandler;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
 import org.wso2.carbon.identity.policy.management.internal.resourcemanager.impl.RuleResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyManagementServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.api.model.FlowType;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
+import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.lang.reflect.Field;
@@ -79,6 +86,7 @@ public class PolicyManagementServiceImplTest {
     private static final String TEST_POLICY_NAME = "TestPolicy";
     private static final String TEST_POLICY_ID = UUID.randomUUID().toString();
     private static final String POLICY_TYPE = "DEVICE";
+    private static final String NO_RULE_POLICY_TYPE = "NO_RULE";
 
     @Mock
     private PolicyManagementDAO policyManagementDAO;
@@ -86,10 +94,15 @@ public class PolicyManagementServiceImplTest {
     @Mock
     private RuleManagementService ruleManagementService;
 
+    @Mock
+    private RuleMetadataService ruleMetadataService;
+
     private PolicyManagementServiceImpl policyManagementService;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private MockedStatic<LoggerUtils> loggerUtils;
     private PolicyTypeDefinition policyTypeDefinition;
+    private PolicyTypeDefinition noRulePolicyTypeDefinition;
+    private RuleResourceTypeHandler ruleResourceTypeHandler;
     private AutoCloseable mocks;
     // Reflection fields removed; tests now construct the service with a mock DAO.
 
@@ -122,11 +135,15 @@ public class PolicyManagementServiceImplTest {
         daoField.set(policyManagementService, policyManagementDAO);
 
         PolicyMgtComponentServiceHolder.getInstance().setRuleManagementService(ruleManagementService);
+        PolicyMgtComponentServiceHolder.getInstance().setRuleMetadataService(ruleMetadataService);
         PolicyMgtComponentServiceHolder.getInstance().addResourceManager(new RuleResourceManager());
-        policyTypeDefinition = mock(PolicyTypeDefinition.class);
-        when(policyTypeDefinition.getType()).thenReturn(POLICY_TYPE);
-        when(policyTypeDefinition.getSupportedTargets()).thenReturn(new HashSet<>(Arrays.asList("android", "ios")));
+        ruleResourceTypeHandler = mock(RuleResourceTypeHandler.class);
+        when(ruleResourceTypeHandler.getResourceType()).thenReturn(ResourceType.RULE);
+        HashSet<String> targets = new HashSet<>(Arrays.asList("android", "ios"));
+        policyTypeDefinition = new PolicyTypeDefinition(POLICY_TYPE, targets, ruleResourceTypeHandler) { };
+        noRulePolicyTypeDefinition = new PolicyTypeDefinition(NO_RULE_POLICY_TYPE, targets) { };
         PolicyMgtComponentServiceHolder.getInstance().addPolicyType(policyTypeDefinition);
+        PolicyMgtComponentServiceHolder.getInstance().addPolicyType(noRulePolicyTypeDefinition);
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
@@ -136,6 +153,7 @@ public class PolicyManagementServiceImplTest {
     @AfterClass
     public void tearDown() throws Exception {
         PolicyMgtComponentServiceHolder.getInstance().removePolicyType(policyTypeDefinition);
+        PolicyMgtComponentServiceHolder.getInstance().removePolicyType(noRulePolicyTypeDefinition);
         identityTenantUtil.close();
         mocks.close();
     }
@@ -145,6 +163,9 @@ public class PolicyManagementServiceImplTest {
 
         org.mockito.Mockito.reset(policyManagementDAO);
         org.mockito.Mockito.reset(ruleManagementService);
+        org.mockito.Mockito.reset(ruleMetadataService);
+        when(ruleResourceTypeHandler.getRuleFlowType()).thenReturn(FlowType.DEVICE_POLICY);
+        when(ruleResourceTypeHandler.filterMetadata(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
         loggerUtils = mockStatic(LoggerUtils.class);
         loggerUtils.when(() -> LoggerUtils.getInitiatorType(any())).thenReturn("USER");
@@ -731,5 +752,104 @@ public class PolicyManagementServiceImplTest {
 
         Assert.assertEquals(policyManagementService.getPolicyIdByName(POLICY_TYPE, TEST_POLICY_NAME, TENANT_DOMAIN),
                 TEST_POLICY_ID);
+    }
+
+    // --- Rule metadata tests ---
+
+    private FieldDefinition fieldDefinition(String name) {
+
+        FieldDefinition fieldDefinition = mock(FieldDefinition.class);
+        when(fieldDefinition.getField())
+                .thenReturn(new org.wso2.carbon.identity.rule.metadata.api.model.Field(name, name));
+        return fieldDefinition;
+    }
+
+    @Test
+    public void testGetRuleResourceMetadataFiltersFieldsByTarget()
+            throws PolicyManagementException, RuleMetadataException {
+
+        FieldDefinition iosField = fieldDefinition("iosOsVersion");
+        FieldDefinition androidField = fieldDefinition("androidOsVersion");
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.DEVICE_POLICY, TENANT_DOMAIN))
+                .thenReturn(Arrays.asList(iosField, androidField));
+        when(ruleResourceTypeHandler.filterMetadata("ios", Arrays.asList(iosField, androidField)))
+                .thenReturn(Collections.singletonList(iosField));
+
+        PolicyResourceMetadata result = policyManagementService.getResourceMetadata(POLICY_TYPE, ResourceType.RULE,
+                "ios", TENANT_DOMAIN);
+
+        Assert.assertEquals(result.getResourceType(), ResourceType.RULE);
+        RulePolicyResourceMetadata ruleMetadata = (RulePolicyResourceMetadata) result;
+        Assert.assertEquals(ruleMetadata.getRuleFlowType(), FlowType.DEVICE_POLICY);
+        Assert.assertEquals(ruleMetadata.getFieldDefinitions(), Collections.singletonList(iosField));
+    }
+
+    @Test
+    public void testGetRuleResourceMetadata_UnsupportedTargetRejected() throws PolicyManagementException {
+
+        try {
+            policyManagementService.getResourceMetadata(POLICY_TYPE, ResourceType.RULE, "linux", TENANT_DOMAIN);
+            Assert.fail("Expected PolicyManagementClientException");
+        } catch (PolicyManagementClientException e) {
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_UNSUPPORTED_POLICY_TARGET.getCode());
+        }
+    }
+
+    @Test
+    public void testGetRuleResourceMetadata_TypeWithoutRulesRejected() throws PolicyManagementException {
+
+        try {
+            policyManagementService.getResourceMetadata(NO_RULE_POLICY_TYPE, ResourceType.RULE, "ios", TENANT_DOMAIN);
+            Assert.fail("Expected PolicyManagementClientException");
+        } catch (PolicyManagementClientException e) {
+            Assert.assertEquals(e.getErrorCode(),
+                    ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_POLICY_TYPE.getCode());
+        }
+    }
+
+    @Test
+    public void testGetRuleResourceMetadata_MissingRuleFlow() throws PolicyManagementException {
+
+        when(ruleResourceTypeHandler.getRuleFlowType()).thenReturn(null);
+        try {
+            policyManagementService.getResourceMetadata(POLICY_TYPE, ResourceType.RULE, "ios", TENANT_DOMAIN);
+            Assert.fail("Expected PolicyManagementServerException");
+        } catch (PolicyManagementServerException e) {
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_RULE_FLOW_NOT_DEFINED.getCode());
+        }
+    }
+
+    @Test
+    public void testGetRuleResourceMetadata_RuleMetadataFailure()
+            throws PolicyManagementException, RuleMetadataException {
+
+        when(ruleMetadataService.getExpressionMeta(any(), eq(TENANT_DOMAIN)))
+                .thenThrow(new RuleMetadataException("error", "error", "RULEMETA-60001"));
+        try {
+            policyManagementService.getResourceMetadata(POLICY_TYPE, ResourceType.RULE, "ios", TENANT_DOMAIN);
+            Assert.fail("Expected PolicyManagementServerException");
+        } catch (PolicyManagementServerException e) {
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_WHILE_RETRIEVING_RULE_METADATA.getCode());
+        }
+    }
+
+    @Test
+    public void testAddPolicy_UnsupportedResourceTypeRejected() throws PolicyManagementException {
+
+        Policy inputPolicy = new Policy.Builder()
+                .name(TEST_POLICY_NAME)
+                .type(NO_RULE_POLICY_TYPE)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(
+                        new RulePolicyResource.Builder().target("ios").rule(mock(Rule.class)).build()))
+                .build();
+        try {
+            policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
+            Assert.fail("Expected PolicyManagementClientException");
+        } catch (PolicyManagementClientException e) {
+            Assert.assertEquals(e.getErrorCode(),
+                    ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_POLICY_TYPE.getCode());
+        }
     }
 }

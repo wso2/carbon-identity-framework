@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 import org.wso2.carbon.identity.policy.management.internal.resourcemanager.impl.RuleResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyManagementServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 /**
  * OSGi DS component that registers the PolicyManagementService.
@@ -87,6 +88,28 @@ public class PolicyMgtServiceComponent {
             holder.setRuleManagementService(null);
         }
         LOG.debug("RuleManagementService unset in Policy Management component.");
+    }
+
+    @Reference(
+            name = "rule.metadata.service",
+            service = RuleMetadataService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRuleMetadataService"
+    )
+    protected void setRuleMetadataService(RuleMetadataService ruleMetadataService) {
+
+        PolicyMgtComponentServiceHolder.getInstance().setRuleMetadataService(ruleMetadataService);
+        LOG.debug("RuleMetadataService set in Policy Management component.");
+    }
+
+    protected void unsetRuleMetadataService(RuleMetadataService ruleMetadataService) {
+
+        PolicyMgtComponentServiceHolder holder = PolicyMgtComponentServiceHolder.getInstance();
+        if (holder.getRuleMetadataService() == ruleMetadataService) {
+            holder.setRuleMetadataService(null);
+        }
+        LOG.debug("RuleMetadataService unset in Policy Management component.");
     }
 
     @Reference(

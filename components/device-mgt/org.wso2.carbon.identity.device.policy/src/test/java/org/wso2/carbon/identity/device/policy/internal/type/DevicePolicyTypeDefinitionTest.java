@@ -19,11 +19,15 @@
 package org.wso2.carbon.identity.device.policy.internal.type;
 
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.device.policy.internal.rule.DeviceRuleResourceTypeHandler;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests for {@link DevicePolicyTypeDefinition}.
@@ -38,5 +42,7 @@ public class DevicePolicyTypeDefinitionTest {
         assertEquals(definition.getType(), "DEVICE");
         assertEquals(definition.getSupportedTargets(),
                 new HashSet<>(Arrays.asList("android", "ios", "macos", "windows")));
+        assertEquals(definition.getSupportedResourceTypes(), Collections.singleton(ResourceType.RULE));
+        assertTrue(definition.getResourceTypeHandler(ResourceType.RULE) instanceof DeviceRuleResourceTypeHandler);
     }
 }

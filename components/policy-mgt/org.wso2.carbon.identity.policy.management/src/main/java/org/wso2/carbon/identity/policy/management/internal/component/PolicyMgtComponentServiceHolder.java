@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementSe
 import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 import org.wso2.carbon.identity.policy.management.internal.resourcemanager.PolicyResourceManager;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class PolicyMgtComponentServiceHolder {
     private static final PolicyMgtComponentServiceHolder INSTANCE = new PolicyMgtComponentServiceHolder();
 
     private RuleManagementService ruleManagementService;
+    private RuleMetadataService ruleMetadataService;
     private PolicyManagementService policyManagementService;
     private final Map<ResourceType, PolicyResourceManager> resourceManagers = new EnumMap<>(ResourceType.class);
     private final Map<String, PolicyTypeDefinition> policyTypes = new ConcurrentHashMap<>();
@@ -73,6 +75,26 @@ public class PolicyMgtComponentServiceHolder {
     public void setRuleManagementService(RuleManagementService ruleManagementService) {
 
         this.ruleManagementService = ruleManagementService;
+    }
+
+    /**
+     * Get the RuleMetadataService.
+     *
+     * @return RuleMetadataService instance.
+     */
+    public RuleMetadataService getRuleMetadataService() {
+
+        return ruleMetadataService;
+    }
+
+    /**
+     * Set the RuleMetadataService.
+     *
+     * @param ruleMetadataService RuleMetadataService instance.
+     */
+    public void setRuleMetadataService(RuleMetadataService ruleMetadataService) {
+
+        this.ruleMetadataService = ruleMetadataService;
     }
 
     /**
