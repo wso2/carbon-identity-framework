@@ -29,6 +29,11 @@
             <class name="org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListenerTest"/>
         </classes>
     </test>
+    <test name="Device_Registration_Component_Tests">
+        <classes>
+            <class name="org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationServiceComponentTest"/>
+        </classes>
+    </test>
     <test name="Device_Registration_Util_Tests">
         <classes>
             <class name="org.wso2.carbon.identity.device.registration.internal.util.DeviceSignatureVerifierTest"/>

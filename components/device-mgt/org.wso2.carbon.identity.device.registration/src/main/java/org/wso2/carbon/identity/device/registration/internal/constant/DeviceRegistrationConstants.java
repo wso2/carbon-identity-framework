@@ -48,6 +48,8 @@ public class DeviceRegistrationConstants {
 
     public static final String META_POLICY_NAME = "policyName";
 
+    public static final String DISABLE_REGISTRATION_EXECUTOR_CONFIG = "DeviceManagement.DisableRegistrationExecutor";
+
     private DeviceRegistrationConstants() {
 
     }

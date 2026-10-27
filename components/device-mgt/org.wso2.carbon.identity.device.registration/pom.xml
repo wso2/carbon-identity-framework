@@ -88,6 +88,11 @@
             <artifactId>org.wso2.carbon.core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
+
         <!-- LoggerUtils (log masking) -->
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -181,6 +186,8 @@
                             org.wso2.carbon.identity.device.policy.api.model;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils;
                             version="${carbon.kernel.package.import.version.range}"
