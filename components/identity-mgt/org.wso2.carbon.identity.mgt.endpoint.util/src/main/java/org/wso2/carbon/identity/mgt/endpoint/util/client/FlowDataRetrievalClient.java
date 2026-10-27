@@ -38,8 +38,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -50,6 +53,28 @@ public class FlowDataRetrievalClient {
 
     private static final String FLOW_EXECUTE_API_PATH = "/api/server/v1/flow/execute";
     private static final Log LOG = LogFactory.getLog(FlowDataRetrievalClient.class);
+
+    // Headers that are connection/entity scoped and must never be relayed as-is onto a new outbound request:
+    // forwarding them verbatim can leak proxy credentials (Proxy-Authorization), misroute the request (Host),
+    // or make the receiving server misinterpret the freshly-built JSON entity (Content-Type/Content-Encoding).
+    private static final Set<String> HOP_BY_HOP_HEADERS;
+
+    static {
+        Set<String> headers = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        headers.add(HttpHeaders.CONNECTION);
+        headers.add(HttpHeaders.CONTENT_LENGTH);
+        headers.add(HttpHeaders.TRANSFER_ENCODING);
+        headers.add(HttpHeaders.HOST);
+        headers.add(HttpHeaders.KEEP_ALIVE);
+        headers.add(HttpHeaders.TE);
+        headers.add(HttpHeaders.UPGRADE);
+        headers.add(HttpHeaders.PROXY_AUTHORIZATION);
+        headers.add(HttpHeaders.PROXY_AUTHENTICATE);
+        headers.add("Proxy-Authentication-Info");
+        headers.add(HttpHeaders.CONTENT_TYPE);
+        headers.add(HttpHeaders.CONTENT_ENCODING);
+        HOP_BY_HOP_HEADERS = headers;
+    }
 
     /**
      * Execute a flow by invoking the Flow Execution API.
@@ -94,9 +119,17 @@ public class FlowDataRetrievalClient {
                 HttpPost postRequest = new HttpPost(uriBuilder.build());
                 postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
                 if (headerParams != null) {
+                    Set<String> excludedHeaders = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+                    excludedHeaders.addAll(HOP_BY_HOP_HEADERS);
                     headerParams.forEach((name, values) -> {
-                        if (!HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name)
-                                && !HttpHeaders.TRANSFER_ENCODING.equalsIgnoreCase(name)) {
+                        if (HttpHeaders.CONNECTION.equalsIgnoreCase(name)) {
+                            values.forEach(value -> Arrays.stream(value.split(","))
+                                    .map(String::trim)
+                                    .forEach(excludedHeaders::add));
+                        }
+                    });
+                    headerParams.forEach((name, values) -> {
+                        if (!excludedHeaders.contains(name)) {
                             values.forEach(value -> postRequest.addHeader(name, value));
                         }
                     });
@@ -118,7 +151,7 @@ public class FlowDataRetrievalClient {
                     }
                 });
             } catch (JSONException | IOException | URISyntaxException e) {
-                LOG.error("Error while invoking flow execution request.", e);
+                LOG.error("Error while invoking flow execution request: " + e.getMessage());
                 throw new ApiException("Error while invoking flow execution request.");
             }
         });
