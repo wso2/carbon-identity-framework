@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -68,13 +69,16 @@ public class FlowDataRetrievalClient {
      *
      * @param jsonBody     The JSON body to be sent in the request.
      * @param tenantDomain The tenant domain for which the flow is to be executed.
-     * @param headerParams Headers to be forwarded to the Flow Execution API.
-     * @param queryParams  Query parameters to be forwarded to the Flow Execution API.
+     * @param headerParams Headers to be forwarded to the Flow Execution API, keyed by header name with all values
+     *                      for that name.
+     * @param queryParams  Query parameters to be forwarded to the Flow Execution API, keyed by parameter name with
+     *                      all values for that name.
      * @return FlowExecutionResponse containing the status code and response body from the API.
      * @throws ApiException If there is an error during API invocation or if input validation fails.
      */
-    public FlowExecutionResponse executeFlow(String jsonBody, String tenantDomain, Map<String, String> headerParams,
-                                              Map<String, String> queryParams) throws ApiException {
+    public FlowExecutionResponse executeFlow(String jsonBody, String tenantDomain,
+                                              Map<String, List<String>> headerParams,
+                                              Map<String, List<String>> queryParams) throws ApiException {
 
         validateInputs(jsonBody, tenantDomain);
 
@@ -84,16 +88,16 @@ public class FlowDataRetrievalClient {
                         true, false);
                 URIBuilder uriBuilder = new URIBuilder(path);
                 if (queryParams != null) {
-                    queryParams.forEach(uriBuilder::addParameter);
+                    queryParams.forEach((name, values) -> values.forEach(value -> uriBuilder.addParameter(name, value)));
                 }
 
                 HttpPost postRequest = new HttpPost(uriBuilder.build());
                 postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
                 if (headerParams != null) {
-                    headerParams.forEach((name, value) -> {
+                    headerParams.forEach((name, values) -> {
                         if (!HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name)
                                 && !HttpHeaders.TRANSFER_ENCODING.equalsIgnoreCase(name)) {
-                            postRequest.setHeader(name, value);
+                            values.forEach(value -> postRequest.addHeader(name, value));
                         }
                     });
                 }
