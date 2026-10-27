@@ -27,6 +27,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.net.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.core.HTTPClientManager;
@@ -35,7 +36,9 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.flow.v1.FlowExecu
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -57,14 +60,43 @@ public class FlowDataRetrievalClient {
      */
     public FlowExecutionResponse executeFlow(String jsonBody, String tenantDomain) throws ApiException {
 
+        return executeFlow(jsonBody, tenantDomain, null, null);
+    }
+
+    /**
+     * Execute a flow by invoking the Flow Execution API, forwarding the given headers and query parameters.
+     *
+     * @param jsonBody     The JSON body to be sent in the request.
+     * @param tenantDomain The tenant domain for which the flow is to be executed.
+     * @param headerParams Headers to be forwarded to the Flow Execution API.
+     * @param queryParams  Query parameters to be forwarded to the Flow Execution API.
+     * @return FlowExecutionResponse containing the status code and response body from the API.
+     * @throws ApiException If there is an error during API invocation or if input validation fails.
+     */
+    public FlowExecutionResponse executeFlow(String jsonBody, String tenantDomain, Map<String, String> headerParams,
+                                              Map<String, String> queryParams) throws ApiException {
+
         validateInputs(jsonBody, tenantDomain);
 
         return HTTPClientManager.executeWithHttpClient(httpClient -> {
             try {
                 String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH,
                         true, false);
-                HttpPost postRequest = new HttpPost(path);
+                URIBuilder uriBuilder = new URIBuilder(path);
+                if (queryParams != null) {
+                    queryParams.forEach(uriBuilder::addParameter);
+                }
+
+                HttpPost postRequest = new HttpPost(uriBuilder.build());
                 postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+                if (headerParams != null) {
+                    headerParams.forEach((name, value) -> {
+                        if (!HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name)
+                                && !HttpHeaders.TRANSFER_ENCODING.equalsIgnoreCase(name)) {
+                            postRequest.setHeader(name, value);
+                        }
+                    });
+                }
                 postRequest.setEntity(new StringEntity(jsonBody,
                         ContentType.create(HTTPConstants.MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
@@ -81,7 +113,7 @@ public class FlowDataRetrievalClient {
                         return new FlowExecutionResponse(statusCode, new JSONObject(content));
                     }
                 });
-            } catch (JSONException | IOException e) {
+            } catch (JSONException | IOException | URISyntaxException e) {
                 LOG.error("Error while invoking flow execution request.", e);
                 throw new ApiException("Error while invoking flow execution request.");
             }
