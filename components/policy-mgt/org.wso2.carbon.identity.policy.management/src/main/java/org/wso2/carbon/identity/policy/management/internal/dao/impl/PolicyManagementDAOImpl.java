@@ -68,6 +68,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                         preparedStatement -> {
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.ID, policy.getId());
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_NAME, policy.getName());
+                            preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_TYPE, policy.getType());
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
                             preparedStatement.setTimeStamp(
                                     PolicyMgtSQLConstants.Column.CREATED_AT, currentTimestamp, null);
@@ -195,7 +196,8 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                         PolicyMgtSQLConstants.Query.GET_POLICY_BY_ID,
                         (resultSet, rowNumber) -> new PolicyBasicInfo(
                                 resultSet.getString(PolicyMgtSQLConstants.Column.ID),
-                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME)),
+                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME),
+                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_TYPE)),
                         preparedStatement -> {
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_ID, policyId);
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
@@ -207,6 +209,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                 return new Policy.Builder()
                         .id(base.getId())
                         .name(base.getName())
+                        .type(base.getType())
                         .tenantDomain(tenantDomain)
                         .resources(resources)
                         .build();
@@ -218,7 +221,8 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
     }
 
     @Override
-    public Policy getPolicyByName(String policyName, int tenantId) throws PolicyManagementException {
+    public Policy getPolicyByName(String policyType, String policyName, int tenantId)
+            throws PolicyManagementException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         NamedJdbcTemplate jdbcTemplate =
@@ -229,10 +233,12 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                         PolicyMgtSQLConstants.Query.GET_POLICY_BY_NAME,
                         (resultSet, rowNumber) -> new PolicyBasicInfo(
                                 resultSet.getString(PolicyMgtSQLConstants.Column.ID),
-                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME)),
+                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME),
+                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_TYPE)),
                         preparedStatement -> {
-                            preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_NAME, policyName);
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
+                            preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_TYPE, policyType);
+                            preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_NAME, policyName);
                         });
                 if (base == null) {
                     return null;
@@ -241,6 +247,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                 return new Policy.Builder()
                         .id(base.getId())
                         .name(base.getName())
+                        .type(base.getType())
                         .tenantDomain(tenantDomain)
                         .resources(resources)
                         .build();
@@ -252,7 +259,8 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
     }
 
     @Override
-    public String getPolicyIdByName(String policyName, int tenantId) throws PolicyManagementException {
+    public String getPolicyIdByName(String policyType, String policyName, int tenantId)
+            throws PolicyManagementException {
 
         NamedJdbcTemplate jdbcTemplate =
                 new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -263,10 +271,12 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                             (resultSet, rowNumber) ->
                                     resultSet.getString(PolicyMgtSQLConstants.Column.ID),
                             preparedStatement -> {
-                                preparedStatement.setString(
-                                        PolicyMgtSQLConstants.Column.POLICY_NAME, policyName);
                                 preparedStatement.setInt(
                                         PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
+                                preparedStatement.setString(
+                                        PolicyMgtSQLConstants.Column.POLICY_TYPE, policyType);
+                                preparedStatement.setString(
+                                        PolicyMgtSQLConstants.Column.POLICY_NAME, policyName);
                             }));
         } catch (TransactionException e) {
             throw PolicyManagementExceptionHandler.handleServerException(
@@ -275,7 +285,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
     }
 
     @Override
-    public List<PolicyBasicInfo> getPolicies(int tenantId, String filter, int offset, int limit)
+    public List<PolicyBasicInfo> getPolicies(int tenantId, String policyType, String filter, int offset, int limit)
             throws PolicyManagementException {
 
         // FETCH NEXT 0 ROWS (MS SQL) is invalid and an empty page is meaningless, so short-circuit.
@@ -296,9 +306,11 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                             query,
                             (resultSet, rowNumber) -> new PolicyBasicInfo(
                                     resultSet.getString(PolicyMgtSQLConstants.Column.ID),
-                                    resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME)),
+                                    resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME),
+                                    resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_TYPE)),
                             preparedStatement -> {
                                 preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
+                                preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_TYPE, policyType);
                                 if (hasFilter) {
                                     preparedStatement.setString(PolicyMgtSQLConstants.Column.FILTER, filterValue);
                                 }
@@ -312,7 +324,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
     }
 
     @Override
-    public int getPolicyCount(int tenantId, String filter) throws PolicyManagementException {
+    public int getPolicyCount(int tenantId, String policyType, String filter) throws PolicyManagementException {
 
         boolean hasFilter = StringUtils.isNotBlank(filter);
         String filterValue = hasFilter ? "%" + filter.trim() + "%" : null;
@@ -328,6 +340,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                             (resultSet, rowNumber) -> resultSet.getInt(1),
                             preparedStatement -> {
                                 preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
+                                preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_TYPE, policyType);
                                 if (hasFilter) {
                                     preparedStatement.setString(PolicyMgtSQLConstants.Column.FILTER, filterValue);
                                 }

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerEx
 import org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResult;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
+import org.wso2.carbon.identity.device.policy.internal.type.DevicePolicyTypeDefinition;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandler;
 import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
@@ -173,7 +174,7 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
         try {
             return DevicePolicyComponentServiceHolder.getInstance()
                     .getPolicyManagementService()
-                    .getPolicyIdByName(policyName, tenantDomain);
+                    .getPolicyIdByName(DevicePolicyTypeDefinition.TYPE, policyName, tenantDomain);
         } catch (PolicyManagementException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
                     DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyName);

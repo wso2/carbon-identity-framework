@@ -204,6 +204,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.policy.management.api.service;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.policy.management.api.type;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.policy.evaluation.api.service;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.policy.evaluation.api.model;

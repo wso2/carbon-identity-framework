@@ -251,7 +251,8 @@ public class DevicePolicyEvaluatorImplTest {
         deviceData.put("platform", "android");
 
         Policy policy = mock(Policy.class);
-        when(policyManagementService.getPolicyIdByName("testPolicy", "carbon.super")).thenReturn("testPolicyId");
+        when(policyManagementService.getPolicyIdByName("DEVICE", "testPolicy", "carbon.super"))
+                .thenReturn("testPolicyId");
         when(policyManagementService.getPolicyById("testPolicyId", "carbon.super")).thenReturn(policy);
 
         PolicyEvaluationResult evaluationResult = mock(PolicyEvaluationResult.class);
@@ -272,7 +273,7 @@ public class DevicePolicyEvaluatorImplTest {
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "android");
 
-        when(policyManagementService.getPolicyIdByName(anyString(), anyString())).thenReturn(null);
+        when(policyManagementService.getPolicyIdByName(anyString(), anyString(), anyString())).thenReturn(null);
 
         devicePolicyEvaluator.evaluateByPolicyName("testPolicy", deviceData, "appId", "carbon.super");
     }
@@ -307,7 +308,7 @@ public class DevicePolicyEvaluatorImplTest {
     @Test(expectedExceptions = DevicePolicyClientException.class)
     public void testEvaluateFromTokenByPolicyNameThrowsWhenTheNameDoesNotResolve() throws Exception {
 
-        when(policyManagementService.getPolicyIdByName(anyString(), anyString())).thenReturn(null);
+        when(policyManagementService.getPolicyIdByName(anyString(), anyString(), anyString())).thenReturn(null);
 
         devicePolicyEvaluator.evaluateFromTokenByPolicyName("testPolicy", "token", "publicKey",
                 "correlationId", "appId", "carbon.super");

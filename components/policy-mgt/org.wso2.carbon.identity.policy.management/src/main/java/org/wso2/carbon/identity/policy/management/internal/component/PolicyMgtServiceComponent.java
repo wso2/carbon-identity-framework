@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
+import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 import org.wso2.carbon.identity.policy.management.internal.resourcemanager.impl.RuleResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyManagementServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
@@ -86,5 +87,28 @@ public class PolicyMgtServiceComponent {
             holder.setRuleManagementService(null);
         }
         LOG.debug("RuleManagementService unset in Policy Management component.");
+    }
+
+    @Reference(
+            name = "policy.type.definition",
+            service = PolicyTypeDefinition.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPolicyTypeDefinition"
+    )
+    protected void setPolicyTypeDefinition(PolicyTypeDefinition policyTypeDefinition) {
+
+        PolicyMgtComponentServiceHolder.getInstance().addPolicyType(policyTypeDefinition);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Policy type registered: " + policyTypeDefinition.getType());
+        }
+    }
+
+    protected void unsetPolicyTypeDefinition(PolicyTypeDefinition policyTypeDefinition) {
+
+        PolicyMgtComponentServiceHolder.getInstance().removePolicyType(policyTypeDefinition);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Policy type unregistered: " + policyTypeDefinition.getType());
+        }
     }
 }

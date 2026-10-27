@@ -72,46 +72,53 @@ public interface PolicyManagementDAO {
     Policy getPolicyById(String policyId, int tenantId) throws PolicyManagementException;
 
     /**
-     * Returns the policy by name with its resources (resource ids only; rules are not hydrated).
+     * Returns the policy of the given type by name with its resources (resource ids only; rules are not hydrated).
      *
+     * @param policyType Policy type.
      * @param policyName Policy name.
      * @param tenantId   Tenant ID.
-     * @return Policy, or {@code null} if no policy exists for the given name and tenant.
+     * @return Policy, or {@code null} if no policy of the type exists for the given name and tenant.
      * @throws PolicyManagementException If retrieval fails.
      */
-    Policy getPolicyByName(String policyName, int tenantId) throws PolicyManagementException;
+    Policy getPolicyByName(String policyType, String policyName, int tenantId) throws PolicyManagementException;
 
     /**
-     * Returns a paginated, optionally name-filtered list of policies (basic info only), ordered by name.
+     * Returns a paginated, optionally name-filtered list of policies of the given type (basic info only),
+     * ordered by name.
      *
-     * @param tenantId Tenant ID.
-     * @param filter   Case-insensitive substring to match against the policy name; {@code null}/blank for no filter.
-     * @param offset   Number of records to skip.
-     * @param limit    Maximum number of records to return; a non-positive value yields an empty list.
+     * @param tenantId   Tenant ID.
+     * @param policyType Policy type.
+     * @param filter     Case-insensitive substring to match against the policy name; {@code null}/blank for no
+     *                   filter.
+     * @param offset     Number of records to skip.
+     * @param limit      Maximum number of records to return; a non-positive value yields an empty list.
      * @return List of matching policies (never {@code null}).
      * @throws PolicyManagementException If retrieval fails.
      */
-    List<PolicyBasicInfo> getPolicies(int tenantId, String filter, int offset, int limit)
+    List<PolicyBasicInfo> getPolicies(int tenantId, String policyType, String filter, int offset, int limit)
             throws PolicyManagementException;
 
     /**
-     * Returns the total number of policies for the tenant, applying the same name filter as
-     * {@link #getPolicies(int, String, int, int)}.
+     * Returns the total number of policies of the given type for the tenant, applying the same name filter as
+     * {@link #getPolicies(int, String, String, int, int)}.
      *
-     * @param tenantId Tenant ID.
-     * @param filter   Case-insensitive substring to match against the policy name; {@code null}/blank for no filter.
+     * @param tenantId   Tenant ID.
+     * @param policyType Policy type.
+     * @param filter     Case-insensitive substring to match against the policy name; {@code null}/blank for no
+     *                   filter.
      * @return Matching policy count.
      * @throws PolicyManagementException If retrieval fails.
      */
-    int getPolicyCount(int tenantId, String filter) throws PolicyManagementException;
+    int getPolicyCount(int tenantId, String policyType, String filter) throws PolicyManagementException;
 
     /**
-     * Returns the ID of the policy with the given name, used for name-uniqueness checks.
+     * Returns the ID of the policy of the given type with the given name, used for name-uniqueness checks.
      *
+     * @param policyType Policy type.
      * @param policyName Policy name.
      * @param tenantId   Tenant ID.
-     * @return Policy ID, or {@code null} if no policy exists with that name for the tenant.
+     * @return Policy ID, or {@code null} if no policy of the type exists with that name for the tenant.
      * @throws PolicyManagementException If retrieval fails.
      */
-    String getPolicyIdByName(String policyName, int tenantId) throws PolicyManagementException;
+    String getPolicyIdByName(String policyType, String policyName, int tenantId) throws PolicyManagementException;
 }

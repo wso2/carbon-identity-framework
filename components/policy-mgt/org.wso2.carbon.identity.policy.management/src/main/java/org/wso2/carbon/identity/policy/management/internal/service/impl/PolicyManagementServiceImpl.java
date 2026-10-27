@@ -86,11 +86,11 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         POLICY_VALIDATOR.validateForAdd(policy);
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Creating policy with name: %s for tenant: %s",
-                    policy.getName(), tenantDomain));
+            LOG.debug(String.format("Creating %s policy with name: %s for tenant: %s",
+                    policy.getType(), policy.getName(), tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        validateUniquePolicyName(policy.getName(), tenantId);
+        validateUniquePolicyName(policy.getType(), policy.getName(), tenantId);
 
         String policyId = UUID.randomUUID().toString();
 
@@ -108,6 +108,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         Policy policyWithResourceIds = new Policy.Builder()
                 .id(policyId)
                 .name(policy.getName())
+                .type(policy.getType())
                 .tenantDomain(tenantDomain)
                 .resources(createdResources)
                 .build();
@@ -124,10 +125,10 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
 
     /**
      * {@inheritDoc}
-     * Resources, rules, and actions are replaced wholesale, but the policy name is immutable: the stored name
-     * is retained and any name on the supplied {@code policy} is ignored.
-     * @param policy Policy with the new state. ID must reference an existing policy; policy name cannot
-     *               be updated.
+     * Resources, rules, and actions are replaced wholesale, but the policy name and type are immutable: the
+     * stored values are retained, and supplying a different name or type is rejected.
+     * @param policy Policy with the new state. ID must reference an existing policy; policy name and type
+     *               cannot be updated.
      */
     @Override
     public Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
@@ -146,8 +147,14 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_POLICY_NAME_IMMUTABLE);
         }
+        if (StringUtils.isNotBlank(policy.getType())
+                && !policy.getType().equals(existingPolicy.getType())) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_POLICY_TYPE_IMMUTABLE);
+        }
+        POLICY_VALIDATOR.validateTargets(existingPolicy.getType(), policy.getResources());
 
-        policy = new Policy.Builder(policy).name(existingPolicy.getName()).build();
+        policy = new Policy.Builder(policy).name(existingPolicy.getName()).type(existingPolicy.getType()).build();
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating policy with ID: %s for tenant: %s",
                     policy.getId(), tenantDomain));
@@ -170,6 +177,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         Policy policyWithResourceIds = new Policy.Builder()
                 .id(policy.getId())
                 .name(existingPolicy.getName())
+                .type(existingPolicy.getType())
                 .tenantDomain(tenantDomain)
                 .resources(createdResources)
                 .build();
@@ -224,19 +232,21 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     }
 
     @Override
-    public Policy getPolicyByName(String policyName, String tenantDomain) throws PolicyManagementException {
+    public Policy getPolicyByName(String policyType, String policyName, String tenantDomain)
+            throws PolicyManagementException {
 
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
+        POLICY_VALIDATOR.validatePolicyType(policyType);
         if (StringUtils.isBlank(policyName)) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Retrieving policy with name: %s for tenant: %s",
-                    policyName, tenantDomain));
+            LOG.debug(String.format("Retrieving %s policy with name: %s for tenant: %s",
+                    policyType, policyName, tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        Policy policy = policyManagementDAO.getPolicyByName(policyName, tenantId);
+        Policy policy = policyManagementDAO.getPolicyByName(policyType, policyName, tenantId);
         if (policy == null) {
             return null;
         }
@@ -244,41 +254,48 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     }
 
     @Override
-    public String getPolicyIdByName(String policyName, String tenantDomain) throws PolicyManagementException {
+    public String getPolicyIdByName(String policyType, String policyName, String tenantDomain)
+            throws PolicyManagementException {
 
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
+        POLICY_VALIDATOR.validatePolicyType(policyType);
         if (StringUtils.isBlank(policyName)) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Resolving policy ID for name: %s for tenant: %s",
-                    policyName, tenantDomain));
+            LOG.debug(String.format("Resolving %s policy ID for name: %s for tenant: %s",
+                    policyType, policyName, tenantDomain));
         }
-        return policyManagementDAO.getPolicyIdByName(policyName, IdentityTenantUtil.getTenantId(tenantDomain));
+        return policyManagementDAO.getPolicyIdByName(policyType, policyName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
-    public List<PolicyBasicInfo> getPolicies(String tenantDomain, String filter, int offset, int limit)
+    public List<PolicyBasicInfo> getPolicies(String tenantDomain, String policyType, String filter, int offset,
+                                             int limit) throws PolicyManagementException {
+
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
+        POLICY_VALIDATOR.validatePolicyType(policyType);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Listing %s policies for tenant: %s with filter: %s, offset: %d, limit: %d",
+                    policyType, tenantDomain, filter, offset, limit));
+        }
+        return policyManagementDAO.getPolicies(
+                IdentityTenantUtil.getTenantId(tenantDomain), policyType, filter, offset, limit);
+    }
+
+    @Override
+    public int getPolicyCount(String tenantDomain, String policyType, String filter)
             throws PolicyManagementException {
 
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
+        POLICY_VALIDATOR.validatePolicyType(policyType);
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Listing policies for tenant: %s with filter: %s, offset: %d, limit: %d",
-                    tenantDomain, filter, offset, limit));
+            LOG.debug(String.format("Counting %s policies for tenant: %s with filter: %s", policyType,
+                    tenantDomain, filter));
         }
-        return policyManagementDAO.getPolicies(
-                IdentityTenantUtil.getTenantId(tenantDomain), filter, offset, limit);
-    }
-
-    @Override
-    public int getPolicyCount(String tenantDomain, String filter) throws PolicyManagementException {
-
-        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Counting policies for tenant: %s with filter: %s", tenantDomain, filter));
-        }
-        return policyManagementDAO.getPolicyCount(IdentityTenantUtil.getTenantId(tenantDomain), filter);
+        return policyManagementDAO.getPolicyCount(IdentityTenantUtil.getTenantId(tenantDomain), policyType, filter);
     }
 
     private Policy enrichResources(Policy policy, String tenantDomain) throws PolicyManagementException {
@@ -314,13 +331,13 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         return manager;
     }
 
-    private void validateUniquePolicyName(String name, int tenantId)
+    private void validateUniquePolicyName(String type, String name, int tenantId)
             throws PolicyManagementException {
 
-        String existingId = policyManagementDAO.getPolicyIdByName(name, tenantId);
+        String existingId = policyManagementDAO.getPolicyIdByName(type, name, tenantId);
         if (existingId != null) {
             throw PolicyManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_POLICY_ALREADY_EXISTS, name);
+                    ErrorMessage.ERROR_POLICY_ALREADY_EXISTS, type, name);
         }
     }
 }

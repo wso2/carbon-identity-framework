@@ -34,6 +34,7 @@ public final class PolicyMgtSQLConstants {
         public static final String ID = "ID";
         public static final String POLICY_ID = "POLICY_ID";
         public static final String POLICY_NAME = "POLICY_NAME";
+        public static final String POLICY_TYPE = "POLICY_TYPE";
         public static final String TENANT_ID = "TENANT_ID";
         public static final String TARGET = "TARGET";
         public static final String RESOURCE_TYPE = "RESOURCE_TYPE";
@@ -57,8 +58,8 @@ public final class PolicyMgtSQLConstants {
 
         // IDN_POLICY table.
         public static final String ADD_POLICY =
-                "INSERT INTO IDN_POLICY (ID, POLICY_NAME, TENANT_ID, CREATED_AT, UPDATED_AT) " +
-                        "VALUES (:ID;, :POLICY_NAME;, :TENANT_ID;, :CREATED_AT;, :UPDATED_AT;)";
+                "INSERT INTO IDN_POLICY (ID, POLICY_NAME, POLICY_TYPE, TENANT_ID, CREATED_AT, UPDATED_AT) " +
+                        "VALUES (:ID;, :POLICY_NAME;, :POLICY_TYPE;, :TENANT_ID;, :CREATED_AT;, :UPDATED_AT;)";
 
         public static final String UPDATE_POLICY =
                 "UPDATE IDN_POLICY SET POLICY_NAME = :POLICY_NAME;, UPDATED_AT = :UPDATED_AT; " +
@@ -68,70 +69,78 @@ public final class PolicyMgtSQLConstants {
                 "DELETE FROM IDN_POLICY WHERE ID = :POLICY_ID; AND TENANT_ID = :TENANT_ID;";
 
         public static final String GET_POLICY_BY_ID =
-                "SELECT ID, POLICY_NAME FROM IDN_POLICY " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
                         "WHERE ID = :POLICY_ID; AND TENANT_ID = :TENANT_ID;";
 
         public static final String GET_POLICY_BY_NAME =
-                "SELECT ID, POLICY_NAME FROM IDN_POLICY " +
-                        "WHERE POLICY_NAME = :POLICY_NAME; AND TENANT_ID = :TENANT_ID;";
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; AND POLICY_NAME = :POLICY_NAME;";
 
-        // Paginated policy listing. A name filter fragment (LOWER(POLICY_NAME) LIKE LOWER(:FILTER;))
+        // Paginated policy listing for a policy type. A name filter fragment (LOWER(POLICY_NAME) LIKE LOWER(:FILTER;))
         // is appended via the *_FILTER variants. Pagination syntax differs per database, so a variant
         // is selected at runtime based on the detected database type.
 
         // Default: H2, MySQL, MariaDB, PostgreSQL.
         public static final String GET_POLICIES_PAGINATED =
-                "SELECT ID, POLICY_NAME FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; " +
                         "ORDER BY CREATED_AT DESC, ID ASC LIMIT :LIMIT; OFFSET :OFFSET;";
 
         public static final String GET_POLICIES_PAGINATED_FILTER =
-                "SELECT ID, POLICY_NAME FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; " +
                         "AND LOWER(POLICY_NAME) LIKE LOWER(:FILTER;) " +
                         "ORDER BY CREATED_AT DESC, ID ASC LIMIT :LIMIT; OFFSET :OFFSET;";
 
         // MS SQL Server.
         public static final String GET_POLICIES_PAGINATED_MSSQL =
-                "SELECT ID, POLICY_NAME FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; " +
                         "ORDER BY CREATED_AT DESC, ID ASC OFFSET :OFFSET; ROWS FETCH NEXT :LIMIT; ROWS ONLY";
 
         public static final String GET_POLICIES_PAGINATED_FILTER_MSSQL =
-                "SELECT ID, POLICY_NAME FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; " +
                         "AND LOWER(POLICY_NAME) LIKE LOWER(:FILTER;) " +
                         "ORDER BY CREATED_AT DESC, ID ASC OFFSET :OFFSET; ROWS FETCH NEXT :LIMIT; ROWS ONLY";
 
         // Oracle.
         public static final String GET_POLICIES_PAGINATED_ORACLE =
-                "SELECT ID, POLICY_NAME FROM (SELECT ID, POLICY_NAME, rownum AS rnum FROM " +
-                        "(SELECT ID, POLICY_NAME FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM (SELECT ID, POLICY_NAME, POLICY_TYPE, rownum AS rnum FROM " +
+                        "(SELECT ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; " +
                         "ORDER BY CREATED_AT DESC, ID ASC) WHERE rownum <= :UPPER_BOUND;) WHERE rnum > :OFFSET;";
 
         public static final String GET_POLICIES_PAGINATED_FILTER_ORACLE =
-                "SELECT ID, POLICY_NAME FROM (SELECT ID, POLICY_NAME, rownum AS rnum FROM " +
-                        "(SELECT ID, POLICY_NAME FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM (SELECT ID, POLICY_NAME, POLICY_TYPE, rownum AS rnum FROM " +
+                        "(SELECT ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; " +
                         "AND LOWER(POLICY_NAME) LIKE LOWER(:FILTER;) ORDER BY CREATED_AT DESC, ID ASC) " +
                         "WHERE rownum <= :UPPER_BOUND;) WHERE rnum > :OFFSET;";
 
         // DB2.
         public static final String GET_POLICIES_PAGINATED_DB2 =
-                "SELECT ID, POLICY_NAME FROM (SELECT ROW_NUMBER() OVER(ORDER BY CREATED_AT DESC, ID ASC) AS rn, " +
-                        "ID, POLICY_NAME FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID;) " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM (SELECT ROW_NUMBER() OVER(ORDER BY CREATED_AT DESC, " +
+                        "ID ASC) AS rn, ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE;) " +
                         "WHERE rn BETWEEN :LOWER_BOUND; AND :UPPER_BOUND;";
 
         public static final String GET_POLICIES_PAGINATED_FILTER_DB2 =
-                "SELECT ID, POLICY_NAME FROM (SELECT ROW_NUMBER() OVER(ORDER BY CREATED_AT DESC, ID ASC) AS rn, " +
-                        "ID, POLICY_NAME FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; " +
+                "SELECT ID, POLICY_NAME, POLICY_TYPE FROM (SELECT ROW_NUMBER() OVER(ORDER BY CREATED_AT DESC, " +
+                        "ID ASC) AS rn, ID, POLICY_NAME, POLICY_TYPE FROM IDN_POLICY " +
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; " +
                         "AND LOWER(POLICY_NAME) LIKE LOWER(:FILTER;)) WHERE rn BETWEEN :LOWER_BOUND; AND :UPPER_BOUND;";
 
         public static final String GET_POLICIES_COUNT =
-                "SELECT COUNT(*) FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID;";
+                "SELECT COUNT(*) FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE;";
 
         public static final String GET_POLICIES_COUNT_FILTER =
-                "SELECT COUNT(*) FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; " +
+                "SELECT COUNT(*) FROM IDN_POLICY WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; " +
                         "AND LOWER(POLICY_NAME) LIKE LOWER(:FILTER;)";
 
         public static final String CHECK_POLICY_NAME_EXISTS =
                 "SELECT ID FROM IDN_POLICY " +
-                        "WHERE POLICY_NAME = :POLICY_NAME; AND TENANT_ID = :TENANT_ID;";
+                        "WHERE TENANT_ID = :TENANT_ID; AND POLICY_TYPE = :POLICY_TYPE; AND POLICY_NAME = :POLICY_NAME;";
 
         // IDN_POLICY_RESOURCE attachment table.
         public static final String ADD_POLICY_RESOURCE =

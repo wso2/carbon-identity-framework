@@ -81,6 +81,7 @@ public class PolicyManagementAuditLogger {
         JSONObject data = new JSONObject();
         data.put(LogConstants.ID_FIELD, policy.getId() != null ? policy.getId() : JSONObject.NULL);
         data.put(LogConstants.NAME_FIELD, policy.getName() != null ? policy.getName() : JSONObject.NULL);
+        data.put(LogConstants.POLICY_TYPE_FIELD, policy.getType() != null ? policy.getType() : JSONObject.NULL);
         data.put(LogConstants.TENANT_DOMAIN_FIELD,
                 policy.getTenantDomain() != null ? policy.getTenantDomain() : JSONObject.NULL);
         data.put(LogConstants.RESOURCES_FIELD,
@@ -177,6 +178,7 @@ public class PolicyManagementAuditLogger {
 
         public static final String ID_FIELD = "Id";
         public static final String NAME_FIELD = "Name";
+        public static final String POLICY_TYPE_FIELD = "Type";
         public static final String TENANT_DOMAIN_FIELD = "TenantDomain";
         public static final String RESOURCES_FIELD = "Resources";
         public static final String RESOURCE_TARGET_FIELD = "target";

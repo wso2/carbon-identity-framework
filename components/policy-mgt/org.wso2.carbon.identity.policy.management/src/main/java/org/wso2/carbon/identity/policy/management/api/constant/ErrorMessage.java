@@ -31,11 +31,17 @@ public enum ErrorMessage {
     ERROR_INVALID_POLICY_RULE("PM-60003", "Invalid policy rule.",
             "Policy rule validation failed: %s"),
     ERROR_POLICY_ALREADY_EXISTS("PM-60004", "Policy already exists.",
-            "A policy with name '%s' already exists for the tenant."),
+            "A policy of type '%s' with name '%s' already exists for the tenant."),
     ERROR_DUPLICATE_TARGET_IN_POLICY("PM-60005", "Duplicate target in policy.",
             "Policy '%s' has more than one resource of the same type for target '%s'."),
     ERROR_POLICY_NAME_IMMUTABLE("PM-60006", "Policy name cannot be updated.",
             "Policy name is immutable and cannot be changed during an update operation."),
+    ERROR_UNSUPPORTED_POLICY_TYPE("PM-60007", "Unsupported policy type.",
+            "Policy type '%s' is not supported."),
+    ERROR_UNSUPPORTED_POLICY_TARGET("PM-60008", "Unsupported policy target.",
+            "Target '%s' is not supported for policy type '%s'."),
+    ERROR_POLICY_TYPE_IMMUTABLE("PM-60009", "Policy type cannot be updated.",
+            "Policy type is immutable and cannot be changed during an update operation."),
 
     // Server errors.
     ERROR_WHILE_ADDING_POLICY("PM-65001", "Error while adding Policy.",

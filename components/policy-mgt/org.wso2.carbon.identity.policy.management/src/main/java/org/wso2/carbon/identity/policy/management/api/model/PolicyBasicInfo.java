@@ -20,18 +20,20 @@ package org.wso2.carbon.identity.policy.management.api.model;
 
 /**
  * Lightweight summary of a Policy for list views.
- * Carries only the fields a list page needs (id and name); the full {@link Policy} with hydrated
+ * Carries only the fields a list page needs (id, name and type); the full {@link Policy} with hydrated
  * resources is retrieved via {@code getPolicyById}.
  */
 public class PolicyBasicInfo {
 
     private final String id;
     private final String name;
+    private final String type;
 
-    public PolicyBasicInfo(String id, String name) {
+    public PolicyBasicInfo(String id, String name, String type) {
 
         this.id = id;
         this.name = name;
+        this.type = type;
     }
 
     /**
@@ -52,5 +54,15 @@ public class PolicyBasicInfo {
     public String getName() {
 
         return name;
+    }
+
+    /**
+     * Returns the policy type.
+     *
+     * @return Policy type.
+     */
+    public String getType() {
+
+        return type;
     }
 }
