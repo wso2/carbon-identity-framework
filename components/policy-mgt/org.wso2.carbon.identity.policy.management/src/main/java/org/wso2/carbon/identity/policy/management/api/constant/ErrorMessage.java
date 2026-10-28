@@ -42,6 +42,8 @@ public enum ErrorMessage {
             "Target '%s' is not supported for policy type '%s'."),
     ERROR_POLICY_TYPE_IMMUTABLE("PM-60009", "Policy type cannot be updated.",
             "Policy type is immutable and cannot be changed during an update operation."),
+    ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_POLICY_TYPE("PM-60010", "Unsupported resource type for policy type.",
+            "Resource type '%s' is not supported for policy type '%s'."),
 
     // Server errors.
     ERROR_WHILE_ADDING_POLICY("PM-65001", "Error while adding Policy.",
@@ -61,7 +63,11 @@ public enum ErrorMessage {
     ERROR_NO_RESOURCE_MANAGER_FOR_TYPE("PM-65008", "No resource manager for type.",
             "No resource manager registered for resource type: %s."),
     ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_MANAGER("PM-65009", "Unsupported resource type for manager.",
-            "Resource manager received an unsupported resource type: %s.");
+            "Resource manager received an unsupported resource type: %s."),
+    ERROR_RULE_FLOW_NOT_DEFINED("PM-65010", "Rule flow not defined.",
+            "No rule flow is defined for policy type: %s."),
+    ERROR_WHILE_RETRIEVING_RULE_METADATA("PM-65011", "Error while retrieving rule metadata.",
+            "Error while retrieving rule metadata for policy type: %s.");
 
     private final String code;
     private final String message;

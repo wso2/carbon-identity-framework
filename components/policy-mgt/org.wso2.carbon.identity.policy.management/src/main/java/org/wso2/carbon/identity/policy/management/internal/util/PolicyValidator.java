@@ -23,18 +23,17 @@ import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Validates policy level rules that cannot be enforced by {@link Policy.Builder}, namely the presence of
- * the policy itself, of a name and type on creation, and that the type and resource targets are supported by
- * a registered {@link PolicyTypeDefinition}. Resource level validation is performed by the builders.
+ * the policy itself, of a name and type on creation, and that the type, resource types and resource targets are
+ * supported by a registered {@link PolicyTypeDefinition}. Resource level validation is performed by the builders.
  * Every failure is raised as a {@link PolicyManagementClientException} so that the API layer reports it
  * as a client error rather than a server error.
  */
@@ -44,13 +43,15 @@ public class PolicyValidator {
     private static final String POLICY_NAME_FIELD = "Policy name";
     private static final String POLICY_TYPE_FIELD = "Policy type";
     private static final String TENANT_DOMAIN_FIELD = "Tenant domain";
+    private static final String TARGET_FIELD = "Target";
 
     /**
      * Validate a policy supplied for creation.
      *
      * @param policy Policy to validate.
      * @throws PolicyManagementClientException If the policy is null, its name or type is missing, its type is not
-     *                                         registered, or a resource target is not supported by the type.
+     *                                         registered, or a resource target or resource type is not supported
+     *                                         by the type.
      */
     public void validateForAdd(Policy policy) throws PolicyManagementClientException {
 
@@ -60,7 +61,7 @@ public class PolicyValidator {
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
         }
         validatePolicyType(policy.getType());
-        validateTargets(policy.getType(), policy.getResources());
+        validateResources(policy.getType(), policy.getResources());
     }
 
     /**
@@ -94,28 +95,55 @@ public class PolicyValidator {
     }
 
     /**
-     * Validate that every resource target is supported by the policy type.
+     * Validate that every resource has a target and resource type supported by the policy type.
      *
      * @param type      Policy type.
      * @param resources Policy resources.
-     * @throws PolicyManagementClientException If the type is not registered, or a resource target is not supported
+     * @throws PolicyManagementClientException If the type is not registered, or a resource target or resource type
+     *                                         is not supported by the type.
+     */
+    public void validateResources(String type, List<PolicyResource> resources) throws PolicyManagementClientException {
+
+        for (PolicyResource resource : resources) {
+            validateResourceType(type, resource.getResourceType());
+            validateTarget(type, resource.getTarget());
+        }
+    }
+
+    /**
+     * Validate that a resource type is supported by the policy type.
+     *
+     * @param type         Policy type.
+     * @param resourceType Resource type.
+     * @throws PolicyManagementClientException If the type is not registered, or the resource type is not supported
      *                                         by the type.
      */
-    public void validateTargets(String type, List<PolicyResource> resources) throws PolicyManagementClientException {
+    public void validateResourceType(String type, ResourceType resourceType) throws PolicyManagementClientException {
 
-        // On update the stored type is used, which may no longer be registered if its bundle has been removed.
-        PolicyTypeDefinition definition = PolicyMgtComponentServiceHolder.getInstance().getPolicyType(type);
-        if (definition == null) {
+        if (!getRegisteredPolicyType(type).getSupportedResourceTypes().contains(resourceType)) {
             throw PolicyManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_UNSUPPORTED_POLICY_TYPE, type);
+                    ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_POLICY_TYPE, String.valueOf(resourceType), type);
         }
-        Set<String> supportedTargets = definition.getSupportedTargets() != null
-                ? definition.getSupportedTargets() : Collections.emptySet();
-        for (PolicyResource resource : resources) {
-            if (!supportedTargets.contains(resource.getTarget().toLowerCase(Locale.ROOT))) {
-                throw PolicyManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_UNSUPPORTED_POLICY_TARGET, resource.getTarget(), type);
-            }
+    }
+
+    /**
+     * Validate that a resource target is supported by the policy type.
+     *
+     * @param type   Policy type.
+     * @param target Resource target.
+     * @throws PolicyManagementClientException If the type is not registered, or the target is missing or not
+     *                                         supported by the type.
+     */
+    public void validateTarget(String type, String target) throws PolicyManagementClientException {
+
+        PolicyTypeDefinition definition = getRegisteredPolicyType(type);
+        if (StringUtils.isBlank(target)) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, TARGET_FIELD);
+        }
+        if (!definition.getSupportedTargets().contains(target.toLowerCase(Locale.ROOT))) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_UNSUPPORTED_POLICY_TARGET, target, type);
         }
     }
 
@@ -131,6 +159,16 @@ public class PolicyValidator {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, TENANT_DOMAIN_FIELD);
         }
+    }
+
+    private PolicyTypeDefinition getRegisteredPolicyType(String type) throws PolicyManagementClientException {
+
+        PolicyTypeDefinition definition = PolicyMgtComponentServiceHolder.getInstance().getPolicyType(type);
+        if (definition == null) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_UNSUPPORTED_POLICY_TYPE, type);
+        }
+        return definition;
     }
 
     private void validateNotNull(Policy policy) throws PolicyManagementClientException {

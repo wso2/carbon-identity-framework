@@ -24,13 +24,22 @@ import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResourceMetadata;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
+import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResourceMetadata;
+import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
+import org.wso2.carbon.identity.policy.management.api.type.RuleResourceTypeHandler;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.resourcemanager.PolicyResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementExceptionHandler;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
+import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.model.FlowType;
+
+import java.util.List;
 
 /**
  * {@link PolicyResourceManager} for {@link ResourceType#RULE} resources, backed by rule-mgt.
@@ -96,6 +105,34 @@ public class RuleResourceManager implements PolicyResourceManager {
         } catch (RuleManagementException e) {
             LOG.error("Failed to delete rule " + resource.getResourceId()
                     + " from rule-mgt. Rule may be orphaned.", e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     * Returns the fields, operators and values of the rule flow of the policy type that apply to the target.
+     */
+    @Override
+    public PolicyResourceMetadata getMetadata(PolicyTypeDefinition definition, String target, String tenantDomain)
+            throws PolicyManagementException {
+
+        // The type definition guarantees that the rule handler is a RuleResourceTypeHandler.
+        RuleResourceTypeHandler handler =
+                (RuleResourceTypeHandler) definition.getResourceTypeHandler(ResourceType.RULE);
+        if (handler == null || handler.getRuleFlowType() == null) {
+            throw PolicyManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_RULE_FLOW_NOT_DEFINED, definition.getType());
+        }
+        // Rule management and rule metadata each have their own flow type enum with matching constants.
+        FlowType metadataFlowType = FlowType.valueOf(handler.getRuleFlowType().name());
+        try {
+            List<FieldDefinition> fieldDefinitions = PolicyMgtComponentServiceHolder.getInstance()
+                    .getRuleMetadataService().getExpressionMeta(metadataFlowType, tenantDomain);
+            return new RulePolicyResourceMetadata(handler.getRuleFlowType(),
+                    handler.filterMetadata(target, fieldDefinitions));
+        } catch (RuleMetadataException e) {
+            throw PolicyManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_RULE_METADATA, e, definition.getType());
         }
     }
 

@@ -18,6 +18,7 @@
             <class name="org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessageTest"/>
             <class name="org.wso2.carbon.identity.device.policy.api.model.PlatformTest"/>
             <class name="org.wso2.carbon.identity.device.policy.internal.type.DevicePolicyTypeDefinitionTest"/>
+            <class name="org.wso2.carbon.identity.device.policy.internal.rule.DeviceRuleResourceTypeHandlerTest"/>
             <class name="org.wso2.carbon.identity.device.policy.api.model.DeviceFieldTest"/>
             <class name="org.wso2.carbon.identity.device.policy.api.model.DevicePolicyEvaluationResultTest"/>
         </classes>

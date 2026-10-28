@@ -29,7 +29,9 @@ import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResourceMetadata;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
+import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.CacheBackedPolicyManagementDAO;
@@ -152,7 +154,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_POLICY_TYPE_IMMUTABLE);
         }
-        POLICY_VALIDATOR.validateTargets(existingPolicy.getType(), policy.getResources());
+        POLICY_VALIDATOR.validateResources(existingPolicy.getType(), policy.getResources());
 
         policy = new Policy.Builder(policy).name(existingPolicy.getName()).type(existingPolicy.getType()).build();
         if (LOG.isDebugEnabled()) {
@@ -296,6 +298,22 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                     tenantDomain, filter));
         }
         return policyManagementDAO.getPolicyCount(IdentityTenantUtil.getTenantId(tenantDomain), policyType, filter);
+    }
+
+    @Override
+    public PolicyResourceMetadata getResourceMetadata(String policyType, ResourceType resourceType, String target,
+                                                      String tenantDomain) throws PolicyManagementException {
+
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
+        POLICY_VALIDATOR.validatePolicyType(policyType);
+        POLICY_VALIDATOR.validateResourceType(policyType, resourceType);
+        POLICY_VALIDATOR.validateTarget(policyType, target);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving %s metadata of %s policies for target: %s in tenant: %s",
+                    resourceType, policyType, target, tenantDomain));
+        }
+        PolicyTypeDefinition definition = PolicyMgtComponentServiceHolder.getInstance().getPolicyType(policyType);
+        return getResourceManager(resourceType).getMetadata(definition, target, tenantDomain);
     }
 
     private Policy enrichResources(Policy policy, String tenantDomain) throws PolicyManagementException {
