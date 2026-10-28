@@ -39,6 +39,7 @@ import static org.testng.Assert.assertTrue;
 public class FlowExtensionContextTreeBuilderTest {
 
     private Map<String, FlowExtensionContextTreeNode> userLeaves;
+    private Map<String, FlowExtensionContextTreeNode> organizationLeaves;
 
     @BeforeClass
     public void buildTree() {
@@ -52,6 +53,14 @@ public class FlowExtensionContextTreeBuilderTest {
         assertEquals(userNode.getPath(), FlowContextPaths.USER_PREFIX);
 
         userLeaves = userNode.getChildren().stream()
+                .collect(Collectors.toMap(FlowExtensionContextTreeNode::getKey, n -> n));
+
+        FlowExtensionContextTreeNode organizationNode = metadata.getContextTree().stream()
+                .filter(n -> "organization".equals(n.getKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(organizationNode, "The /organization/ node must be present in the context tree.");
+        organizationLeaves = organizationNode.getChildren().stream()
                 .collect(Collectors.toMap(FlowExtensionContextTreeNode::getKey, n -> n));
     }
 
@@ -84,5 +93,17 @@ public class FlowExtensionContextTreeBuilderTest {
                     key + " must allow EXPOSE only (no MODIFY).");
             assertFalse(leaf.isReplaceable(), key + " must not be replaceable.");
         }
+    }
+
+    @Test
+    public void testOrganizationAttributesMapIsModifiable() {
+
+        FlowExtensionContextTreeNode attributes = organizationLeaves.get("attributes");
+        assertNotNull(attributes);
+        assertEquals(attributes.getPath(), FlowContextPaths.ORGANIZATION_ATTRIBUTES_PATH);
+        assertEquals(attributes.getNodeType(), ContextTree.NODE_MAP);
+        assertTrue(attributes.getAllowedOperations().contains(ContextTree.OP_EXPOSE));
+        assertTrue(attributes.getAllowedOperations().contains(ContextTree.OP_MODIFY));
+        assertTrue(attributes.isDynamicEntryAllowed());
     }
 }
