@@ -5453,6 +5453,42 @@
             <MaxRuleEvaluationNodes>{{flow_execution.conditional_branching.max_rule_evaluation_nodes}}</MaxRuleEvaluationNodes>
             {% endif %}
         </ConditionalBranching>
+        <!-- Enables the headers, query parameters and variables a flow defines, with their limits and filters. -->
+        <Inputs>
+            <Enable>{{flow_execution.inputs.enable}}</Enable>
+            {% if flow_execution.inputs.max_headers is defined %}
+            <MaxHeaders>{{flow_execution.inputs.max_headers}}</MaxHeaders>
+            {% endif %}
+            {% if flow_execution.inputs.max_query_params is defined %}
+            <MaxQueryParams>{{flow_execution.inputs.max_query_params}}</MaxQueryParams>
+            {% endif %}
+            {% if flow_execution.inputs.max_variables is defined %}
+            <MaxVariables>{{flow_execution.inputs.max_variables}}</MaxVariables>
+            {% endif %}
+            {% if flow_execution.inputs.max_value_length is defined %}
+            <MaxValueLength>{{flow_execution.inputs.max_value_length}}</MaxValueLength>
+            {% endif %}
+            {% if flow_execution.inputs.max_array_size is defined %}
+            <MaxArraySize>{{flow_execution.inputs.max_array_size}}</MaxArraySize>
+            {% endif %}
+            {% if flow_execution.inputs.value_pattern is defined %}
+            <ValuePattern><![CDATA[{{flow_execution.inputs.value_pattern}}]]></ValuePattern>
+            {% endif %}
+            {% if flow_execution.inputs.excluded_headers is defined %}
+            <ExcludedHeaders>
+                {% for header in flow_execution.inputs.excluded_headers %}
+                <Header>{{header}}</Header>
+                {% endfor %}
+            </ExcludedHeaders>
+            {% endif %}
+            {% if flow_execution.inputs.excluded_query_params is defined %}
+            <ExcludedQueryParams>
+                {% for param in flow_execution.inputs.excluded_query_params %}
+                <QueryParam>{{param}}</QueryParam>
+                {% endfor %}
+            </ExcludedQueryParams>
+            {% endif %}
+        </Inputs>
     </FlowExecution>
 
     <NotificationChannel>

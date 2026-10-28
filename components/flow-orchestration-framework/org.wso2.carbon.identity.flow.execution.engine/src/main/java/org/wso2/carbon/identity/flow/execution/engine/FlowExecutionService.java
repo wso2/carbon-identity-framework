@@ -36,10 +36,12 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowInputResolver;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,6 +82,26 @@ public class FlowExecutionService {
     public FlowExecutionStep executeFlow(String tenantDomain, String applicationId, String flowId, String actionId,
                                          String flowType, Map<String, String> inputs) throws FlowEngineException {
 
+        return executeFlow(tenantDomain, applicationId, flowId, actionId, flowType, inputs, Collections.emptyMap());
+    }
+
+    /**
+     * Execute the flow for the given tenant domain, with values for the variables of the flow.
+     *
+     * @param tenantDomain   Tenant domain.
+     * @param applicationId  Application ID.
+     * @param flowId         Flow ID.
+     * @param actionId       Action ID.
+     * @param inputs         User inputs.
+     * @param variableInputs Values for the variables of the flow, by name, as read from JSON. They are accepted only
+     *                       when the flow starts.
+     * @return ExecutionState.
+     * @throws FlowEngineException If something goes wrong while executing the flow.
+     */
+    public FlowExecutionStep executeFlow(String tenantDomain, String applicationId, String flowId, String actionId,
+                                         String flowType, Map<String, String> inputs,
+                                         Map<String, Object> variableInputs) throws FlowEngineException {
+
         String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getApplicationResidentOrganizationId();
         if (StringUtils.isNotBlank(appResidentOrgId)) {
@@ -115,6 +137,8 @@ public class FlowExecutionService {
                     context.setGraphConfig(graphConfig);
                 }
             }
+            // The graph is attached from here on, so what the flow defines is known.
+            FlowInputResolver.populateRequestHeadersAndParams(context);
 
             isFlowEnteredInIdentityContext = enterFlowInIdentityContext(context.getFlowType());
 
@@ -132,6 +156,7 @@ public class FlowExecutionService {
             }
 
             context.setCurrentActionId(actionId);
+            FlowInputResolver.applyVariableInputs(context, variableInputs, isInitiation);
             for (FlowExecutionListener listener :
                     FlowExecutionEngineDataHolder.getInstance().getFlowListeners()) {
                 if (listener.isEnabled() && !listener.doPreExecute(context)) {

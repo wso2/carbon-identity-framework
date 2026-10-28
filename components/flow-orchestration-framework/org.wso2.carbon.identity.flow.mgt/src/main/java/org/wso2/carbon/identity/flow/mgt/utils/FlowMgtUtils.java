@@ -140,6 +140,25 @@ public class FlowMgtUtils {
     }
 
     /**
+     * Handle flow inputs that are not valid. Every such failure shares one error code and says what is wrong
+     * through its own message and description.
+     *
+     * @param message     Error message.
+     * @param description Error description, formatted with the data.
+     * @param data        The error description data.
+     * @return FlowMgtClientException.
+     */
+    public static FlowMgtClientException handleFlowInputException(String message, String description,
+                                                                 Object... data) {
+
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new FlowMgtClientException(ErrorMessages.ERROR_CODE_INVALID_FLOW_INPUTS.getCode(), message,
+                description);
+    }
+
+    /**
      * Whether conditional branching is enabled on the server. It guards decision steps, from saving and reading them
      * to evaluating them, so a server without it never reads or writes the branch table.
      *
@@ -148,6 +167,18 @@ public class FlowMgtUtils {
     public static boolean isConditionalBranchingEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED));
+    }
+
+    /**
+     * Whether flow inputs are enabled on the server. It guards the headers, query parameters and variables a
+     * flow defines, from saving and reading them to keeping their values while the flow runs, so a server without it
+     * never reads or writes the input table.
+     *
+     * @return True if a flow may define headers, query parameters and variables.
+     */
+    public static boolean isFlowInputsEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(Constants.FlowInputConfigs.ENABLE));
     }
 
     /**

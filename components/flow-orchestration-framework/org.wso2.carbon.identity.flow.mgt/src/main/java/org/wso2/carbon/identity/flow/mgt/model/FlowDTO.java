@@ -30,6 +30,7 @@ public class FlowDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     private List<StepDTO> steps = new ArrayList<>();
     private String flowType;
+    private FlowInputsDTO flowInputs;
 
     public List<StepDTO> getSteps() {
 
@@ -49,5 +50,15 @@ public class FlowDTO implements Serializable {
     public String getFlowType() {
 
         return flowType;
+    }
+
+    public FlowInputsDTO getFlowInputs() {
+
+        return flowInputs;
+    }
+
+    public void setFlowInputs(FlowInputsDTO flowInputs) {
+
+        this.flowInputs = flowInputs;
     }
 }

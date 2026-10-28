@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.flow.mgt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +39,76 @@ public class Constants {
     public static final int DEFAULT_MAX_RULE_EVALUATION_NODES = 20;
 
     public static final String IDP_NAME = "idpName";
+
+    /**
+     * Server configurations that limit and filter the headers, query parameters and variables a flow defines.
+     */
+    public static class FlowInputConfigs {
+
+        public static final String ENABLE = "FlowExecution.Inputs.Enable";
+        public static final String MAX_HEADERS = "FlowExecution.Inputs.MaxHeaders";
+        public static final String MAX_QUERY_PARAMS = "FlowExecution.Inputs.MaxQueryParams";
+        public static final String MAX_VARIABLES = "FlowExecution.Inputs.MaxVariables";
+        public static final String MAX_VALUE_LENGTH = "FlowExecution.Inputs.MaxValueLength";
+        public static final String MAX_ARRAY_SIZE = "FlowExecution.Inputs.MaxArraySize";
+        public static final String VALUE_PATTERN = "FlowExecution.Inputs.ValuePattern";
+        public static final String EXCLUDED_HEADERS = "FlowExecution.Inputs.ExcludedHeaders.Header";
+        public static final String EXCLUDED_QUERY_PARAMS = "FlowExecution.Inputs.ExcludedQueryParams.QueryParam";
+
+        public static final int DEFAULT_MAX_HEADERS = 10;
+        public static final int DEFAULT_MAX_QUERY_PARAMS = 10;
+        public static final int DEFAULT_MAX_VARIABLES = 20;
+        public static final int DEFAULT_MAX_VALUE_LENGTH = 255;
+        public static final int DEFAULT_MAX_ARRAY_SIZE = 20;
+
+        /**
+         * Rejects the characters that let a value break out of HTML, scripts, quoted strings or expressions, and any
+         * control character.
+         */
+        public static final String DEFAULT_VALUE_PATTERN = "^[^<>\"'`\\\\{}$\\p{Cntrl}]*$";
+        public static final List<String> DEFAULT_EXCLUDED_HEADERS = Collections.unmodifiableList(Arrays.asList(
+                "authorization", "cookie", "set-cookie", "proxy-*", "host", "x-forwarded-*"));
+        public static final List<String> DEFAULT_EXCLUDED_QUERY_PARAMS = Collections.unmodifiableList(Arrays.asList(
+                "sessionDataKey", "code", "state", "mlt", "confirmation", "flowId", "spId"));
+
+        private FlowInputConfigs() {
+
+        }
+    }
+
+    /**
+     * The types of flow input, as stored with each input.
+     */
+    public static class FlowInputTypes {
+
+        public static final String HEADER = "HEADER";
+        public static final String QUERY_PARAM = "QUERY_PARAM";
+        public static final String VARIABLE = "VARIABLE";
+
+        private FlowInputTypes() {
+
+        }
+    }
+
+    /**
+     * Variables every flow has. A flow that leaves one out is given it, and only its initial value can change.
+     */
+    public static class SystemVariables {
+
+        /**
+         * A number from 0 to 99 that stays with a browser, so a condition such as "less than 20" sends about a
+         * fifth of the users down one branch. The client sends it when the flow starts; without it, the flow runs
+         * with the initial value.
+         */
+        public static final String AB_TESTING_KEY = "abTestingKey";
+        public static final int AB_TESTING_KEY_MIN = 0;
+        public static final int AB_TESTING_KEY_MAX = 99;
+        public static final long AB_TESTING_KEY_INITIAL_VALUE = 0L;
+
+        private SystemVariables() {
+
+        }
+    }
 
     private Constants() {
 
@@ -81,6 +153,10 @@ public class Constants {
                 "Unexpected error while loading system default flow for flow type, %s"),
         ERROR_CODE_GET_CLAIM_METADATA("65015", "Error while retrieving claim metadata.",
                 "Could not read the claims of tenant %s to validate the conditions of the flow."),
+        ERROR_CODE_SERIALIZE_INPUT_VALUE("65016", "Error while serializing a flow input value.",
+                "Unexpected server error while serializing the value of %s"),
+        ERROR_CODE_DESERIALIZE_INPUT_VALUE("65017", "Error while deserializing a flow input value.",
+                "Unexpected server error while deserializing the value of %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -115,6 +191,11 @@ public class Constants {
                 "The decision step %s is not valid."),
         ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED("60015", "Conditional branching is not enabled.",
                 "The decision step %s cannot be used because conditional branching is not enabled on this server."),
+        ERROR_CODE_INVALID_FLOW_INPUTS("60016", "Invalid flow inputs.",
+                "The headers, query parameters or variables of the flow are not valid."),
+        ERROR_CODE_FLOW_INPUTS_DISABLED("60017", "Flow inputs are not enabled.",
+                "Headers, query parameters and variables cannot be defined because flow inputs are not " +
+                        "enabled on this server."),
         ;
 
         private static final String ERROR_PREFIX = "RFM";

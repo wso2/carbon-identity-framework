@@ -91,7 +91,9 @@ public class SystemDefaultFlowProvider {
             return null;
         }
         try {
-            return OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsBytes(cached), FlowDTO.class);
+            FlowDTO flowDTO = OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsBytes(cached), FlowDTO.class);
+            flowDTO.setFlowInputs(FlowInputUtils.withSystemVariables(flowDTO.getFlowInputs()));
+            return flowDTO;
         } catch (IOException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
         }
@@ -113,7 +115,7 @@ public class SystemDefaultFlowProvider {
             return null;
         }
         try {
-            return new GraphBuilder().withSteps(flowDTO.getSteps()).build();
+            return new GraphBuilder().withSteps(flowDTO.getSteps()).withFlowInputs(flowDTO.getFlowInputs()).build();
         } catch (FlowMgtFrameworkException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
         }

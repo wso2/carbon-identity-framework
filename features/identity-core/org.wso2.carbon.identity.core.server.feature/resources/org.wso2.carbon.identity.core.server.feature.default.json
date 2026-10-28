@@ -2427,6 +2427,7 @@
   "flow_execution.enable_legacy_invited_user_registration_flow": false,
   "flow_execution.registration.display_claim_availability": false,
   "flow_execution.conditional_branching.enable": true,
+  "flow_execution.inputs.enable": true,
   "consent_mgt.enable_v2_api": true,
   "consent_mgt.revoke_active_consents_on_create": true,
   "branding_configuration.custom_content.max_file_size": "1048576",

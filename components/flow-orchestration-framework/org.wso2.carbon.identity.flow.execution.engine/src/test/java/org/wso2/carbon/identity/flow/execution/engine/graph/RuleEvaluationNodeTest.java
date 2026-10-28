@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.flow.execution.engine.rule.AbstractFlowRuleEvalu
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowInputsDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
@@ -66,7 +67,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotSame;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
@@ -146,6 +146,11 @@ public class RuleEvaluationNodeTest {
         user.addUpdatedClaim("http://wso2.org/claims/givenname", "Jane");
         user.getUserCredentials().put("password", "secret".toCharArray());
         context.getUserInputData().put("http://wso2.org/claims/country", "LK");
+        FlowInputsDTO inputs = new FlowInputsDTO();
+        context.getGraphConfig().setFlowInputs(inputs);
+        context.getVariables().put("abTestingKey", 42L);
+        context.getRequest().getHeaders().put("x-region", Collections.singletonList("LK"));
+        context.getRequest().getQueryParameters().put("campaign", Collections.singletonList("spring"));
 
         ruleEvaluationNode.execute(context, node);
 
@@ -167,7 +172,15 @@ public class RuleEvaluationNodeTest {
                 Collections.singleton("http://wso2.org/claims/givenname"));
         assertTrue(ruleContext.getFlowUser().getUserCredentials().isEmpty());
         assertTrue(ruleContext.getUserInputData().isEmpty());
-        assertNull(ruleContext.getGraphConfig());
+        assertEquals(ruleContext.getVariables(), context.getVariables());
+        assertNotSame(ruleContext.getVariables(), context.getVariables());
+        assertEquals(ruleContext.getRequest().getHeaders(), context.getRequest().getHeaders());
+        assertNotSame(ruleContext.getRequest().getHeaders(), context.getRequest().getHeaders());
+        assertEquals(ruleContext.getRequest().getQueryParameters(), context.getRequest().getQueryParameters());
+        assertNotSame(ruleContext.getRequest().getQueryParameters(), context.getRequest().getQueryParameters());
+        assertSame(ruleContext.getGraphConfig().getFlowInputs(), inputs);
+        assertTrue(ruleContext.getGraphConfig().getNodeConfigs().isEmpty());
+        assertTrue(ruleContext.getGraphConfig().getNodePageMappings().isEmpty());
     }
 
     @Test

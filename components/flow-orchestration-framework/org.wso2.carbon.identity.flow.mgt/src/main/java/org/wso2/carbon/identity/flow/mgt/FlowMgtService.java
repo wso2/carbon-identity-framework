@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.rule.FlowRuleValidator;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowInputValidator;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
@@ -102,8 +103,11 @@ public class FlowMgtService {
             throws FlowMgtFrameworkException {
 
         clearFlowResolveCache(flowDTO.getFlowType(), tenantID);
+        // Validated first, since the rules are checked against the names the flow defines.
+        FlowInputValidator.validate(flowDTO);
         FlowRuleValidator.validate(flowDTO, IdentityTenantUtil.getTenantDomain(tenantID));
-        GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
+        GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps())
+                .withFlowInputs(flowDTO.getFlowInputs()).build();
         FLOW_DAO.updateFlow(flowDTO.getFlowType(), flowConfig, tenantID, DEFAULT_FLOW_NAME);
         AuditLog.AuditLogBuilder auditLogBuilder =
                 new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),

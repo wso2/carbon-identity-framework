@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowInputResolver;
+import org.wso2.carbon.identity.flow.mgt.model.FlowInputDataType;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowInputUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationDataProviderException;
@@ -86,6 +89,21 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     public static final String USER_ROLES = "user.roles";
 
     /**
+     * The variables of the flow, by name.
+     */
+    public static final String VARIABLES = "variables";
+
+    /**
+     * The headers the flow reads from each request, by name.
+     */
+    public static final String REQUEST_HEADERS = "request.headers";
+
+    /**
+     * The query parameters the flow reads from each request, by name.
+     */
+    public static final String REQUEST_QUERY_PARAMETERS = "request.queryParameters";
+
+    /**
      * Key under which the engine places its execution context for evaluation.
      */
     public static final String FLOW_EXECUTION_CONTEXT = "flowExecutionContext";
@@ -130,9 +148,51 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                 return userGroups(field, context, tenantDomain);
             case USER_ROLES:
                 return userRoles(field, context, tenantDomain);
+            case VARIABLES:
+                return inputValue(field, FlowInputResolver.getVariableType(context, field.getQualifier()),
+                        FlowInputResolver.getVariable(context, field.getQualifier()));
+            case REQUEST_HEADERS:
+                return inputValue(field, FlowInputResolver.getHeaderType(context, field.getQualifier()),
+                        FlowInputResolver.getHeader(context, field.getQualifier()));
+            case REQUEST_QUERY_PARAMETERS:
+                return inputValue(field, FlowInputResolver.getQueryParamType(context, field.getQualifier()),
+                        FlowInputResolver.getQueryParam(context, field.getQualifier()));
             default:
                 throw new RuleEvaluationDataProviderException(
                         "No value can be read for condition field: " + field.getName() + ".");
+        }
+    }
+
+    /**
+     * A header, query parameter or variable, typed as the flow defines it. Numbers are compared as decimals, and the
+     * entries of a number array as their text, as a list holds text alone.
+     */
+    private FieldValue inputValue(Field field, FlowInputDataType dataType, Object value)
+            throws RuleEvaluationDataProviderException {
+
+        if (dataType == null) {
+            throw new RuleEvaluationDataProviderException("The flow does not define " + field.getQualifier()
+                    + " of " + field.getName() + ".");
+        }
+        switch (dataType) {
+            case INTEGER:
+            case DECIMAL:
+                return new FieldValue(field.getName(), field.getQualifier(),
+                        value == null ? null : ((Number) value).doubleValue());
+            case BOOLEAN:
+                return new FieldValue(field.getName(), field.getQualifier(), (Boolean) value);
+            case STRING_ARRAY:
+            case NUMBER_ARRAY:
+                List<String> entries = new ArrayList<>();
+                if (value != null) {
+                    for (Object entry : (List<?>) value) {
+                        entries.add(entry instanceof Number
+                                ? FlowInputUtils.toText((Number) entry) : String.valueOf(entry));
+                    }
+                }
+                return new FieldValue(field.getName(), field.getQualifier(), entries);
+            default:
+                return new FieldValue(field.getName(), field.getQualifier(), (String) value, ValueType.STRING);
         }
     }
 
