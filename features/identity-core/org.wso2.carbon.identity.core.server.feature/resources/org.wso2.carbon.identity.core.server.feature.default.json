@@ -91,6 +91,7 @@
   "oauth.token_cleanup.retain_access_tokens_for_auditing": false,
 
   "oauth.use_entityid_as_issuer_in_oidc_discovery": true,
+  "oauth.client_id_metadata_document_supported": false,
   "oauth.token_validation.authorization_code_validity": "5m",
   "oauth.token_validation.app_access_token_validity": "1h",
   "oauth.token_validation.user_access_token_validity": "1h",

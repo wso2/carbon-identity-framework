@@ -482,6 +482,11 @@
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
 
+        <!-- If enabled, Client ID Metadata Documents can be previewed to register CIMD clients, and OAuth 2.0
+             authorization server metadata and OpenID Connect Discovery advertise client_id_metadata_document_supported
+             as true -->
+        <ClientIdMetadataDocumentSupported>{{oauth.client_id_metadata_document_supported}}</ClientIdMetadataDocumentSupported>
+
         <!-- If enabled, OIDC claims will be skipped when requesting token for client credential grant type
              currently used by JWT token issuer for issuing access token-->
         <SkipOIDCClaimsForClientCredentialGrant>{{oauth.grant_type.client_credentials.skip_oidc_claims}}</SkipOIDCClaimsForClientCredentialGrant>
