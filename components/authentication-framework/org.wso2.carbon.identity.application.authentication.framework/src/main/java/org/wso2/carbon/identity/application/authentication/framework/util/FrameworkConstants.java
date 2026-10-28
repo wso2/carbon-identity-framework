@@ -172,6 +172,7 @@ public abstract class FrameworkConstants {
     public static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
     public static final String SHARED_USER_IDENTIFIER_HANDLER = "SharedUserIdentifierExecutor";
     public static final String ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER = "OrganizationSSO";
+    public static final String ENHANCED_ORG_LOGIN_ENABLED = "enhancedOrgLoginEnabled";
     public static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     public static final String ORG_ID_PARAMETER = "orgId";
     public static final String USER_ORGANIZATION_CLAIM = "user_organization";

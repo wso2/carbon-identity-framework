@@ -75,7 +75,9 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.context.IdentityContext;
@@ -676,11 +678,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
            throw new IdentityApplicationManagementException("Service provider not found for resource id: " +
                    context.getServiceProviderResourceId() + " in tenant domain: " + accessingTenantDomain);
         }
-        boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
-                .anyMatch(property ->
-                        IS_FRAGMENT_APP.equals(property.getName()) &&
-                        Boolean.parseBoolean(property.getValue()));
-        if (isFragmentApp) {
+        if (isFragmentApp(serviceProvider)) {
             /*
              Carbon context will be started with relevant details to continue with the same pattern which
              the login flow was initiated.
@@ -1713,19 +1711,103 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     /**
-     * Sets the service provider name and resource ID on the authentication context.
+     * Sets the service provider name and resource ID on the authentication context, and for a login in an
+     * organization, the organization owning the application.
      *
      * @param context           The authentication context to update.
      * @param effectiveSequence The effective sequence config.
      */
     private void setServiceProviderInfo(AuthenticationContext context, SequenceConfig effectiveSequence) {
 
+        ServiceProvider serviceProvider = effectiveSequence.getApplicationConfig().getServiceProvider();
         context.setServiceProviderName(effectiveSequence.getApplicationConfig().getApplicationName());
-        if (effectiveSequence.getApplicationConfig().getServiceProvider() != null && StringUtils.isNotBlank(
-                effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId())) {
-            context.setServiceProviderResourceId(
-                    effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId());
+        if (serviceProvider != null && StringUtils.isNotBlank(serviceProvider.getApplicationResourceId())) {
+            context.setServiceProviderResourceId(serviceProvider.getApplicationResourceId());
         }
+        setApplicationOrganization(context, serviceProvider);
+    }
+
+    /**
+     * Sets the organization owning the application of a login in an organization: the main application's owner for
+     * a shared application. Best effort: on any failure it is left unset and the login continues.
+     *
+     * @param context         The authentication context to update.
+     * @param serviceProvider The application being logged in to.
+     */
+    private void setApplicationOrganization(AuthenticationContext context, ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null || StringUtils.isBlank(serviceProvider.getTenantDomain())) {
+            return;
+        }
+        try {
+            if (!OrganizationManagementUtil.isOrganization(context.getTenantDomain())) {
+                return;
+            }
+            String ownerTenantDomain = serviceProvider.getTenantDomain();
+            Boolean enhancedOrgLoginEnabled = null;
+            if (isFragmentApp(serviceProvider)) {
+                ServiceProvider mainApp = resolveMainApplication(context, serviceProvider);
+                if (mainApp == null) {
+                    // Only the main application can tell which organization owns a shared one, so it is not guessed.
+                    log.warn("Main application of the shared application: " +
+                            serviceProvider.getApplicationResourceId() + " was not found. The organization owning " +
+                            "the application is left unresolved.");
+                    return;
+                }
+                ownerTenantDomain = mainApp.getTenantDomain();
+                enhancedOrgLoginEnabled = mainApp.isEnhancedOrganizationAuthenticationEnabled();
+            }
+            String ownerOrgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(ownerTenantDomain);
+            // The resource id stays the shared application's own: the organization qualified callback flow looks the
+            // application up by it in the organization being accessed, where only the shared application exists.
+            context.setServiceProviderOrganizationId(ownerOrgId);
+            context.setServiceProviderTenantDomain(ownerTenantDomain);
+            if (enhancedOrgLoginEnabled != null) {
+                context.getProperties().put(FrameworkConstants.ENHANCED_ORG_LOGIN_ENABLED, enhancedOrgLoginEnabled);
+            }
+        } catch (OrganizationManagementException | IdentityApplicationManagementException |
+                 IdentityRuntimeException e) {
+            log.warn("Could not resolve the organization owning the application: " +
+                    serviceProvider.getApplicationResourceId() + ". It is left unresolved.", e);
+        }
+    }
+
+    /**
+     * Main application of a shared application. An organization login has already captured it as the primary
+     * application; a directly accessed shared application is resolved through its main application id.
+     *
+     * @param context   The authentication context.
+     * @param sharedApp The shared application.
+     * @return The main application, or null if it cannot be found.
+     * @throws IdentityApplicationManagementException If the application lookup fails.
+     */
+    private ServiceProvider resolveMainApplication(AuthenticationContext context, ServiceProvider sharedApp)
+            throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManagementService =
+                FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
+        OrganizationLoginData organizationLoginData = context.getOrganizationLoginData();
+        if (organizationLoginData != null && organizationLoginData.getPrimaryAppData() != null) {
+            return applicationManagementService.getServiceProvider(organizationLoginData.getPrimaryAppData().getId());
+        }
+        String mainAppId = applicationManagementService.getMainAppId(sharedApp.getApplicationResourceId());
+        if (StringUtils.isBlank(mainAppId)) {
+            return null;
+        }
+        int mainAppTenantId = applicationManagementService.getTenantIdByApp(mainAppId);
+        if (mainAppTenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            return null;
+        }
+        return applicationManagementService.getApplicationByResourceId(mainAppId,
+                IdentityTenantUtil.getTenantDomain(mainAppTenantId));
+    }
+
+    private static boolean isFragmentApp(ServiceProvider serviceProvider) {
+
+        return serviceProvider.getSpProperties() != null && Arrays.stream(serviceProvider.getSpProperties())
+                .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 
     /**

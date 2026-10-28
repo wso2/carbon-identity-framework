@@ -68,6 +68,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private Map<String, String> authenticatorProperties = new HashMap<>();
     private String serviceProviderName;
     private String serviceProviderResourceId;
+    private String serviceProviderOrganizationId;
+    private String serviceProviderTenantDomain;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
     private String redirectURL;
@@ -318,6 +320,36 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setServiceProviderResourceId(String serviceProviderResourceId) {
 
         this.serviceProviderResourceId = serviceProviderResourceId;
+    }
+
+    /**
+     * Organization owning the application, which for a shared application is the main application's owner.
+     *
+     * @return The organization id, or null unless the login is in an organization and the owner was resolved.
+     */
+    public String getServiceProviderOrganizationId() {
+
+        return serviceProviderOrganizationId;
+    }
+
+    public void setServiceProviderOrganizationId(String serviceProviderOrganizationId) {
+
+        this.serviceProviderOrganizationId = serviceProviderOrganizationId;
+    }
+
+    /**
+     * Tenant domain of the organization owning the application, set together with its organization id.
+     *
+     * @return The tenant domain, or null unless the login is in an organization and the owner was resolved.
+     */
+    public String getServiceProviderTenantDomain() {
+
+        return serviceProviderTenantDomain;
+    }
+
+    public void setServiceProviderTenantDomain(String serviceProviderTenantDomain) {
+
+        this.serviceProviderTenantDomain = serviceProviderTenantDomain;
     }
 
     public boolean isForceAuthenticate() {
