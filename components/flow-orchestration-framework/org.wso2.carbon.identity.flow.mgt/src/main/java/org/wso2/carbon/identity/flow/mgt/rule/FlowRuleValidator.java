@@ -63,6 +63,8 @@ public class FlowRuleValidator {
 
     private static final String IN = "in";
     private static final String NOT_IN = "notIn";
+    private static final String EQUALS = "equals";
+    private static final String NOT_EQUALS = "notEquals";
     private static final String IS_BLANK = "isBlank";
     private static final String IS_NOT_BLANK = "isNotBlank";
 
@@ -76,17 +78,17 @@ public class FlowRuleValidator {
      */
     private static final Set<String> MULTI_VALUED_OPERATORS = Set.of(IN, NOT_IN, "isEmpty", "isNotEmpty");
 
-    private static final Set<String> NUMERIC_OPERATORS = Set.of("equals", "notEquals", "greaterThan", "lessThan",
+    private static final Set<String> NUMERIC_OPERATORS = Set.of(EQUALS, NOT_EQUALS, "greaterThan", "lessThan",
             IS_BLANK, IS_NOT_BLANK);
 
     /**
      * Everything that is not a number is compared as text, dates and booleans included: nothing validates their format
      * on write, so ordering them would compare strings.
      */
-    private static final Set<String> TEXT_OPERATORS = Set.of("equals", "notEquals", "contains", "notContains",
+    private static final Set<String> TEXT_OPERATORS = Set.of(EQUALS, NOT_EQUALS, "contains", "notContains",
             "startsWith", "endsWith", IS_BLANK, IS_NOT_BLANK);
 
-    private static final Set<String> BOOLEAN_OPERATORS = Set.of("equals", "notEquals");
+    private static final Set<String> BOOLEAN_OPERATORS = Set.of(EQUALS, NOT_EQUALS);
 
     private FlowRuleValidator() {
 
@@ -321,8 +323,7 @@ public class FlowRuleValidator {
     private static boolean isValidLiteral(FlowInputDataType dataType, String literal) {
 
         switch (dataType) {
-            case INTEGER:
-            case DECIMAL:
+            case INTEGER, DECIMAL:
                 return FlowInputUtils.parse(FlowInputDataType.DECIMAL, literal) != null;
             case BOOLEAN:
                 return FlowInputUtils.parse(FlowInputDataType.BOOLEAN, literal) != null;
@@ -340,8 +341,7 @@ public class FlowRuleValidator {
             return MULTI_VALUED_OPERATORS;
         }
         switch (dataType) {
-            case INTEGER:
-            case DECIMAL:
+            case INTEGER, DECIMAL:
                 return NUMERIC_OPERATORS;
             case BOOLEAN:
                 return BOOLEAN_OPERATORS;

@@ -54,7 +54,7 @@ public final class FlowInputUtils {
     // Letters and digits only, up to the length of the name column.
     private static final Pattern VARIABLE_NAME = Pattern.compile("^[A-Za-z0-9]{1,255}$");
     private static final Pattern HEADER_NAME = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$");
-    private static final Pattern QUERY_PARAM_NAME = Pattern.compile("^[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}$");
+    private static final Pattern QUERY_PARAM_NAME = Pattern.compile("^\\w[\\w.-]{0,63}$");
     private static final Pattern INTEGER = Pattern.compile("^-?\\d{1,18}$");
     private static final Pattern DECIMAL = Pattern.compile("^-?\\d{1,15}(\\.\\d{1,15})?$");
     private static final String WILDCARD = "*";
@@ -234,15 +234,14 @@ public final class FlowInputUtils {
         }
         switch (type) {
             case STRING:
-                return value instanceof String && isSafeText((String) value) ? value : null;
+                return value instanceof String text && isSafeText(text) ? value : null;
             case INTEGER:
                 return toLong(value);
             case DECIMAL:
                 return toDouble(value);
             case BOOLEAN:
                 return value instanceof Boolean ? value : null;
-            case STRING_ARRAY:
-            case NUMBER_ARRAY:
+            case STRING_ARRAY, NUMBER_ARRAY:
                 return toList(type, value);
             default:
                 return null;
@@ -273,8 +272,7 @@ public final class FlowInputUtils {
                     return Boolean.valueOf(text);
                 }
                 return null;
-            case STRING_ARRAY:
-            case NUMBER_ARRAY:
+            case STRING_ARRAY, NUMBER_ARRAY:
                 return parseJsonArray(type, text);
             default:
                 return null;
@@ -389,12 +387,11 @@ public final class FlowInputUtils {
      */
     private static String toInputText(Object value) {
 
-        if (value instanceof String) {
-            return (String) value;
+        if (value instanceof String text) {
+            return text;
         }
-        if (value instanceof Number) {
-            double number = ((Number) value).doubleValue();
-            return Double.isNaN(number) || Double.isInfinite(number) ? null : toText((Number) value);
+        if (value instanceof Number number) {
+            return Double.isNaN(number.doubleValue()) || Double.isInfinite(number.doubleValue()) ? null : toText(number);
         }
         if (value instanceof Boolean) {
             return value.toString();
@@ -406,7 +403,7 @@ public final class FlowInputUtils {
 
         // Bounds the parsing before it starts: no valid array is longer than its entries and their separators. An
         // entry may write each of its characters as a six-character unicode escape.
-        long longest = (long) getMaxArraySize() * (getMaxValueLength() * 6L + 3) + 2;
+        long longest = getMaxArraySize() * (getMaxValueLength() * 6L + 3) + 2;
         if (text.length() > longest) {
             return null;
         }
@@ -427,9 +424,12 @@ public final class FlowInputUtils {
         }
         List<Object> entries = new ArrayList<>(((List<?>) value).size());
         for (Object entry : (List<?>) value) {
-            Object converted = type == FlowInputDataType.NUMBER_ARRAY
-                    ? toDouble(entry)
-                    : entry instanceof String && isSafeText((String) entry) ? entry : null;
+            Object converted;
+            if (type == FlowInputDataType.NUMBER_ARRAY) {
+                converted = toDouble(entry);
+            } else {
+                converted = entry instanceof String text && isSafeText(text) ? entry : null;
+            }
             if (converted == null) {
                 return null;
             }
@@ -443,8 +443,8 @@ public final class FlowInputUtils {
         if (value instanceof Long || value instanceof Integer || value instanceof Short || value instanceof Byte) {
             return ((Number) value).longValue();
         }
-        if (value instanceof BigInteger && ((BigInteger) value).bitLength() < Long.SIZE) {
-            return ((BigInteger) value).longValue();
+        if (value instanceof BigInteger bigInteger && bigInteger.bitLength() < Long.SIZE) {
+            return bigInteger.longValue();
         }
         return null;
     }

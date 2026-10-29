@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 
 /**
@@ -77,20 +78,10 @@ public final class FlowInputResolver {
                 || context.getGraphConfig().getFlowInputs() == null) {
             return;
         }
-        Map<String, List<String>> headers = new HashMap<>();
-        for (Header header : request.getHeaders()) {
-            if (header.getName() != null && header.getValue() != null) {
-                headers.computeIfAbsent(header.getName().toLowerCase(Locale.ROOT), key -> new ArrayList<>())
-                        .addAll(header.getValue());
-            }
-        }
-        Map<String, List<String>> queryParams = new HashMap<>();
-        for (Parameter queryParam : request.getQueryParameters()) {
-            if (queryParam.getName() != null && queryParam.getValue() != null) {
-                queryParams.computeIfAbsent(queryParam.getName(), key -> new ArrayList<>())
-                        .addAll(queryParam.getValue());
-            }
-        }
+        Map<String, List<String>> headers = valuesByName(request.getHeaders(), Header::getName, Header::getValue,
+                name -> name.toLowerCase(Locale.ROOT));
+        Map<String, List<String>> queryParams = valuesByName(request.getQueryParameters(), Parameter::getName,
+                Parameter::getValue, name -> name);
 
         FlowInputsDTO flowInputs = context.getGraphConfig().getFlowInputs();
 
@@ -267,6 +258,23 @@ public final class FlowInputResolver {
             return;
         }
         context.getVariables().put(SystemVariables.AB_TESTING_KEY, abTestingKeyValue);
+    }
+
+    /**
+     * Gathers the values a request gives each name, as a name can appear more than once.
+     */
+    private static <T> Map<String, List<String>> valuesByName(List<T> entries, Function<T, String> name,
+                                                              Function<T, List<String>> values,
+                                                              UnaryOperator<String> normalize) {
+
+        Map<String, List<String>> valuesByName = new HashMap<>();
+        for (T entry : entries) {
+            if (name.apply(entry) != null && values.apply(entry) != null) {
+                valuesByName.computeIfAbsent(normalize.apply(name.apply(entry)), key -> new ArrayList<>())
+                        .addAll(values.apply(entry));
+            }
+        }
+        return valuesByName;
     }
 
     private static FlowVariableInputDTO findVariable(FlowExecutionContext context, String name) {

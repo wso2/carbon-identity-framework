@@ -164,20 +164,18 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                     + " of " + field.getName() + ".");
         }
         switch (dataType) {
-            case INTEGER:
-            case DECIMAL:
+            case INTEGER, DECIMAL:
                 return new FieldValue(field.getName(), field.getQualifier(),
                         value == null ? null : ((Number) value).doubleValue());
             case BOOLEAN:
                 return new FieldValue(field.getName(), field.getQualifier(), (Boolean) value);
-            case STRING_ARRAY:
-            case NUMBER_ARRAY:
+            case STRING_ARRAY, NUMBER_ARRAY:
                 List<String> entries = null;
                 if (value != null) {
                     entries = new ArrayList<>();
                     for (Object entry : (List<?>) value) {
-                        entries.add(entry instanceof Number
-                                ? FlowInputUtils.toText((Number) entry) : String.valueOf(entry));
+                        entries.add(entry instanceof Number number
+                                ? FlowInputUtils.toText(number) : String.valueOf(entry));
                     }
                 }
                 return new FieldValue(field.getName(), field.getQualifier(), entries);
