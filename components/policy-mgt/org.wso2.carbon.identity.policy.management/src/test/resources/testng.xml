@@ -40,6 +40,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.policy.management.model.PolicyBuilderTest"/>
             <class name="org.wso2.carbon.identity.policy.management.model.RulePolicyResourceBuilderTest"/>
+            <class name="org.wso2.carbon.identity.policy.management.type.PolicyTypeDefinitionTest"/>
         </classes>
     </test>
 </suite>

@@ -22,6 +22,9 @@ import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagement
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResourceMetadata;
+import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResourceMetadata;
 
 import java.util.List;
 
@@ -124,4 +127,19 @@ public interface PolicyManagementService {
      * @throws PolicyManagementException If the type is not registered or retrieval fails.
      */
     int getPolicyCount(String tenantDomain, String policyType, String filter) throws PolicyManagementException;
+
+    /**
+     * Returns how resources of a resource type can be built for a policy type and target. The format depends on the
+     * resource type, for example {@link RulePolicyResourceMetadata} for rules.
+     *
+     * @param policyType   Policy type.
+     * @param resourceType Resource type.
+     * @param target       Resource target, for example a device platform.
+     * @param tenantDomain Tenant domain.
+     * @return Resource metadata.
+     * @throws PolicyManagementException If the type is not registered, does not support the resource type or the
+     *                                   target, or the metadata cannot be retrieved.
+     */
+    PolicyResourceMetadata getResourceMetadata(String policyType, ResourceType resourceType, String target,
+                                               String tenantDomain) throws PolicyManagementException;
 }

@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.policy.management.internal.resourcemanager;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResourceMetadata;
+import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 
 /**
  * Internal contract for managing a specific {@link ResourceType} of policy resource in its backing
@@ -64,4 +66,16 @@ public interface PolicyResourceManager {
      * @param tenantDomain Tenant domain.
      */
     void delete(PolicyResource resource, String tenantDomain);
+
+    /**
+     * Returns how resources of this type can be built for a policy type and target.
+     *
+     * @param definition   Policy type definition. It supports the resource type of this manager.
+     * @param target       Resource target.
+     * @param tenantDomain Tenant domain.
+     * @return Resource metadata.
+     * @throws PolicyManagementException If the metadata cannot be retrieved.
+     */
+    PolicyResourceMetadata getMetadata(PolicyTypeDefinition definition, String target, String tenantDomain)
+            throws PolicyManagementException;
 }

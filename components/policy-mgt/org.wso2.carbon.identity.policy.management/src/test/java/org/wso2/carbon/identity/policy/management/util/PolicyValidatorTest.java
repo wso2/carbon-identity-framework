@@ -25,8 +25,10 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
+import org.wso2.carbon.identity.policy.management.api.type.RuleResourceTypeHandler;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.util.PolicyValidator;
 
@@ -47,24 +49,30 @@ public class PolicyValidatorTest {
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String POLICY_NAME = "TestPolicy";
     private static final String POLICY_TYPE = "DEVICE";
+    private static final String NO_RULE_POLICY_TYPE = "NO_RULE";
 
     private PolicyValidator policyValidator;
     private PolicyTypeDefinition policyTypeDefinition;
+    private PolicyTypeDefinition noRulePolicyTypeDefinition;
 
     @BeforeClass
     public void setUp() {
 
         policyValidator = new PolicyValidator();
-        policyTypeDefinition = mock(PolicyTypeDefinition.class);
-        when(policyTypeDefinition.getType()).thenReturn(POLICY_TYPE);
-        when(policyTypeDefinition.getSupportedTargets()).thenReturn(new HashSet<>(Arrays.asList("android", "ios")));
+        RuleResourceTypeHandler ruleResourceTypeHandler = mock(RuleResourceTypeHandler.class);
+        when(ruleResourceTypeHandler.getResourceType()).thenReturn(ResourceType.RULE);
+        policyTypeDefinition = new PolicyTypeDefinition(POLICY_TYPE, new HashSet<>(Arrays.asList("android", "ios")),
+                ruleResourceTypeHandler) { };
         PolicyMgtComponentServiceHolder.getInstance().addPolicyType(policyTypeDefinition);
+        noRulePolicyTypeDefinition = new PolicyTypeDefinition(NO_RULE_POLICY_TYPE, Collections.singleton("ios")) { };
+        PolicyMgtComponentServiceHolder.getInstance().addPolicyType(noRulePolicyTypeDefinition);
     }
 
     @AfterClass
     public void tearDown() {
 
         PolicyMgtComponentServiceHolder.getInstance().removePolicyType(policyTypeDefinition);
+        PolicyMgtComponentServiceHolder.getInstance().removePolicyType(noRulePolicyTypeDefinition);
     }
 
     @Test
@@ -175,7 +183,7 @@ public class PolicyValidatorTest {
     @Test
     public void testValidateTargetsIgnoresCase() throws PolicyManagementClientException {
 
-        policyValidator.validateTargets(POLICY_TYPE, Collections.singletonList(
+        policyValidator.validateResources(POLICY_TYPE, Collections.singletonList(
                 new RulePolicyResource.Builder().target("IOS").resourceId("rule-1").build()));
     }
 
@@ -183,11 +191,36 @@ public class PolicyValidatorTest {
     public void testValidateTargetsRejectsUnregisteredType() throws PolicyManagementClientException {
 
         try {
-            policyValidator.validateTargets("REMOVED", Collections.singletonList(
+            policyValidator.validateResources("REMOVED", Collections.singletonList(
                     new RulePolicyResource.Builder().target("ios").resourceId("rule-1").build()));
             Assert.fail("Expected PolicyManagementClientException for an unregistered policy type.");
         } catch (PolicyManagementClientException e) {
             Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_UNSUPPORTED_POLICY_TYPE.getCode());
+        }
+    }
+
+    @Test
+    public void testValidateResourcesRejectsUnsupportedResourceType() throws PolicyManagementClientException {
+
+        try {
+            policyValidator.validateResources(NO_RULE_POLICY_TYPE, Collections.singletonList(
+                    new RulePolicyResource.Builder().target("ios").resourceId("rule-1").build()));
+            Assert.fail("Expected PolicyManagementClientException for an unsupported resource type.");
+        } catch (PolicyManagementClientException e) {
+            Assert.assertEquals(e.getErrorCode(),
+                    ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_POLICY_TYPE.getCode());
+        }
+    }
+
+    @Test
+    public void testValidateTargetRejectsBlankTarget() throws PolicyManagementClientException {
+
+        try {
+            policyValidator.validateTarget(POLICY_TYPE, " ");
+            Assert.fail("Expected PolicyManagementClientException for a blank target.");
+        } catch (PolicyManagementClientException e) {
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getCode());
+            Assert.assertTrue(e.getDescription().contains("Target"));
         }
     }
 

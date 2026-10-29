@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>policy-mgt</artifactId>
-        <version>7.11.250-SNAPSHOT</version>
+        <version>7.11.252-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -73,6 +73,12 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
+        </dependency>
+
+        <!-- Rule metadata - RuleMetadataService, used to describe the fields a policy rule can use -->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
         </dependency>
 
         <!-- Central logger - LoggerUtils, used for audit logging -->
@@ -155,6 +161,12 @@
                             org.wso2.carbon.identity.rule.management.api.service;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.api.util;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.metadata.api.exception;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.metadata.api.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.metadata.api.service;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",

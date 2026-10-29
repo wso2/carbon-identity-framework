@@ -19,33 +19,26 @@
 package org.wso2.carbon.identity.device.policy.internal.type;
 
 import org.wso2.carbon.identity.device.policy.api.model.Platform;
+import org.wso2.carbon.identity.device.policy.internal.rule.DeviceRuleResourceTypeHandler;
 import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Registers device assurance policies with policy management. Each resource of a device policy targets a
- * device platform.
+ * Registers device assurance policies with policy management. Each resource of a device policy is a rule that
+ * targets a device platform.
  */
-public class DevicePolicyTypeDefinition implements PolicyTypeDefinition {
+public class DevicePolicyTypeDefinition extends PolicyTypeDefinition {
 
     public static final String TYPE = "DEVICE";
 
-    private static final Set<String> SUPPORTED_TARGETS = Collections.unmodifiableSet(
-            Arrays.stream(Platform.values()).map(Platform::getValue).collect(Collectors.toSet()));
+    private static final Set<String> SUPPORTED_TARGETS =
+            Arrays.stream(Platform.values()).map(Platform::getValue).collect(Collectors.toSet());
 
-    @Override
-    public String getType() {
+    public DevicePolicyTypeDefinition() {
 
-        return TYPE;
-    }
-
-    @Override
-    public Set<String> getSupportedTargets() {
-
-        return SUPPORTED_TARGETS;
+        super(TYPE, SUPPORTED_TARGETS, new DeviceRuleResourceTypeHandler());
     }
 }

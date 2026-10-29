@@ -1347,6 +1347,16 @@
       "id": "UHVzaERldmljZVJlZ2lzdHJhdGlvbg"
     }
   ],
+  "console.extensions.mcpKnownClients": [
+    {
+      "name": "Claude",
+      "clientId": "https://claude.ai/oauth/mcp-oauth-client-metadata"
+    },
+    {
+      "name": "Visual Studio Code",
+      "clientId": "https://vscode.dev/oauth/client-metadata.json"
+    }
+  ],
   "console.extensions.smsTemplates": [
     {
       "description": "This SMS is sent when a user registers and needs to confirm their account.",

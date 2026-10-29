@@ -3104,6 +3104,18 @@ public class IdPManagementDAO {
         }
         propertiesList.add(jwtScopeAsArrayProp);
 
+        Property clientIdMetadataDocumentProp = IdentityApplicationManagementUtil.getProperty(
+                oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT);
+        if (clientIdMetadataDocumentProp == null) {
+            clientIdMetadataDocumentProp = new Property();
+            clientIdMetadataDocumentProp.setName(
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT);
+            clientIdMetadataDocumentProp.setValue(
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT_DEFAULT);
+        }
+        propertiesList.add(clientIdMetadataDocumentProp);
+
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[0]));
         fedAuthnConfigs.add(oidcFedAuthn);
 
