@@ -150,9 +150,8 @@ public final class FlowInputValidator {
             variable.setValue(SystemVariables.AB_TESTING_KEY_INITIAL_VALUE);
             return;
         }
-        Object value = FlowInputUtils.toValue(FlowInputDataType.INTEGER, variable.getValue());
-        if (value == null || (Long) value < SystemVariables.AB_TESTING_KEY_MIN
-                || (Long) value > SystemVariables.AB_TESTING_KEY_MAX) {
+        Long value = FlowInputUtils.toAbTestingKey(variable.getValue());
+        if (value == null) {
             throw handleFlowInputException("Invalid initial value.",
                     "The initial value of the variable %s must be a whole number from %d to %d.",
                     variable.getName(), SystemVariables.AB_TESTING_KEY_MIN, SystemVariables.AB_TESTING_KEY_MAX);

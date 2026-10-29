@@ -53,6 +53,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider.REQUEST_HEADERS;
+import static org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider.REQUEST_QUERY_PARAMETERS;
+import static org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider.VARIABLES;
+
 /**
  * Supplies the values a flow condition is evaluated against.
  */
@@ -87,21 +91,6 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
      * The roles the user is assigned, directly or through a group, by role id.
      */
     public static final String USER_ROLES = "user.roles";
-
-    /**
-     * The variables of the flow, by name.
-     */
-    public static final String VARIABLES = "variables";
-
-    /**
-     * The headers the flow reads from each request, by name.
-     */
-    public static final String REQUEST_HEADERS = "request.headers";
-
-    /**
-     * The query parameters the flow reads from each request, by name.
-     */
-    public static final String REQUEST_QUERY_PARAMETERS = "request.queryParameters";
 
     /**
      * Key under which the engine places its execution context for evaluation.

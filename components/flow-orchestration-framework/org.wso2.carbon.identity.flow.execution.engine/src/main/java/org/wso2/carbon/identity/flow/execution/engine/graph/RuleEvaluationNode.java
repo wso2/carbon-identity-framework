@@ -177,10 +177,7 @@ public class RuleEvaluationNode implements Node {
         copy.setFlowType(context.getFlowType());
         copy.setVariables(new HashMap<>(context.getVariables()));
 
-        FlowRequest request = new FlowRequest();
-        request.setHeaders(new HashMap<>(context.getRequest().getHeaders()));
-        request.setQueryParameters(new HashMap<>(context.getRequest().getQueryParameters()));
-        copy.setRequest(request);
+        copy.setRequest(new FlowRequest(context.getRequest()));
 
         if (context.getGraphConfig() != null) {
             GraphConfig inputsOnly = new GraphConfig();

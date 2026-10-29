@@ -188,19 +188,34 @@ public class FlowMgtUtils {
      */
     public static int getMaxRuleEvaluationNodes() {
 
-        String value = IdentityUtil.getProperty(Constants.MAX_RULE_EVALUATION_NODES);
+        return getPositiveIntProperty(Constants.MAX_RULE_EVALUATION_NODES,
+                Constants.DEFAULT_MAX_RULE_EVALUATION_NODES);
+    }
+
+    /**
+     * Reads a configured positive whole number. A missing value falls back to the default, and so does an invalid
+     * one, with a warning.
+     *
+     * @param property     Name of the property.
+     * @param defaultValue Value to use when the property is missing or invalid.
+     * @return The configured value, or the default.
+     */
+    public static int getPositiveIntProperty(String property, int defaultValue) {
+
+        String value = IdentityUtil.getProperty(property);
         if (StringUtils.isNotBlank(value)) {
             try {
-                int max = Integer.parseInt(value.trim());
-                if (max > 0) {
-                    return max;
+                int number = Integer.parseInt(value.trim());
+                if (number > 0) {
+                    return number;
                 }
             } catch (NumberFormatException e) {
-                LOG.warn("Invalid value configured for " + Constants.MAX_RULE_EVALUATION_NODES + ": " + value
-                        + ". Using the default: " + Constants.DEFAULT_MAX_RULE_EVALUATION_NODES);
+                // Falls through to the default.
             }
+            LOG.warn("Invalid value configured for " + property + ": " + value + ". Using the default: "
+                    + defaultValue);
         }
-        return Constants.DEFAULT_MAX_RULE_EVALUATION_NODES;
+        return defaultValue;
     }
 
     /**

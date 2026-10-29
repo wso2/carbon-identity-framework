@@ -33,6 +33,21 @@ public class FlowRequest implements Serializable {
     private Map<String, Object> headers = new HashMap<>();
     private Map<String, Object> queryParameters = new HashMap<>();
 
+    public FlowRequest() {
+
+    }
+
+    /**
+     * A copy of a request, with its own maps of headers and query parameters.
+     *
+     * @param request The request to copy.
+     */
+    public FlowRequest(FlowRequest request) {
+
+        this.headers = new HashMap<>(request.getHeaders());
+        this.queryParameters = new HashMap<>(request.getQueryParameters());
+    }
+
     /**
      * The headers, by name in lower case.
      *

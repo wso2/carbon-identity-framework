@@ -258,9 +258,9 @@ public final class FlowInputResolver {
             logIgnored(context, FlowInputTypes.VARIABLE, SystemVariables.AB_TESTING_KEY, NOT_DEFINED);
             return;
         }
-        Object abTestingKeyValue = FlowInputUtils.fromInput(FlowInputDataType.INTEGER, variableInputValue);
-        if (abTestingKeyValue == null || (Long) abTestingKeyValue < SystemVariables.AB_TESTING_KEY_MIN
-                || (Long) abTestingKeyValue > SystemVariables.AB_TESTING_KEY_MAX) {
+        Object parsedValue = FlowInputUtils.fromInput(FlowInputDataType.INTEGER, variableInputValue);
+        Long abTestingKeyValue = parsedValue == null ? null : FlowInputUtils.toAbTestingKey(parsedValue);
+        if (abTestingKeyValue == null) {
             logIgnored(context, FlowInputTypes.VARIABLE, SystemVariables.AB_TESTING_KEY, NOT_VALID);
             return;
         }

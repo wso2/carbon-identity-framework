@@ -41,16 +41,6 @@ public enum FlowInputDataType {
     }
 
     /**
-     * Whether the value, or each of its entries, is a number.
-     *
-     * @return True for the number types.
-     */
-    public boolean isNumeric() {
-
-        return this == INTEGER || this == DECIMAL || this == NUMBER_ARRAY;
-    }
-
-    /**
      * The type of a value with the given name, or null when no type has that name.
      *
      * @param name Name of the type.
@@ -58,14 +48,10 @@ public enum FlowInputDataType {
      */
     public static FlowInputDataType fromName(String name) {
 
-        if (name == null) {
+        try {
+            return name == null ? null : valueOf(name);
+        } catch (IllegalArgumentException e) {
             return null;
         }
-        for (FlowInputDataType type : values()) {
-            if (type.name().equals(name)) {
-                return type;
-            }
-        }
-        return null;
     }
 }

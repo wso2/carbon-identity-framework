@@ -67,13 +67,29 @@ public final class FlowInputUtils {
     }
 
     /**
+     * Reads a value as an A/B testing key.
+     *
+     * @param value The value, as received or configured.
+     * @return The key, or null when the value is not a whole number in the allowed range.
+     */
+    public static Long toAbTestingKey(Object value) {
+
+        Object key = toValue(FlowInputDataType.INTEGER, value);
+        if (key == null || (Long) key < SystemVariables.AB_TESTING_KEY_MIN
+                || (Long) key > SystemVariables.AB_TESTING_KEY_MAX) {
+            return null;
+        }
+        return (Long) key;
+    }
+
+    /**
      * The most headers a flow may define.
      *
      * @return The configured limit, or the default.
      */
     public static int getMaxHeaders() {
 
-        return getPositiveInt(FlowInputConfigs.MAX_HEADERS, FlowInputConfigs.DEFAULT_MAX_HEADERS);
+        return FlowMgtUtils.getPositiveIntProperty(FlowInputConfigs.MAX_HEADERS, FlowInputConfigs.DEFAULT_MAX_HEADERS);
     }
 
     /**
@@ -83,7 +99,7 @@ public final class FlowInputUtils {
      */
     public static int getMaxQueryParams() {
 
-        return getPositiveInt(FlowInputConfigs.MAX_QUERY_PARAMS, FlowInputConfigs.DEFAULT_MAX_QUERY_PARAMS);
+        return FlowMgtUtils.getPositiveIntProperty(FlowInputConfigs.MAX_QUERY_PARAMS, FlowInputConfigs.DEFAULT_MAX_QUERY_PARAMS);
     }
 
     /**
@@ -93,7 +109,7 @@ public final class FlowInputUtils {
      */
     public static int getMaxVariables() {
 
-        return getPositiveInt(FlowInputConfigs.MAX_VARIABLES, FlowInputConfigs.DEFAULT_MAX_VARIABLES);
+        return FlowMgtUtils.getPositiveIntProperty(FlowInputConfigs.MAX_VARIABLES, FlowInputConfigs.DEFAULT_MAX_VARIABLES);
     }
 
     /**
@@ -103,7 +119,7 @@ public final class FlowInputUtils {
      */
     public static int getMaxValueLength() {
 
-        return getPositiveInt(FlowInputConfigs.MAX_VALUE_LENGTH, FlowInputConfigs.DEFAULT_MAX_VALUE_LENGTH);
+        return FlowMgtUtils.getPositiveIntProperty(FlowInputConfigs.MAX_VALUE_LENGTH, FlowInputConfigs.DEFAULT_MAX_VALUE_LENGTH);
     }
 
     /**
@@ -113,7 +129,7 @@ public final class FlowInputUtils {
      */
     public static int getMaxArraySize() {
 
-        return getPositiveInt(FlowInputConfigs.MAX_ARRAY_SIZE, FlowInputConfigs.DEFAULT_MAX_ARRAY_SIZE);
+        return FlowMgtUtils.getPositiveIntProperty(FlowInputConfigs.MAX_ARRAY_SIZE, FlowInputConfigs.DEFAULT_MAX_ARRAY_SIZE);
     }
 
     /**
@@ -487,23 +503,5 @@ public final class FlowInputUtils {
             }
         }
         return false;
-    }
-
-    private static int getPositiveInt(String property, int defaultValue) {
-
-        String value = IdentityUtil.getProperty(property);
-        if (StringUtils.isNotBlank(value)) {
-            try {
-                int number = Integer.parseInt(value.trim());
-                if (number > 0) {
-                    return number;
-                }
-            } catch (NumberFormatException e) {
-                // Falls through to the default.
-            }
-            LOG.warn("Invalid value configured for " + property + ": " + value + ". Using the default: "
-                    + defaultValue);
-        }
-        return defaultValue;
     }
 }

@@ -587,10 +587,9 @@ public class FlowDAOImpl implements FlowDAO {
             return;
         }
 
-        Map<String, byte[]> serializedVariableValues = new HashMap<>();
+        List<byte[]> serializedVariableValues = new ArrayList<>();
         for (FlowVariableInputDTO variable : inputs.getVariables()) {
-            byte[] serializedValue = serializeVariableValue(variable.getName(), variable.getValue()).orElse(null);
-            serializedVariableValues.put(variable.getName(), serializedValue);
+            serializedVariableValues.add(serializeVariableValue(variable.getName(), variable.getValue()).orElse(null));
         }
         template.executeBatchInsert(INSERT_FLOW_INPUT, preparedStatement -> {
             for (FlowInputDTO header : inputs.getHeaders()) {
@@ -599,9 +598,10 @@ public class FlowDAOImpl implements FlowDAO {
             for (FlowInputDTO queryParam : inputs.getQueryParams()) {
                 addFlowInputRow(preparedStatement, flowId, QUERY_PARAM, queryParam, null, false);
             }
-            for (FlowVariableInputDTO variable : inputs.getVariables()) {
-                addFlowInputRow(preparedStatement, flowId, VARIABLE, variable,
-                        serializedVariableValues.get(variable.getName()), variable.isClientWritable());
+            for (int i = 0; i < inputs.getVariables().size(); i++) {
+                FlowVariableInputDTO variable = inputs.getVariables().get(i);
+                addFlowInputRow(preparedStatement, flowId, VARIABLE, variable, serializedVariableValues.get(i),
+                        variable.isClientWritable());
             }
         }, null);
     }
