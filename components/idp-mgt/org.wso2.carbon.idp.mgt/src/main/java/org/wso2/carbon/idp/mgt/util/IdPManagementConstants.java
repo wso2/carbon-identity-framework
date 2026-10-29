@@ -189,7 +189,8 @@ public class IdPManagementConstants {
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED,
-            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY,
+            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT);
 
     public static final List<String> INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES = List.of(
             "Organization.SelfService.Enable",

@@ -77,6 +77,10 @@ import static org.mockito.Mockito.when;
 public class IdentityProviderManagerTest {
 
     private static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
+    private static final String CIMD_SETTING =
+            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT;
+    private static final String CIMD_SETTING_DEFAULT =
+            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT_DEFAULT;
     private static final String JWKS_URI = "jwksUri";
     private static final String OAUTH2_TOKEN_EP_URL = "/oauth2/token";
     private static final String OAUTH2_JWKS_EP_URL = "/oauth2/jwks";
@@ -637,6 +641,9 @@ public class IdentityProviderManagerTest {
                             .equals(p.getValue()));
             assertTrue("OIDC config should contain ENABLE_JWT_SCOPE_AS_ARRAY property with default value",
                     hasJwtScopeAsArray);
+            assertTrue("OIDC config should contain ENABLE_CLIENT_ID_METADATA_DOCUMENT property with default value",
+                    Arrays.stream(oidcConfig.getProperties()).anyMatch(p -> CIMD_SETTING.equals(p.getName())
+                            && CIMD_SETTING_DEFAULT.equals(p.getValue())));
         }
     }
 
@@ -667,6 +674,8 @@ public class IdentityProviderManagerTest {
                             .equals(p.getName()));
             assertFalse("OIDC config should NOT contain ENABLE_JWT_SCOPE_AS_ARRAY property for organization",
                     hasJwtScopeAsArray);
+            assertFalse("OIDC config should NOT contain ENABLE_CLIENT_ID_METADATA_DOCUMENT property for organization",
+                    Arrays.stream(oidcConfig.getProperties()).anyMatch(p -> CIMD_SETTING.equals(p.getName())));
         }
     }
 

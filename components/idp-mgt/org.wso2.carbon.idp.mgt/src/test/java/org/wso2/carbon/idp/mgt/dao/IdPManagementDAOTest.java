@@ -115,6 +115,10 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIO
 public class IdPManagementDAOTest {
 
     private static final String DB_NAME = "test";
+    private static final String CIMD_SETTING =
+            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT;
+    private static final String CIMD_SETTING_DEFAULT =
+            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT_DEFAULT;
     private static final Integer SAMPLE_TENANT_ID = -1234;
     private static final Integer SAMPLE_TENANT_ID2 = 1;
     private static final Integer SAMPLE_TENANT_ID3 = 2;
@@ -2672,6 +2676,8 @@ public class IdPManagementDAOTest {
         assertTrue(IdPManagementConstants.INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES.contains(
                         IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY),
                 " `enableJwtScopeAsArray` should be in INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES.");
+        assertTrue(IdPManagementConstants.INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES.contains(CIMD_SETTING),
+                " `enableClientIdMetadataDocument` should be in INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES.");
     }
 
     @Test(description = "Tests that retrieving the resident IdP backfills  `enableJwtScopeAsArray` with default "
@@ -2702,6 +2708,10 @@ public class IdPManagementDAOTest {
             assertEquals(jwtScopeProp.getValue(),
                     IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT,
                     " `enableJwtScopeAsArray` should default to 'false' when absent.");
+            Property cimdProp = getOidcProperty(result, CIMD_SETTING);
+            assertNotNull(cimdProp, " `enableClientIdMetadataDocument` should be present in the OIDC config.");
+            assertEquals(cimdProp.getValue(), CIMD_SETTING_DEFAULT,
+                    " `enableClientIdMetadataDocument` should default to 'false' when absent.");
         }
     }
 
@@ -2728,7 +2738,10 @@ public class IdPManagementDAOTest {
             Property jwtScopeProp = new Property();
             jwtScopeProp.setName(IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
             jwtScopeProp.setValue("true");
-            oidcAuthnConfig.setProperties(new Property[]{jwtScopeProp});
+            Property cimdProp = new Property();
+            cimdProp.setName(CIMD_SETTING);
+            cimdProp.setValue("true");
+            oidcAuthnConfig.setProperties(new Property[]{jwtScopeProp, cimdProp});
             residentIdP.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{oidcAuthnConfig});
 
             idPManagementDAO.addIdP(residentIdP, SAMPLE_TENANT_ID);
@@ -2742,6 +2755,8 @@ public class IdPManagementDAOTest {
             assertNotNull(resultProp, " `enableJwtScopeAsArray` should be present in the OIDC config.");
             assertEquals(resultProp.getValue(), "true",
                     " `enableJwtScopeAsArray` should preserve the existing value 'true' from DB.");
+            assertEquals(getOidcProperty(result, CIMD_SETTING).getValue(), "true",
+                    " `enableClientIdMetadataDocument` should preserve the existing value 'true' from DB.");
         }
     }
 

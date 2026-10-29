@@ -280,6 +280,13 @@ public class IdentityProviderManager implements IdpManager {
                 jwtScopeAsArrayProp.setValue(
                         IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT);
                 oidcProperties.add(jwtScopeAsArrayProp);
+
+                Property clientIdMetadataDocumentProp = new Property();
+                clientIdMetadataDocumentProp.setName(
+                        IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT);
+                clientIdMetadataDocumentProp.setValue(
+                        IdentityApplicationConstants.Authenticator.OIDC.ENABLE_CLIENT_ID_METADATA_DOCUMENT_DEFAULT);
+                oidcProperties.add(clientIdMetadataDocumentProp);
             }
 
             oidcAuthenticationConfig.setProperties(oidcProperties.toArray(new Property[0]));
