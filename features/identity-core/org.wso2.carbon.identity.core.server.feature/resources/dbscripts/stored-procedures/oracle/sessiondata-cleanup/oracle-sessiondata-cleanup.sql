@@ -145,10 +145,11 @@ BEGIN
                 COMMIT;
             END IF;
 
-            -- Deleting federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+            -- Deleting federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table. Each update of a session adds a
+            -- record, so a mapping is deleted only when no record of its session is left.
             SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_FED_AUTH_SESSION_MAPPING');
             IF (ROWCOUNT = 1) then
-                EXECUTE IMMEDIATE 'DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_FED_AUTH_SESSION_MAPPING M WHERE M.SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH) AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_SESSION_STORE S WHERE S.SESSION_ID = M.SESSION_ID) AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_TEMP_SESSION_STORE T WHERE T.SESSION_ID = M.SESSION_ID)';
                 fedmappingcleanupcount := SQL%rowcount;
                 COMMIT;
                 IF ( tracingenabled ) THEN
@@ -444,10 +445,11 @@ BEGIN
             END IF;
             -- End of deleting operational data related session metadata from 'IDN_AUTH_SESSION_META_DATA' table
 
-            -- Deleting operational data related federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+            -- Deleting operational data related federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table, when no
+            -- record of the session is left.
             SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_FED_AUTH_SESSION_MAPPING');
             IF (ROWCOUNT = 1) then
-                EXECUTE IMMEDIATE 'DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_FED_AUTH_SESSION_MAPPING M WHERE M.SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH) AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_SESSION_STORE S WHERE S.SESSION_ID = M.SESSION_ID) AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_TEMP_SESSION_STORE T WHERE T.SESSION_ID = M.SESSION_ID)';
                 fedmappingcleanupcount := SQL%rowcount;
                 COMMIT;
                 IF ( tracingenabled ) THEN
