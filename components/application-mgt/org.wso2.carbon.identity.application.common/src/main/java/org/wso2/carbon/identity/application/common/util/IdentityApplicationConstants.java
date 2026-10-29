@@ -270,6 +270,8 @@ public class IdentityApplicationConstants {
             public static final Object IS_PKCE_ENABLED_PARAM_NAME = "oidcPKCEEnabled";
             public static final String ENABLE_JWT_SCOPE_AS_ARRAY = "enableJwtScopeAsArray";
             public static final String ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT = "false";
+            public static final String ENABLE_CLIENT_ID_METADATA_DOCUMENT = "enableClientIdMetadataDocument";
+            public static final String ENABLE_CLIENT_ID_METADATA_DOCUMENT_DEFAULT = "false";
 
         }
 
