@@ -544,6 +544,7 @@ public class RuleEvaluatorTest {
                 {new FieldValue("v", Arrays.asList("a")), false, true, false, true},
                 {new FieldValue("v", none), true, false, true, false},
                 {new FieldValue("v", 5), false, true, null, null},
+                {new FieldValue("v", (Number) null), true, false, null, null},
                 {new FieldValue("v", true), false, true, null, null}
         };
     }
@@ -685,10 +686,14 @@ public class RuleEvaluatorTest {
         noFieldValue.put("email", new FieldValue("email", (String) null, ValueType.STRING));
         Map<String, FieldValue> riskScore = new HashMap<>();
         riskScore.put("riskScore", new FieldValue("riskScore", 3));
+        Map<String, FieldValue> noRiskScore = new HashMap<>();
+        noRiskScore.put("riskScore", new FieldValue("riskScore", (Number) null));
 
         for (String operator : Arrays.asList("equals", "notEquals")) {
             assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("email", operator,
                     new Value(Value.Type.STRING, "a@x.com")), noFieldValue).isRuleSatisfied());
+            assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", operator,
+                    new Value(Value.Type.NUMBER, "3")), noRiskScore).isRuleSatisfied());
             assertFalse(ruleEvaluator.evaluate(ruleWithSingleExpression("riskScore", operator,
                     new Value(Value.Type.NUMBER, null)), riskScore).isRuleSatisfied());
         }

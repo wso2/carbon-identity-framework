@@ -5453,6 +5453,32 @@
             <MaxRuleEvaluationNodes>{{flow_execution.conditional_branching.max_rule_evaluation_nodes}}</MaxRuleEvaluationNodes>
             {% endif %}
         </ConditionalBranching>
+        <!-- Enables the headers and runtime values a flow defines, with their limits and filters. -->
+        <Variables>
+            <Enable>{{flow_execution.variables.enable}}</Enable>
+            {% if flow_execution.variables.max_headers is defined %}
+            <MaxHeaders>{{flow_execution.variables.max_headers}}</MaxHeaders>
+            {% endif %}
+            {% if flow_execution.variables.max_runtime_values is defined %}
+            <MaxRuntimeValues>{{flow_execution.variables.max_runtime_values}}</MaxRuntimeValues>
+            {% endif %}
+            {% if flow_execution.variables.max_value_length is defined %}
+            <MaxValueLength>{{flow_execution.variables.max_value_length}}</MaxValueLength>
+            {% endif %}
+            {% if flow_execution.variables.max_array_size is defined %}
+            <MaxArraySize>{{flow_execution.variables.max_array_size}}</MaxArraySize>
+            {% endif %}
+            {% if flow_execution.variables.value_pattern is defined %}
+            <ValuePattern><![CDATA[{{flow_execution.variables.value_pattern}}]]></ValuePattern>
+            {% endif %}
+            {% if flow_execution.variables.excluded_headers is defined %}
+            <ExcludedHeaders>
+                {% for header in flow_execution.variables.excluded_headers %}
+                <Header>{{header}}</Header>
+                {% endfor %}
+            </ExcludedHeaders>
+            {% endif %}
+        </Variables>
     </FlowExecution>
 
     <NotificationChannel>

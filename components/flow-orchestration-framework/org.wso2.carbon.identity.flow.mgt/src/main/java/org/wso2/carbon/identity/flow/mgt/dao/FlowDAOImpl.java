@@ -39,13 +39,20 @@ import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,6 +64,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowVariableTypes.HEADER;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowVariableTypes.RUNTIME_VALUE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.RULE_EVALUATION;
@@ -64,13 +73,15 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW_VARIABLES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW_NODE_BRANCHES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODE_EXECUTOR_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_VIEW_PAGES_IN_FLOW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_VARIABLE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_INTO_IDN_FLOW;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_INFO;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_BRANCH;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_INFO;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_INFO;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EDGES;
@@ -78,11 +89,17 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EXE
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EXECUTOR_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_FLOW_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_BRANCH_KEY;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_BRANCH_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_X;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_Y;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_DATA_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_INITIAL_VALUE;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_VARIABLE_NAME;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_METADATA_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_METADATA_VALUE;
@@ -91,13 +108,13 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_RULE_CONTENT;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_BRANCH_KEY;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_BRANCH_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_CLIENT_WRITABLE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.isConditionalBranchingEnabled;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.isFlowVariablesEnabled;
 
 /**
  * The DAO class for the flow.
@@ -222,6 +239,9 @@ public class FlowDAOImpl implements FlowDAO {
                                 preparedStatement.setDouble(5, stepDTO.getWidth());
                             }, null, false);
                 }
+
+                // Insert into IDN_FLOW_VARIABLE.
+                insertFlowVariables(template, flowId, graphConfig.getFlowVariables());
                 return null;
             });
         } catch (TransactionException e) {
@@ -270,6 +290,7 @@ public class FlowDAOImpl implements FlowDAO {
             }
             flowDTO.getSteps().addAll(steps);
             attachBranches(jdbcTemplate, flowType, tenantId, flowDTO.getSteps());
+            flowDTO.setFlowVariables(getFlowVariables(jdbcTemplate, flowType, tenantId));
             return flowDTO;
         } catch (DataAccessException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantId);
@@ -309,6 +330,7 @@ public class FlowDAOImpl implements FlowDAO {
             attachBranches(jdbcTemplate, flowType, tenantId, nodePageMappings.values());
 
             graphConfig.setNodePageMappings(nodePageMappings);
+            graphConfig.setFlowVariables(getFlowVariables(jdbcTemplate, flowType, tenantId));
             return graphConfig;
         } catch (DataAccessException e) {
             LOG.error("Failed to retrieve graph for tenant: " + tenantId, e);
@@ -554,6 +576,110 @@ public class FlowDAOImpl implements FlowDAO {
                 step.getData().setAction(new ActionDTO.Builder().type(Constants.ActionTypes.ROUTE).build());
             }
             step.getData().getAction().setBranches(branches);
+        }
+    }
+
+    private void insertFlowVariables(Template<?> template, String flowId, FlowVariablesDTO variables)
+            throws FlowMgtFrameworkException, DataAccessException {
+
+        if (variables == null || variables.isEmpty() || !isFlowVariablesEnabled()) {
+            return;
+        }
+
+        List<byte[]> serializedValues = new ArrayList<>();
+        for (FlowRuntimeValueDTO runtimeValue : variables.getRuntimeValues()) {
+            serializedValues.add(serializeRuntimeValue(runtimeValue.getName(), runtimeValue.getValue()).orElse(null));
+        }
+        template.executeBatchInsert(INSERT_FLOW_VARIABLE, preparedStatement -> {
+            for (FlowVariableDTO header : variables.getHeaders()) {
+                addFlowVariableRow(preparedStatement, flowId, HEADER, header, null, false);
+            }
+            for (int i = 0; i < variables.getRuntimeValues().size(); i++) {
+                FlowRuntimeValueDTO runtimeValue = variables.getRuntimeValues().get(i);
+                addFlowVariableRow(preparedStatement, flowId, RUNTIME_VALUE, runtimeValue, serializedValues.get(i),
+                        runtimeValue.isClientWritable());
+            }
+        }, null);
+    }
+
+    private static void addFlowVariableRow(PreparedStatement preparedStatement, String flowId, String variableType,
+                                           FlowVariableDTO variable, byte[] initialValue, boolean clientWritable)
+            throws SQLException {
+
+        preparedStatement.setString(1, flowId);
+        preparedStatement.setString(2, variableType);
+        preparedStatement.setString(3, variable.getName());
+        preparedStatement.setString(4, variable.getDataType().name());
+        preparedStatement.setBytes(5, initialValue);
+        preparedStatement.setBoolean(6, clientWritable);
+        preparedStatement.addBatch();
+    }
+
+    private FlowVariablesDTO getFlowVariables(JdbcTemplate jdbcTemplate, String flowType, int tenantId)
+            throws DataAccessException {
+
+        if (!isFlowVariablesEnabled()) {
+            return null;
+        }
+        FlowVariablesDTO variables = new FlowVariablesDTO();
+        jdbcTemplate.executeQuery(GET_FLOW_VARIABLES, LambdaExceptionUtils.rethrowRowMapper(
+                (resultSet, rowNumber) -> {
+                    String name = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_NAME);
+                    FlowVariableDataType dataType =
+                            FlowVariableDataType.fromName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DATA_TYPE));
+                    if (dataType == null) {
+                        LOG.warn("Skipping " + name + " of the " + flowType + " flow, as its data type is not known.");
+                        return null;
+                    }
+                    String variableType = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE);
+                    if (HEADER.equals(variableType)) {
+                        variables.getHeaders().add(new FlowVariableDTO(name, dataType));
+                    } else if (RUNTIME_VALUE.equals(variableType)) {
+                        FlowRuntimeValueDTO runtimeValue = new FlowRuntimeValueDTO(name, dataType);
+                        runtimeValue.setValue(deserializeRuntimeValue(runtimeValue,
+                                resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_INITIAL_VALUE)));
+                        runtimeValue.setClientWritable(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_CLIENT_WRITABLE));
+                        variables.getRuntimeValues().add(runtimeValue);
+                    }
+                    return null;
+                }), preparedStatement -> {
+                    preparedStatement.setInt(1, tenantId);
+                    preparedStatement.setBoolean(2, true);
+                    preparedStatement.setString(3, flowType);
+                });
+        return FlowVariableUtils.withSystemRuntimeValues(variables);
+    }
+
+    private static Optional<byte[]> serializeRuntimeValue(String name, Object value)
+            throws FlowMgtFrameworkException {
+
+        if (value == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(serializeObject(value));
+        } catch (IOException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_VARIABLE_VALUE, e, name);
+        }
+    }
+
+    private static Object deserializeRuntimeValue(FlowRuntimeValueDTO runtimeValue, byte[] content)
+            throws FlowMgtServerException {
+
+        if (content == null) {
+            return null;
+        }
+        try {
+            Object value = FlowVariableUtils.toValue(runtimeValue.getDataType(),
+                    OBJECT_MAPPER.readValue(content, Object.class));
+            if (value == null) {
+                LOG.warn("Dropping the initial value of " + runtimeValue.getName() + ", as it is no longer a valid "
+                        + runtimeValue.getDataType() + ".");
+            }
+            return value;
+        } catch (IOException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_VARIABLE_VALUE, e,
+                    runtimeValue.getName());
         }
     }
 

@@ -30,9 +30,13 @@ import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
@@ -59,6 +63,8 @@ public class FlowRuleValidator {
 
     private static final String IN = "in";
     private static final String NOT_IN = "notIn";
+    private static final String EQUALS = "equals";
+    private static final String NOT_EQUALS = "notEquals";
     private static final String IS_BLANK = "isBlank";
     private static final String IS_NOT_BLANK = "isNotBlank";
 
@@ -72,15 +78,17 @@ public class FlowRuleValidator {
      */
     private static final Set<String> MULTI_VALUED_OPERATORS = Set.of(IN, NOT_IN, "isEmpty", "isNotEmpty");
 
-    private static final Set<String> NUMERIC_OPERATORS = Set.of("equals", "notEquals", "greaterThan", "lessThan",
+    private static final Set<String> NUMERIC_OPERATORS = Set.of(EQUALS, NOT_EQUALS, "greaterThan", "lessThan",
             IS_BLANK, IS_NOT_BLANK);
 
     /**
      * Everything that is not a number is compared as text, dates and booleans included: nothing validates their format
      * on write, so ordering them would compare strings.
      */
-    private static final Set<String> TEXT_OPERATORS = Set.of("equals", "notEquals", "contains", "notContains",
+    private static final Set<String> TEXT_OPERATORS = Set.of(EQUALS, NOT_EQUALS, "contains", "notContains",
             "startsWith", "endsWith", IS_BLANK, IS_NOT_BLANK);
+
+    private static final Set<String> BOOLEAN_OPERATORS = Set.of(EQUALS, NOT_EQUALS);
 
     private FlowRuleValidator() {
 
@@ -101,10 +109,12 @@ public class FlowRuleValidator {
             return;
         }
         ClaimLookup claims = new ClaimLookup(tenantDomain);
+        FlowVariableLookup variables = new FlowVariableLookup(flowDTO.getFlowVariables());
         for (StepDTO step : flowDTO.getSteps()) {
             for (BranchDTO branch : branchesOf(step)) {
                 if (branch.getRule() != null) {
-                    validateBranchRule(step.getId(), branch, flowDTO.getFlowType(), tenantDomain, claims);
+                    validateBranchRule(step.getId(), branch, flowDTO.getFlowType(), tenantDomain, claims,
+                            variables);
                 }
             }
         }
@@ -123,7 +133,8 @@ public class FlowRuleValidator {
     }
 
     private static void validateBranchRule(String stepId, BranchDTO branch, String flowType, String tenantDomain,
-                                           ClaimLookup claims) throws FlowMgtFrameworkException {
+                                           ClaimLookup claims, FlowVariableLookup variables)
+            throws FlowMgtFrameworkException {
 
         if (StringUtils.isBlank(flowType)) {
             throw handleDecisionStepException("Flow type not provided.",
@@ -157,6 +168,8 @@ public class FlowRuleValidator {
             for (Expression expression : andCombinedRule.getExpressions()) {
                 if (isAttributeField(expression.getField())) {
                     validateAttributeOperator(branch, expression, claims);
+                } else if (variables.isVariableField(expression.getField())) {
+                    validateVariableCondition(branch, expression, variables);
                 }
                 validateReferencedAttribute(branch, expression, claims);
             }
@@ -265,6 +278,81 @@ public class FlowRuleValidator {
     }
 
     /**
+     * A condition on a header or runtime value must name one the flow defines, use an operator that
+     * suits its type, and give values of that type.
+     */
+    private static void validateVariableCondition(BranchDTO branch, Expression expression,
+                                                  FlowVariableLookup variables)
+            throws FlowMgtClientException {
+
+        FlowVariableDataType dataType = variables.find(expression.getField(), expression.getFieldQualifier());
+        if (dataType == null) {
+            throw handleDecisionStepException("Value not defined.",
+                    "The rule in branch %s compares %s of %s, which the flow does not define.",
+                    branch.getName(), expression.getFieldQualifier(), expression.getField());
+        }
+        Set<String> allowed = operatorsFor(dataType);
+        if (!allowed.contains(expression.getOperator())) {
+            throw handleDecisionStepException("Operator not allowed for this value.",
+                    "The operator %s cannot be used with %s of %s in branch %s, which is of type %s. Allowed " +
+                            "operators are: %s.", expression.getOperator(), expression.getFieldQualifier(),
+                    expression.getField(), branch.getName(), dataType, String.join(", ", allowed));
+        }
+        Value value = expression.getValue();
+        if (value == null) {
+            return;
+        }
+        List<String> entries = value.getType() == Value.Type.LIST
+                ? value.getFieldValues() : Collections.singletonList(value.getFieldValue());
+        for (String entry : entries) {
+            if (entry != null && !isValidLiteral(dataType, entry)) {
+                throw handleDecisionStepException("Value does not match the type.",
+                        "The value %s compared with %s of %s in branch %s is not a valid %s.%s", entry,
+                        expression.getFieldQualifier(), expression.getField(), branch.getName(), dataType,
+                        dataType == FlowVariableDataType.NUMBER_ARRAY
+                                ? " Numbers in a list are compared as written, so write them without trailing "
+                                        + "zeros, such as 18 rather than 18.0."
+                                : "");
+            }
+        }
+    }
+
+    /**
+     * Arrays hold numbers as text, so a number in a list must be written as the flow writes it to match.
+     */
+    private static boolean isValidLiteral(FlowVariableDataType dataType, String literal) {
+
+        switch (dataType) {
+            case INTEGER:
+                return FlowVariableUtils.parse(FlowVariableDataType.INTEGER, literal) != null;
+            case DECIMAL:
+                return FlowVariableUtils.parse(FlowVariableDataType.DECIMAL, literal) != null;
+            case BOOLEAN:
+                return FlowVariableUtils.parse(FlowVariableDataType.BOOLEAN, literal) != null;
+            case NUMBER_ARRAY:
+                Object number = FlowVariableUtils.parse(FlowVariableDataType.DECIMAL, literal);
+                return number != null && FlowVariableUtils.toText((Number) number).equals(literal);
+            default:
+                return true;
+        }
+    }
+
+    private static Set<String> operatorsFor(FlowVariableDataType dataType) {
+
+        if (dataType.isArray()) {
+            return MULTI_VALUED_OPERATORS;
+        }
+        switch (dataType) {
+            case INTEGER, DECIMAL:
+                return NUMERIC_OPERATORS;
+            case BOOLEAN:
+                return BOOLEAN_OPERATORS;
+            default:
+                return TEXT_OPERATORS;
+        }
+    }
+
+    /**
      * A value read from an attribute field must name an attribute that exists, as the expression's own attribute must.
      */
     private static void validateReferencedAttribute(BranchDTO branch, Expression expression, ClaimLookup claims)
@@ -307,6 +395,50 @@ public class FlowRuleValidator {
             return NUMERIC_OPERATORS;
         }
         return TEXT_OPERATORS;
+    }
+
+    /**
+     * The types of the headers and runtime values the flow being saved defines, by the field a
+     * condition reads them through.
+     */
+    private static final class FlowVariableLookup {
+
+        private final Map<String, Map<String, FlowVariableDataType>> typesByField = new HashMap<>();
+
+        private FlowVariableLookup(FlowVariablesDTO variables) {
+
+            Map<String, FlowVariableDataType> runtimeValues = new HashMap<>();
+            Map<String, FlowVariableDataType> headers = new HashMap<>();
+            if (variables != null) {
+                addAll(runtimeValues, variables.getRuntimeValues());
+                addAll(headers, variables.getHeaders());
+            }
+            typesByField.put(FlowRuleMetadataProvider.RUNTIME_VALUES, runtimeValues);
+            typesByField.put(FlowRuleMetadataProvider.REQUEST_HEADERS, headers);
+        }
+
+        private boolean isVariableField(String field) {
+
+            return typesByField.containsKey(field);
+        }
+
+        private FlowVariableDataType find(String field, String name) {
+
+            if (name == null) {
+                return null;
+            }
+            String key = FlowRuleMetadataProvider.REQUEST_HEADERS.equals(field)
+                    ? FlowVariableUtils.normalizeHeaderName(name) : name;
+            return typesByField.get(field).get(key);
+        }
+
+        private static void addAll(Map<String, FlowVariableDataType> types,
+                                   List<? extends FlowVariableDTO> variables) {
+
+            for (FlowVariableDTO variable : variables) {
+                types.put(variable.getName(), variable.getDataType());
+            }
+        }
     }
 
     /**

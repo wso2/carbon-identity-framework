@@ -71,7 +71,7 @@ public class FieldValue {
         this.name = name;
         this.qualifier = qualifier;
         this.valueType = ValueType.NUMBER;
-        this.value = Double.valueOf(value.toString());
+        this.value = value == null ? null : Double.valueOf(value.toString());
     }
 
     public FieldValue(String name, List<String> value) {

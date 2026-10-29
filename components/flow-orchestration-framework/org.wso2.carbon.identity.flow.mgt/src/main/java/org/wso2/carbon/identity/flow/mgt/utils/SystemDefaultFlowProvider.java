@@ -23,9 +23,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.Constants.SystemRuntimeValues;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -84,14 +87,20 @@ public class SystemDefaultFlowProvider {
             LOG.debug("Retrieving system default flow for flow type: " + flowType);
         }
         if (!flowDTOCache.containsKey(flowType)) {
-            flowDTOCache.put(flowType, Optional.ofNullable(loadFlowFromResource(flowType)));
+            FlowDTO loaded = loadFlowFromResource(flowType);
+            if (loaded != null) {
+                normalizeAbTestingKey(loaded, flowType);
+            }
+            flowDTOCache.put(flowType, Optional.ofNullable(loaded));
         }
         FlowDTO cached = flowDTOCache.get(flowType).orElse(null);
         if (cached == null) {
             return null;
         }
         try {
-            return OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsBytes(cached), FlowDTO.class);
+            FlowDTO flowDTO = OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsBytes(cached), FlowDTO.class);
+            flowDTO.setFlowVariables(FlowVariableUtils.withSystemRuntimeValues(flowDTO.getFlowVariables()));
+            return flowDTO;
         } catch (IOException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
         }
@@ -113,7 +122,7 @@ public class SystemDefaultFlowProvider {
             return null;
         }
         try {
-            return new GraphBuilder().withSteps(flowDTO.getSteps()).build();
+            return new GraphBuilder().withSteps(flowDTO.getSteps()).withFlowVariables(flowDTO.getFlowVariables()).build();
         } catch (FlowMgtFrameworkException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
         }
@@ -148,6 +157,32 @@ public class SystemDefaultFlowProvider {
             return flowDTO;
         } catch (IOException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
+        }
+    }
+
+    /**
+     * A default flow is not validated as a saved flow is, so its A/B testing key is brought in line here, once, when
+     * the flow is loaded: an integer, with its initial value when it has none or one out of range.
+     */
+    private static void normalizeAbTestingKey(FlowDTO flowDTO, String flowType) {
+
+        if (flowDTO.getFlowVariables() == null) {
+            return;
+        }
+        for (FlowRuntimeValueDTO runtimeValue : flowDTO.getFlowVariables().getRuntimeValues()) {
+            if (runtimeValue == null || !SystemRuntimeValues.AB_TESTING_KEY.equals(runtimeValue.getName())) {
+                continue;
+            }
+            runtimeValue.setDataType(FlowVariableDataType.INTEGER);
+            runtimeValue.setClientWritable(true);
+            Long value = runtimeValue.getValue() == null ? null
+                    : FlowVariableUtils.toAbTestingKey(runtimeValue.getValue());
+            if (value == null && runtimeValue.getValue() != null) {
+                LOG.warn("The default " + flowType + " flow gives " + SystemRuntimeValues.AB_TESTING_KEY
+                        + " an initial value out of range. Using " + SystemRuntimeValues.AB_TESTING_KEY_INITIAL_VALUE
+                        + " instead.");
+            }
+            runtimeValue.setValue(value == null ? SystemRuntimeValues.AB_TESTING_KEY_INITIAL_VALUE : value);
         }
     }
 }

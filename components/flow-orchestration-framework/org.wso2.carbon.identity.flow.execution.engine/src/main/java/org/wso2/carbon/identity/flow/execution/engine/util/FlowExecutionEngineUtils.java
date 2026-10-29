@@ -56,8 +56,11 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -237,6 +240,7 @@ public class FlowExecutionEngineUtils {
             context.setContextIdentifier(UUID.randomUUID().toString());
             context.setApplicationId(applicationId);
             context.setFlowType(flowType);
+            initializeRuntimeValues(context);
 
             FlowConfigDTO flowConfigDTO = FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
                     .getFlowConfig(flowType, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -726,5 +730,19 @@ public class FlowExecutionEngineUtils {
         String defaultDomain = IdentityUtil.getProperty(FlowExecutionConfigs.REGISTRATION_DEFAULT_USER_STORE_PROPERTY);
         return StringUtils.isNotBlank(defaultDomain) ? defaultDomain.trim().toUpperCase(Locale.ENGLISH)
                 : IdentityUtil.getPrimaryDomainName().toUpperCase(Locale.ENGLISH);
+    }
+
+    private static void initializeRuntimeValues(FlowExecutionContext context) {
+
+        if (!FlowMgtUtils.isFlowVariablesEnabled() || context.getGraphConfig() == null ||
+                context.getGraphConfig().getFlowVariables() == null) {
+            return;
+        }
+
+        List<FlowRuntimeValueDTO> runtimeValues = context.getGraphConfig().getFlowVariables().getRuntimeValues();
+        for (FlowRuntimeValueDTO runtimeValue : runtimeValues) {
+            Object value = FlowVariableUtils.toValue(runtimeValue.getDataType(), runtimeValue.getValue());
+            context.getRuntimeValues().put(runtimeValue.getName(), value);
+        }
     }
 }

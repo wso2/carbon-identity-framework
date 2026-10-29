@@ -49,6 +49,8 @@ public class FlowExecutionContext implements Serializable {
     private GraphConfig graphConfig;
     private FlowUser flowUser = new FlowUser();
     private FlowOrganization flowOrganization = new FlowOrganization();
+    private Map<String, Object> runtimeValues = new HashMap<>();
+    private FlowRequest request = new FlowRequest();
     private String tenantDomain;
     private String contextIdentifier;
     private String currentActionId;
@@ -133,6 +135,37 @@ public class FlowExecutionContext implements Serializable {
     public void setFlowOrganization(FlowOrganization flowOrganization) {
 
         this.flowOrganization = flowOrganization;
+    }
+
+    /**
+     * The runtime values of the flow, by name. They start with the initial values the flow defines, and keep the
+     * values the app sets them to.
+     *
+     * @return The runtime values.
+     */
+    public Map<String, Object> getRuntimeValues() {
+
+        return runtimeValues;
+    }
+
+    public void setRuntimeValues(Map<String, Object> runtimeValues) {
+
+        this.runtimeValues = runtimeValues == null ? new HashMap<>() : runtimeValues;
+    }
+
+    /**
+     * The headers the flow defines, as last received.
+     *
+     * @return The request values.
+     */
+    public FlowRequest getRequest() {
+
+        return request;
+    }
+
+    public void setRequest(FlowRequest request) {
+
+        this.request = request == null ? new FlowRequest() : request;
     }
 
     public Map<String, Object> getProperties() {

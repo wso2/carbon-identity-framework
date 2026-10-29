@@ -24,8 +24,11 @@
             <class name="org.wso2.carbon.identity.flow.mgt.FlowMgtServiceTest"/>
             <class name="org.wso2.carbon.identity.flow.mgt.utils.GraphBuilderRuleEvaluationTest"/>
             <class name="org.wso2.carbon.identity.flow.mgt.dao.FlowDAOImplRuleTest"/>
+            <class name="org.wso2.carbon.identity.flow.mgt.dao.FlowDAOImplVariableTest"/>
             <class name="org.wso2.carbon.identity.flow.mgt.rule.FlowRuleValidatorTest"/>
             <class name="org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProviderTest"/>
+            <class name="org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtilsTest"/>
+            <class name="org.wso2.carbon.identity.flow.mgt.utils.FlowVariableValidatorTest"/>
         </classes>
     </test>
 </suite>

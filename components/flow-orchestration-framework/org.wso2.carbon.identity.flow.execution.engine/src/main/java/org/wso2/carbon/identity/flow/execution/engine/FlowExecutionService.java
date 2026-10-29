@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
@@ -115,6 +116,8 @@ public class FlowExecutionService {
                     context.setGraphConfig(graphConfig);
                 }
             }
+            // The graph is attached from here on, so what the flow defines is known.
+            FlowVariableResolver.populateRequestHeaders(context);
 
             isFlowEnteredInIdentityContext = enterFlowInIdentityContext(context.getFlowType());
 
@@ -132,6 +135,7 @@ public class FlowExecutionService {
             }
 
             context.setCurrentActionId(actionId);
+            FlowVariableResolver.applyRuntimeValues(context, inputs, isInitiation);
             for (FlowExecutionListener listener :
                     FlowExecutionEngineDataHolder.getInstance().getFlowListeners()) {
                 if (listener.isEnabled() && !listener.doPreExecute(context)) {

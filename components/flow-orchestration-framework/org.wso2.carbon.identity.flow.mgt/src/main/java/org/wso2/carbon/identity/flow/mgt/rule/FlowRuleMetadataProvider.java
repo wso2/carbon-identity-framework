@@ -86,10 +86,26 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     public static final String USER_ROLES = "user.roles";
 
     /**
+     * The runtime values of the flow, by name.
+     */
+    public static final String RUNTIME_VALUES = "runtimeValues";
+
+    /**
+     * The headers the flow reads from each request, by name.
+     */
+    public static final String REQUEST_HEADERS = "request.headers";
+
+    /**
      * Fields that name a family of values and so need a qualifier to pick one.
      */
     private static final Set<String> QUALIFIED_FIELDS = Collections.unmodifiableSet(new LinkedHashSet<>(
-            Arrays.asList(USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES)));
+            Arrays.asList(USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, RUNTIME_VALUES, REQUEST_HEADERS)));
+
+    /**
+     * Fields that read the headers and runtime values a flow defines.
+     */
+    private static final Set<String> VARIABLE_FIELDS = Collections.unmodifiableSet(new LinkedHashSet<>(
+            Arrays.asList(RUNTIME_VALUES, REQUEST_HEADERS)));
 
     /**
      * The fields an attribute condition's value may be read from instead of being given, such as an attribute collected
@@ -106,11 +122,13 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
     static {
         Map<FlowType, List<String>> fields = new EnumMap<>(FlowType.class);
         fields.put(FlowType.REGISTRATION, Collections.unmodifiableList(Arrays.asList(
-                APPLICATION, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN)));
+                APPLICATION, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, RUNTIME_VALUES, REQUEST_HEADERS)));
         fields.put(FlowType.PASSWORD_RECOVERY, Collections.unmodifiableList(Arrays.asList(
-                APPLICATION, USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES)));
+                APPLICATION, USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES,
+                RUNTIME_VALUES, REQUEST_HEADERS)));
         fields.put(FlowType.INVITED_USER_REGISTRATION, Collections.unmodifiableList(Arrays.asList(
-                USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES)));
+                USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES, RUNTIME_VALUES,
+                REQUEST_HEADERS)));
         FIELDS_BY_FLOW_TYPE = Collections.unmodifiableMap(fields);
     }
 
@@ -177,6 +195,10 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
 
         List<FieldDefinition> fields = new ArrayList<>();
         for (String fieldName : fieldNames) {
+            // Defined values exist only when flows may define them, so a condition cannot name one otherwise.
+            if (VARIABLE_FIELDS.contains(fieldName) && !FlowMgtUtils.isFlowVariablesEnabled()) {
+                continue;
+            }
             fields.add(fieldDefinition(fieldName, fieldNames, tenantDomain));
         }
         return fields;
@@ -213,6 +235,10 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
             case USER_ROLES:
                 return new FieldDefinition(new Field(USER_ROLES, "User roles"), MEMBERSHIP_OPERATORS,
                         referenceValue(DISPLAY_NAME_ATTRIBUTE, ROLES_ENDPOINT, ROLES_FILTER_ENDPOINT));
+            case RUNTIME_VALUES:
+                return variableField(RUNTIME_VALUES, "Runtime values");
+            case REQUEST_HEADERS:
+                return variableField(REQUEST_HEADERS, "Request headers");
             default:
                 throw new IllegalStateException("No definition for flow condition field: " + fieldName);
         }
@@ -234,6 +260,16 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
         comparable.retainAll(flowFields);
         return new FieldDefinition(new Field(name, displayName, qualifier), ATTRIBUTE_OPERATORS,
                 new InputValue(Value.ValueType.STRING), new ValueFieldOptions(comparable));
+    }
+
+    /**
+     * A field of defined values, qualified by the name the flow defines it with. The names and types are the
+     * flow's own, so the qualifier is typed in, and which operators suit it is checked when the flow is saved.
+     */
+    private FieldDefinition variableField(String name, String displayName) {
+
+        return new FieldDefinition(new Field(name, displayName, new InputValue(Value.ValueType.STRING)),
+                ATTRIBUTE_OPERATORS, new InputValue(Value.ValueType.STRING));
     }
 
     /**

@@ -140,6 +140,25 @@ public class FlowMgtUtils {
     }
 
     /**
+     * Handle flow variables that are not valid. Every such failure shares one error code and says what is wrong
+     * through its own message and description.
+     *
+     * @param message     Error message.
+     * @param description Error description, formatted with the data.
+     * @param data        The error description data.
+     * @return FlowMgtClientException.
+     */
+    public static FlowMgtClientException handleFlowVariableException(String message, String description,
+                                                                    Object... data) {
+
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new FlowMgtClientException(ErrorMessages.ERROR_CODE_INVALID_FLOW_VARIABLES.getCode(), message,
+                description);
+    }
+
+    /**
      * Whether conditional branching is enabled on the server. It guards decision steps, from saving and reading them
      * to evaluating them, so a server without it never reads or writes the branch table.
      *
@@ -151,25 +170,52 @@ public class FlowMgtUtils {
     }
 
     /**
+     * Whether flow variables are enabled on the server. It guards the headers and runtime values a flow defines,
+     * from saving and reading them to keeping their values while the flow runs, so a server without it never reads
+     * or writes the variable table.
+     *
+     * @return True if a flow may define headers and runtime values.
+     */
+    public static boolean isFlowVariablesEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE));
+    }
+
+    /**
      * The maximum number of decision steps a flow may have. A missing or invalid value falls back to the default.
      *
      * @return The maximum number of rule evaluation nodes in a flow.
      */
     public static int getMaxRuleEvaluationNodes() {
 
-        String value = IdentityUtil.getProperty(Constants.MAX_RULE_EVALUATION_NODES);
+        return getPositiveIntProperty(Constants.MAX_RULE_EVALUATION_NODES,
+                Constants.DEFAULT_MAX_RULE_EVALUATION_NODES);
+    }
+
+    /**
+     * Reads a configured positive whole number. A missing value falls back to the default, and so does an invalid
+     * one, with a warning.
+     *
+     * @param property     Name of the property.
+     * @param defaultValue Value to use when the property is missing or invalid.
+     * @return The configured value, or the default.
+     */
+    public static int getPositiveIntProperty(String property, int defaultValue) {
+
+        String value = IdentityUtil.getProperty(property);
         if (StringUtils.isNotBlank(value)) {
             try {
-                int max = Integer.parseInt(value.trim());
-                if (max > 0) {
-                    return max;
+                int number = Integer.parseInt(value.trim());
+                if (number > 0) {
+                    return number;
                 }
             } catch (NumberFormatException e) {
-                LOG.warn("Invalid value configured for " + Constants.MAX_RULE_EVALUATION_NODES + ": " + value
-                        + ". Using the default: " + Constants.DEFAULT_MAX_RULE_EVALUATION_NODES);
+                // Falls through to the default.
             }
+            LOG.warn("Invalid value configured for " + property + ": " + value + ". Using the default: "
+                    + defaultValue);
         }
-        return Constants.DEFAULT_MAX_RULE_EVALUATION_NODES;
+        return defaultValue;
     }
 
     /**

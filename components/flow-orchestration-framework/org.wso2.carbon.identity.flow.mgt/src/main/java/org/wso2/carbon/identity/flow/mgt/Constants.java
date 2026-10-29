@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.flow.mgt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +39,70 @@ public class Constants {
     public static final int DEFAULT_MAX_RULE_EVALUATION_NODES = 20;
 
     public static final String IDP_NAME = "idpName";
+
+    /**
+     * Server configurations that limit and filter the headers and runtime values a flow defines.
+     */
+    public static class FlowVariableConfigs {
+
+        public static final String ENABLE = "FlowExecution.Variables.Enable";
+        public static final String MAX_HEADERS = "FlowExecution.Variables.MaxHeaders";
+        public static final String MAX_RUNTIME_VALUES = "FlowExecution.Variables.MaxRuntimeValues";
+        public static final String MAX_VALUE_LENGTH = "FlowExecution.Variables.MaxValueLength";
+        public static final String MAX_ARRAY_SIZE = "FlowExecution.Variables.MaxArraySize";
+        public static final String VALUE_PATTERN = "FlowExecution.Variables.ValuePattern";
+        public static final String EXCLUDED_HEADERS = "FlowExecution.Variables.ExcludedHeaders.Header";
+
+        public static final int DEFAULT_MAX_HEADERS = 10;
+        public static final int DEFAULT_MAX_RUNTIME_VALUES = 20;
+        public static final int DEFAULT_MAX_VALUE_LENGTH = 255;
+        public static final int DEFAULT_MAX_ARRAY_SIZE = 20;
+
+        /**
+         * Rejects the characters that let a value break out of HTML, scripts, quoted strings or expressions, and any
+         * control character.
+         */
+        public static final String DEFAULT_VALUE_PATTERN = "^[^<>\"'`\\\\{}$\\p{Cntrl}]*$";
+        public static final List<String> DEFAULT_EXCLUDED_HEADERS = Collections.unmodifiableList(Arrays.asList(
+                "authorization", "cookie", "set-cookie", "proxy-*", "host", "x-forwarded-*"));
+
+        private FlowVariableConfigs() {
+
+        }
+    }
+
+    /**
+     * The types of flow variable, as stored with each variable.
+     */
+    public static class FlowVariableTypes {
+
+        public static final String HEADER = "HEADER";
+        public static final String RUNTIME_VALUE = "RUNTIME_VALUE";
+
+        private FlowVariableTypes() {
+
+        }
+    }
+
+    /**
+     * Runtime values every flow has. A flow that leaves one out is given it, and only its initial value can change.
+     */
+    public static class SystemRuntimeValues {
+
+        /**
+         * A number from 0 to 99 that stays with a browser, so a condition such as "less than 20" sends about a
+         * fifth of the users down one branch. The client sends it when the flow starts; without it, the flow runs
+         * with the initial value.
+         */
+        public static final String AB_TESTING_KEY = "abTestingKey";
+        public static final int AB_TESTING_KEY_MIN = 0;
+        public static final int AB_TESTING_KEY_MAX = 99;
+        public static final long AB_TESTING_KEY_INITIAL_VALUE = 0L;
+
+        private SystemRuntimeValues() {
+
+        }
+    }
 
     private Constants() {
 
@@ -81,6 +147,10 @@ public class Constants {
                 "Unexpected error while loading system default flow for flow type, %s"),
         ERROR_CODE_GET_CLAIM_METADATA("65015", "Error while retrieving claim metadata.",
                 "Could not read the claims of tenant %s to validate the conditions of the flow."),
+        ERROR_CODE_SERIALIZE_VARIABLE_VALUE("65016", "Error while serializing a flow variable value.",
+                "Unexpected server error while serializing the value of %s"),
+        ERROR_CODE_DESERIALIZE_VARIABLE_VALUE("65017", "Error while deserializing a flow variable value.",
+                "Unexpected server error while deserializing the value of %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -115,6 +185,11 @@ public class Constants {
                 "The decision step %s is not valid."),
         ERROR_CODE_CONDITIONAL_BRANCHING_DISABLED("60015", "Conditional branching is not enabled.",
                 "The decision step %s cannot be used because conditional branching is not enabled on this server."),
+        ERROR_CODE_INVALID_FLOW_VARIABLES("60016", "Invalid flow variables.",
+                "The headers or runtime values of the flow are not valid."),
+        ERROR_CODE_FLOW_VARIABLES_DISABLED("60017", "Flow variables are not enabled.",
+                "Headers and runtime values cannot be defined because flow variables are not enabled " +
+                        "on this server."),
         ;
 
         private static final String ERROR_PREFIX = "RFM";

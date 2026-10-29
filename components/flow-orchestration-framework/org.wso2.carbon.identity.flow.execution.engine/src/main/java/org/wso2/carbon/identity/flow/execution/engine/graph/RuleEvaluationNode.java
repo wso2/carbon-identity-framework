@@ -24,11 +24,13 @@ import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowRequest;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.rule.AbstractFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.flow.execution.engine.util.RuleEvaluationDiagnosticLogger;
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
@@ -160,7 +162,8 @@ public class RuleEvaluationNode implements Node {
     /**
      * A copy of the context holding only what the rule fields read, to hand to the rule component. The flow's own
      * context is never passed out, so evaluation cannot change it, and the user's credentials, inputs and the flow
-     * graph stay in the engine.
+     * graph stay in the engine. Of the graph, only the variables go along, as they type the headers and runtime
+     * values.
      *
      * @param context Flow execution context.
      * @return The copy.
@@ -172,6 +175,15 @@ public class RuleEvaluationNode implements Node {
         copy.setTenantDomain(context.getTenantDomain());
         copy.setApplicationId(context.getApplicationId());
         copy.setFlowType(context.getFlowType());
+        copy.setRuntimeValues(new HashMap<>(context.getRuntimeValues()));
+
+        copy.setRequest(new FlowRequest(context.getRequest()));
+
+        if (context.getGraphConfig() != null) {
+            GraphConfig variablesOnly = new GraphConfig();
+            variablesOnly.setFlowVariables(context.getGraphConfig().getFlowVariables());
+            copy.setGraphConfig(variablesOnly);
+        }
 
         FlowUser user = context.getFlowUser();
         if (user == null) {
