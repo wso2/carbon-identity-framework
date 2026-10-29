@@ -410,7 +410,7 @@ public final class FlowInputUtils {
         // entry may write each of its characters as a six-character unicode escape.
         long longest;
         try {
-            longest = Math.addExact(Math.multiplyExact((long) getMaxArraySize(), getMaxValueLength() * 6L + 3), 2);
+            longest = Math.addExact(Math.multiplyExact(getMaxArraySize(), getMaxValueLength() * 6L + 3), 2);
         } catch (ArithmeticException e) {
             longest = Long.MAX_VALUE;
         }
