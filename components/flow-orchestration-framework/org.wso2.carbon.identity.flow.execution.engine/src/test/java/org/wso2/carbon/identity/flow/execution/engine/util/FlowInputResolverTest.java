@@ -102,6 +102,27 @@ public class FlowInputResolverTest {
         assertEquals(context.getRequest().getQueryParameters().get("age"), Collections.singletonList(18.0));
     }
 
+    /**
+     * A header or query parameter excluded after the flow started loses the value an earlier request gave it.
+     */
+    @Test
+    public void testExcludedRequestValuesAreDropped() {
+
+        FlowExecutionContext context = contextWith(inputs());
+        receive(Collections.singletonMap("x-ab-variant", Collections.singletonList("B")), "age=18");
+        FlowInputResolver.populateRequestHeadersAndParams(context);
+
+        identityUtilMock.when(() -> IdentityUtil.getPropertyAsList(Constants.FlowInputConfigs.EXCLUDED_HEADERS))
+                .thenReturn(Collections.singletonList("x-ab-*"));
+        identityUtilMock.when(() -> IdentityUtil.getPropertyAsList(
+                Constants.FlowInputConfigs.EXCLUDED_QUERY_PARAMS)).thenReturn(Collections.singletonList("age"));
+        receive(Collections.singletonMap("x-ab-variant", Collections.singletonList("A")), "age=21");
+        FlowInputResolver.populateRequestHeadersAndParams(context);
+
+        assertTrue(context.getRequest().getHeaders().isEmpty());
+        assertTrue(context.getRequest().getQueryParameters().isEmpty());
+    }
+
     @Test
     public void testUndefinedRequestValuesAreNotKept() {
 

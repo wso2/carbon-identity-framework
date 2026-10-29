@@ -393,7 +393,8 @@ public final class FlowInputUtils {
             return (String) value;
         }
         if (value instanceof Number) {
-            return toText((Number) value);
+            double number = ((Number) value).doubleValue();
+            return Double.isNaN(number) || Double.isInfinite(number) ? null : toText((Number) value);
         }
         if (value instanceof Boolean) {
             return value.toString();
@@ -403,8 +404,9 @@ public final class FlowInputUtils {
 
     private static List<Object> parseJsonArray(FlowInputDataType type, String text) {
 
-        // Bounds the parsing before it starts: no valid array is longer than its entries and their separators.
-        long longest = (long) getMaxArraySize() * (getMaxValueLength() + 3) + 2;
+        // Bounds the parsing before it starts: no valid array is longer than its entries and their separators. An
+        // entry may write each of its characters as a six-character unicode escape.
+        long longest = (long) getMaxArraySize() * (getMaxValueLength() * 6L + 3) + 2;
         if (text.length() > longest) {
             return null;
         }

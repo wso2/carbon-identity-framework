@@ -97,6 +97,7 @@ public final class FlowInputResolver {
         for (FlowInputDTO header : flowInputs.getHeaders()) {
             String name = FlowInputUtils.normalizeHeaderName(header.getName());
             if (FlowInputUtils.isExcludedHeader(name)) {
+                context.getRequest().getHeaders().remove(name);
                 logIgnored(context, FlowInputTypes.HEADER, name, EXCLUDED);
                 continue;
             }
@@ -106,6 +107,7 @@ public final class FlowInputResolver {
         for (FlowInputDTO queryParam : flowInputs.getQueryParams()) {
             String name = queryParam.getName();
             if (FlowInputUtils.isExcludedQueryParam(name)) {
+                context.getRequest().getQueryParameters().remove(name);
                 logIgnored(context, FlowInputTypes.QUERY_PARAM, name, EXCLUDED);
                 continue;
             }

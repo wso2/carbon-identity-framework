@@ -142,6 +142,14 @@ public class FlowInputUtilsTest {
     }
 
     @Test
+    public void testFromInputRejectsNonFiniteNumbers() {
+
+        assertNull(FlowInputUtils.fromInput(FlowInputDataType.DECIMAL, Double.NaN));
+        assertNull(FlowInputUtils.fromInput(FlowInputDataType.DECIMAL, Double.POSITIVE_INFINITY));
+        assertNull(FlowInputUtils.fromInput(FlowInputDataType.STRING, Double.NEGATIVE_INFINITY));
+    }
+
+    @Test
     public void testToTextWritesNumbersWithoutTrailingZeros() {
 
         assertEquals(FlowInputUtils.toText(18.0), "18");

@@ -172,8 +172,9 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                 return new FieldValue(field.getName(), field.getQualifier(), (Boolean) value);
             case STRING_ARRAY:
             case NUMBER_ARRAY:
-                List<String> entries = new ArrayList<>();
+                List<String> entries = null;
                 if (value != null) {
+                    entries = new ArrayList<>();
                     for (Object entry : (List<?>) value) {
                         entries.add(entry instanceof Number
                                 ? FlowInputUtils.toText((Number) entry) : String.valueOf(entry));
