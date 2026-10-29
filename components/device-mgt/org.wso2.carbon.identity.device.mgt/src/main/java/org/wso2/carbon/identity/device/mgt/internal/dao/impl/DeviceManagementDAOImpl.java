@@ -115,6 +115,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                             DeviceMgtSQLConstants.Query.GET_DEVICE_BY_ID,
                             (resultSet, rowNumber) -> new Device.Builder()
                                     .id(resultSet.getString(DeviceMgtSQLConstants.Column.ID))
+                                    .userId(resultSet.getString(DeviceMgtSQLConstants.Column.USER_ID))
                                     .deviceName(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_NAME))
                                     .deviceModel(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_MODEL))
                                     .publicKey(resultSet.getString(DeviceMgtSQLConstants.Column.PUBLIC_KEY))
@@ -167,6 +168,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                             query,
                             (resultSet, rowNumber) -> new Device.Builder()
                                     .id(resultSet.getString(DeviceMgtSQLConstants.Column.ID))
+                                    .userId(resultSet.getString(DeviceMgtSQLConstants.Column.USER_ID))
                                     .deviceName(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_NAME))
                                     .deviceModel(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_MODEL))
                                     .publicKey(resultSet.getString(DeviceMgtSQLConstants.Column.PUBLIC_KEY))

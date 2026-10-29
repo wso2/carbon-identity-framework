@@ -79,8 +79,10 @@ public class DeviceManagementDAOImplTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getId(), createdDeviceId);
+        Assert.assertEquals(result.getUserId(), TEST_USER_ID);
         List<Device> userDevices = deviceManagementDAO.getDevicesByUserId(TEST_USER_ID, TENANT_ID, 0, 100);
-        Assert.assertTrue(userDevices.stream().anyMatch(d -> d.getId().equals(createdDeviceId)));
+        Assert.assertTrue(userDevices.stream().anyMatch(d -> d.getId().equals(createdDeviceId)
+                && TEST_USER_ID.equals(d.getUserId())));
     }
 
     /**
@@ -151,6 +153,7 @@ public class DeviceManagementDAOImplTest {
         Assert.assertEquals(result.getId(), id);
         List<Device> carolDevices = deviceManagementDAO.getDevicesByUserId(SECOND_USER_ID, TENANT_ID, 0, 100);
         Assert.assertTrue(carolDevices.stream().anyMatch(d -> d.getId().equals(id)));
+        Assert.assertEquals(result.getUserId(), SECOND_USER_ID);
         Assert.assertEquals(result.getDeviceName(), "Carol Phone");
         Assert.assertEquals(result.getDeviceModel(), "Pixel 8 Pro");
         Assert.assertEquals(result.getPublicKey(), "pk-full-" + id);

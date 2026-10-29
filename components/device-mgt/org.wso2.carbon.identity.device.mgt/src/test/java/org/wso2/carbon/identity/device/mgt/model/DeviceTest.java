@@ -55,6 +55,20 @@ public class DeviceTest {
     }
 
     @Test
+    public void testBuilderCopiesUserId() {
+
+        Device device = new Device.Builder()
+                .id("d1")
+                .userId("user-1")
+                .deviceName("Alice's iPhone")
+                .publicKey("dummy-public-key")
+                .build();
+
+        Assert.assertEquals(device.getUserId(), "user-1");
+        Assert.assertEquals(new Device.Builder(device).deviceName("Renamed").build().getUserId(), "user-1");
+    }
+
+    @Test
     public void testBuildDeviceDefaultsStatusAndLeavesRegisteredAtNull() {
 
         Device device = new Device.Builder()
