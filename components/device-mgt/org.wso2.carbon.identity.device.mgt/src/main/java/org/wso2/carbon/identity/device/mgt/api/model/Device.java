@@ -28,6 +28,7 @@ import java.sql.Timestamp;
 public class Device {
 
     private final String id;
+    private final String userId;
     private final String deviceName;
     private final String deviceModel;
     private final String publicKey;
@@ -36,6 +37,7 @@ public class Device {
     private Device(Builder builder) {
 
         this.id = builder.id;
+        this.userId = builder.userId;
         this.deviceName = builder.deviceName;
         this.deviceModel = builder.deviceModel;
         this.publicKey = builder.publicKey;
@@ -51,6 +53,16 @@ public class Device {
     public String getId() {
 
         return id;
+    }
+
+    /**
+     * Returns the identifier of the user the device is registered to, when the device was read from the store.
+     *
+     * @return User identifier, or null if not known.
+     */
+    public String getUserId() {
+
+        return userId;
     }
 
     /**
@@ -109,6 +121,7 @@ public class Device {
     public static class Builder {
 
         private String id;
+        private String userId;
         private String deviceName;
         private String deviceModel;
         private String publicKey;
@@ -129,6 +142,7 @@ public class Device {
         public Builder(Device device) {
 
             this.id = device.id;
+            this.userId = device.userId;
             this.deviceName = device.deviceName;
             this.deviceModel = device.deviceModel;
             this.publicKey = device.publicKey;
@@ -145,6 +159,18 @@ public class Device {
         public Builder id(String id) {
 
             this.id = id;
+            return this;
+        }
+
+        /**
+         * Sets the identifier of the user the device is registered to.
+         *
+         * @param userId User identifier.
+         * @return Builder instance.
+         */
+        public Builder userId(String userId) {
+
+            this.userId = userId;
             return this;
         }
 

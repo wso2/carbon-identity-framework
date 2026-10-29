@@ -1230,6 +1230,9 @@
         <Resource context="(.*)/api/users/v1/me/totp(.*)" secured="true" http-method="GET">
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/users/v1/me/devices(.*)" secured="true" http-method="GET, PATCH, DELETE">
+            <Scopes>internal_login</Scopes>
+        </Resource>
 
         <!-- [Organization] Push Device Management API -->
         <Resource context="(.*)/o/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
