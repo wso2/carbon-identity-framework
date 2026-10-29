@@ -19,7 +19,9 @@
 package org.wso2.carbon.identity.flow.execution.engine.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,8 +46,18 @@ public class FlowRequest implements Serializable {
      */
     public FlowRequest(FlowRequest request) {
 
-        this.headers = new HashMap<>(request.getHeaders());
-        this.queryParameters = new HashMap<>(request.getQueryParameters());
+        this.headers = copyOf(request.getHeaders());
+        this.queryParameters = copyOf(request.getQueryParameters());
+    }
+
+    /**
+     * Copies a map of request values, and each array value in it, so the copy can change apart from the original.
+     */
+    private static Map<String, Object> copyOf(Map<String, Object> values) {
+
+        Map<String, Object> copy = new HashMap<>();
+        values.forEach((name, value) -> copy.put(name, value instanceof List<?> list ? new ArrayList<>(list) : value));
+        return copy;
     }
 
     /**

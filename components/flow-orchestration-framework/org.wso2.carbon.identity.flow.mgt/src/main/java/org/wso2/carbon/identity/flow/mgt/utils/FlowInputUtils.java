@@ -390,6 +390,9 @@ public final class FlowInputUtils {
         if (value instanceof String text) {
             return text;
         }
+        if (value instanceof BigInteger bigInteger) {
+            return bigInteger.toString();
+        }
         if (value instanceof Number number) {
             return Double.isNaN(number.doubleValue()) || Double.isInfinite(number.doubleValue()) ? null : toText(number);
         }
@@ -403,7 +406,12 @@ public final class FlowInputUtils {
 
         // Bounds the parsing before it starts: no valid array is longer than its entries and their separators. An
         // entry may write each of its characters as a six-character unicode escape.
-        long longest = getMaxArraySize() * (getMaxValueLength() * 6L + 3) + 2;
+        long longest;
+        try {
+            longest = Math.addExact(Math.multiplyExact((long) getMaxArraySize(), getMaxValueLength() * 6L + 3), 2);
+        } catch (ArithmeticException e) {
+            longest = Long.MAX_VALUE;
+        }
         if (text.length() > longest) {
             return null;
         }

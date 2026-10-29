@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowInputConfigs;
 import org.wso2.carbon.identity.flow.mgt.model.FlowInputDataType;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -147,6 +148,13 @@ public class FlowInputUtilsTest {
         assertNull(FlowInputUtils.fromInput(FlowInputDataType.DECIMAL, Double.NaN));
         assertNull(FlowInputUtils.fromInput(FlowInputDataType.DECIMAL, Double.POSITIVE_INFINITY));
         assertNull(FlowInputUtils.fromInput(FlowInputDataType.STRING, Double.NEGATIVE_INFINITY));
+    }
+
+    @Test
+    public void testFromInputKeepsTheDigitsOfALargeInteger() {
+
+        String digits = "123456789012345678901234567890";
+        assertEquals(FlowInputUtils.fromInput(FlowInputDataType.STRING, new BigInteger(digits)), digits);
     }
 
     @Test
