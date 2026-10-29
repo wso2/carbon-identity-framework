@@ -35,9 +35,12 @@ import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -97,15 +100,18 @@ public final class FlowVariableResolver {
      * <p>
      * Runtime values are accepted only when the flow starts. Then those the app may set are kept, and so is the A/B
      * testing key the app keeps for its browser, when it is valid; otherwise the flow runs with the initial value.
-     * A runtime value sent on a later request is ignored.
+     * A runtime value sent on a later request is ignored. On every request, runtime values are taken out of the user
+     * inputs, so that they are not read as the inputs of a step.
      *
-     * @param context    Flow execution context, with the flow's graph attached.
+     * @param context    Flow execution context, with the flow's graph attached and the request's inputs added to its
+     *                   user inputs.
      * @param inputs     Inputs of the request, by name.
      * @param initiation Whether this is the first request of the flow.
      */
     public static void applyRuntimeValues(FlowExecutionContext context, Map<String, String> inputs,
                                           boolean initiation) {
 
+        removeRuntimeValueInputs(context);
         if (inputs == null || inputs.isEmpty() || !FlowMgtUtils.isFlowVariablesEnabled()) {
             return;
         }
@@ -180,6 +186,33 @@ public final class FlowVariableResolver {
     public static FlowVariableDataType getHeaderType(FlowExecutionContext context, String name) {
 
         return typeOf(find(context, FlowVariablesDTO::getHeaders, FlowVariableUtils.normalizeHeaderName(name)));
+    }
+
+    /**
+     * Takes the runtime values out of the user inputs. Otherwise the first request would read as a submission of the
+     * first step, and a later one would carry an input its step does not have. A name the current step asks for is
+     * kept, as it is then the user's own input. The A/B testing key is taken out even when flow variables are
+     * disabled, as the app sends it regardless.
+     */
+    private static void removeRuntimeValueInputs(FlowExecutionContext context) {
+
+        Map<String, String> userInputs = context.getUserInputData();
+        if (userInputs == null || userInputs.isEmpty()) {
+            return;
+        }
+        Set<String> names = new HashSet<>();
+        names.add(SystemRuntimeValues.AB_TESTING_KEY);
+        if (FlowMgtUtils.isFlowVariablesEnabled()) {
+            for (FlowRuntimeValueDTO runtimeValue : defined(context, FlowVariablesDTO::getRuntimeValues)) {
+                names.add(runtimeValue.getName());
+            }
+        }
+        Set<String> stepInputs = new HashSet<>();
+        if (context.getCurrentStepInputs() != null) {
+            context.getCurrentStepInputs().values().stream().filter(Objects::nonNull).forEach(stepInputs::addAll);
+        }
+        names.removeAll(stepInputs);
+        userInputs.keySet().removeAll(names);
     }
 
     private static void applyHeader(FlowExecutionContext context, String name, FlowVariableDataType dataType,

@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -241,6 +242,57 @@ public class FlowVariableResolverTest {
         FlowVariableResolver.applyRuntimeValues(context, Collections.singletonMap("attempts", "two"), true);
 
         assertEquals(context.getRuntimeValues().get("attempts"), 1L);
+    }
+
+    /**
+     * The runtime values sent among the inputs are not user inputs, so the first step does not read them as its own.
+     */
+    @Test
+    public void testRuntimeValuesAreTakenOutOfTheUserInputs() {
+
+        FlowExecutionContext context = contextWith(variables());
+        context.getUserInputData().put(AB_TESTING_KEY, "42");
+        context.getUserInputData().put("attempts", "5");
+        context.getUserInputData().put("plan", "gold");
+        context.getUserInputData().put("username", "alex");
+
+        FlowVariableResolver.applyRuntimeValues(context, new HashMap<>(context.getUserInputData()), true);
+
+        assertEquals(context.getUserInputData(), Collections.singletonMap("username", "alex"));
+    }
+
+    /**
+     * On a later request, an input the current step asks for stays, even when a runtime value has the same name.
+     */
+    @Test
+    public void testStepInputNamedLikeARuntimeValueIsKept() {
+
+        FlowExecutionContext context = contextWith(variables());
+        context.getCurrentStepInputs().put("submit", new HashSet<>(Arrays.asList("attempts", "username")));
+        context.getUserInputData().put(AB_TESTING_KEY, "42");
+        context.getUserInputData().put("attempts", "5");
+        context.getUserInputData().put("username", "alex");
+
+        FlowVariableResolver.applyRuntimeValues(context, new HashMap<>(context.getUserInputData()), false);
+
+        assertEquals(context.getUserInputData().keySet(), new HashSet<>(Arrays.asList("attempts", "username")));
+    }
+
+    /**
+     * The app sends the A/B testing key whether or not flow variables are enabled.
+     */
+    @Test
+    public void testAbTestingKeyIsTakenOutWhenFlowVariablesAreDisabled() {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE))
+                .thenReturn("false");
+        FlowExecutionContext context = contextWith(null);
+        context.getUserInputData().put(AB_TESTING_KEY, "42");
+        context.getUserInputData().put("attempts", "5");
+
+        FlowVariableResolver.applyRuntimeValues(context, new HashMap<>(context.getUserInputData()), true);
+
+        assertEquals(context.getUserInputData(), Collections.singletonMap("attempts", "5"));
     }
 
     @Test
