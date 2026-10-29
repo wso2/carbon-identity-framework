@@ -34,6 +34,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.core.ServerStartupObserver;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
@@ -41,6 +42,7 @@ import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigServiceI
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.listener.DatabaseBasedUserStoreLoader;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreHashProviderConfigListenerImpl;
 import org.wso2.carbon.identity.user.store.configuration.model.ChangedUserStoreAttribute;
@@ -53,6 +55,7 @@ import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigur
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.lang.reflect.Type;
@@ -156,6 +159,7 @@ public class UserStoreConfigComponent {
             } else {
                 log.error("FileBasedUserStoreDAOFactory could not be registered.");
             }
+            registerDatabaseBasedUserStoreLoader(bundleContext);
             readAllowedUserstoreConfiguration();
             readUserStoreAttributeMappingConfigs();
 
@@ -191,6 +195,22 @@ public class UserStoreConfigComponent {
 
         if (log.isDebugEnabled()) {
             log.debug("Removed UserStoreDAOFactory : " + userStoreDAOFactory.getRepository());
+        }
+    }
+
+    /**
+     * Register the listener that loads database based user store configurations into the tenant realms. The
+     * deployment engine covers the file based repository only, so this takes its place for the database one.
+     *
+     * @param bundleContext Bundle context to register the services with.
+     */
+    private void registerDatabaseBasedUserStoreLoader(BundleContext bundleContext) {
+
+        DatabaseBasedUserStoreLoader userStoreLoader = new DatabaseBasedUserStoreLoader();
+        bundleContext.registerService(Axis2ConfigurationContextObserver.class.getName(), userStoreLoader, null);
+        bundleContext.registerService(ServerStartupObserver.class.getName(), userStoreLoader, null);
+        if (log.isDebugEnabled()) {
+            log.debug("DatabaseBasedUserStoreLoader is successfully registered.");
         }
     }
 
