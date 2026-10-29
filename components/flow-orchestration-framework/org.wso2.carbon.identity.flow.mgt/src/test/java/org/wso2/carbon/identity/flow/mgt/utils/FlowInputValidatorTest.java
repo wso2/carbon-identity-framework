@@ -42,6 +42,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 
 /**
@@ -161,17 +162,24 @@ public class FlowInputValidatorTest {
     }
 
     @Test
-    public void testAbTestingKeyTypeAndUpdatabilityCannotChange() {
+    public void testAbTestingKeyTypeCannotChange() {
 
         FlowInputsDTO inputs = new FlowInputsDTO();
         inputs.getVariables().add(variable(Constants.SystemVariables.AB_TESTING_KEY, FlowInputDataType.STRING));
         assertRejected(inputs, "Invalid system variable.");
+    }
 
-        inputs = new FlowInputsDTO();
+    @Test
+    public void testAbTestingKeyIsAlwaysClientWritable() throws Exception {
+
+        FlowInputsDTO inputs = new FlowInputsDTO();
         FlowVariableInputDTO abTestingKey = abTestingKey();
-        abTestingKey.setClientWritable(true);
+        abTestingKey.setClientWritable(false);
         inputs.getVariables().add(abTestingKey);
-        assertRejected(inputs, "Invalid system variable.");
+
+        validate(inputs);
+
+        assertTrue(abTestingKey.isClientWritable());
     }
 
     @Test

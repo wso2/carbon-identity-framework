@@ -209,12 +209,14 @@ public final class FlowInputUtils {
         FlowInputsDTO withSystemVariables = inputs == null ? new FlowInputsDTO() : inputs;
         for (FlowVariableInputDTO variable : withSystemVariables.getVariables()) {
             if (variable != null && SystemVariables.AB_TESTING_KEY.equals(variable.getName())) {
+                variable.setClientWritable(true);
                 return withSystemVariables;
             }
         }
         FlowVariableInputDTO abTestingKey =
                 new FlowVariableInputDTO(SystemVariables.AB_TESTING_KEY, FlowInputDataType.INTEGER);
         abTestingKey.setValue(SystemVariables.AB_TESTING_KEY_INITIAL_VALUE);
+        abTestingKey.setClientWritable(true);
         withSystemVariables.getVariables().add(0, abTestingKey);
         return withSystemVariables;
     }

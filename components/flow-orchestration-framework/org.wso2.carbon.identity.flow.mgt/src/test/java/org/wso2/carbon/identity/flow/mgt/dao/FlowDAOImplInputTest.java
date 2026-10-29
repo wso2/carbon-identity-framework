@@ -43,7 +43,6 @@ import java.util.List;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.flow.mgt.TestHelperMethods.closeH2Database;
@@ -113,7 +112,7 @@ public class FlowDAOImplInputTest {
         assertEquals(variables.size(), 3);
         assertEquals(variables.get(0).getName(), Constants.SystemVariables.AB_TESTING_KEY);
         assertEquals(variables.get(0).getValue(), 42L);
-        assertFalse(variables.get(0).isClientWritable());
+        assertTrue(variables.get(0).isClientWritable());
         assertEquals(variables.get(1).getName(), "plan");
         assertEquals(variables.get(1).getValue(), "basic");
         assertTrue(variables.get(1).isClientWritable());

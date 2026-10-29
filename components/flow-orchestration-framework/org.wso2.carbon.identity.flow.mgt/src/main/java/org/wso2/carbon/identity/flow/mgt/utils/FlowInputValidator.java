@@ -141,11 +141,13 @@ public final class FlowInputValidator {
 
     private static void validateAbTestingKey(FlowVariableInputDTO variable) throws FlowMgtClientException {
 
-        if (variable.getDataType() != FlowInputDataType.INTEGER || variable.isClientWritable()) {
+        if (variable.getDataType() != FlowInputDataType.INTEGER) {
             throw handleFlowInputException("Invalid system variable.",
-                    "The variable %s is of type %s and cannot be set by the app. Only its initial value can " +
-                            "change.", variable.getName(), FlowInputDataType.INTEGER);
+                    "The variable %s is of type %s. Only its initial value can change.", variable.getName(),
+                    FlowInputDataType.INTEGER);
         }
+        // The app keeps the key for its browser and sends it back, so the app may always set it.
+        variable.setClientWritable(true);
         if (variable.getValue() == null) {
             variable.setValue(SystemVariables.AB_TESTING_KEY_INITIAL_VALUE);
             return;
