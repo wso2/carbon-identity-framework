@@ -18,29 +18,28 @@
 package org.wso2.carbon.identity.flow.mgt.model;
 
 /**
- * A variable a flow defines. Unlike a header or query parameter, it may start with a value, and may be updated by
- * the user.
+ * A runtime value a flow defines. Unlike a header, it may start with a value, and may be set by the app.
  */
-public class FlowVariableInputDTO extends FlowInputDTO {
+public class FlowRuntimeValueDTO extends FlowVariableDTO {
 
     private static final long serialVersionUID = 1L;
 
     private Object value;
     private boolean clientWritable;
 
-    public FlowVariableInputDTO() {
+    public FlowRuntimeValueDTO() {
 
     }
 
-    public FlowVariableInputDTO(String name, FlowInputDataType dataType) {
+    public FlowRuntimeValueDTO(String name, FlowVariableDataType dataType) {
 
         super(name, dataType);
     }
 
     /**
-     * The initial value of the variable: a String, Long, Double or Boolean, or a list of Strings or Doubles.
+     * The initial value: a String, Long, Double or Boolean, or a list of Strings or Doubles.
      *
-     * @return The initial value, or null when the variable starts without one.
+     * @return The initial value, or null when it starts without one.
      */
     public Object getValue() {
 

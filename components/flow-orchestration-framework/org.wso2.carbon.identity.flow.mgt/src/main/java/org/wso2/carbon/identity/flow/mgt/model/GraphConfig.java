@@ -32,7 +32,7 @@ public class GraphConfig implements Serializable {
     private final Map<String, StepDTO> nodePageMappings = new HashMap<>();
     private String id;
     private String firstNodeId;
-    private FlowInputsDTO flowInputs;
+    private FlowVariablesDTO flowVariables;
 
     public String getId() {
 
@@ -85,17 +85,17 @@ public class GraphConfig implements Serializable {
     }
 
     /**
-     * The headers, query parameters and variables the flow defines.
+     * The headers and runtime values the flow defines.
      *
-     * @return The inputs of the flow, or null when it defines nothing.
+     * @return The variables of the flow, or null when it defines nothing.
      */
-    public FlowInputsDTO getFlowInputs() {
+    public FlowVariablesDTO getFlowVariables() {
 
-        return flowInputs;
+        return flowVariables;
     }
 
-    public void setFlowInputs(FlowInputsDTO flowInputs) {
+    public void setFlowVariables(FlowVariablesDTO flowVariables) {
 
-        this.flowInputs = flowInputs;
+        this.flowVariables = flowVariables;
     }
 }

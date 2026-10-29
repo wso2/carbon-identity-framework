@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.flow.mgt.model;
 
 /**
- * The type of value a header, query parameter or variable a flow defines holds.
+ * The type of value a header or runtime value a flow defines holds.
  */
-public enum FlowInputDataType {
+public enum FlowVariableDataType {
 
     STRING,
     INTEGER,
@@ -46,7 +46,7 @@ public enum FlowInputDataType {
      * @param name Name of the type.
      * @return The type, or null.
      */
-    public static FlowInputDataType fromName(String name) {
+    public static FlowVariableDataType fromName(String name) {
 
         try {
             return name == null ? null : valueOf(name);

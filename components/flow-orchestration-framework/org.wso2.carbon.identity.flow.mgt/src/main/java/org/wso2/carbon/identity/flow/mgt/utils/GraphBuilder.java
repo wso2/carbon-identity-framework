@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputsDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
@@ -143,14 +143,14 @@ public class GraphBuilder {
     }
 
     /**
-     * Adds the headers, query parameters and variables the flow defines. They are expected to be validated.
+     * Adds the headers and runtime values the flow defines. They are expected to be validated.
      *
-     * @param inputs Inputs of the flow, or null when it defines nothing.
+     * @param variables Variables of the flow, or null when it defines nothing.
      * @return The current instance of {@link GraphBuilder} for method chaining.
      */
-    public GraphBuilder withFlowInputs(FlowInputsDTO inputs) {
+    public GraphBuilder withFlowVariables(FlowVariablesDTO variables) {
 
-        graphConfig.setFlowInputs(inputs == null || inputs.isEmpty() ? null : inputs);
+        graphConfig.setFlowVariables(variables == null || variables.isEmpty() ? null : variables);
         return this;
     }
 

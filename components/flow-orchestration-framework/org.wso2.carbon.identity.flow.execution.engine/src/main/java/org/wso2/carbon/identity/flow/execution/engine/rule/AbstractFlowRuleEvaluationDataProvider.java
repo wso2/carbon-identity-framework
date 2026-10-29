@@ -28,9 +28,9 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
-import org.wso2.carbon.identity.flow.execution.engine.util.FlowInputResolver;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputDataType;
-import org.wso2.carbon.identity.flow.mgt.utils.FlowInputUtils;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationDataProviderException;
@@ -54,8 +54,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider.REQUEST_HEADERS;
-import static org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider.REQUEST_QUERY_PARAMETERS;
-import static org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider.VARIABLES;
+import static org.wso2.carbon.identity.flow.mgt.rule.FlowRuleMetadataProvider.RUNTIME_VALUES;
 
 /**
  * Supplies the values a flow condition is evaluated against.
@@ -137,15 +136,12 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                 return userGroups(field, context, tenantDomain);
             case USER_ROLES:
                 return userRoles(field, context, tenantDomain);
-            case VARIABLES:
-                return inputValue(field, FlowInputResolver.getVariableType(context, field.getQualifier()),
-                        FlowInputResolver.getVariable(context, field.getQualifier()));
+            case RUNTIME_VALUES:
+                return variableValue(field, FlowVariableResolver.getRuntimeValueType(context, field.getQualifier()),
+                        FlowVariableResolver.getRuntimeValue(context, field.getQualifier()));
             case REQUEST_HEADERS:
-                return inputValue(field, FlowInputResolver.getHeaderType(context, field.getQualifier()),
-                        FlowInputResolver.getHeader(context, field.getQualifier()));
-            case REQUEST_QUERY_PARAMETERS:
-                return inputValue(field, FlowInputResolver.getQueryParamType(context, field.getQualifier()),
-                        FlowInputResolver.getQueryParam(context, field.getQualifier()));
+                return variableValue(field, FlowVariableResolver.getHeaderType(context, field.getQualifier()),
+                        FlowVariableResolver.getHeader(context, field.getQualifier()));
             default:
                 throw new RuleEvaluationDataProviderException(
                         "No value can be read for condition field: " + field.getName() + ".");
@@ -153,10 +149,10 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
     }
 
     /**
-     * A header, query parameter or variable, typed as the flow defines it. Numbers are compared as decimals, and the
+     * A header or runtime value, typed as the flow defines it. Numbers are compared as decimals, and the
      * entries of a number array as their text, as a list holds text alone.
      */
-    private FieldValue inputValue(Field field, FlowInputDataType dataType, Object value)
+    private FieldValue variableValue(Field field, FlowVariableDataType dataType, Object value)
             throws RuleEvaluationDataProviderException {
 
         if (dataType == null) {
@@ -175,7 +171,7 @@ public abstract class AbstractFlowRuleEvaluationDataProvider implements RuleEval
                     entries = new ArrayList<>();
                     for (Object entry : (List<?>) value) {
                         entries.add(entry instanceof Number number
-                                ? FlowInputUtils.toText(number) : String.valueOf(entry));
+                                ? FlowVariableUtils.toText(number) : String.valueOf(entry));
                     }
                 }
                 return new FieldValue(field.getName(), field.getQualifier(), entries);

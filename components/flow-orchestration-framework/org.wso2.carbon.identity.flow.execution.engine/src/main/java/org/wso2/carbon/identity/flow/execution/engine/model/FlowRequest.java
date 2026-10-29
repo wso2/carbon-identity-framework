@@ -25,29 +25,27 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The headers and query parameters a flow reads from its requests, kept in its context. Only those the flow defines
- * are kept, each as the last valid value received.
+ * The headers a flow reads from its requests, kept in its context. Only those the flow defines are kept, each as
+ * the last valid value received.
  */
 public class FlowRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private Map<String, Object> headers = new HashMap<>();
-    private Map<String, Object> queryParameters = new HashMap<>();
 
     public FlowRequest() {
 
     }
 
     /**
-     * A copy of a request, with its own maps of headers and query parameters.
+     * A copy of a request, with its own map of headers.
      *
      * @param request The request to copy.
      */
     public FlowRequest(FlowRequest request) {
 
         this.headers = copyOf(request.getHeaders());
-        this.queryParameters = copyOf(request.getQueryParameters());
     }
 
     /**
@@ -73,20 +71,5 @@ public class FlowRequest implements Serializable {
     public void setHeaders(Map<String, Object> headers) {
 
         this.headers = headers == null ? new HashMap<>() : headers;
-    }
-
-    /**
-     * The query parameters, by name.
-     *
-     * @return The query parameters.
-     */
-    public Map<String, Object> getQueryParameters() {
-
-        return queryParameters;
-    }
-
-    public void setQueryParameters(Map<String, Object> queryParameters) {
-
-        this.queryParameters = queryParameters == null ? new HashMap<>() : queryParameters;
     }
 }

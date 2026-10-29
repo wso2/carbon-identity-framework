@@ -56,11 +56,11 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.flow.mgt.model.FlowVariableInputDTO;
-import org.wso2.carbon.identity.flow.mgt.utils.FlowInputUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -240,7 +240,7 @@ public class FlowExecutionEngineUtils {
             context.setContextIdentifier(UUID.randomUUID().toString());
             context.setApplicationId(applicationId);
             context.setFlowType(flowType);
-            initializeVariables(context);
+            initializeRuntimeValues(context);
 
             FlowConfigDTO flowConfigDTO = FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
                     .getFlowConfig(flowType, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -732,17 +732,17 @@ public class FlowExecutionEngineUtils {
                 : IdentityUtil.getPrimaryDomainName().toUpperCase(Locale.ENGLISH);
     }
 
-    private static void initializeVariables(FlowExecutionContext context) {
+    private static void initializeRuntimeValues(FlowExecutionContext context) {
 
-        if (!FlowMgtUtils.isFlowInputsEnabled() || context.getGraphConfig() == null ||
-                context.getGraphConfig().getFlowInputs() == null) {
+        if (!FlowMgtUtils.isFlowVariablesEnabled() || context.getGraphConfig() == null ||
+                context.getGraphConfig().getFlowVariables() == null) {
             return;
         }
 
-        List<FlowVariableInputDTO> variableInputs = context.getGraphConfig().getFlowInputs().getVariables();
-        for (FlowVariableInputDTO variable : variableInputs) {
-            Object value = FlowInputUtils.toValue(variable.getDataType(), variable.getValue());
-            context.getVariables().put(variable.getName(), value);
+        List<FlowRuntimeValueDTO> runtimeValues = context.getGraphConfig().getFlowVariables().getRuntimeValues();
+        for (FlowRuntimeValueDTO runtimeValue : runtimeValues) {
+            Object value = FlowVariableUtils.toValue(runtimeValue.getDataType(), runtimeValue.getValue());
+            context.getRuntimeValues().put(runtimeValue.getName(), value);
         }
     }
 }

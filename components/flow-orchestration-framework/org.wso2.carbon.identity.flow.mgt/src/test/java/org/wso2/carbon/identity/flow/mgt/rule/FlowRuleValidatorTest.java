@@ -34,13 +34,13 @@ import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputDataType;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputsDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowVariableInputDTO;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.FieldReference;
@@ -98,7 +98,7 @@ public class FlowRuleValidatorTest {
         identityUtilMock = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS);
         identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
                 .thenReturn("true");
-        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowInputConfigs.ENABLE))
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE))
                 .thenReturn("true");
         String operators = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("configs/valid-operators.json")).getFile();
@@ -506,21 +506,21 @@ public class FlowRuleValidatorTest {
     public void testConditionOnADefinedNumberVariableIsAccepted() throws Exception {
 
         FlowRuleValidator.validate(flowWith(inputs(),
-                inputExpression(FlowRuleMetadataProvider.VARIABLES, "attempts", "lessThan", scalar("3"))),
+                inputExpression(FlowRuleMetadataProvider.RUNTIME_VALUES, "attempts", "lessThan", scalar("3"))),
                 TENANT_DOMAIN);
     }
 
     /**
-     * The A/B testing key is defined like any variable, as every flow is given it when saved.
+     * The A/B testing key is defined like any runtime value, as every flow is given it when saved.
      */
     @Test
     public void testConditionOnTheAbTestingKeyIsAccepted() throws Exception {
 
-        FlowInputsDTO inputs = new FlowInputsDTO();
-        inputs.getVariables().add(new FlowVariableInputDTO(Constants.SystemVariables.AB_TESTING_KEY,
-                FlowInputDataType.INTEGER));
+        FlowVariablesDTO inputs = new FlowVariablesDTO();
+        inputs.getRuntimeValues().add(new FlowRuntimeValueDTO(Constants.SystemRuntimeValues.AB_TESTING_KEY,
+                FlowVariableDataType.INTEGER));
         FlowRuleValidator.validate(flowWith(inputs,
-                inputExpression(FlowRuleMetadataProvider.VARIABLES, Constants.SystemVariables.AB_TESTING_KEY,
+                inputExpression(FlowRuleMetadataProvider.RUNTIME_VALUES, Constants.SystemRuntimeValues.AB_TESTING_KEY,
                         "lessThan", scalar("20"))), TENANT_DOMAIN);
     }
 
@@ -528,7 +528,7 @@ public class FlowRuleValidatorTest {
     public void testConditionOnAnUndefinedVariableIsRejected() {
 
         FlowDTO flow = flowWith(inputs(),
-                inputExpression(FlowRuleMetadataProvider.VARIABLES, "plan", "equals", scalar("gold")));
+                inputExpression(FlowRuleMetadataProvider.RUNTIME_VALUES, "plan", "equals", scalar("gold")));
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
@@ -539,7 +539,7 @@ public class FlowRuleValidatorTest {
     public void testNumberVariableRejectsATextValue() {
 
         FlowDTO flow = flowWith(inputs(),
-                inputExpression(FlowRuleMetadataProvider.VARIABLES, "attempts", "lessThan", scalar("three")));
+                inputExpression(FlowRuleMetadataProvider.RUNTIME_VALUES, "attempts", "lessThan", scalar("three")));
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
@@ -550,7 +550,7 @@ public class FlowRuleValidatorTest {
     public void testBooleanVariableRejectsAnOrderingOperator() {
 
         FlowDTO flow = flowWith(inputs(),
-                inputExpression(FlowRuleMetadataProvider.VARIABLES, "trusted", "greaterThan", scalar("true")));
+                inputExpression(FlowRuleMetadataProvider.RUNTIME_VALUES, "trusted", "greaterThan", scalar("true")));
 
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
@@ -585,27 +585,27 @@ public class FlowRuleValidatorTest {
      * Numbers in a list are compared as text, so 18.0 would never match the 18 the flow keeps.
      */
     @Test
-    public void testNumberQueryParamRejectsANumberNotWrittenAsTheFlowWritesIt() throws Exception {
+    public void testNumberHeaderRejectsANumberNotWrittenAsTheFlowWritesIt() throws Exception {
 
         FlowRuleValidator.validate(flowWith(inputs(),
-                inputExpression(FlowRuleMetadataProvider.REQUEST_QUERY_PARAMETERS, "age", "in",
+                inputExpression(FlowRuleMetadataProvider.REQUEST_HEADERS, "x-age", "in",
                         new Value(Arrays.asList("18", "21.5")))), TENANT_DOMAIN);
 
         FlowDTO flow = flowWith(inputs(),
-                inputExpression(FlowRuleMetadataProvider.REQUEST_QUERY_PARAMETERS, "age", "in",
+                inputExpression(FlowRuleMetadataProvider.REQUEST_HEADERS, "x-age", "in",
                         new Value(Collections.singletonList("18.0"))));
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
         assertEquals(e.getMessage(), "Value does not match the type.");
     }
 
-    private static FlowInputsDTO inputs() {
+    private static FlowVariablesDTO inputs() {
 
-        FlowInputsDTO inputs = new FlowInputsDTO();
-        inputs.getVariables().add(new FlowVariableInputDTO("attempts", FlowInputDataType.INTEGER));
-        inputs.getVariables().add(new FlowVariableInputDTO("trusted", FlowInputDataType.BOOLEAN));
-        inputs.getHeaders().add(new FlowInputDTO("x-ab-variant", FlowInputDataType.STRING_ARRAY));
-        inputs.getQueryParams().add(new FlowInputDTO("age", FlowInputDataType.NUMBER_ARRAY));
+        FlowVariablesDTO inputs = new FlowVariablesDTO();
+        inputs.getRuntimeValues().add(new FlowRuntimeValueDTO("attempts", FlowVariableDataType.INTEGER));
+        inputs.getRuntimeValues().add(new FlowRuntimeValueDTO("trusted", FlowVariableDataType.BOOLEAN));
+        inputs.getHeaders().add(new FlowVariableDTO("x-ab-variant", FlowVariableDataType.STRING_ARRAY));
+        inputs.getHeaders().add(new FlowVariableDTO("x-age", FlowVariableDataType.NUMBER_ARRAY));
         return inputs;
     }
 
@@ -619,10 +619,10 @@ public class FlowRuleValidatorTest {
                 .build();
     }
 
-    private static FlowDTO flowWith(FlowInputsDTO inputs, Expression... expressions) {
+    private static FlowDTO flowWith(FlowVariablesDTO inputs, Expression... expressions) {
 
         FlowDTO flow = flowWith(expressions);
-        flow.setFlowInputs(inputs);
+        flow.setFlowVariables(inputs);
         return flow;
     }
 

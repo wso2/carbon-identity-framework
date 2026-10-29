@@ -20,20 +20,20 @@ package org.wso2.carbon.identity.flow.mgt.model;
 import java.io.Serializable;
 
 /**
- * A header, query parameter or variable a flow defines: its name, and the type of value it holds.
+ * A header or runtime value a flow defines: its name, and the type of value it holds.
  */
-public class FlowInputDTO implements Serializable {
+public class FlowVariableDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private String name;
-    private FlowInputDataType dataType;
+    private FlowVariableDataType dataType;
 
-    public FlowInputDTO() {
+    public FlowVariableDTO() {
 
     }
 
-    public FlowInputDTO(String name, FlowInputDataType dataType) {
+    public FlowVariableDTO(String name, FlowVariableDataType dataType) {
 
         this.name = name;
         this.dataType = dataType;
@@ -49,12 +49,12 @@ public class FlowInputDTO implements Serializable {
         this.name = name;
     }
 
-    public FlowInputDataType getDataType() {
+    public FlowVariableDataType getDataType() {
 
         return dataType;
     }
 
-    public void setDataType(FlowInputDataType dataType) {
+    public void setDataType(FlowVariableDataType dataType) {
 
         this.dataType = dataType;
     }

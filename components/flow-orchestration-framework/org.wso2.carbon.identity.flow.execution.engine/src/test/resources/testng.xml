@@ -31,7 +31,7 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.dao.FlowContextStoreDAOImplTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListenerTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationServiceTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.util.FlowInputResolverTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolverTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadataServiceTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganizationTest"/>
         </classes>

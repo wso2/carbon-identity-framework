@@ -39,15 +39,15 @@ import org.wso2.carbon.identity.flow.mgt.model.BranchDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputDataType;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputsDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowVariableInputDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
-import org.wso2.carbon.identity.flow.mgt.utils.FlowInputUtils;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 
 import java.io.IOException;
@@ -64,9 +64,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID;
-import static org.wso2.carbon.identity.flow.mgt.Constants.FlowInputTypes.HEADER;
-import static org.wso2.carbon.identity.flow.mgt.Constants.FlowInputTypes.QUERY_PARAM;
-import static org.wso2.carbon.identity.flow.mgt.Constants.FlowInputTypes.VARIABLE;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowVariableTypes.HEADER;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowVariableTypes.RUNTIME_VALUE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.RULE_EVALUATION;
@@ -74,12 +73,12 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW_INPUTS;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW_VARIABLES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW_NODE_BRANCHES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODE_EXECUTOR_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_VIEW_PAGES_IN_FLOW;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_INPUT;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_VARIABLE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_INTO_IDN_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_BRANCH;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_INFO;
@@ -99,8 +98,8 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_INITIAL_VALUE;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_INPUT_NAME;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_INPUT_TYPE;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_VARIABLE_NAME;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_METADATA_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_METADATA_VALUE;
@@ -115,7 +114,7 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.isConditionalBranchingEnabled;
-import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.isFlowInputsEnabled;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.isFlowVariablesEnabled;
 
 /**
  * The DAO class for the flow.
@@ -241,8 +240,8 @@ public class FlowDAOImpl implements FlowDAO {
                             }, null, false);
                 }
 
-                // Insert into IDN_FLOW_INPUT.
-                insertFlowInputs(template, flowId, graphConfig.getFlowInputs());
+                // Insert into IDN_FLOW_VARIABLE.
+                insertFlowVariables(template, flowId, graphConfig.getFlowVariables());
                 return null;
             });
         } catch (TransactionException e) {
@@ -291,7 +290,7 @@ public class FlowDAOImpl implements FlowDAO {
             }
             flowDTO.getSteps().addAll(steps);
             attachBranches(jdbcTemplate, flowType, tenantId, flowDTO.getSteps());
-            flowDTO.setFlowInputs(getFlowInputs(jdbcTemplate, flowType, tenantId));
+            flowDTO.setFlowVariables(getFlowVariables(jdbcTemplate, flowType, tenantId));
             return flowDTO;
         } catch (DataAccessException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantId);
@@ -331,7 +330,7 @@ public class FlowDAOImpl implements FlowDAO {
             attachBranches(jdbcTemplate, flowType, tenantId, nodePageMappings.values());
 
             graphConfig.setNodePageMappings(nodePageMappings);
-            graphConfig.setFlowInputs(getFlowInputs(jdbcTemplate, flowType, tenantId));
+            graphConfig.setFlowVariables(getFlowVariables(jdbcTemplate, flowType, tenantId));
             return graphConfig;
         } catch (DataAccessException e) {
             LOG.error("Failed to retrieve graph for tenant: " + tenantId, e);
@@ -580,72 +579,67 @@ public class FlowDAOImpl implements FlowDAO {
         }
     }
 
-    private void insertFlowInputs(Template<?> template, String flowId, FlowInputsDTO inputs)
+    private void insertFlowVariables(Template<?> template, String flowId, FlowVariablesDTO variables)
             throws FlowMgtFrameworkException, DataAccessException {
 
-        if (inputs == null || inputs.isEmpty() || !isFlowInputsEnabled()) {
+        if (variables == null || variables.isEmpty() || !isFlowVariablesEnabled()) {
             return;
         }
 
-        List<byte[]> serializedVariableValues = new ArrayList<>();
-        for (FlowVariableInputDTO variable : inputs.getVariables()) {
-            serializedVariableValues.add(serializeVariableValue(variable.getName(), variable.getValue()).orElse(null));
+        List<byte[]> serializedValues = new ArrayList<>();
+        for (FlowRuntimeValueDTO runtimeValue : variables.getRuntimeValues()) {
+            serializedValues.add(serializeRuntimeValue(runtimeValue.getName(), runtimeValue.getValue()).orElse(null));
         }
-        template.executeBatchInsert(INSERT_FLOW_INPUT, preparedStatement -> {
-            for (FlowInputDTO header : inputs.getHeaders()) {
-                addFlowInputRow(preparedStatement, flowId, HEADER, header, null, false);
+        template.executeBatchInsert(INSERT_FLOW_VARIABLE, preparedStatement -> {
+            for (FlowVariableDTO header : variables.getHeaders()) {
+                addFlowVariableRow(preparedStatement, flowId, HEADER, header, null, false);
             }
-            for (FlowInputDTO queryParam : inputs.getQueryParams()) {
-                addFlowInputRow(preparedStatement, flowId, QUERY_PARAM, queryParam, null, false);
-            }
-            for (int i = 0; i < inputs.getVariables().size(); i++) {
-                FlowVariableInputDTO variable = inputs.getVariables().get(i);
-                addFlowInputRow(preparedStatement, flowId, VARIABLE, variable, serializedVariableValues.get(i),
-                        variable.isClientWritable());
+            for (int i = 0; i < variables.getRuntimeValues().size(); i++) {
+                FlowRuntimeValueDTO runtimeValue = variables.getRuntimeValues().get(i);
+                addFlowVariableRow(preparedStatement, flowId, RUNTIME_VALUE, runtimeValue, serializedValues.get(i),
+                        runtimeValue.isClientWritable());
             }
         }, null);
     }
 
-    private static void addFlowInputRow(PreparedStatement preparedStatement, String flowId, String inputType,
-                                        FlowInputDTO input, byte[] initialValue, boolean clientWritable)
+    private static void addFlowVariableRow(PreparedStatement preparedStatement, String flowId, String variableType,
+                                           FlowVariableDTO variable, byte[] initialValue, boolean clientWritable)
             throws SQLException {
 
         preparedStatement.setString(1, flowId);
-        preparedStatement.setString(2, inputType);
-        preparedStatement.setString(3, input.getName());
-        preparedStatement.setString(4, input.getDataType().name());
+        preparedStatement.setString(2, variableType);
+        preparedStatement.setString(3, variable.getName());
+        preparedStatement.setString(4, variable.getDataType().name());
         preparedStatement.setBytes(5, initialValue);
         preparedStatement.setBoolean(6, clientWritable);
         preparedStatement.addBatch();
     }
 
-    private FlowInputsDTO getFlowInputs(JdbcTemplate jdbcTemplate, String flowType, int tenantId)
+    private FlowVariablesDTO getFlowVariables(JdbcTemplate jdbcTemplate, String flowType, int tenantId)
             throws DataAccessException {
 
-        if (!isFlowInputsEnabled()) {
+        if (!isFlowVariablesEnabled()) {
             return null;
         }
-        FlowInputsDTO inputs = new FlowInputsDTO();
-        jdbcTemplate.executeQuery(GET_FLOW_INPUTS, LambdaExceptionUtils.rethrowRowMapper(
+        FlowVariablesDTO variables = new FlowVariablesDTO();
+        jdbcTemplate.executeQuery(GET_FLOW_VARIABLES, LambdaExceptionUtils.rethrowRowMapper(
                 (resultSet, rowNumber) -> {
-                    String name = resultSet.getString(DB_SCHEMA_COLUMN_NAME_INPUT_NAME);
-                    FlowInputDataType dataType =
-                            FlowInputDataType.fromName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DATA_TYPE));
+                    String name = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_NAME);
+                    FlowVariableDataType dataType =
+                            FlowVariableDataType.fromName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DATA_TYPE));
                     if (dataType == null) {
                         LOG.warn("Skipping " + name + " of the " + flowType + " flow, as its data type is not known.");
                         return null;
                     }
-                    String inputType = resultSet.getString(DB_SCHEMA_COLUMN_NAME_INPUT_TYPE);
-                    if (HEADER.equals(inputType)) {
-                        inputs.getHeaders().add(new FlowInputDTO(name, dataType));
-                    } else if (QUERY_PARAM.equals(inputType)) {
-                        inputs.getQueryParams().add(new FlowInputDTO(name, dataType));
-                    } else if (VARIABLE.equals(inputType)) {
-                        FlowVariableInputDTO variable = new FlowVariableInputDTO(name, dataType);
-                        variable.setValue(deserializeVariableValue(variable,
+                    String variableType = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE);
+                    if (HEADER.equals(variableType)) {
+                        variables.getHeaders().add(new FlowVariableDTO(name, dataType));
+                    } else if (RUNTIME_VALUE.equals(variableType)) {
+                        FlowRuntimeValueDTO runtimeValue = new FlowRuntimeValueDTO(name, dataType);
+                        runtimeValue.setValue(deserializeRuntimeValue(runtimeValue,
                                 resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_INITIAL_VALUE)));
-                        variable.setClientWritable(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_CLIENT_WRITABLE));
-                        inputs.getVariables().add(variable);
+                        runtimeValue.setClientWritable(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_CLIENT_WRITABLE));
+                        variables.getRuntimeValues().add(runtimeValue);
                     }
                     return null;
                 }), preparedStatement -> {
@@ -653,10 +647,10 @@ public class FlowDAOImpl implements FlowDAO {
                     preparedStatement.setBoolean(2, true);
                     preparedStatement.setString(3, flowType);
                 });
-        return FlowInputUtils.withSystemVariables(inputs);
+        return FlowVariableUtils.withSystemRuntimeValues(variables);
     }
 
-    private static Optional<byte[]> serializeVariableValue(String name, Object value)
+    private static Optional<byte[]> serializeRuntimeValue(String name, Object value)
             throws FlowMgtFrameworkException {
 
         if (value == null) {
@@ -665,27 +659,27 @@ public class FlowDAOImpl implements FlowDAO {
         try {
             return Optional.of(serializeObject(value));
         } catch (IOException e) {
-            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_INPUT_VALUE, e, name);
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_VARIABLE_VALUE, e, name);
         }
     }
 
-    private static Object deserializeVariableValue(FlowVariableInputDTO variable, byte[] content)
+    private static Object deserializeRuntimeValue(FlowRuntimeValueDTO runtimeValue, byte[] content)
             throws FlowMgtServerException {
 
         if (content == null) {
             return null;
         }
         try {
-            Object value = FlowInputUtils.toValue(variable.getDataType(),
+            Object value = FlowVariableUtils.toValue(runtimeValue.getDataType(),
                     OBJECT_MAPPER.readValue(content, Object.class));
             if (value == null) {
-                LOG.warn("Dropping the initial value of " + variable.getName() + ", as it is no longer a valid "
-                        + variable.getDataType() + ".");
+                LOG.warn("Dropping the initial value of " + runtimeValue.getName() + ", as it is no longer a valid "
+                        + runtimeValue.getDataType() + ".");
             }
             return value;
         } catch (IOException e) {
-            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_INPUT_VALUE, e,
-                    variable.getName());
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_VARIABLE_VALUE, e,
+                    runtimeValue.getName());
         }
     }
 

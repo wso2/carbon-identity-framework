@@ -162,8 +162,8 @@ public class RuleEvaluationNode implements Node {
     /**
      * A copy of the context holding only what the rule fields read, to hand to the rule component. The flow's own
      * context is never passed out, so evaluation cannot change it, and the user's credentials, inputs and the flow
-     * graph stay in the engine. Of the graph, only the inputs go along, as they type the variables, headers
-     * and query parameters.
+     * graph stay in the engine. Of the graph, only the variables go along, as they type the headers and runtime
+     * values.
      *
      * @param context Flow execution context.
      * @return The copy.
@@ -175,14 +175,14 @@ public class RuleEvaluationNode implements Node {
         copy.setTenantDomain(context.getTenantDomain());
         copy.setApplicationId(context.getApplicationId());
         copy.setFlowType(context.getFlowType());
-        copy.setVariables(new HashMap<>(context.getVariables()));
+        copy.setRuntimeValues(new HashMap<>(context.getRuntimeValues()));
 
         copy.setRequest(new FlowRequest(context.getRequest()));
 
         if (context.getGraphConfig() != null) {
-            GraphConfig inputsOnly = new GraphConfig();
-            inputsOnly.setFlowInputs(context.getGraphConfig().getFlowInputs());
-            copy.setGraphConfig(inputsOnly);
+            GraphConfig variablesOnly = new GraphConfig();
+            variablesOnly.setFlowVariables(context.getGraphConfig().getFlowVariables());
+            copy.setGraphConfig(variablesOnly);
         }
 
         FlowUser user = context.getFlowUser();

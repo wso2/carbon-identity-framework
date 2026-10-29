@@ -140,7 +140,7 @@ public class FlowMgtUtils {
     }
 
     /**
-     * Handle flow inputs that are not valid. Every such failure shares one error code and says what is wrong
+     * Handle flow variables that are not valid. Every such failure shares one error code and says what is wrong
      * through its own message and description.
      *
      * @param message     Error message.
@@ -148,13 +148,13 @@ public class FlowMgtUtils {
      * @param data        The error description data.
      * @return FlowMgtClientException.
      */
-    public static FlowMgtClientException handleFlowInputException(String message, String description,
-                                                                 Object... data) {
+    public static FlowMgtClientException handleFlowVariableException(String message, String description,
+                                                                    Object... data) {
 
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowMgtClientException(ErrorMessages.ERROR_CODE_INVALID_FLOW_INPUTS.getCode(), message,
+        return new FlowMgtClientException(ErrorMessages.ERROR_CODE_INVALID_FLOW_VARIABLES.getCode(), message,
                 description);
     }
 
@@ -170,15 +170,15 @@ public class FlowMgtUtils {
     }
 
     /**
-     * Whether flow inputs are enabled on the server. It guards the headers, query parameters and variables a
-     * flow defines, from saving and reading them to keeping their values while the flow runs, so a server without it
-     * never reads or writes the input table.
+     * Whether flow variables are enabled on the server. It guards the headers and runtime values a flow defines,
+     * from saving and reading them to keeping their values while the flow runs, so a server without it never reads
+     * or writes the variable table.
      *
-     * @return True if a flow may define headers, query parameters and variables.
+     * @return True if a flow may define headers and runtime values.
      */
-    public static boolean isFlowInputsEnabled() {
+    public static boolean isFlowVariablesEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(Constants.FlowInputConfigs.ENABLE));
+        return Boolean.parseBoolean(IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE));
     }
 
     /**

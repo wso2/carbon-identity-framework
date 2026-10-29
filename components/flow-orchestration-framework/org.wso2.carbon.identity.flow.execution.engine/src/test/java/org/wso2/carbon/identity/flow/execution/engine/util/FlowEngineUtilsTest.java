@@ -50,10 +50,10 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputDataType;
-import org.wso2.carbon.identity.flow.mgt.model.FlowInputsDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
-import org.wso2.carbon.identity.flow.mgt.model.FlowVariableInputDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -155,33 +155,33 @@ public class FlowEngineUtilsTest {
     }
 
     /**
-     * A new run starts each defined variable with its initial value.
+     * A new run starts each defined runtime value with its initial value.
      */
     @Test
     public void testFlowContextInitiationStartsDefinedVariables() throws Exception {
 
-        FlowInputsDTO inputs = new FlowInputsDTO();
-        FlowVariableInputDTO plan = new FlowVariableInputDTO("plan", FlowInputDataType.STRING);
+        FlowVariablesDTO inputs = new FlowVariablesDTO();
+        FlowRuntimeValueDTO plan = new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING);
         plan.setValue("basic");
-        inputs.getVariables().add(plan);
-        inputs.getVariables().add(new FlowVariableInputDTO("attempts", FlowInputDataType.INTEGER));
+        inputs.getRuntimeValues().add(plan);
+        inputs.getRuntimeValues().add(new FlowRuntimeValueDTO("attempts", FlowVariableDataType.INTEGER));
         GraphConfig graphConfig = new GraphConfig();
-        graphConfig.setFlowInputs(inputs);
+        graphConfig.setFlowVariables(inputs);
 
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
                 FlowExecutionEngineDataHolder.class);
              MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS)) {
             identityUtil.when(() -> IdentityUtil.getProperty(
-                    org.wso2.carbon.identity.flow.mgt.Constants.FlowInputConfigs.ENABLE)).thenReturn("true");
+                    org.wso2.carbon.identity.flow.mgt.Constants.FlowVariableConfigs.ENABLE)).thenReturn("true");
             dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getFlowMgtService()).thenReturn(mgtServiceMock);
             when(mgtServiceMock.getGraphConfig(FLOW_TYPE, TENANT_ID)).thenReturn(graphConfig);
 
             FlowExecutionContext context = FlowExecutionEngineUtils.initiateContext(TENANT_DOMAIN, null, FLOW_TYPE);
 
-            assertEquals(context.getVariables().get("plan"), "basic");
-            assertNull(context.getVariables().get("attempts"));
+            assertEquals(context.getRuntimeValues().get("plan"), "basic");
+            assertNull(context.getRuntimeValues().get("attempts"));
         }
     }
 

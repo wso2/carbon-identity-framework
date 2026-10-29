@@ -71,7 +71,7 @@ public class FlowRuleMetadataProviderTest {
         identityUtilMock = mockStatic(IdentityUtil.class, CALLS_REAL_METHODS);
         identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.CONDITIONAL_BRANCHING_ENABLED))
                 .thenReturn("true");
-        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowInputConfigs.ENABLE))
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE))
                 .thenReturn("true");
         String operators = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("configs/valid-operators.json")).getFile();
@@ -98,32 +98,31 @@ public class FlowRuleMetadataProviderTest {
 
         assertEquals(fieldNamesOf(FlowType.REGISTRATION), Arrays.asList(
                 FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES,
-                FlowRuleMetadataProvider.USER_DOMAIN, FlowRuleMetadataProvider.VARIABLES,
-                FlowRuleMetadataProvider.REQUEST_HEADERS, FlowRuleMetadataProvider.REQUEST_QUERY_PARAMETERS));
+                FlowRuleMetadataProvider.USER_DOMAIN, FlowRuleMetadataProvider.RUNTIME_VALUES,
+                FlowRuleMetadataProvider.REQUEST_HEADERS));
         assertEquals(fieldNamesOf(FlowType.PASSWORD_RECOVERY), Arrays.asList(
                 FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_ATTRIBUTES,
                 FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES, FlowRuleMetadataProvider.USER_DOMAIN,
                 FlowRuleMetadataProvider.USER_GROUPS, FlowRuleMetadataProvider.USER_ROLES,
-                FlowRuleMetadataProvider.VARIABLES, FlowRuleMetadataProvider.REQUEST_HEADERS,
-                FlowRuleMetadataProvider.REQUEST_QUERY_PARAMETERS));
+                FlowRuleMetadataProvider.RUNTIME_VALUES, FlowRuleMetadataProvider.REQUEST_HEADERS));
         assertEquals(fieldNamesOf(FlowType.INVITED_USER_REGISTRATION), Arrays.asList(
                 FlowRuleMetadataProvider.USER_ATTRIBUTES, FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES,
                 FlowRuleMetadataProvider.USER_DOMAIN, FlowRuleMetadataProvider.USER_GROUPS,
-                FlowRuleMetadataProvider.USER_ROLES, FlowRuleMetadataProvider.VARIABLES,
-                FlowRuleMetadataProvider.REQUEST_HEADERS, FlowRuleMetadataProvider.REQUEST_QUERY_PARAMETERS));
+                FlowRuleMetadataProvider.USER_ROLES, FlowRuleMetadataProvider.RUNTIME_VALUES,
+                FlowRuleMetadataProvider.REQUEST_HEADERS));
     }
 
     @Test
-    public void testInputFieldsAreNotPublishedWhenFlowInputsAreDisabled() throws Exception {
+    public void testInputFieldsAreNotPublishedWhenFlowVariablesAreDisabled() throws Exception {
 
-        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowInputConfigs.ENABLE))
+        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE))
                 .thenReturn("false");
         try {
             assertEquals(fieldNamesOf(FlowType.REGISTRATION), Arrays.asList(
                     FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES,
                     FlowRuleMetadataProvider.USER_DOMAIN));
         } finally {
-            identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowInputConfigs.ENABLE))
+            identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE))
                     .thenReturn("true");
         }
     }

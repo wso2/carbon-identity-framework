@@ -86,18 +86,18 @@ public class SQLConstants {
                     "WHERE f.TENANT_ID = ? AND f.IS_DEFAULT = ? AND f.TYPE = ? " +
                     "ORDER BY n.NODE_ID, b.BRANCH_ORDER";
 
-    public static final String INSERT_FLOW_INPUT =
-            "INSERT INTO IDN_FLOW_INPUT (FLOW_ID, INPUT_TYPE, INPUT_NAME, DATA_TYPE, " +
+    public static final String INSERT_FLOW_VARIABLE =
+            "INSERT INTO IDN_FLOW_VARIABLE (FLOW_ID, VARIABLE_TYPE, VARIABLE_NAME, DATA_TYPE, " +
                     "INITIAL_VALUE, CLIENT_WRITABLE) VALUES (?, ?, ?, ?, ?, ?)";
 
     /**
-     * The headers, query parameters and variables a flow defines, in the order they were defined.
+     * The headers and runtime values a flow defines, in the order they were defined.
      */
-    public static final String GET_FLOW_INPUTS =
-            "SELECT i.INPUT_TYPE, i.INPUT_NAME, i.DATA_TYPE, i.INITIAL_VALUE, i.CLIENT_WRITABLE " +
-                    "FROM IDN_FLOW f JOIN IDN_FLOW_INPUT i ON f.ID = i.FLOW_ID " +
+    public static final String GET_FLOW_VARIABLES =
+            "SELECT v.VARIABLE_TYPE, v.VARIABLE_NAME, v.DATA_TYPE, v.INITIAL_VALUE, v.CLIENT_WRITABLE " +
+                    "FROM IDN_FLOW f JOIN IDN_FLOW_VARIABLE v ON f.ID = v.FLOW_ID " +
                     "WHERE f.TENANT_ID = ? AND f.IS_DEFAULT = ? AND f.TYPE = ? " +
-                    "ORDER BY i.ID";
+                    "ORDER BY v.ID";
 
     public static final String GET_NODE_EXECUTOR_META =
             "SELECT METADATA_NAME, METADATA_VALUE FROM IDN_FLOW_NODE_EXECUTOR_META WHERE EXECUTOR_ID = ?";
@@ -129,8 +129,8 @@ public class SQLConstants {
         public static final String DB_SCHEMA_COLUMN_NAME_BRANCH_KEY = "BRANCH_KEY";
         public static final String DB_SCHEMA_COLUMN_NAME_BRANCH_NAME = "BRANCH_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_RULE_CONTENT = "RULE_CONTENT";
-        public static final String DB_SCHEMA_COLUMN_NAME_INPUT_TYPE = "INPUT_TYPE";
-        public static final String DB_SCHEMA_COLUMN_NAME_INPUT_NAME = "INPUT_NAME";
+        public static final String DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE = "VARIABLE_TYPE";
+        public static final String DB_SCHEMA_COLUMN_NAME_VARIABLE_NAME = "VARIABLE_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_DATA_TYPE = "DATA_TYPE";
         public static final String DB_SCHEMA_COLUMN_NAME_INITIAL_VALUE = "INITIAL_VALUE";
         public static final String DB_SCHEMA_COLUMN_NAME_CLIENT_WRITABLE = "CLIENT_WRITABLE";
