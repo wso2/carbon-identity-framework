@@ -293,6 +293,40 @@ public class UserSessionDAOImplTest extends IdentityBaseTest {
     }
 
     /**
+     * Each update of a session adds a record. The session cleanup task keeps the federated session mapping of a
+     * session whose older record has expired while a newer record has not.
+     */
+    @Test
+    public void testRemoveExpiredSessionRecordsKeepsMappingsOfSessionsWithActiveRecord() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            String dbName = "testRemoveExpiredKeepsExtendedFedMappings";
+            initiateH2Base(dbName, getFilePath("h2.sql"));
+            long currentTime = FrameworkUtils.getCurrentStandardNano();
+            try (Connection connection = getConnection(dbName)) {
+                insertSessionContext(connection, "extended-session", currentTime - TimeUnit.MINUTES.toNanos(5),
+                        currentTime - TimeUnit.MINUTES.toNanos(1));
+                insertSessionContext(connection, "extended-session", currentTime,
+                        currentTime + TimeUnit.MINUTES.toNanos(10));
+                insertSessionContext(connection, "expired-session", currentTime - TimeUnit.MINUTES.toNanos(5),
+                        currentTime - TimeUnit.MINUTES.toNanos(1));
+                insertFederatedSessionMapping(connection, "extended-session-index", "extended-session");
+                insertFederatedSessionMapping(connection, "expired-session-index", "expired-session");
+            }
+            mockConnections(identityDatabaseUtil, dbName);
+
+            userSessionDAO.removeExpiredSessionRecords();
+
+            try (Connection connection = getConnection(dbName)) {
+                assertTrue(isFederatedSessionMappingAvailable(connection, "extended-session"),
+                        "Federated session mapping of a session with a record that has not expired should be kept.");
+                assertFalse(isFederatedSessionMappingAvailable(connection, "expired-session"),
+                        "Federated session mapping of an expired session should be removed.");
+            }
+        }
+    }
+
+    /**
      * Removing the records of terminated sessions also removes their federated session mappings.
      */
     @Test
@@ -452,12 +486,18 @@ public class UserSessionDAOImplTest extends IdentityBaseTest {
 
     private void insertSessionContext(Connection connection, String sessionId, long expiryTime) throws SQLException {
 
+        insertSessionContext(connection, sessionId, FrameworkUtils.getCurrentStandardNano(), expiryTime);
+    }
+
+    private void insertSessionContext(Connection connection, String sessionId, long timeCreated, long expiryTime)
+            throws SQLException {
+
         try (PreparedStatement ps = connection.prepareStatement("INSERT INTO IDN_AUTH_SESSION_STORE (SESSION_ID, " +
                 "SESSION_TYPE, OPERATION, TIME_CREATED, TENANT_ID, EXPIRY_TIME) VALUES (?, ?, ?, ?, ?, ?)")) {
             ps.setString(1, sessionId);
             ps.setString(2, "AppAuthFrameworkSessionContextCache");
             ps.setString(3, "STORE");
-            ps.setLong(4, FrameworkUtils.getCurrentStandardNano());
+            ps.setLong(4, timeCreated);
             ps.setInt(5, -1234);
             ps.setLong(6, expiryTime);
             ps.execute();

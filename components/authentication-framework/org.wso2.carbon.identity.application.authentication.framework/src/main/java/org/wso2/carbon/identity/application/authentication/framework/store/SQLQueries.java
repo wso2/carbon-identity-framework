@@ -83,6 +83,16 @@ public class SQLQueries {
                     + "' AND EXPIRY_TIME < ?";
 
     /**
+     * Query to retrieve the sessions that have an expired record and a record that has not expired yet. Each update
+     * of a session adds a record, so a session that is still active can have older, expired records.
+     */
+    public static final String SQL_SELECT_EXPIRED_SESSION_IDS_WITH_ACTIVE_RECORD =
+            "SELECT DISTINCT A.SESSION_ID FROM IDN_AUTH_SESSION_STORE A WHERE A.SESSION_TYPE = '"
+                    + SESSION_CONTEXT_CACHE_NAME + "' AND A.EXPIRY_TIME < ? AND EXISTS (SELECT 1 FROM "
+                    + "IDN_AUTH_SESSION_STORE B WHERE B.SESSION_ID = A.SESSION_ID AND B.SESSION_TYPE = A.SESSION_TYPE "
+                    + "AND B.EXPIRY_TIME >= ?)";
+
+    /**
      * Query to retrieve user session mapping.
      */
     public static final String SQL_SELECT_USER_SESSION_MAP =
