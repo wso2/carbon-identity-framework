@@ -23,9 +23,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.Constants.SystemRuntimeValues;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -93,6 +95,7 @@ public class SystemDefaultFlowProvider {
         try {
             FlowDTO flowDTO = OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsBytes(cached), FlowDTO.class);
             flowDTO.setFlowVariables(FlowVariableUtils.withSystemRuntimeValues(flowDTO.getFlowVariables()));
+            resetInvalidAbTestingKey(flowDTO, flowType);
             return flowDTO;
         } catch (IOException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
@@ -150,6 +153,27 @@ public class SystemDefaultFlowProvider {
             return flowDTO;
         } catch (IOException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
+        }
+    }
+
+    /**
+     * A default flow is not validated as a saved flow is, so an A/B testing key outside its range falls back to its
+     * initial value.
+     */
+    private static void resetInvalidAbTestingKey(FlowDTO flowDTO, String flowType) {
+
+        if (flowDTO.getFlowVariables() == null) {
+            return;
+        }
+        for (FlowRuntimeValueDTO runtimeValue : flowDTO.getFlowVariables().getRuntimeValues()) {
+            if (runtimeValue != null && SystemRuntimeValues.AB_TESTING_KEY.equals(runtimeValue.getName())
+                    && runtimeValue.getValue() != null
+                    && FlowVariableUtils.toAbTestingKey(runtimeValue.getValue()) == null) {
+                LOG.warn("The default " + flowType + " flow gives " + SystemRuntimeValues.AB_TESTING_KEY
+                        + " an initial value out of range. Using " + SystemRuntimeValues.AB_TESTING_KEY_INITIAL_VALUE
+                        + " instead.");
+                runtimeValue.setValue(SystemRuntimeValues.AB_TESTING_KEY_INITIAL_VALUE);
+            }
         }
     }
 }

@@ -56,6 +56,7 @@ public final class FlowVariableUtils {
     private static final Pattern HEADER_NAME = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$");
     private static final Pattern INTEGER = Pattern.compile("^-?\\d{1,18}$");
     private static final Pattern DECIMAL = Pattern.compile("^-?\\d{1,15}(\\.\\d{1,15})?$");
+    private static final int MAX_DECIMAL_LENGTH = 32;
     private static final String WILDCARD = "*";
 
     private static volatile Pattern valuePattern;
@@ -381,11 +382,13 @@ public final class FlowVariableUtils {
 
     private static List<Object> parseJsonArray(FlowVariableDataType type, String text) {
 
-        // Bounds the parsing before it starts: no valid array is longer than its entries and their separators. An
-        // entry may write each of its characters as a six-character unicode escape.
+        // Bounds the parsing before it starts: no valid array is longer than its entries and their separators. A
+        // number is at most a decimal's length, and a text entry may write each of its characters as a six-character
+        // unicode escape.
+        long longestEntry = type == FlowVariableDataType.NUMBER_ARRAY ? MAX_DECIMAL_LENGTH : getMaxValueLength() * 6L;
         long longest;
         try {
-            longest = Math.addExact(Math.multiplyExact(getMaxArraySize(), getMaxValueLength() * 6L + 3), 2);
+            longest = Math.addExact(Math.multiplyExact(getMaxArraySize(), longestEntry + 3), 2);
         } catch (ArithmeticException e) {
             longest = Long.MAX_VALUE;
         }

@@ -323,7 +323,9 @@ public class FlowRuleValidator {
     private static boolean isValidLiteral(FlowVariableDataType dataType, String literal) {
 
         switch (dataType) {
-            case INTEGER, DECIMAL:
+            case INTEGER:
+                return FlowVariableUtils.parse(FlowVariableDataType.INTEGER, literal) != null;
+            case DECIMAL:
                 return FlowVariableUtils.parse(FlowVariableDataType.DECIMAL, literal) != null;
             case BOOLEAN:
                 return FlowVariableUtils.parse(FlowVariableDataType.BOOLEAN, literal) != null;
