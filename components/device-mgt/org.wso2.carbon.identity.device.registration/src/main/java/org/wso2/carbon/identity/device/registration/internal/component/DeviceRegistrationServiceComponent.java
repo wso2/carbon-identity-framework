@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
@@ -132,5 +133,24 @@ public class DeviceRegistrationServiceComponent {
 
         LOG.debug("Unsetting DevicePolicyEvaluator in the device registration executor.");
         DeviceRegistrationComponentServiceHolder.getInstance().setDevicePolicyEvaluator(null);
+    }
+
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+
+        /* Reference IdentityCoreInitializedEvent service to guarantee that this component waits until identity core
+         is started, as the executor disable configuration is read from identity.xml on activation. */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+
+        /* Reference IdentityCoreInitializedEvent service to guarantee that this component waits until identity core
+         is started, as the executor disable configuration is read from identity.xml on activation. */
     }
 }
