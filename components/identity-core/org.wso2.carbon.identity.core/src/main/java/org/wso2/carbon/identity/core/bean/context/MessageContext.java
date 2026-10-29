@@ -56,6 +56,18 @@ public abstract class MessageContext<T1 extends Object,T2 extends Object> implem
         }
     }
 
+    /**
+     * Adds the parameter to the parameters map, replacing any value already mapped to the key.
+     * Unlike {@link #addParameter(Object, Object)} this does not fail when the key is already
+     * present, so it can be used where a parameter is legitimately re-set.
+     *
+     * @param key   Key of the parameter.
+     * @param value Value of the parameter.
+     */
+    public void setParameter(T1 key, T2 value){
+        parameters.put(key, value);
+    }
+
     public Map<T1,T2> getParameters(){
         return Collections.unmodifiableMap(parameters);
     }

@@ -645,7 +645,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void initializeAnalyticsData() {
 
         Map<String, Serializable> analyticsData = new HashMap<>();
-        this.addParameter(FrameworkConstants.AnalyticsData.DATA_MAP, analyticsData);
+        // Replace the analytics data map to start fresh collection on flow restart.
+        this.setParameter(FrameworkConstants.AnalyticsData.DATA_MAP, analyticsData);
         this.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME,
                 System.currentTimeMillis());
     }
