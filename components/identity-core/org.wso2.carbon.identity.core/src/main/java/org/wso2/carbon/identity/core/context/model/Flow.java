@@ -157,6 +157,13 @@ public class Flow {
         FLOW_DEFINITIONS.put(Name.ORGANIZATION_DISABLE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
+
+        // ------------------------- Organization user sharing flows -------------------------------------
+        FLOW_DEFINITIONS.put(Name.USER_SHARE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.USER_UNSHARE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        // -----------------------------------------------------------------------------------------------
     }
 
     /**
@@ -248,7 +255,12 @@ public class Flow {
         ORGANIZATION_UPDATE,
         ORGANIZATION_DELETE,
         ORGANIZATION_ENABLE,
-        ORGANIZATION_DISABLE
+        ORGANIZATION_DISABLE,
+        // --------------------------------------------------
+
+        // ---------Organization user sharing flows----------
+        USER_SHARE,
+        USER_UNSHARE
         // --------------------------------------------------
     }
 
