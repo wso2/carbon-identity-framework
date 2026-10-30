@@ -518,5 +518,11 @@
   "identity_mgt.events.schemes.OrganizationEventSubscriptionEventHandler.subscriptions": [
     "POST_ADD_ORGANIZATION",
     "POST_DELETE_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.UserSharingEventHook.module_index": "78",
+  "identity_mgt.events.schemes.UserSharingEventHook.properties.enable": true,
+  "identity_mgt.events.schemes.UserSharingEventHook.subscriptions": [
+    "POST_SHARE_USER",
+    "POST_UNSHARE_USER"
   ]
 }
