@@ -47,6 +47,7 @@ public class FlowExtensionExecutorTest {
                 "Unexpected response received with status code: 403.");
 
         try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(() -> LoggerUtils.isTenantResourceFailure(any())).thenCallRealMethod();
             invokeLogActionExecutionException(e);
 
             loggerUtils.verify(() -> LoggerUtils.logTenantResourceFailure(any(Log.class),
@@ -60,6 +61,7 @@ public class FlowExtensionExecutorTest {
         ActionExecutionException e = new ActionExecutionException("Error occurred while retrieving actions.");
 
         try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(() -> LoggerUtils.isTenantResourceFailure(any())).thenCallRealMethod();
             invokeLogActionExecutionException(e);
 
             loggerUtils.verify(() -> LoggerUtils.logTenantResourceFailure(any(), any(), any()), never());

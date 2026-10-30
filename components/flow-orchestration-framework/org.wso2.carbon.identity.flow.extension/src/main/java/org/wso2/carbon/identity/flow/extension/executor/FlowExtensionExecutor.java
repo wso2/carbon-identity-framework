@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
-import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionEndpointException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
@@ -119,8 +118,12 @@ public class FlowExtensionExecutor implements Executor {
 
         } catch (ActionExecutionException e) {
             logActionExecutionException(e, actionId);
-            return buildErrorResponse(FlowExtensionConstants.ErrorMessages.EXECUTION_FAILED_MESSAGE,
-                FlowExtensionConstants.ErrorMessages.EXECUTION_FAILED_DESCRIPTION);
+            ExecutorResponse errorResponse = buildErrorResponse(
+                    FlowExtensionConstants.ErrorMessages.EXECUTION_FAILED_MESSAGE,
+                    FlowExtensionConstants.ErrorMessages.EXECUTION_FAILED_DESCRIPTION);
+            // Propagate the cause so that callers can identify tenant resource failures.
+            errorResponse.setThrowable(e);
+            return errorResponse;
         }
     }
 
@@ -345,7 +348,7 @@ public class FlowExtensionExecutor implements Executor {
     private void logActionExecutionException(ActionExecutionException e, String actionId) {
 
         Throwable cause = e.getCause();
-        if (e instanceof ActionExecutionEndpointException) {
+        if (LoggerUtils.isTenantResourceFailure(e)) {
             LoggerUtils.logTenantResourceFailure(LOG, "Flow Extension action '" + actionId
                     + "' endpoint failed: " + e.getMessage(), e);
         } else if (cause instanceof ActionExecutionRequestBuilderException) {

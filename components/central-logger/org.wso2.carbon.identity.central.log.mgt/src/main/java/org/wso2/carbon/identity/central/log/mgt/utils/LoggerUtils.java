@@ -46,9 +46,12 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_APP_NAME;
@@ -255,6 +258,23 @@ public class LoggerUtils {
             return;
         }
         log.error(message, e);
+    }
+
+    /**
+     * Checks whether the given throwable, or any of its causes, is a {@link TenantResourceFailure}.
+     *
+     * @param e Throwable to check.
+     * @return true if the failure is caused by a resource configured by a tenant administrator.
+     */
+    public static boolean isTenantResourceFailure(Throwable e) {
+
+        Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Throwable current = e; current != null && visited.add(current); current = current.getCause()) {
+            if (current instanceof TenantResourceFailure) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

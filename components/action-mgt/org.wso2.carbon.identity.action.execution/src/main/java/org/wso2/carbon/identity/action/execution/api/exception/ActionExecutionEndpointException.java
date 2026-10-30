@@ -18,12 +18,14 @@
 
 package org.wso2.carbon.identity.action.execution.api.exception;
 
+import org.wso2.carbon.identity.central.log.mgt.utils.TenantResourceFailure;
+
 /**
  * Exception class for Action Execution failures caused by the external endpoint configured for the action.
  * This exception is thrown when the endpoint is unreachable, times out, or returns a response that does not
  * comply with the action contract (e.g. an unsupported HTTP status code or an unparsable payload).
  */
-public class ActionExecutionEndpointException extends ActionExecutionException {
+public class ActionExecutionEndpointException extends ActionExecutionException implements TenantResourceFailure {
 
     public ActionExecutionEndpointException(String message) {
 

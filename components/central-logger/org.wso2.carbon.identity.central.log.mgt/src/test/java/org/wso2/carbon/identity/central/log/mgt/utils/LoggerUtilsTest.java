@@ -102,4 +102,26 @@ public class LoggerUtilsTest {
         verify(log).debug("message", e);
         verify(log, never()).error(anyString(), any());
     }
+
+    @DataProvider
+    public Object[][] tenantResourceFailures() {
+
+        Exception tenantResourceFailure = new TestTenantResourceFailure();
+        return new Object[][]{
+                {tenantResourceFailure, true},
+                {new Exception("wrapped", new Exception("cause", tenantResourceFailure)), true},
+                {new Exception("internal error", new IllegalStateException()), false},
+                {null, false}
+        };
+    }
+
+    @Test(dataProvider = "tenantResourceFailures")
+    public void testIsTenantResourceFailure(Throwable e, boolean expected) {
+
+        assertEquals(LoggerUtils.isTenantResourceFailure(e), expected);
+    }
+
+    private static class TestTenantResourceFailure extends Exception implements TenantResourceFailure {
+
+    }
 }
