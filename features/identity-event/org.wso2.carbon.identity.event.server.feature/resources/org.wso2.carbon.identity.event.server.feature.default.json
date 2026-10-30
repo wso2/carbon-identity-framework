@@ -512,5 +512,11 @@
     "POST_UPDATE_ORGANIZATION",
     "POST_ENABLE_ORGANIZATION",
     "POST_DISABLE_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.UserSharingEventHook.module_index": "77",
+  "identity_mgt.events.schemes.UserSharingEventHook.properties.enable": true,
+  "identity_mgt.events.schemes.UserSharingEventHook.subscriptions": [
+    "POST_SHARE_USER",
+    "POST_UNSHARE_USER"
   ]
 }
