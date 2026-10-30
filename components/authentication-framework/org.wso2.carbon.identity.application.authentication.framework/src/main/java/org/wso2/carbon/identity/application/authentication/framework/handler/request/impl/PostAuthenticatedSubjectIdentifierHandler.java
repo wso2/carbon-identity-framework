@@ -22,15 +22,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.util.Arrays;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,6 +44,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ALLOW_AUTHENTICATED_SUB_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 
 /**
  * This PostAuthenticationHandler is responsible for setting subject identifier related with authenticated user.
@@ -105,6 +111,14 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
         try {
             if (StringUtils.isNotBlank(subjectClaimURI)) {
                 if (subjectValue != null) {
+                    if (FrameworkConstants.USER_ID_CLAIM.equals(subjectClaimURI) && StringUtils.equals(subjectValue,
+                            sequenceConfig.getAuthenticatedUser().getUserId())) {
+                        String sharedUserId =
+                                getSharedUserIdForSubject(sequenceConfig.getAuthenticatedUser(), context);
+                        if (StringUtils.isNotEmpty(sharedUserId)) {
+                            subjectValue = sharedUserId;
+                        }
+                    }
                     handleUserStoreAndTenantDomain(sequenceConfig, subjectValue);
                 } else {
                     log.warn("Subject claim could not be found. Defaulting to Name Identifier.");
@@ -176,6 +190,10 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
             }
         } else if (useUserIdForDefaultSubject) {
             String authenticatedUserId = sequenceConfig.getAuthenticatedUser().getUserId();
+            String sharedUserId = getSharedUserIdForSubject(sequenceConfig.getAuthenticatedUser(), context);
+            if (StringUtils.isNotEmpty(sharedUserId)) {
+                authenticatedUserId = sharedUserId;
+            }
 
             if (StringUtils.isNotEmpty(authenticatedUserId)) {
                 if (isUseTenantDomainInLocalSubjectIdentifier) {
@@ -201,4 +219,58 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
         }
     }
 
+    /**
+     * Get the shared user id of the accessing organization to use as the subject identifier, if the authenticated
+     * user is a shared user and the accessing organization enables the shared user subject compatibility setting.
+     * Only the subject identifier changes. The authenticated user keeps the resident user details.
+     * Applications shared from a parent organization (fragment applications) are excluded, because the parent
+     * organization login resolves the user from the subject identifier of these applications.
+     *
+     * @param authenticatedUser Authenticated user.
+     * @param context           Authentication context.
+     * @return Shared user id, or null if the resident user id must be used.
+     */
+    private String getSharedUserIdForSubject(AuthenticatedUser authenticatedUser, AuthenticationContext context) {
+
+        if (!authenticatedUser.isSharedUser() || authenticatedUser.isFederatedUser()) {
+            return null;
+        }
+        String accessingOrganization = authenticatedUser.getAccessingOrganization();
+        if (StringUtils.isBlank(accessingOrganization) ||
+                StringUtils.equals(accessingOrganization, authenticatedUser.getUserResidentOrganization())) {
+            return null;
+        }
+        if (isFragmentApplication(context.getSequenceConfig())) {
+            return null;
+        }
+        if (!FrameworkUtils.isSharedUserIdAsSubjectEnabled(context.getTenantDomain())) {
+            return null;
+        }
+        try {
+            String sharedUserId = FrameworkUtils.resolveSharedUserIdOfAccessingOrganization(authenticatedUser);
+            if (StringUtils.isBlank(sharedUserId) && log.isDebugEnabled()) {
+                log.debug("Shared user id could not be resolved for the user: " +
+                        authenticatedUser.getLoggableMaskedUserId() + " in the organization: " +
+                        accessingOrganization + ". Resident user id will be used as the subject identifier.");
+            }
+            return sharedUserId;
+        } catch (OrganizationManagementException e) {
+            log.error("Error while resolving the shared user id of the user: " +
+                    authenticatedUser.getLoggableMaskedUserId() + " in the organization: " + accessingOrganization +
+                    ". Resident user id will be used as the subject identifier.", e);
+            return null;
+        }
+    }
+
+    private boolean isFragmentApplication(SequenceConfig sequenceConfig) {
+
+        ApplicationConfig applicationConfig = sequenceConfig.getApplicationConfig();
+        if (applicationConfig == null || applicationConfig.getServiceProvider() == null ||
+                applicationConfig.getServiceProvider().getSpProperties() == null) {
+            return false;
+        }
+        return Arrays.stream(applicationConfig.getServiceProvider().getSpProperties())
+                .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
+    }
 }
