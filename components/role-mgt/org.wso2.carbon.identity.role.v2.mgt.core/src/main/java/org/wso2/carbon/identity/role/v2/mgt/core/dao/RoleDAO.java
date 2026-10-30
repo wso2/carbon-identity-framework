@@ -548,6 +548,20 @@ public interface RoleDAO {
             throws IdentityRoleManagementException;
 
     /**
+     * Get the roles whose audience is the given application in the given tenant.
+     *
+     * @param applicationId Application ID.
+     * @param tenantDomain  Tenant Domain.
+     * @return List of application audience roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<RoleBasicInfo> getRolesByApplication(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getRolesByApplication method is not implemented");
+    }
+
+    /**
      * Get role audience ref id.
      *
      * @param audience   Audience.
