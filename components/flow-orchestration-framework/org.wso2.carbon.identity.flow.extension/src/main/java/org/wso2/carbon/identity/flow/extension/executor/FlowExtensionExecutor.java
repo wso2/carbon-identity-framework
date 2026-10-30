@@ -118,8 +118,12 @@ public class FlowExtensionExecutor implements Executor {
 
         } catch (ActionExecutionException e) {
             logActionExecutionException(e, actionId);
-            return buildErrorResponse(FlowExtensionConstants.ErrorMessages.EXECUTION_FAILED_MESSAGE,
-                FlowExtensionConstants.ErrorMessages.EXECUTION_FAILED_DESCRIPTION);
+            ExecutorResponse errorResponse = buildErrorResponse(
+                    FlowExtensionConstants.ErrorMessages.EXECUTION_FAILED_MESSAGE,
+                    FlowExtensionConstants.ErrorMessages.EXECUTION_FAILED_DESCRIPTION);
+            // Propagate the cause so that callers can identify tenant resource failures.
+            errorResponse.setThrowable(e);
+            return errorResponse;
         }
     }
 
@@ -338,11 +342,16 @@ public class FlowExtensionExecutor implements Executor {
     /**
      * Log an {@link ActionExecutionException} at the appropriate level based on its root cause.
      * Config, contract violations, and request builder failures are all treated as errors.
+     * Failures of the tenant configured extension endpoint are logged via
+     * {@link LoggerUtils#logTenantResourceFailure}, as they are already published as diagnostic logs.
      */
     private void logActionExecutionException(ActionExecutionException e, String actionId) {
 
         Throwable cause = e.getCause();
-        if (cause instanceof ActionExecutionRequestBuilderException) {
+        if (LoggerUtils.isTenantResourceFailure(e)) {
+            LoggerUtils.logTenantResourceFailure(LOG, "Flow Extension action '" + actionId
+                    + "' endpoint failed: " + e.getMessage(), e);
+        } else if (cause instanceof ActionExecutionRequestBuilderException) {
             LOG.error("Flow Extension action '" + actionId
                     + "' request build failed. Check action access configuration: " + e.getMessage(), e);
         } else if (cause instanceof ActionExecutionResponseProcessorException) {

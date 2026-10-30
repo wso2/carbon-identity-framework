@@ -36,6 +36,8 @@ public class LogConstants {
     public static final String ENABLE_LOG_MASKING = "MaskingLogs.Enabled";
     public static final Pattern LOG_MASKING_PATTERN = Pattern.compile("(?<=.).(?=.)");
     public static final String LOGGABLE_USER_CLAIMS = "LoggableUserClaims.LoggableUserClaim";
+    public static final String TENANT_RESOURCE_FAILURE_LOGS_DIAGNOSTIC_ONLY =
+            "TenantResourceFailureLogs.DiagnosticOnly";
 
 
     /**
