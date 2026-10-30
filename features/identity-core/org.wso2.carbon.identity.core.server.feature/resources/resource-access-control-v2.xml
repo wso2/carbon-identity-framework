@@ -1631,16 +1631,16 @@
     </Resource>
 
     <!-- Script Library Management API -->
-    <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="POST">
+    <Resource context="(.*)/api/server/v(.*)/script-libraries(.*)" secured="true" http-method="POST">
         <Scopes>internal_functional_lib_create</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="GET">
+    <Resource context="(.*)/api/server/v(.*)/script-libraries(.*)" secured="true" http-method="GET">
         <Scopes>internal_functional_lib_view</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="PUT">
+    <Resource context="(.*)/api/server/v(.*)/script-libraries(.*)" secured="true" http-method="PUT">
         <Scopes>internal_functional_lib_update</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="DELETE">
+    <Resource context="(.*)/api/server/v(.*)/script-libraries(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_functional_lib_delete</Scopes>
     </Resource>
 
