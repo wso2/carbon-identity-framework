@@ -20,6 +20,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     DECLARE sleepTime FLOAT;
     DECLARE batchSize INT;
     DECLARE chunkLimit INT;
+    DECLARE fedMappingCleanupTimeInMinutes INT;
 
     DECLARE sessionCleanUpTempTableCount INT;
     DECLARE operationCleanUpTempTableCount INT;
@@ -55,6 +56,8 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     SET @operationalFederatedMappingsCleanupCount = 1;
     SET tracingEnabled = FALSE;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
     SET sleepTime = 2;          -- Sleep time in seconds.
+    -- Federated session mappings without a session, created more than 1440 minutes (24 h) ago, will be removed.
+    SET fedMappingCleanupTimeInMinutes = 1440;
     SET autocommit = 0;
 
     SET @sessionCleanUpTempTableCount = 1;
@@ -345,6 +348,38 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
       SELECT 'DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_APP_INFO: ' AS 'INFO LOG', @deletedOperationSessionAppInfo AS 'TOTAL NO OF DELETED DELETE ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
       SELECT 'DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_META_DATA: ' AS 'INFO LOG', @deletedOperationalSessionMetadata AS 'TOTAL NO OF DELETED DELETE ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
       SELECT 'DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_FED_AUTH_SESSION_MAPPING: ' AS 'INFO LOG', @deletedOperationFederatedSessionMappings AS 'TOTAL NO OF DELETED DELETE ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
+    END IF;
+
+    -- --------------------------------------------
+    -- REMOVE ORPHANED FEDERATED SESSION MAPPINGS
+    -- --------------------------------------------
+    -- The deletes above remove only the federated session mappings of the sessions they remove. Mappings whose session
+    -- was removed earlier, for example by the session data cleanup task of the server, are removed here.
+
+    IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_FED_AUTH_SESSION_MAPPING'))
+    THEN
+      SELECT 'ORPHANED_FEDERATED_SESSION_MAPPING_CLEANUP_TASK STARTED .... !' AS 'INFO LOG', NOW() AS 'STARTING TIMESTAMP';
+      SET @fedMappingCleanupTime = NOW() - INTERVAL fedMappingCleanupTimeInMinutes MINUTE;
+      SET @deletedOrphanedFederatedSessionMappings = 0;
+      SET @orphanedFederatedMappingsCleanupCount = 1;
+
+      WHILE (@orphanedFederatedMappingsCleanupCount > 0) DO
+        DELETE FROM IDN_FED_AUTH_SESSION_MAPPING
+        WHERE TIME_CREATED < @fedMappingCleanupTime
+          AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_SESSION_STORE AS S WHERE S.SESSION_ID = IDN_FED_AUTH_SESSION_MAPPING.SESSION_ID)
+          AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_TEMP_SESSION_STORE AS T WHERE T.SESSION_ID = IDN_FED_AUTH_SESSION_MAPPING.SESSION_ID)
+        LIMIT batchSize;
+        SET @orphanedFederatedMappingsCleanupCount = row_count();
+        SET @deletedOrphanedFederatedSessionMappings = @deletedOrphanedFederatedSessionMappings + @orphanedFederatedMappingsCleanupCount;
+        COMMIT;
+        SELECT 'DELETED ORPHANED FEDERATED SESSION MAPPINGS...!!' AS 'INFO LOG', @orphanedFederatedMappingsCleanupCount;
+
+        IF (@orphanedFederatedMappingsCleanupCount > 0) THEN
+          DO SLEEP(sleepTime);
+        END IF;
+      END WHILE;
+
+      SELECT 'ORPHANED FEDERATED SESSION MAPPINGS REMOVED FROM IDN_FED_AUTH_SESSION_MAPPING: ' AS 'INFO LOG', @deletedOrphanedFederatedSessionMappings AS 'TOTAL NO OF DELETED ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
     END IF;
 
     SET SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
