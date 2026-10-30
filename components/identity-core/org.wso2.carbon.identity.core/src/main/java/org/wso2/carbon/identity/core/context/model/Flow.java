@@ -163,8 +163,6 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.USER_UNSHARE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
-        FLOW_DEFINITIONS.put(Name.SHARED_USER_UPDATE,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
     }
 
@@ -262,8 +260,7 @@ public class Flow {
 
         // ---------Organization user sharing flows----------
         USER_SHARE,
-        USER_UNSHARE,
-        SHARED_USER_UPDATE
+        USER_UNSHARE
         // --------------------------------------------------
     }
 
