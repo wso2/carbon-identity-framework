@@ -60,6 +60,7 @@ public class Constants {
     public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
 
     public static final String IS_USERNAME_VALIDATION_ENABLED = "InputValidation.Username.Enabled";
+    public static final String USERNAME_REGEX_VIOLATION_ERROR_MSG = "UsernameJavaRegExViolationErrorMsg";
 
     private Constants() {
 
