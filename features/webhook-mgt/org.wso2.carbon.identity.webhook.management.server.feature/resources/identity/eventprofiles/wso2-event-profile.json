@@ -231,6 +231,33 @@
           "eventUri": "https://schemas.identity.wso2.org/events/organization/event-type/organizationDisabled"
         }
       ]
+    },
+    {
+      "name": "User sharing",
+      "description": "Users shared with, and unshared from, organizations",
+      "uri": "https://schemas.identity.wso2.org/events/user-sharing",
+      "events": [
+        {
+          "eventName": "User shared",
+          "eventDescription": "Notify if a user of the organization is shared with another organization",
+          "eventUri": "https://schemas.identity.wso2.org/events/user-sharing/event-type/userShared"
+        },
+        {
+          "eventName": "User unshared",
+          "eventDescription": "Notify if a user of the organization is unshared from another organization",
+          "eventUri": "https://schemas.identity.wso2.org/events/user-sharing/event-type/userUnshared"
+        },
+        {
+          "eventName": "Shared user added",
+          "eventDescription": "Notify if a user of another organization is shared with the organization",
+          "eventUri": "https://schemas.identity.wso2.org/events/user-sharing/event-type/sharedUserAdded"
+        },
+        {
+          "eventName": "Shared user removed",
+          "eventDescription": "Notify if a user of another organization is unshared from the organization",
+          "eventUri": "https://schemas.identity.wso2.org/events/user-sharing/event-type/sharedUserRemoved"
+        }
+      ]
     }
   ]
 }
