@@ -2454,6 +2454,10 @@
         <SkipEnforceScriptUpdatePermission>{{operation_permission_enforcement.skip_enforce_script_update_permission}}</SkipEnforceScriptUpdatePermission>
         {% endif %}
         <EnableCrossTenantAuthorizedApiValidation>{{application_mgt.enable_cross_tenant_authorized_api_validation}}</EnableCrossTenantAuthorizedApiValidation>
+        <!-- When true, the application management API returns no default subject claim for applications without one. -->
+        {% if application_mgt.exclude_default_subject_claim is defined %}
+        <ExcludeDefaultSubjectClaim>{{application_mgt.exclude_default_subject_claim}}</ExcludeDefaultSubjectClaim>
+        {% endif %}
     </ApplicationMgt>
 
     <!--Role management service configurations-->
