@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionEndpointException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
@@ -422,8 +423,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     flowContext, actionRequest, actionExecutionResponseProcessor);
         }
         logErrorResponse(action, actionInvocationResponse);
-        throw new ActionExecutionException("Received an invalid or unexpected response for action type: "
-                + action.getType() + " action ID: " + action.getId());
+        String errorMessage = "Received an invalid or unexpected response for action type: "
+                + action.getType() + " action ID: " + action.getId();
+        if (StringUtils.isNotBlank(actionInvocationResponse.getErrorLog())) {
+            errorMessage += ". " + actionInvocationResponse.getErrorLog();
+        }
+        throw new ActionExecutionEndpointException(errorMessage);
     }
 
     private ActionExecutionStatus<Success> processSuccessResponse(Action action,

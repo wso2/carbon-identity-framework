@@ -56,6 +56,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.Applic
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.SUCCESS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.TENANT_RESOURCE_FAILURE_LOGS_DIAGNOSTIC_ONLY;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
 
@@ -222,6 +223,38 @@ public class LoggerUtils {
         CarbonConstants.DiagnosticLogMode diagnosticLogMode = CarbonUtils.getDiagnosticLogMode(resolveTenantId());
 
         return !CarbonConstants.DiagnosticLogMode.NONE.equals(diagnosticLogMode);
+    }
+
+    /**
+     * Checks whether failures of resources configured by tenant administrators (e.g. action endpoints, tenant
+     * level email/SMS providers, external connections) should be reported only through diagnostic logs.
+     * Failures of resources configured at the server level (e.g. deployment.toml) must not use this.
+     *
+     * @return true if tenant resource failures should not be logged as carbon errors.
+     */
+    public static boolean isTenantResourceFailureDiagnosticOnly() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(TENANT_RESOURCE_FAILURE_LOGS_DIAGNOSTIC_ONLY));
+    }
+
+    /**
+     * Logs a failure of a resource configured by a tenant administrator. The failure is logged at DEBUG level if
+     * {@link #isTenantResourceFailureDiagnosticOnly()} is enabled, and at ERROR level otherwise. The caller is
+     * responsible for publishing the corresponding diagnostic log.
+     *
+     * @param log     Logger of the caller.
+     * @param message Log message.
+     * @param e       Cause of the failure.
+     */
+    public static void logTenantResourceFailure(Log log, String message, Throwable e) {
+
+        if (isTenantResourceFailureDiagnosticOnly()) {
+            if (log.isDebugEnabled()) {
+                log.debug(message, e);
+            }
+            return;
+        }
+        log.error(message, e);
     }
 
     /**

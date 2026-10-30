@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionEndpointException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
@@ -338,11 +339,16 @@ public class FlowExtensionExecutor implements Executor {
     /**
      * Log an {@link ActionExecutionException} at the appropriate level based on its root cause.
      * Config, contract violations, and request builder failures are all treated as errors.
+     * Failures of the tenant configured extension endpoint are logged via
+     * {@link LoggerUtils#logTenantResourceFailure}, as they are already published as diagnostic logs.
      */
     private void logActionExecutionException(ActionExecutionException e, String actionId) {
 
         Throwable cause = e.getCause();
-        if (cause instanceof ActionExecutionRequestBuilderException) {
+        if (e instanceof ActionExecutionEndpointException) {
+            LoggerUtils.logTenantResourceFailure(LOG, "Flow Extension action '" + actionId
+                    + "' endpoint failed: " + e.getMessage(), e);
+        } else if (cause instanceof ActionExecutionRequestBuilderException) {
             LOG.error("Flow Extension action '" + actionId
                     + "' request build failed. Check action access configuration: " + e.getMessage(), e);
         } else if (cause instanceof ActionExecutionResponseProcessorException) {
