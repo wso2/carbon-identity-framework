@@ -715,7 +715,10 @@ public class FlowExecutionEngineUtils {
         }
     }
 
-    private static String userStoreDomainOf(String username) {
+    /**
+     * Resolve the user store domain a registering user is created in, from the given username.
+     */
+    public static String userStoreDomainOf(String username) {
 
         int separatorIndex = username.indexOf(UserCoreConstants.DOMAIN_SEPARATOR);
         if (separatorIndex > 0) {
