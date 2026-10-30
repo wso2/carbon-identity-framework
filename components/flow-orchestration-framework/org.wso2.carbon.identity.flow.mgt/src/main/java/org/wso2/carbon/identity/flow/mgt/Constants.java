@@ -237,6 +237,8 @@ public class Constants {
                 FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
         INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", "defaultEnableInvitedUserRegistration",
                 FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+                FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
+        PROFILE_UPDATE("PROFILE_UPDATE", "defaultEnableProfileUpdate",
                 FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED);
 
         private final String type;
