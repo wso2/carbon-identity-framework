@@ -38,6 +38,8 @@ import org.wso2.carbon.identity.policy.management.internal.dao.impl.CacheBackedP
 
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -95,7 +97,7 @@ public class CacheBackedPolicyManagementDAOTest {
     }
 
     @Test
-    public void testAddPolicyDoesNotCache() throws PolicyManagementException {
+    public void testAddPolicyClearsCachedEntries() throws PolicyManagementException {
 
         Policy policy = policy();
 
@@ -269,6 +271,79 @@ public class CacheBackedPolicyManagementDAOTest {
         String result = cacheBackedPolicyManagementDAO.getPolicyIdByName("OTHER", POLICY_NAME, TENANT_ID);
 
         assertNull(result);
-        verify(policyManagementDAO).getPolicyIdByName("OTHER", POLICY_NAME, TENANT_ID);
+        verify(policyManagementDAO, times(2)).getPolicyIdByName("OTHER", POLICY_NAME, TENANT_ID);
+    }
+
+    @Test
+    public void testGetPolicyIdByNameCachesNotFound() throws PolicyManagementException {
+
+        assertNull(cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID));
+        assertNull(cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID));
+
+        verify(policyManagementDAO, times(2)).getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
+    }
+
+    @Test
+    public void testGetPolicyByNameCachesNotFound() throws PolicyManagementException {
+
+        assertNull(cacheBackedPolicyManagementDAO.getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID));
+        assertNull(cacheBackedPolicyManagementDAO.getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID));
+
+        verify(policyManagementDAO, times(2)).getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID);
+        verify(policyManagementDAO, never()).getPolicyById(anyString(), anyInt());
+    }
+
+    @Test
+    public void testGetPolicyByIdCachesNotFound() throws PolicyManagementException {
+
+        assertNull(cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID));
+        assertNull(cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID));
+
+        verify(policyManagementDAO, times(2)).getPolicyById(POLICY_ID, TENANT_ID);
+    }
+
+    @Test
+    public void testAddPolicyMakesCachedNotFoundPolicyVisible() throws PolicyManagementException {
+
+        Policy policy = policy();
+        assertNull(cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID));
+        assertNull(cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID));
+        when(policyManagementDAO.addPolicy(policy, TENANT_ID)).thenReturn(policy);
+        when(policyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID)).thenReturn(POLICY_ID);
+        when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(policy);
+
+        cacheBackedPolicyManagementDAO.addPolicy(policy, TENANT_ID);
+
+        assertEquals(cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID), POLICY_ID);
+        assertEquals(cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID), policy);
+    }
+
+    @Test
+    public void testGetPolicyIdByNameDoesNotHideAPolicyAddedDuringTheLookup() throws PolicyManagementException {
+
+        when(policyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID)).thenReturn(null, POLICY_ID);
+
+        assertEquals(cacheBackedPolicyManagementDAO.getPolicyIdByName(POLICY_TYPE, POLICY_NAME, TENANT_ID), POLICY_ID);
+        assertNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), TENANT_ID));
+    }
+
+    @Test
+    public void testGetPolicyByNameDoesNotHideAPolicyAddedDuringTheLookup() throws PolicyManagementException {
+
+        Policy policy = policy();
+        when(policyManagementDAO.getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID)).thenReturn(null, policy);
+
+        assertEquals(cacheBackedPolicyManagementDAO.getPolicyByName(POLICY_TYPE, POLICY_NAME, TENANT_ID), policy);
+        assertNull(policyIdByNameCache.getValueFromCache(new PolicyNameCacheKey(POLICY_TYPE, POLICY_NAME), TENANT_ID));
+    }
+
+    @Test
+    public void testGetPolicyByIdDoesNotHideAPolicyAddedDuringTheLookup() throws PolicyManagementException {
+
+        Policy policy = policy();
+        when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(null, policy);
+
+        assertEquals(cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID), policy);
+        assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_ID), TENANT_ID));
     }
 }

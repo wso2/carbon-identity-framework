@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
@@ -65,6 +67,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -87,6 +90,8 @@ public class PolicyManagementServiceImplTest {
     private static final String TEST_POLICY_ID = UUID.randomUUID().toString();
     private static final String POLICY_TYPE = "DEVICE";
     private static final String NO_RULE_POLICY_TYPE = "NO_RULE";
+    private static final String ORG_TENANT_DOMAIN = "b2c4f5e6-sub-org";
+    private static final int ORG_TENANT_ID = 7;
 
     @Mock
     private PolicyManagementDAO policyManagementDAO;
@@ -100,6 +105,7 @@ public class PolicyManagementServiceImplTest {
     private PolicyManagementServiceImpl policyManagementService;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private MockedStatic<LoggerUtils> loggerUtils;
+    private MockedStatic<OrganizationManagementUtil> organizationManagementUtil;
     private PolicyTypeDefinition policyTypeDefinition;
     private PolicyTypeDefinition noRulePolicyTypeDefinition;
     private RuleResourceTypeHandler ruleResourceTypeHandler;
@@ -148,6 +154,13 @@ public class PolicyManagementServiceImplTest {
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(TENANT_ID)).thenReturn(TENANT_DOMAIN);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(ORG_TENANT_DOMAIN)).thenReturn(ORG_TENANT_ID);
+
+        organizationManagementUtil = mockStatic(OrganizationManagementUtil.class);
+        organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN))
+                .thenReturn(false);
+        organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(ORG_TENANT_DOMAIN))
+                .thenReturn(true);
     }
 
     @AfterClass
@@ -155,6 +168,7 @@ public class PolicyManagementServiceImplTest {
         PolicyMgtComponentServiceHolder.getInstance().removePolicyType(policyTypeDefinition);
         PolicyMgtComponentServiceHolder.getInstance().removePolicyType(noRulePolicyTypeDefinition);
         identityTenantUtil.close();
+        organizationManagementUtil.close();
         mocks.close();
     }
 
@@ -177,6 +191,92 @@ public class PolicyManagementServiceImplTest {
     public void closeLoggerUtilsMock() {
 
         loggerUtils.close();
+    }
+
+    // --- Organization tests ---
+
+    @Test
+    public void testAddPolicy_InOrganizationRejected() throws PolicyManagementException {
+
+        Policy inputPolicy = new Policy.Builder()
+                .name(TEST_POLICY_NAME)
+                .type(POLICY_TYPE)
+                .tenantDomain(ORG_TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
+
+        assertManagementNotAllowedInOrganization(() -> policyManagementService.addPolicy(inputPolicy,
+                ORG_TENANT_DOMAIN));
+        verify(policyManagementDAO, never()).getPolicyIdByName(any(), any(), anyInt());
+        verify(policyManagementDAO, never()).addPolicy(any(), anyInt());
+    }
+
+    @Test
+    public void testUpdatePolicy_InOrganizationRejected() throws PolicyManagementException {
+
+        Policy inputPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .type(POLICY_TYPE)
+                .tenantDomain(ORG_TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
+
+        assertManagementNotAllowedInOrganization(() -> policyManagementService.updatePolicy(inputPolicy,
+                ORG_TENANT_DOMAIN));
+        verify(policyManagementDAO, never()).getPolicyById(any(), anyInt());
+        verify(policyManagementDAO, never()).updatePolicy(any(), anyInt());
+    }
+
+    @Test
+    public void testDeletePolicy_InOrganizationRejected() throws PolicyManagementException {
+
+        assertManagementNotAllowedInOrganization(() -> policyManagementService.deletePolicy(TEST_POLICY_ID,
+                ORG_TENANT_DOMAIN));
+        verify(policyManagementDAO, never()).getPolicyById(any(), anyInt());
+        verify(policyManagementDAO, never()).deletePolicy(any(), anyInt());
+    }
+
+    @Test
+    public void testGetPolicyById_InOrganizationAllowed() throws PolicyManagementException {
+
+        when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, ORG_TENANT_ID)).thenReturn(null);
+
+        Assert.assertNull(policyManagementService.getPolicyById(TEST_POLICY_ID, ORG_TENANT_DOMAIN));
+        verify(policyManagementDAO).getPolicyById(TEST_POLICY_ID, ORG_TENANT_ID);
+    }
+
+    @Test
+    public void testDeletePolicy_OrganizationCheckFailure() throws PolicyManagementException {
+
+        String brokenTenantDomain = "broken.org";
+        organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(brokenTenantDomain))
+                .thenThrow(new OrganizationManagementException("error"));
+        try {
+            policyManagementService.deletePolicy(TEST_POLICY_ID, brokenTenantDomain);
+            Assert.fail("Expected a server exception when the organization check fails.");
+        } catch (PolicyManagementServerException e) {
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_WHILE_RESOLVING_ORGANIZATION.getCode());
+        }
+        verify(policyManagementDAO, never()).deletePolicy(any(), anyInt());
+    }
+
+    private void assertManagementNotAllowedInOrganization(PolicyOperation operation)
+            throws PolicyManagementException {
+
+        try {
+            operation.run();
+            Assert.fail("Expected policy management to be rejected in an organization.");
+        } catch (PolicyManagementClientException e) {
+            Assert.assertEquals(e.getErrorCode(),
+                    ErrorMessage.ERROR_POLICY_MANAGEMENT_NOT_ALLOWED_FOR_ORGANIZATION.getCode());
+        }
+    }
+
+    @FunctionalInterface
+    private interface PolicyOperation {
+
+        void run() throws PolicyManagementException;
     }
 
     // --- Basic validation tests ---

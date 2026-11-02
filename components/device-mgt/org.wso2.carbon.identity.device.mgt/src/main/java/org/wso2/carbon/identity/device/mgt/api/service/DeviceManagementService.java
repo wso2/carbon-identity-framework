@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.device.mgt.api.service;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 
 import java.util.List;
 
@@ -45,6 +46,7 @@ public interface DeviceManagementService {
      * @param association  The device-to-owner association; only UserDeviceAssociation is supported today.
      * @param tenantDomain Tenant domain.
      * @return Registered device.
+     * @throws DeviceMgtException If registration fails or the user is a shared user.
      */
     Device registerDevice(Device device, DeviceAssociation association, String tenantDomain) throws DeviceMgtException;
 
@@ -58,6 +60,27 @@ public interface DeviceManagementService {
      */
     Device getDeviceById(String deviceId, String tenantDomain)
             throws DeviceMgtException;
+
+    /**
+     * Retrieves a device by its UUID if it is owned by the user, giving a shared user its inherited device.
+     *
+     * @param deviceId       UUID of the device (IDN_DEVICE.ID).
+     * @param residentUserId User ID of the user in its resident organization.
+     * @param tenantDomain   Tenant domain of the request.
+     * @return The device with the user's ID in the tenant, or null if the user has no such device.
+     * @throws DeviceMgtException If the device or the user association cannot be retrieved.
+     */
+    Device getDeviceOfResidentUser(String deviceId, String residentUserId, String tenantDomain)
+            throws DeviceMgtException;
+
+    /**
+     * Retrieves a device by its UUID from the tenant it is registered in, regardless of its status.
+     *
+     * @param deviceId UUID of the device (IDN_DEVICE.ID).
+     * @return The device with its tenant domain, or null if not found.
+     * @throws DeviceMgtException If the device cannot be retrieved.
+     */
+    TenantDevice getTenantDeviceById(String deviceId) throws DeviceMgtException;
 
     /**
      * Retrieves a page of devices registered in the tenant, ordered by registration time (newest
@@ -74,7 +97,7 @@ public interface DeviceManagementService {
     /**
      * Retrieves a page of devices registered by a user, ordered by registration time (newest
      * first). Returns devices of any status (ACTIVE or INACTIVE) — this is an admin view of a
-     * single user's devices.
+     * single user's devices. A shared user gets the devices of its resident user, with its own user ID.
      *
      * @param userId       WSO2 user identifier.
      * @param tenantDomain Tenant domain.
@@ -96,13 +119,38 @@ public interface DeviceManagementService {
 
     /**
      * Counts devices registered by a user, regardless of status (ACTIVE or INACTIVE) — this is
-     * an admin count of a single user's devices.
+     * an admin count of a single user's devices. A shared user's count is that of its resident user.
      *
      * @param userId       WSO2 user identifier.
      * @param tenantDomain Tenant domain.
      * @return Total number of matching devices for the user.
      */
     int getDeviceCountByUserId(String userId, String tenantDomain)
+            throws DeviceMgtException;
+
+    /**
+     * Retrieves a page of devices of the user, ordered by registration time (newest first), giving a shared user
+     * its inherited devices.
+     *
+     * @param residentUserId User ID of the user in its resident organization.
+     * @param tenantDomain   Tenant domain of the request.
+     * @param offset         Number of records to skip.
+     * @param limit          Maximum number of records to return.
+     * @return Page of devices with the user's ID in the tenant. Empty list if none found.
+     * @throws DeviceMgtException If the devices or the user association cannot be retrieved.
+     */
+    List<Device> getDevicesOfResidentUser(String residentUserId, String tenantDomain, int offset, int limit)
+            throws DeviceMgtException;
+
+    /**
+     * Counts the devices of the user, counting the inherited devices of a shared user.
+     *
+     * @param residentUserId User ID of the user in its resident organization.
+     * @param tenantDomain   Tenant domain of the request.
+     * @return Total number of devices of the user.
+     * @throws DeviceMgtException If the devices or the user association cannot be retrieved.
+     */
+    int getDeviceCountOfResidentUser(String residentUserId, String tenantDomain)
             throws DeviceMgtException;
 
     /**

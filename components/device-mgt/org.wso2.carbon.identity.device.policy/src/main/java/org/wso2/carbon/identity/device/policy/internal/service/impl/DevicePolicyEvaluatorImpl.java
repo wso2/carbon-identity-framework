@@ -31,16 +31,19 @@ import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyCom
 import org.wso2.carbon.identity.device.policy.internal.type.DevicePolicyTypeDefinition;
 import org.wso2.carbon.identity.device.policy.internal.util.DevicePolicyExceptionHandler;
 import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.api.model.RuleResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
-import org.wso2.carbon.identity.policy.management.api.model.Policy;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Default implementation of {@link DevicePolicyEvaluator}.
@@ -67,11 +70,22 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                 .getIntegrityDataEnricher()
                 .enrich(deviceData, appId, tenantDomain);
 
-        Policy policy = getPolicy(policyId, tenantDomain);
-        if (policy == null) {
-            throw DevicePolicyExceptionHandler.handleClientException(
-                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyId, tenantDomain);
-        }
+        ResolvedPolicy policy = resolvePolicy(ReferenceType.ID, policyId, tenantDomain);
+        return evaluatePolicy(policy.getPolicyId(), deviceData, policy.getTenantDomain());
+    }
+
+    /**
+     * Evaluates enriched device data against a policy in the tenant that owns it.
+     *
+     * @param policyId           Policy ID.
+     * @param deviceData         Device data.
+     * @param policyTenantDomain Tenant domain that owns the policy.
+     * @return Evaluation result.
+     * @throws DevicePolicyException If the evaluation fails.
+     */
+    private DevicePolicyEvaluationResult evaluatePolicy(String policyId, Map<String, Object> deviceData,
+                                                        String policyTenantDomain)
+            throws DevicePolicyException {
 
         // The platform is the only field required up front, since it selects the rule to evaluate.
         // Every other field is left to the rule engine: a rule may be satisfied by only part of its
@@ -91,7 +105,7 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
         try {
             result = DevicePolicyComponentServiceHolder.getInstance()
                     .getPolicyEvaluationService()
-                    .evaluate(policyId, platform, context, tenantDomain);
+                    .evaluate(policyId, platform, context, policyTenantDomain);
         } catch (PolicyEvaluationException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
                     DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyId);
@@ -125,12 +139,11 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                                                              String appId, String tenantDomain)
             throws DevicePolicyException {
 
-        String policyId = getPolicyId(policyName, tenantDomain);
-        if (policyId == null) {
-            throw DevicePolicyExceptionHandler.handleClientException(
-                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyName, tenantDomain);
-        }
-        return evaluate(policyId, deviceData, appId, tenantDomain);
+        ResolvedPolicy policy = resolvePolicy(ReferenceType.NAME, policyName, tenantDomain);
+        DevicePolicyComponentServiceHolder.getInstance()
+                .getIntegrityDataEnricher()
+                .enrich(deviceData, appId, tenantDomain);
+        return evaluatePolicy(policy.getPolicyId(), deviceData, policy.getTenantDomain());
     }
 
     @Override
@@ -149,40 +162,110 @@ public class DevicePolicyEvaluatorImpl implements DevicePolicyEvaluator {
                                                                       String appId, String tenantDomain)
             throws DevicePolicyException {
 
-        String policyId = getPolicyId(policyName, tenantDomain);
-        if (policyId == null) {
-            throw DevicePolicyExceptionHandler.handleClientException(
-                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyName, tenantDomain);
-        }
-        return evaluateFromToken(policyId, token, base64PublicKey, correlationId, appId, tenantDomain);
+        ResolvedPolicy policy = resolvePolicy(ReferenceType.NAME, policyName, tenantDomain);
+        Map<String, Object> deviceData = new DeviceTokenExtractor()
+                .extractWithPublicKey(token, base64PublicKey, correlationId, tenantDomain);
+        DevicePolicyComponentServiceHolder.getInstance()
+                .getIntegrityDataEnricher()
+                .enrich(deviceData, appId, tenantDomain);
+        return evaluatePolicy(policy.getPolicyId(), deviceData, policy.getTenantDomain());
     }
 
-    private Policy getPolicy(String policyId, String tenantDomain) throws DevicePolicyServerException {
+    /**
+     * Finds a policy ID in a single tenant.
+     *
+     * @param referenceType   ID or name reference.
+     * @param policyReference Policy ID or name.
+     * @param tenantDomain    Tenant domain.
+     * @return Policy ID, or empty if not found.
+     * @throws DevicePolicyServerException If the lookup fails.
+     */
+    private Optional<String> findPolicyId(ReferenceType referenceType, String policyReference, String tenantDomain)
+            throws DevicePolicyServerException {
 
         try {
-            return DevicePolicyComponentServiceHolder.getInstance()
+            if (referenceType == ReferenceType.ID) {
+                return DevicePolicyComponentServiceHolder.getInstance().getPolicyManagementService()
+                        .getPolicyById(policyReference, tenantDomain) != null
+                        ? Optional.of(policyReference) : Optional.empty();
+            }
+            return Optional.ofNullable(DevicePolicyComponentServiceHolder.getInstance()
                     .getPolicyManagementService()
-                    .getPolicyById(policyId, tenantDomain);
+                    .getPolicyIdByName(DevicePolicyTypeDefinition.TYPE, policyReference, tenantDomain));
         } catch (PolicyManagementException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
-                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyId);
+                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyReference);
         }
     }
 
-    private String getPolicyId(String policyName, String tenantDomain) throws DevicePolicyServerException {
+    /**
+     * Resolves a policy by ID or name, using the root organization's policy for sub-organizations.
+     *
+     * @param referenceType   ID or name reference.
+     * @param policyReference Policy ID or name.
+     * @param tenantDomain    Tenant domain of the request.
+     * @return Policy ID and its owner tenant domain.
+     * @throws DevicePolicyException If the policy is not found or the lookup fails.
+     */
+    private ResolvedPolicy resolvePolicy(ReferenceType referenceType, String policyReference, String tenantDomain)
+            throws DevicePolicyException {
 
+        String policyTenantDomain = tenantDomain;
         try {
-            return DevicePolicyComponentServiceHolder.getInstance()
-                    .getPolicyManagementService()
-                    .getPolicyIdByName(DevicePolicyTypeDefinition.TYPE, policyName, tenantDomain);
-        } catch (PolicyManagementException e) {
+            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                // Sub-organizations can't own device policies, so they use the root organization's policy.
+                OrganizationManager organizationManager =
+                        DevicePolicyComponentServiceHolder.getInstance().getOrganizationManager();
+                policyTenantDomain = organizationManager.resolveTenantDomain(organizationManager
+                        .getPrimaryOrganizationId(organizationManager.resolveOrganizationId(tenantDomain)));
+            }
+        } catch (OrganizationManagementException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
-                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_EVALUATION_FAILED, e, policyName);
+                    DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_ORGANIZATION_RESOLUTION_FAILED, e, policyReference,
+                    tenantDomain);
         }
+        String resolvedTenantDomain = policyTenantDomain;
+        return findPolicyId(referenceType, policyReference, resolvedTenantDomain)
+                .map(policyId -> new ResolvedPolicy(policyId, resolvedTenantDomain))
+                .orElseThrow(() -> DevicePolicyExceptionHandler.handleClientException(
+                        DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND, policyReference, tenantDomain));
     }
 
     private boolean isBlankValue(Object value) {
 
         return value == null || StringUtils.isBlank(String.valueOf(value));
+    }
+
+    /**
+     * Policy ID with the tenant domain that owns it.
+     */
+    private static final class ResolvedPolicy {
+
+        private final String policyId;
+        private final String tenantDomain;
+
+        private ResolvedPolicy(String policyId, String tenantDomain) {
+
+            this.policyId = policyId;
+            this.tenantDomain = tenantDomain;
+        }
+
+        private String getPolicyId() {
+
+            return policyId;
+        }
+
+        private String getTenantDomain() {
+
+            return tenantDomain;
+        }
+    }
+
+    /**
+     * How a policy is referenced.
+     */
+    private enum ReferenceType {
+        ID,
+        NAME
     }
 }

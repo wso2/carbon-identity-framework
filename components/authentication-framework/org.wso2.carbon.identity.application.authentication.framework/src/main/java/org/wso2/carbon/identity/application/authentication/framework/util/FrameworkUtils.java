@@ -5242,6 +5242,22 @@ public class FrameworkUtils {
     }
 
     /**
+     * Resolves the resident tenant domain of the user, from the resident organization for federated org users.
+     *
+     * @param user Authenticated user.
+     * @return Resident tenant domain of the user.
+     * @throws FrameworkException If the user resident organization cannot be resolved.
+     */
+    public static String resolveUserResidentTenantDomain(AuthenticatedUser user) throws FrameworkException {
+
+        // Local users carry their resident tenant, while org SSO users carry the root tenant.
+        if (user.isFederatedUser() && StringUtils.isNotBlank(user.getUserResidentOrganization())) {
+            return resolveTenantDomainFromOrganizationId(user.getUserResidentOrganization());
+        }
+        return user.getTenantDomain();
+    }
+
+    /**
      * Resolves application resident tenant domain from organization id.
      *
      * @param appResidentOrgId Organization id of the application resident tenant.

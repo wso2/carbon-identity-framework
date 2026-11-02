@@ -75,6 +75,22 @@
             <artifactId>json</artifactId>
         </dependency>
 
+        <!-- Organization management - resolve the devices that shared users inherit -->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.organization.user.sharing</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.framework.async.operation.status.mgt</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
@@ -142,6 +158,16 @@
                             version="${osgi.service.component.imp.pkg.version.range}",
                             org.osgi.service.component.annotations;
                             version="${osgi.service.component.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.management.service;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.util;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.organization.user.sharing;
+                            version="${org.wso2.carbon.identity.organization.management.version.range}",
+                            org.wso2.carbon.identity.organization.management.organization.user.sharing.models;
+                            version="${org.wso2.carbon.identity.organization.management.version.range}",
                             org.wso2.carbon.database.utils.jdbc;
                             version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.database.utils.jdbc.exceptions;

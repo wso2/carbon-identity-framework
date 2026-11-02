@@ -25,9 +25,14 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.mgt.internal.listener.DeviceUserOperationListener;
 import org.wso2.carbon.identity.device.mgt.internal.service.impl.DeviceManagementServiceImpl;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
 /**
@@ -78,5 +83,48 @@ public class DeviceMgtServiceComponent {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Device management bundle is deactivated.");
         }
+    }
+
+    /**
+     * Sets the organization manager.
+     *
+     * @param organizationManager Organization manager.
+     */
+    @Reference(
+            name = "organization.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        DeviceMgtComponentServiceHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        DeviceMgtComponentServiceHolder.getInstance().setOrganizationManager(null);
+    }
+
+    /**
+     * Sets the organization user sharing service.
+     *
+     * @param organizationUserSharingService Organization user sharing service.
+     */
+    @Reference(
+            name = "organization.user.sharing.service",
+            service = OrganizationUserSharingService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationUserSharingService")
+    protected void setOrganizationUserSharingService(OrganizationUserSharingService organizationUserSharingService) {
+
+        DeviceMgtComponentServiceHolder.getInstance().setOrganizationUserSharingService(
+                organizationUserSharingService);
+    }
+
+    protected void unsetOrganizationUserSharingService(OrganizationUserSharingService organizationUserSharingService) {
+
+        DeviceMgtComponentServiceHolder.getInstance().setOrganizationUserSharingService(null);
     }
 }

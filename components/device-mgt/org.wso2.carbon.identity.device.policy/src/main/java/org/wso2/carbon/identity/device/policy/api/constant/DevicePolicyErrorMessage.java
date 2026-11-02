@@ -69,7 +69,10 @@ public enum DevicePolicyErrorMessage {
                     "the replay store."),
     ERROR_DEVICE_POLICY_EVALUATION_FAILED("DPM-65007",
             "Device policy evaluation failed.",
-            "Error evaluating device policy: %s.");
+            "Error evaluating device policy: %s."),
+    ERROR_DEVICE_POLICY_ORGANIZATION_RESOLUTION_FAILED("DPM-65008",
+            "Device policy resolution failed.",
+            "Error resolving device policy: %s from the root organization of tenant: %s.");
 
     private final String code;
     private final String message;

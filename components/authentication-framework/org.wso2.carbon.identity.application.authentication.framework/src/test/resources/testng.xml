@@ -34,6 +34,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.PolicyConsentPostAuthnHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinatorTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceDataTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.AbstractRequestCoordinatorTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponentTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandlerTest"/>

@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceData;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -921,24 +922,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     /**
-     * Invokes the registered {@link DeviceDataResolver} on the initiation request and stores
-     * any resolved device data payload on the authentication context. A no-op when the request
-     * carries no device token, since there is no device data to resolve.
-     * <p>
-     * When a device token is presented, an unavailable resolver and a resolver failure are server
-     * errors, hence they are surfaced as a {@link FrameworkException} instead of leaving the
-     * context without device data. Otherwise the flow continues and the missing device data is
-     * later reported as a client error at device policy evaluation.
+     * Resolves the device data of an app native initiation request and stores it on the context.
      *
      * @param request The initiation request carrying the device token.
      * @param context The authentication context being initialized.
-     * @throws FrameworkException If the device data resolver is not available or the resolution
-     *                            fails.
+     * @throws FrameworkException If the device data resolver is not available or the resolution fails.
      */
     private void resolveAndStoreDeviceData(HttpServletRequest request, AuthenticationContext context)
             throws FrameworkException {
 
-        if (!isDeviceTokenPresent(request)) {
+        if (!FrameworkUtils.isAPIBasedAuthenticationFlow(request) || !isDeviceTokenPresent(request)) {
             return;
         }
         DeviceDataResolver deviceDataResolver = FrameworkServiceDataHolder.getInstance().getDeviceDataResolver();
@@ -947,8 +940,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     "authentication request.");
         }
         try {
-            Optional<Map<String, Object>> deviceData =
-                    deviceDataResolver.resolveDeviceData(request, context.getTenantDomain());
+            Optional<ResolvedDeviceData> deviceData = deviceDataResolver.resolve(request);
             if (deviceData.isPresent()) {
                 context.setProperty(FrameworkConstants.DEVICE_DATA, deviceData.get());
                 if (log.isDebugEnabled()) {
@@ -961,9 +953,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     /**
-     * Returns true if the request carries a device token, which is sent as the
-     * {@link FrameworkConstants#DEVICE_TOKEN_PARAM} query parameter in redirect based flows and as
-     * the {@link FrameworkConstants#DEVICE_TOKEN_HEADER} header in app native flows.
+     * Returns true if the request carries a device token as a header or a parameter.
      *
      * @param request The initiation request.
      * @return True if a device token is presented.
