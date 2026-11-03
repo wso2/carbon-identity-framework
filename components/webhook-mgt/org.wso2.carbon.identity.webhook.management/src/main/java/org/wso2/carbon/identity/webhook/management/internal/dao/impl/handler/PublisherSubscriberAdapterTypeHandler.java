@@ -375,7 +375,8 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
 
     /**
      * Accepts an update that changes only the organization subscriptions, and rejects any other.
-     * Nothing is written here; the service layer writes the organization subscriptions separately.
+     * Nothing is written here: the service layer writes those separately, and rewriting the row would
+     * put a stale status over an activation or deactivation committed since.
      *
      * @param webhook  Webhook as the update requests it.
      * @param tenantId Tenant the webhook belongs to.
@@ -394,8 +395,6 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
                     "the PublisherSubscriber adapter beyond the organization subscriptions of its channels");
         }
-        // The row is left alone: the guard proves it already matches, and rewriting it would put the
-        // status read above over whatever an activation or deactivation has committed since.
     }
 
     @Override
