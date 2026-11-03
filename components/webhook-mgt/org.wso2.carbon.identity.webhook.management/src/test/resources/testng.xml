@@ -40,6 +40,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.webhook.management.internal.WebhookManagementComponentServiceHolderTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementServiceComponentTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.internal.handler.OrganizationEventSubscriptionEventHandlerTest"/>
         </classes>
     </test>
     <test name="webhook-management-util-test">

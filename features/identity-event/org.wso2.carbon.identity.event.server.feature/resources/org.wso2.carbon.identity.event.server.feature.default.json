@@ -512,5 +512,11 @@
     "POST_UPDATE_ORGANIZATION",
     "POST_ENABLE_ORGANIZATION",
     "POST_DISABLE_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.OrganizationEventSubscriptionEventHandler.module_index": "77",
+  "identity_mgt.events.schemes.OrganizationEventSubscriptionEventHandler.properties.enable": true,
+  "identity_mgt.events.schemes.OrganizationEventSubscriptionEventHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION",
+    "POST_DELETE_ORGANIZATION"
   ]
 }

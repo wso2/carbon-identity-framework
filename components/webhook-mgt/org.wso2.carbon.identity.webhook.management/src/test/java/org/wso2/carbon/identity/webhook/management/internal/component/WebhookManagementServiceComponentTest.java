@@ -23,6 +23,7 @@ import org.osgi.service.component.ComponentContext;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.sharing.policy.management.ResourceSharingPolicyHandlerService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
+import org.wso2.carbon.identity.webhook.management.internal.handler.OrganizationEventSubscriptionEventHandler;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
@@ -95,6 +97,8 @@ public class WebhookManagementServiceComponentTest {
 
         assertEquals(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapter(), adapter);
         verify(bundleContext).registerService(eq(WebhookManagementService.class.getName()), any(), any());
+        verify(bundleContext).registerService(eq(AbstractEventHandler.class.getName()),
+                any(OrganizationEventSubscriptionEventHandler.class), any());
     }
 
     /**
