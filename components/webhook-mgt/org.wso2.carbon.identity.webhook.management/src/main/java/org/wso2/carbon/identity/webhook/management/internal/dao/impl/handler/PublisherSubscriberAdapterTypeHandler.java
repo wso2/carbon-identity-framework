@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -37,7 +38,9 @@ import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessag
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -370,12 +373,37 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         return dao.getWebhooksCount(tenantId);
     }
 
+    /**
+     * Applies an update that leaves every value the hub holds as it is, and rejects any other.
+     * <p>
+     * Only the channel set, the endpoint and the secret are ever given to the hub, and a subscribing
+     * organization is reached through the topic of the organization owning the webhook rather than one of its
+     * own. An update that changes none of those three has nothing to tell the hub, whatever it does to the name
+     * or to the organizations a channel fans out to, so it is written straight to the database.
+     *
+     * @param webhook  Webhook as the update requests it.
+     * @param tenantId Tenant the webhook belongs to.
+     * @throws WebhookMgtException If the update reaches a value the hub holds, or the write fails.
+     */
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        throw WebhookManagementExceptionHandler.handleClientException(
-                ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
-                "updateWebhook not supported for PublisherSubscriber");
+        Webhook existingWebhook = dao.getWebhook(webhook.getId(), tenantId);
+        if (existingWebhook == null) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhook.getId());
+        }
+        if (!leavesHubStateUntouched(webhook, existingWebhook)) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
+                    "the PublisherSubscriber adapter beyond the webhook name and its organization subscriptions");
+        }
+        /*
+         The stored channels, secret and status are carried over rather than taken from the request: this update
+         reaches none of them, and resending the channels would risk their subscription statuses.
+         */
+        dao.updateWebhook(buildWebhookWith(webhook, existingWebhook.getEventsSubscribed(),
+                existingWebhook.getSecret(), existingWebhook.getStatus()), tenantId);
     }
 
     @Override
@@ -452,6 +480,36 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                 .eventsSubscribed(updatedSubs)
                 .ownerTenantDomain(base.getOwnerTenantDomain())
                 .build();
+    }
+
+    /**
+     * Whether an update is confined to values the hub does not hold.
+     *
+     * @param webhook         Webhook as the update requests it.
+     * @param existingWebhook Webhook as it is stored.
+     * @return True when the channel set, the endpoint and the secret all stay as they are.
+     * @throws WebhookMgtException If the stored channels cannot be read.
+     */
+    private boolean leavesHubStateUntouched(Webhook webhook, Webhook existingWebhook) throws WebhookMgtException {
+
+        // An absent secret keeps the stored one; a value present is a rotation the hub has to be told about.
+        if (StringUtils.isNotEmpty(webhook.getSecret())) {
+            return false;
+        }
+        if (!StringUtils.equals(webhook.getEndpoint(), existingWebhook.getEndpoint())) {
+            return false;
+        }
+        return channelUrisOf(webhook).equals(channelUrisOf(existingWebhook));
+    }
+
+    private Set<String> channelUrisOf(Webhook webhook) throws WebhookMgtException {
+
+        if (webhook.getEventsSubscribed() == null) {
+            return Collections.emptySet();
+        }
+        return webhook.getEventsSubscribed().stream()
+                .map(Subscription::getChannelUri)
+                .collect(Collectors.toSet());
     }
 
     private List<Subscription> mergeSubscriptions(List<Subscription> original, List<Subscription> updates) {

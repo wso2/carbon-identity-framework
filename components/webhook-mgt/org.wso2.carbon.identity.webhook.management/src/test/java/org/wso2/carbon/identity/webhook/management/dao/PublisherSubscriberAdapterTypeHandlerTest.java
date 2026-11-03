@@ -230,11 +230,91 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         verify(dao).getWebhooksCount(1);
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
-    public void testUpdateWebhook() throws WebhookMgtException {
+    @Test
+    public void testUpdateWebhookAppliesChangeTheHubDoesNotHold() throws WebhookMgtException {
 
-        Webhook webhook = mock(Webhook.class);
-        handler.updateWebhook(webhook, 1);
+        mockStoredWebhook();
+        Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
+        when(update.getName()).thenReturn("Renamed webhook");
+
+        handler.updateWebhook(update, 1);
+
+        verify(dao, times(1)).updateWebhook(any(Webhook.class), eq(1));
+    }
+
+    @Test(expectedExceptions = WebhookMgtException.class)
+    public void testUpdateWebhookRejectsEndpointChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        try {
+            handler.updateWebhook(mockWebhookUpdate(null, "https://other-endpoint", "login"), 1);
+        } finally {
+            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+        }
+    }
+
+    @Test(expectedExceptions = WebhookMgtException.class)
+    public void testUpdateWebhookRejectsSecretRotation() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        try {
+            handler.updateWebhook(mockWebhookUpdate("rotatedSecret", "https://endpoint", "login"), 1);
+        } finally {
+            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+        }
+    }
+
+    @Test(expectedExceptions = WebhookMgtException.class)
+    public void testUpdateWebhookRejectsChannelSetChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        try {
+            handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login", "registration"), 1);
+        } finally {
+            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+        }
+    }
+
+    @Test(expectedExceptions = WebhookMgtException.class)
+    public void testUpdateWebhookRejectsUnknownWebhook() throws WebhookMgtException {
+
+        when(dao.getWebhook("id", 1)).thenReturn(null);
+        handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
+    }
+
+    private Webhook mockStoredWebhook() throws WebhookMgtException {
+
+        Webhook stored = mock(Webhook.class);
+        when(stored.getId()).thenReturn("id");
+        when(stored.getEndpoint()).thenReturn("https://endpoint");
+        when(stored.getSecret()).thenReturn("storedSecret");
+        when(stored.getStatus()).thenReturn(WebhookStatus.PARTIALLY_ACTIVE);
+        when(stored.getEventsSubscribed()).thenReturn(subscriptions("login"));
+        when(dao.getWebhook("id", 1)).thenReturn(stored);
+
+        return stored;
+    }
+
+    private Webhook mockWebhookUpdate(String secret, String endpoint, String... channelUris)
+            throws WebhookMgtException {
+
+        Webhook update = mock(Webhook.class);
+        when(update.getId()).thenReturn("id");
+        when(update.getSecret()).thenReturn(secret);
+        when(update.getEndpoint()).thenReturn(endpoint);
+        when(update.getEventsSubscribed()).thenReturn(subscriptions(channelUris));
+
+        return update;
+    }
+
+    private List<Subscription> subscriptions(String... channelUris) {
+
+        List<Subscription> subscriptions = new ArrayList<>();
+        for (String channelUri : channelUris) {
+            subscriptions.add(Subscription.builder().channelUri(channelUri).build());
+        }
+
+        return subscriptions;
     }
 
     @Test(expectedExceptions = WebhookMgtException.class)
