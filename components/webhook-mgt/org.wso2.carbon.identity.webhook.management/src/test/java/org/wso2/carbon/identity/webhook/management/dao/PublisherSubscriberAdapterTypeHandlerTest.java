@@ -243,11 +243,7 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
 
         handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
 
-        /*
-         Every property is asserted against the stored webhook rather than the request, because the point of
-         the write is that it carries nothing of the request: the organization subscriptions are the whole of
-         the update and the service layer writes those separately.
-         */
+        // Asserted against the stored webhook: the write must carry nothing of the request.
         ArgumentCaptor<Webhook> captor = ArgumentCaptor.forClass(Webhook.class);
         verify(dao, times(1)).updateWebhook(captor.capture(), eq(1));
         Webhook written = captor.getValue();
@@ -309,10 +305,7 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
                 ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND);
     }
 
-    /**
-     * Asserts that the update is refused as reaching beyond the organization subscriptions, rather than
-     * for some other reason such as the webhook not being found, and that nothing was written.
-     */
+    // Refused by the guard rather than for some other reason, and nothing written.
     private void assertRejectedAsUnsupported(Webhook update) throws WebhookMgtException {
 
         assertRejectedWith(update, ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED);

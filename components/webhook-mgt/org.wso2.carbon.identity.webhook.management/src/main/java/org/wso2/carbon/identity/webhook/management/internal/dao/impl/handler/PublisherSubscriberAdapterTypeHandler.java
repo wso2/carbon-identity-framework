@@ -374,12 +374,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
     }
 
     /**
-     * Applies an update that changes only the organization subscription, and rejects any other.
-     * <p>
-     * A subscribing organization is reached through the topic of the organization owning the webhook rather
-     * than one of its own, so the fanout is held here and never reaches the hub. Every other writable property
-     * stays as unchangeable as it was before, the channel set, the endpoint and the secret because the hub
-     * holds them, and the name so that this adapter keeps refusing what it always refused.
+     * Applies an update that changes only the organization subscriptions, and rejects any other.
      *
      * @param webhook  Webhook as the update requests it.
      * @param tenantId Tenant the webhook belongs to.
@@ -398,11 +393,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
                     "the PublisherSubscriber adapter beyond the organization subscriptions of its channels");
         }
-        /*
-         The stored webhook is written back as it stands rather than anything from the request: the organization
-         subscriptions are the whole of this update and the service layer writes them separately, so no property
-         of the request can reach the webhook row even if a later caller stops being checked above.
-         */
+        // Written from the stored webhook, so no property of the request can reach the row.
         dao.updateWebhook(buildWebhookWith(existingWebhook, existingWebhook.getEventsSubscribed(),
                 existingWebhook.getSecret(), existingWebhook.getStatus()), tenantId);
     }
@@ -484,7 +475,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
     }
 
     /**
-     * Whether an update carries nothing but the organization subscription of its channels.
+     * Whether an update carries nothing but the organization subscriptions of its channels.
      *
      * @param webhook         Webhook as the update requests it.
      * @param existingWebhook Webhook as it is stored.
@@ -498,10 +489,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         if (StringUtils.isNotEmpty(webhook.getSecret())) {
             return false;
         }
-        /*
-         The event profile is checked because the replace operation takes its name and URI from the request,
-         unlike the version and the status, which it carries over from the stored webhook.
-         */
+        // The event profile is checked because the replace operation takes it from the request.
         if (!StringUtils.equals(webhook.getEndpoint(), existingWebhook.getEndpoint())
                 || !StringUtils.equals(webhook.getName(), existingWebhook.getName())
                 || !StringUtils.equals(webhook.getEventProfileName(), existingWebhook.getEventProfileName())
