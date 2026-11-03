@@ -22,10 +22,12 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimValidationUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
@@ -51,7 +53,14 @@ import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.Utils;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -65,6 +74,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
@@ -105,6 +116,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.PREFERENC
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_REGEX_VIOLATION_ERROR_MSG;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.VALIDATIONS;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
@@ -320,6 +332,10 @@ public class InputValidationService {
             if (ORGANIZATION_IDENTIFIER_TYPE.equals(identifierTypes.get(userInput.getKey()))) {
                 validateOrganizationInput(context.getTenantDomain(), userInput.getKey(), userInput.getValue());
             } else if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+                if (USERNAME_CLAIM_URI.equals(userInput.getKey()) &&
+                        Constants.FlowTypes.REGISTRATION.getType().equals(context.getFlowType())) {
+                    validateUsernameWithUserStoreRegex(context.getTenantDomain(), userInput.getValue());
+                }
                 validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
                         skipUniquenessValidation);
             } else if (userInput.getKey().equals(PASSWORD_KEY)) {
@@ -655,6 +671,90 @@ public class InputValidationService {
             }
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
         }
+    }
+
+    /**
+     * Validate the username against the username regex of the user store it will be created in, which applies
+     * when username input validation is disabled.
+     */
+    private void validateUsernameWithUserStoreRegex(String tenantDomain, String username) throws FlowEngineException {
+
+        if (StringUtils.isBlank(username) ||
+                Boolean.parseBoolean(IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED)) ||
+                UserCoreUtil.getSkipUsernamePatternValidationThreadLocal()) {
+            return;
+        }
+        RealmConfiguration realmConfig = getUserStoreRealmConfiguration(tenantDomain, username);
+        if (realmConfig == null) {
+            return;
+        }
+        String regex = getUsernameRegex(realmConfig);
+        if (StringUtils.isBlank(regex)) {
+            return;
+        }
+        try {
+            if (Pattern.compile(regex).matcher(UserCoreUtil.removeDomainFromName(username)).matches()) {
+                return;
+            }
+        } catch (PatternSyntaxException e) {
+            LOG.debug("Invalid username regex in the user store configuration. Skipping username regex validation.",
+                    e);
+            return;
+        }
+        LOG.debug("Username does not match the username regex of the user store.");
+        String message = realmConfig.getUserStoreProperty(USERNAME_REGEX_VIOLATION_ERROR_MSG);
+        if (StringUtils.isBlank(message)) {
+            message = ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED.getMessage();
+        }
+        throw new FlowEngineClientException(ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED.getCode(), message,
+                String.format(ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED.getDescription(), username));
+    }
+
+    /**
+     * Get the realm configuration of the user store the username will be created in, or null if unavailable.
+     */
+    private RealmConfiguration getUserStoreRealmConfiguration(String tenantDomain, String username) {
+
+        RealmService realmService = FlowExecutionEngineDataHolder.getInstance().getRealmService();
+        if (realmService == null) {
+            return null;
+        }
+        try {
+            UserRealm userRealm = realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
+            if (userRealm == null) {
+                return null;
+            }
+            UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+            String userStoreDomain = FlowExecutionEngineUtils.userStoreDomainOf(username);
+            if (!IdentityUtil.getPrimaryDomainName().equalsIgnoreCase(userStoreDomain)) {
+                userStoreManager = userStoreManager.getSecondaryUserStoreManager(userStoreDomain);
+            }
+            return userStoreManager != null ? userStoreManager.getRealmConfiguration() : null;
+        } catch (UserStoreException | IdentityRuntimeException e) {
+            LOG.debug("Error while resolving the user store of the username. Skipping username regex validation.", e);
+            return null;
+        }
+    }
+
+    /**
+     * Get the username regex of the user store, selected the same way the user store manager selects it.
+     */
+    private String getUsernameRegex(RealmConfiguration realmConfig) {
+
+        String regex = realmConfig.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG_EX);
+        if (StringUtils.isBlank(regex)) {
+            regex = realmConfig.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG);
+        }
+        if (MultitenantUtils.isEmailUserName()) {
+            String emailRegex = realmConfig.getUserStoreProperty(
+                    UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX);
+            if (StringUtils.isNotBlank(emailRegex)) {
+                regex = emailRegex;
+            } else if (StringUtils.isBlank(regex)) {
+                regex = UserCoreConstants.RealmConfig.EMAIL_VALIDATION_REGEX;
+            }
+        }
+        return StringUtils.trim(regex);
     }
 
     /**
