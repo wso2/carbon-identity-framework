@@ -21,6 +21,7 @@
 <suite name="org.wso2.carbon.identity.flow.extension">
     <test name="flow-extension-tests" preserve-order="true" parallel="false">
         <classes>
+            <class name="org.wso2.carbon.identity.flow.extension.executor.FlowExtensionExecutorTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.executor.FlowExtensionRequestBuilderTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.executor.FlowExtensionResponseProcessorTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.executor.JWEEncryptionUtilTest"/>

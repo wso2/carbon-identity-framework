@@ -2408,6 +2408,17 @@
             {% endif %}
     </MaskingLogs>
 
+    <!--
+        When set to 'true', failures of resources configured by tenant administrators (e.g. action endpoints,
+        tenant level email/SMS providers and external connections) are reported only through the tenant's
+        diagnostic logs and are logged at DEBUG level in the carbon logs, instead of as errors.
+        Failures of resources configured at the server level (e.g. in deployment.toml) are still logged as errors.
+        Note: when the diagnostic log mode of a tenant is NONE, such failures are only visible at DEBUG level.
+    -->
+    <TenantResourceFailureLogs>
+        <DiagnosticOnly>{{tenant_resource_failure_logs.diagnostic_only}}</DiagnosticOnly>
+    </TenantResourceFailureLogs>
+
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <AutofillUsernameFieldWithSubjectAttribute>{{authentication.jit_provisioning.autofill_username_field_with_subject_attribute}}</AutofillUsernameFieldWithSubjectAttribute>
