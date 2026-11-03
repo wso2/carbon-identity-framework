@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionSt
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.OrganizationSubscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
@@ -277,6 +278,17 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
     }
 
     @Test
+    public void testUpdateWebhookRejectsAnUpdateWithoutOrganizationSubscriptions()
+            throws WebhookMgtException {
+
+        mockStoredWebhook();
+        Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
+        // The shape v1 sends: every property matches, but it carries no organization subscriptions.
+        when(update.getOrganizationSubscriptions()).thenReturn(Collections.emptyList());
+        assertRejectedAsUnsupported(update);
+    }
+
+    @Test
     public void testUpdateWebhookRejectsStatusChange() throws WebhookMgtException {
 
         mockStoredWebhook();
@@ -357,8 +369,19 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         when(update.getEventProfileName()).thenReturn(PROFILE_NAME);
         when(update.getEventProfileUri()).thenReturn(PROFILE_URI);
         when(update.getEventsSubscribed()).thenReturn(subscriptions(channelUris));
+        when(update.getOrganizationSubscriptions()).thenReturn(organizationSubscriptions(channelUris));
 
         return update;
+    }
+
+    private List<OrganizationSubscription> organizationSubscriptions(String... channelUris) {
+
+        List<OrganizationSubscription> organizationSubscriptionList = new ArrayList<>();
+        for (String channelUri : channelUris) {
+            organizationSubscriptionList.add(OrganizationSubscription.builder().channelUri(channelUri).build());
+        }
+
+        return organizationSubscriptionList;
     }
 
     private List<Subscription> subscriptions(String... channelUris) {

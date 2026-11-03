@@ -484,6 +484,10 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
     private boolean isOrganizationSubscriptionOnlyUpdate(Webhook webhook, Webhook existingWebhook)
             throws WebhookMgtException {
 
+        // v1 never carries organization subscriptions, so without them there is nothing here to accept.
+        if (webhook.getOrganizationSubscriptions() == null || webhook.getOrganizationSubscriptions().isEmpty()) {
+            return false;
+        }
         // An absent secret keeps the stored one; a value present is a rotation the hub has to be told about.
         if (StringUtils.isNotEmpty(webhook.getSecret())) {
             return false;
