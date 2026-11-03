@@ -393,7 +393,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         if (!isOrganizationSubscriptionOnlyUpdate(webhook, existingWebhook)) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
-                    "the PublisherSubscriber adapter beyond the organization subscriptions of its channels");
+                    "updateWebhook not supported for PublisherSubscriber");
         }
     }
 
