@@ -116,6 +116,10 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
 
         clearCaches(applicationId, tenantId);
         corsOriginDAO.setCORSOrigins(applicationId, corsOrigins, tenantId);
+        // The write can rewrite the casing of an origin row shared with other applications, so clear their cached
+        // origins too, after the write has committed.
+        CORSOriginByAppIdCache.getInstance().clear(tenantId);
+        clearCaches(tenantId);
     }
 
     /**
@@ -133,6 +137,8 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
 
         clearCaches(applicationId, tenantId);
         corsOriginDAO.addCORSOrigins(applicationId, corsOrigins, tenantId);
+        CORSOriginByAppIdCache.getInstance().clear(tenantId);
+        clearCaches(tenantId);
     }
 
     /**

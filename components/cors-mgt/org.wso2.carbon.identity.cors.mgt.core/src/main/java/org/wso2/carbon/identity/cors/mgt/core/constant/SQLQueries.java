@@ -40,8 +40,11 @@ public class SQLQueries {
             "ORDER BY ID ASC";
 
     public static final String GET_CORS_ORIGIN_ID =
-            "SELECT ID FROM IDN_CORS_ORIGIN " +
+            "SELECT ID, ORIGIN FROM IDN_CORS_ORIGIN " +
             "WHERE TENANT_ID = :TENANT_ID; AND ORIGIN = :ORIGIN;";
+
+    public static final String UPDATE_CORS_ORIGIN =
+            "UPDATE IDN_CORS_ORIGIN SET ORIGIN = ? WHERE ID = ?";
 
     public static final String GET_CORS_ORIGIN_ID_BY_UUID =
             "SELECT ID " +
