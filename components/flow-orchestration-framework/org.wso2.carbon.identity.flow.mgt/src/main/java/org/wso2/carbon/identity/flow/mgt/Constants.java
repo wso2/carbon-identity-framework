@@ -340,6 +340,7 @@ public class Constants {
 
         public static final String USER_ONBOARDING = "UserOnboardingExecutor";
         public static final String USER_RESOLVER = "UserResolveExecutor";
+        public static final String FLOW_EXTENSION = "FlowExtensionExecutor";
 
         private ExecutorTypes() {
 

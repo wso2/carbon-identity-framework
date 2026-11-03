@@ -43,9 +43,18 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.internal.FlowExtensionDataHolder;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.extension.model.OperationExecutionResult;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -458,5 +467,131 @@ public class FlowExtensionResponseProcessorTest {
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.FAILED);
         assertEquals(status.getResponse().getFailureReason(), "Failed reason");
         assertEquals(status.getResponse().getFailureDescription(), "Failure description");
+    }
+
+    // ------------------------------------------------------------------ runtime values
+
+    /**
+     * A registration flow defining the runtime values plan, attempts and abTestingKey, and the header x-device.
+     */
+    private FlowExecutionContext execContextWithFlowVariables() {
+
+        FlowVariablesDTO variables = new FlowVariablesDTO();
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("attempts", FlowVariableDataType.INTEGER));
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("abTestingKey", FlowVariableDataType.INTEGER));
+        variables.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.setFlowVariables(variables);
+
+        FlowExecutionContext execCtx = new FlowExecutionContext();
+        execCtx.setTenantDomain(TENANT);
+        execCtx.setFlowType("REGISTRATION");
+        execCtx.setGraphConfig(graphConfig);
+        return execCtx;
+    }
+
+    /**
+     * Process one operation the way the success response does, to read the result it records.
+     */
+    private OperationExecutionResult processOperation(PerformableOperation operation, FlowExecutionContext execCtx)
+            throws Exception {
+
+        Method method = FlowExtensionResponseProcessor.class.getDeclaredMethod("processOperation",
+                PerformableOperation.class, Map.class, Map.class, Map.class, FlowExecutionContext.class);
+        method.setAccessible(true);
+        try {
+            return (OperationExecutionResult) method.invoke(processor, operation, new HashMap<>(), new HashMap<>(),
+                    new HashMap<>(), execCtx);
+        } catch (InvocationTargetException e) {
+            throw (Exception) e.getCause();
+        }
+    }
+
+    @Test
+    public void testRuntimeValueReplaceCollectedAsPending() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        FlowContext actionFlowContext =
+                FlowContext.create().add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+        List<PerformableOperation> ops = Arrays.asList(
+                replace("/runtimeValues[name=plan]", "gold"),
+                replace("/runtimeValues[name=attempts]", "3"));
+
+        ActionExecutionStatus<?> status = processor.processSuccessResponse(actionFlowContext, successContext(ops));
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        Map<?, ?> pending = (Map<?, ?>) actionFlowContext.getContextData()
+                .get(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY);
+        assertNotNull(pending);
+        assertEquals(pending.size(), 2);
+        assertEquals(pending.get("plan"), "gold");
+        assertEquals(pending.get("attempts"), 3L);
+        // The runtime values change only when the engine applies the pending values.
+        assertTrue(execCtx.getRuntimeValues().isEmpty());
+
+        assertEquals(processOperation(replace("/runtimeValues[name=plan]", "gold"), execCtx).getStatus(),
+                OperationExecutionResult.Status.SUCCESS);
+        assertEquals(processOperation(replace("/runtimeValues[name=abTestingKey]", 42), execCtx).getStatus(),
+                OperationExecutionResult.Status.SUCCESS);
+    }
+
+    /**
+     * A runtime value the flow does not define, an A/B testing key out of range, a value not valid for the type, and
+     * a malformed path each fail, and the response still succeeds.
+     */
+    @Test
+    public void testInvalidRuntimeValueReplaceFails() throws Exception {
+
+        List<PerformableOperation> ops = Arrays.asList(
+                replace("/runtimeValues[name=undefined]", "x"),
+                replace("/runtimeValues[name=abTestingKey]", 100),
+                replace("/runtimeValues[name=attempts]", "three"),
+                replace("/runtimeValues[name=attempts]", null),
+                replace("/runtimeValues[name=plan", "gold"));
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        FlowContext actionFlowContext =
+                FlowContext.create().add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionStatus<?> status = processor.processSuccessResponse(actionFlowContext, successContext(ops));
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertNull(actionFlowContext.getContextData().get(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY));
+        for (PerformableOperation op : ops) {
+            assertEquals(processOperation(op, execCtx).getStatus(), OperationExecutionResult.Status.FAILURE,
+                    op.getPath() + " = " + op.getValue());
+        }
+    }
+
+    @Test
+    public void testRuntimeValueReplaceFailsWhenTheFlowDefinesNone() throws Exception {
+
+        FlowContext actionFlowContext = actionFlowContext();
+        PerformableOperation op = replace("/runtimeValues[name=plan]", "gold");
+
+        processor.processSuccessResponse(actionFlowContext, successContext(Collections.singletonList(op)));
+
+        assertNull(actionFlowContext.getContextData().get(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY));
+        assertEquals(processOperation(op, new FlowExecutionContext()).getStatus(),
+                OperationExecutionResult.Status.FAILURE);
+    }
+
+    @Test
+    public void testRequestHeaderReplaceFailsAsReadOnly() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        FlowContext actionFlowContext =
+                FlowContext.create().add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+        PerformableOperation op = replace("/request/additionalHeaders[name=x-device]", Collections.singletonList("a"));
+
+        ActionExecutionStatus<?> status = processor.processSuccessResponse(actionFlowContext,
+                successContext(Collections.singletonList(op)));
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertNull(actionFlowContext.getContextData().get(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY));
+        assertTrue(execCtx.getRequest().getHeaders().isEmpty());
+        OperationExecutionResult result = processOperation(op, execCtx);
+        assertEquals(result.getStatus(), OperationExecutionResult.Status.FAILURE);
+        assertTrue(result.getMessage().contains("read-only"), result.getMessage());
     }
 }

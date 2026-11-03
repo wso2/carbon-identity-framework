@@ -24,13 +24,27 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.Mockito.mockStatic;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotSame;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.NON_MODIFIABLE_PATHS;
 
@@ -167,5 +181,101 @@ public class FlowExtensionUtilTest {
 
         assertFalse(FlowExtensionUtil.isNonModifiablePath("/user/claims"));
         assertFalse(FlowExtensionUtil.isNonModifiablePath(USER_ID_PATH + "{[string]}"));
+    }
+
+    // ------------------------------------------------------------------ runtime value and header selectors
+
+    @Test
+    public void testRuntimeValueSelector() {
+
+        assertTrue(FlowExtensionUtil.isRuntimeValuePath("/runtimeValues[name=plan]"));
+        assertFalse(FlowExtensionUtil.isRuntimeValuePath("/runtimeValues"));
+        assertFalse(FlowExtensionUtil.isRuntimeValuePath("/request/additionalHeaders[name=x-device]"));
+        assertFalse(FlowExtensionUtil.isRuntimeValuePath(null));
+
+        assertEquals(FlowExtensionUtil.getRuntimeValueName("/runtimeValues[name=plan]"), "plan");
+        assertNull(FlowExtensionUtil.getRuntimeValueName("/runtimeValues[name=]"));
+        assertNull(FlowExtensionUtil.getRuntimeValueName("/runtimeValues[name=plan"));
+        assertNull(FlowExtensionUtil.getRuntimeValueName("/runtimeValues[name=plan]]"));
+        assertNull(FlowExtensionUtil.getRuntimeValueName("/runtimeValues[name=a]/b]"));
+        assertNull(FlowExtensionUtil.getRuntimeValueName("/request/additionalHeaders[name=plan]"));
+        assertNull(FlowExtensionUtil.getRuntimeValueName(null));
+    }
+
+    @Test
+    public void testRequestHeaderSelector() {
+
+        assertTrue(FlowExtensionUtil.isRequestHeaderPath("/request/additionalHeaders[name=x-device]"));
+        assertFalse(FlowExtensionUtil.isRequestHeaderPath("/request/additionalHeaders"));
+        assertFalse(FlowExtensionUtil.isRequestHeaderPath("/runtimeValues[name=plan]"));
+        assertFalse(FlowExtensionUtil.isRequestHeaderPath(null));
+
+        assertEquals(FlowExtensionUtil.getRequestHeaderName("/request/additionalHeaders[name=X-Device]"),
+                "X-Device");
+        assertNull(FlowExtensionUtil.getRequestHeaderName("/request/additionalHeaders[name=]"));
+        assertNull(FlowExtensionUtil.getRequestHeaderName("/request/additionalHeaders[name=x-device"));
+        assertNull(FlowExtensionUtil.getRequestHeaderName("/runtimeValues[name=plan]"));
+    }
+
+    // ------------------------------------------------------------------ filterContext
+
+    /**
+     * The copy handed to an extension carries the runtime values, the request headers and the definitions of the
+     * flow's variables, but not its steps, and changing the copy leaves the original as it was.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testFilterContextCopiesFlowVariables() {
+
+        FlowVariablesDTO variables = new FlowVariablesDTO();
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
+        variables.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.setFlowVariables(variables);
+        graphConfig.setFirstNodeId("first");
+        graphConfig.getNodeConfigs().put("first", new NodeConfig.Builder().id("first").type("VIEW").build());
+
+        FlowExecutionContext original = contextWithUser();
+        original.setFlowType("REGISTRATION");
+        original.setGraphConfig(graphConfig);
+        original.getRuntimeValues().put("plan", "gold");
+        List<String> device = new ArrayList<>(Collections.singletonList("mobile"));
+        original.getRequest().getHeaders().put("x-device", device);
+
+        FlowExecutionContext copy = FlowExtensionUtil.filterContext(original);
+
+        assertEquals(copy.getRuntimeValues(), Collections.singletonMap("plan", "gold"));
+        assertEquals(copy.getRequest().getHeaders().get("x-device"), Collections.singletonList("mobile"));
+        assertNotSame(copy.getGraphConfig(), graphConfig);
+        assertSame(copy.getGraphConfig().getFlowVariables(), variables);
+        assertNull(copy.getGraphConfig().getFirstNodeId());
+        assertTrue(copy.getGraphConfig().getNodeConfigs().isEmpty());
+
+        copy.getRuntimeValues().put("plan", "basic");
+        ((List<Object>) copy.getRequest().getHeaders().get("x-device")).add("tablet");
+        assertEquals(original.getRuntimeValues().get("plan"), "gold");
+        assertEquals(device, Collections.singletonList("mobile"));
+    }
+
+    @Test
+    public void testFilterContextWithoutGraphConfig() {
+
+        FlowExecutionContext original = contextWithUser();
+
+        FlowExecutionContext copy = FlowExtensionUtil.filterContext(original);
+
+        assertNull(copy.getGraphConfig());
+        assertTrue(copy.getRuntimeValues().isEmpty());
+        assertTrue(copy.getRequest().getHeaders().isEmpty());
+    }
+
+    private static FlowExecutionContext contextWithUser() {
+
+        // A user with a username, so that copying the user does not resolve one from the tenant's settings.
+        FlowUser user = new FlowUser();
+        user.setUsername("alice");
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setFlowUser(user);
+        return context;
     }
 }

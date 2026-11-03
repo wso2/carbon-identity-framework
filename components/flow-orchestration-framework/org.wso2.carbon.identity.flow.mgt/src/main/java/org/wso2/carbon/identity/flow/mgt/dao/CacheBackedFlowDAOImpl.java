@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.flow.mgt.cache.GraphConfigCache;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 
@@ -33,6 +34,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.flow.mgt.Constants.DEFAULT_FLOW_NAME;
 
@@ -77,6 +79,12 @@ public class CacheBackedFlowDAOImpl implements FlowDAO {
             FlowMgtCache.getInstance().addToCache(flowMgtCacheKey, flowDTO, tenantId);
         }
         return flowDTO;
+    }
+
+    @Override
+    public Map<String, FlowVariablesDTO> getFlowVariables(int tenantId) throws FlowMgtServerException {
+
+        return FLOW_DAO.getFlowVariables(tenantId);
     }
 
     @Override

@@ -35,6 +35,7 @@ public class ExecutorResponse {
     private List<String> optionalData;
     private Map<String, Object> updatedUserClaims;
     private Map<String, char[]> userCredentials;
+    private Map<String, Object> updatedRuntimeValues;
     private Map<String, Object> contextProperties;
     private Map<String, String> additionalInfo;
     private List<MessageDTO> messages;
@@ -98,6 +99,22 @@ public class ExecutorResponse {
     public void setUserCredentials(Map<String, char[]> userCredentials) {
 
         this.userCredentials = userCredentials;
+    }
+
+    /**
+     * Values the executor gives runtime values of the flow, by name. Each is checked against the flow's definition
+     * before it is kept.
+     *
+     * @return The runtime values, or null when there are none.
+     */
+    public Map<String, Object> getUpdatedRuntimeValues() {
+
+        return updatedRuntimeValues;
+    }
+
+    public void setUpdatedRuntimeValues(Map<String, Object> updatedRuntimeValues) {
+
+        this.updatedRuntimeValues = updatedRuntimeValues;
     }
 
     public Map<String, Object> getContextProperties() {

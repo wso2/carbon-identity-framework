@@ -36,11 +36,14 @@ import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowTypeVariablesDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.rule.FlowRuleValidator;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableValidator;
 import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
 import org.wso2.carbon.identity.flow.mgt.utils.SystemDefaultFlowProvider;
@@ -53,6 +56,7 @@ import org.wso2.carbon.utils.AuditLog;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,6 +139,47 @@ public class FlowMgtService {
             return SystemDefaultFlowProvider.getInstance().getSystemDefaultFlow(flowType);
         }
         return FLOW_DAO.getFlow(flowType, tenantIdWithResource);
+    }
+
+    /**
+     * Get the headers and runtime values the flow of each flow type defines for the given tenant, as the flow
+     * extension metadata lists them. Each flow type is read from the first tenant in the organization hierarchy that
+     * has the flow, and the variables of a resolved tenant are read with one query. The system default flows are not
+     * looked up. Each flow type also has the system runtime values every flow defines.
+     *
+     * @param tenantID The tenant ID.
+     * @return One entry per flow type, or an empty list when flow variables are disabled.
+     * @throws FlowMgtFrameworkException If an error occurs while retrieving the variables.
+     */
+    public List<FlowTypeVariablesDTO> getFlowVariables(int tenantID) throws FlowMgtFrameworkException {
+
+        if (!FlowMgtUtils.isFlowVariablesEnabled()) {
+            return Collections.emptyList();
+        }
+        Map<Integer, Map<String, FlowVariablesDTO>> variablesByTenant = new HashMap<>();
+        List<FlowTypeVariablesDTO> flowTypeVariables = new ArrayList<>();
+
+        for (Constants.FlowTypes flowType : Constants.FlowTypes.values()) {
+            Integer tenantIdWithResource = getFirstTenantWithFlow(flowType.getType(), tenantID);
+            FlowVariablesDTO stored = null;
+            if (tenantIdWithResource != null) {
+                Map<String, FlowVariablesDTO> storedVariables = variablesByTenant.get(tenantIdWithResource);
+                if (storedVariables == null) {
+                    storedVariables = FLOW_DAO.getFlowVariables(tenantIdWithResource);
+                    variablesByTenant.put(tenantIdWithResource, storedVariables);
+                }
+                stored = storedVariables.get(flowType.getType());
+            }
+
+            FlowTypeVariablesDTO variables = new FlowTypeVariablesDTO(flowType.getType());
+            if (stored != null) {
+                variables.setHeaders(stored.getHeaders());
+                variables.setRuntimeValues(stored.getRuntimeValues());
+            }
+            FlowVariableUtils.withSystemRuntimeValues(variables);
+            flowTypeVariables.add(variables);
+        }
+        return flowTypeVariables;
     }
 
     /**

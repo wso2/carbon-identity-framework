@@ -26,6 +26,7 @@ import java.util.List;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -92,6 +93,8 @@ public class AccessConfigTest {
     public void testIsReadOnly() {
 
         assertTrue(AccessConfig.isReadOnly("/flow/flowType"));
+        assertTrue(AccessConfig.isReadOnly("/request/additionalHeaders[name=x-device]"));
+        assertFalse(AccessConfig.isReadOnly("/runtimeValues[name=plan]"));
         assertFalse(AccessConfig.isReadOnly("/user/id"));
         assertFalse(AccessConfig.isReadOnly(null));
     }
@@ -119,5 +122,47 @@ public class AccessConfigTest {
         assertFalse(AccessConfig.isExposedPath(null, leaves));
         assertFalse(AccessConfig.isExposedPath("/user/id", null));
         assertFalse(AccessConfig.isExposedPath("/user/id", Collections.emptyList()));
+    }
+
+    /**
+     * A flow sees the entries without a flow type, and those of its own flow type.
+     */
+    @Test
+    public void testForFlowTypeKeepsSharedEntriesAndThoseOfTheFlowType() {
+
+        AccessConfig config = new AccessConfig(
+                Arrays.asList(new ContextPath("/user/id", false),
+                        new ContextPath("/runtimeValues[name=plan]", false, "REGISTRATION"),
+                        new ContextPath("/runtimeValues[name=plan]", true, "PASSWORD_RECOVERY"),
+                        new ContextPath("/request/additionalHeaders[name=x-device]", false, "REGISTRATION")),
+                Arrays.asList(new ContextPath("/user/claims[uri=http://wso2.org/claims/givenname]", false),
+                        new ContextPath("/runtimeValues[name=plan]", false, "PASSWORD_RECOVERY")));
+
+        AccessConfig registration = config.forFlowType("REGISTRATION");
+        assertEquals(registration.getExposePaths(), Arrays.asList("/user/id", "/runtimeValues[name=plan]",
+                "/request/additionalHeaders[name=x-device]"));
+        assertFalse(registration.isExposePathEncrypted("/runtimeValues[name=plan]"));
+        assertEquals(registration.getModifyPaths(),
+                Collections.singletonList("/user/claims[uri=http://wso2.org/claims/givenname]"));
+
+        AccessConfig recovery = config.forFlowType("PASSWORD_RECOVERY");
+        assertEquals(recovery.getExposePaths(), Arrays.asList("/user/id", "/runtimeValues[name=plan]"));
+        assertTrue(recovery.isExposePathEncrypted("/runtimeValues[name=plan]"));
+        assertEquals(recovery.getModifyPaths(), Arrays.asList(
+                "/user/claims[uri=http://wso2.org/claims/givenname]", "/runtimeValues[name=plan]"));
+
+        assertEquals(config.forFlowType(null).getExposePaths(), Collections.singletonList("/user/id"));
+    }
+
+    @Test
+    public void testForFlowTypeKeepsNullListsAndDropsNullEntries() {
+
+        AccessConfig nullLists = new AccessConfig(null, null).forFlowType("REGISTRATION");
+        assertNull(nullLists.getExpose());
+        assertNull(nullLists.getModify());
+
+        AccessConfig withNull = new AccessConfig(Arrays.asList(null, new ContextPath("/user/id", false)), null)
+                .forFlowType("REGISTRATION");
+        assertEquals(withNull.getExposePaths(), Collections.singletonList("/user/id"));
     }
 }

@@ -55,6 +55,8 @@ import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.OperationExecutionResult;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
@@ -97,6 +99,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         Map<String, Object> pendingClaims = new HashMap<>();
         Map<String, char[]> pendingCredentials = new HashMap<>();
+        Map<String, Object> pendingRuntimeValues = new HashMap<>();
 
         List<OperationExecutionResult> results = new ArrayList<>();
 
@@ -109,7 +112,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
                 }
                 results.add(processOperation(
-                        operation, pendingClaims, pendingCredentials, tenantDomain));
+                        operation, pendingClaims, pendingCredentials, pendingRuntimeValues, execCtx));
             }
         } else {
             if (LOG.isDebugEnabled()) {
@@ -122,6 +125,9 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
         if (!pendingCredentials.isEmpty()) {
             actionFlowContext.add(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
+        }
+        if (!pendingRuntimeValues.isEmpty()) {
+            actionFlowContext.add(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY, pendingRuntimeValues);
         }
 
         logOperationExecutionResults(results);
@@ -138,14 +144,18 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * @param operation           The operation to process.
      * @param pendingClaims       Accumulator map for user claim updates.
      * @param pendingCredentials  Accumulator map for user credential updates.
-     * @param tenantDomain        Tenant domain, used for claim URI validation.
+     * @param pendingRuntimeValues Accumulator map for runtime value updates.
+     * @param execCtx             The FlowExecutionContext, used for claim URI and runtime value validation.
      * @return The result of the operation execution.
      */
     private OperationExecutionResult processOperation(PerformableOperation operation,
                                                       Map<String, Object> pendingClaims,
                                                       Map<String, char[]> pendingCredentials,
-                                                      String tenantDomain)
+                                                      Map<String, Object> pendingRuntimeValues,
+                                                      FlowExecutionContext execCtx)
             throws ActionExecutionResponseProcessorException {
+
+        String tenantDomain = execCtx.getTenantDomain();
 
         String path = operation.getPath();
         if (StringUtils.isBlank(path)) {
@@ -167,10 +177,32 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
         } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
+        } else if (FlowExtensionUtil.isRuntimeValuePath(path)) {
+            return handleRuntimeValueOperation(operation, pendingRuntimeValues, execCtx);
         }
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                 "Unknown path");
+    }
+
+    private OperationExecutionResult handleRuntimeValueOperation(PerformableOperation operation,
+                                                                 Map<String, Object> pendingRuntimeValues,
+                                                                 FlowExecutionContext execCtx) {
+
+        String name = FlowExtensionUtil.getRuntimeValueName(operation.getPath());
+        if (name == null) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Invalid runtime value path.");
+        }
+        Object value = FlowVariableResolver.toRuntimeValue(execCtx, name, operation.getValue());
+        if (value == null) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "The flow does not define a modifiable runtime value '" + name
+                            + "', or the value is not valid for its type.");
+        }
+        pendingRuntimeValues.put(name, value);
+        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
+                "Runtime value updated.");
     }
 
     /**

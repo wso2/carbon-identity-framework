@@ -58,6 +58,7 @@ public final class FlowVariableResolver {
     private static final String NOT_CLIENT_WRITABLE = "The runtime value cannot be set by the app.";
     private static final String EXCLUDED = "It is excluded on this server.";
     private static final String NOT_INITIATION = "Runtime values are accepted only when the flow starts.";
+    private static final String NOT_DEFINED = "The flow does not define the runtime value.";
 
     private FlowVariableResolver() {
 
@@ -135,6 +136,55 @@ public final class FlowVariableResolver {
                 }
             }
         }
+    }
+
+    /**
+     * Reads a value given to a runtime value during the flow, such as by a flow extension, for the type the flow
+     * defines. Text, a number or a boolean is read for the type, so both 10 and "10" are an integer.
+     *
+     * @param context Flow execution context, with the flow's graph attached.
+     * @param name    Name of the runtime value.
+     * @param value   The value.
+     * @return The value in the form kept for its type, or null when the flow does not define the runtime value, or
+     * the value is not valid for its type. The A/B testing key must also be in its allowed range.
+     */
+    public static Object toRuntimeValue(FlowExecutionContext context, String name, Object value) {
+
+        FlowRuntimeValueDTO runtimeValue = findRuntimeValue(context, name);
+        if (runtimeValue == null) {
+            return null;
+        }
+        if (SystemRuntimeValues.AB_TESTING_KEY.equals(name)) {
+            return FlowVariableUtils.toAbTestingKey(FlowVariableUtils.fromInput(FlowVariableDataType.INTEGER, value));
+        }
+        return FlowVariableUtils.fromInput(runtimeValue.getDataType(), value);
+    }
+
+    /**
+     * Keeps a value given to a runtime value during the flow, such as by an executor. A value the flow does not
+     * define, or a value not valid for its type is ignored with a diagnostic log.
+     *
+     * @param context Flow execution context, with the flow's graph attached.
+     * @param name    Name of the runtime value.
+     * @param value   The value.
+     * @return True if the value was kept.
+     */
+    public static boolean setRuntimeValue(FlowExecutionContext context, String name, Object value) {
+
+        if (!FlowMgtUtils.isFlowVariablesEnabled()) {
+            return false;
+        }
+        if (findRuntimeValue(context, name) == null) {
+            logIgnored(context, FlowVariableTypes.RUNTIME_VALUE, name, NOT_DEFINED);
+            return false;
+        }
+        Object runtimeValue = toRuntimeValue(context, name, value);
+        if (runtimeValue == null) {
+            logIgnored(context, FlowVariableTypes.RUNTIME_VALUE, name, NOT_VALID);
+            return false;
+        }
+        context.getRuntimeValues().put(name, runtimeValue);
+        return true;
     }
 
     /**
