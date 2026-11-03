@@ -188,6 +188,9 @@ public class Constants {
                 "Conditional branching is not enabled.",
                 "The decision step %s in the %s flow of tenant: %s cannot run because conditional branching is not "
                         + "enabled on this server."),
+        ERROR_CODE_FLOW_INPUT_VALIDATOR_FAILURE("65038",
+                "Error while validating the user inputs.",
+                "The flow input validator %s failed in the %s flow of tenant: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",

@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.FlowExecutionService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
+import org.wso2.carbon.identity.flow.execution.engine.validation.FlowInputValidator;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
@@ -206,6 +207,29 @@ public class FlowExecutionEngineServiceComponent {
             LOG.debug("Unsetting executor in the Flow Engine component: " + executor.getName());
         }
         FlowExecutionEngineDataHolder.getInstance().removeExecutor(executor);
+    }
+
+    @Reference(
+            name = "FlowInputValidator",
+            service = FlowInputValidator.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetFlowInputValidator")
+    protected void setFlowInputValidator(FlowInputValidator flowInputValidator) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting flow input validator in the Flow Engine component: " + flowInputValidator.getName());
+        }
+        FlowExecutionEngineDataHolder.getInstance().addFlowInputValidator(flowInputValidator);
+    }
+
+    protected void unsetFlowInputValidator(FlowInputValidator flowInputValidator) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting flow input validator in the Flow Engine component: " +
+                    flowInputValidator.getName());
+        }
+        FlowExecutionEngineDataHolder.getInstance().removeFlowInputValidator(flowInputValidator);
     }
 
     @Reference(
