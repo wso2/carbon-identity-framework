@@ -288,6 +288,25 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
     }
 
     @Test
+    public void testUpdateWebhookRejectsStatusChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
+        when(update.getStatus()).thenReturn(WebhookStatus.INACTIVE);
+        assertRejectedAsUnsupported(update);
+    }
+
+    @Test
+    public void testUpdateWebhookAcceptsAnAbsentStatus() throws WebhookMgtException {
+
+        mockStoredWebhook();
+
+        handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
+
+        verify(dao, times(1)).updateWebhook(any(Webhook.class), eq(1));
+    }
+
+    @Test
     public void testUpdateWebhookRejectsEventProfileChange() throws WebhookMgtException {
 
         mockStoredWebhook();

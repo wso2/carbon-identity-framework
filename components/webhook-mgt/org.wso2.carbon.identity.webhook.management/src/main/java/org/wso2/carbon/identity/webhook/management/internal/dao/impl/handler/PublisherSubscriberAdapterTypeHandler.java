@@ -489,6 +489,10 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         if (StringUtils.isNotEmpty(webhook.getSecret())) {
             return false;
         }
+        // Absent is unchanged; v1 takes the status from the request, so a value present can differ.
+        if (webhook.getStatus() != null && webhook.getStatus() != existingWebhook.getStatus()) {
+            return false;
+        }
         // The event profile is checked because the replace operation takes it from the request.
         if (!StringUtils.equals(webhook.getEndpoint(), existingWebhook.getEndpoint())
                 || !StringUtils.equals(webhook.getName(), existingWebhook.getName())
