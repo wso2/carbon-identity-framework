@@ -399,10 +399,11 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     "the PublisherSubscriber adapter beyond the organization subscriptions of its channels");
         }
         /*
-         The stored channels, secret and status are carried over rather than taken from the request: this update
-         reaches none of them, and resending the channels would risk their subscription statuses.
+         The stored webhook is written back as it stands rather than anything from the request: the organization
+         subscriptions are the whole of this update and the service layer writes them separately, so no property
+         of the request can reach the webhook row even if a later caller stops being checked above.
          */
-        dao.updateWebhook(buildWebhookWith(webhook, existingWebhook.getEventsSubscribed(),
+        dao.updateWebhook(buildWebhookWith(existingWebhook, existingWebhook.getEventsSubscribed(),
                 existingWebhook.getSecret(), existingWebhook.getStatus()), tenantId);
     }
 
@@ -487,7 +488,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
      *
      * @param webhook         Webhook as the update requests it.
      * @param existingWebhook Webhook as it is stored.
-     * @return True when the channel set, the endpoint, the secret and the name all stay as they are.
+     * @return True when every property this adapter has never accepted stays as it is.
      * @throws WebhookMgtException If the stored channels cannot be read.
      */
     private boolean isOrganizationSubscriptionOnlyUpdate(Webhook webhook, Webhook existingWebhook)
@@ -497,8 +498,14 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         if (StringUtils.isNotEmpty(webhook.getSecret())) {
             return false;
         }
+        /*
+         The event profile is checked because the replace operation takes its name and URI from the request,
+         unlike the version and the status, which it carries over from the stored webhook.
+         */
         if (!StringUtils.equals(webhook.getEndpoint(), existingWebhook.getEndpoint())
-                || !StringUtils.equals(webhook.getName(), existingWebhook.getName())) {
+                || !StringUtils.equals(webhook.getName(), existingWebhook.getName())
+                || !StringUtils.equals(webhook.getEventProfileName(), existingWebhook.getEventProfileName())
+                || !StringUtils.equals(webhook.getEventProfileUri(), existingWebhook.getEventProfileUri())) {
             return false;
         }
         return channelUrisOf(webhook).equals(channelUrisOf(existingWebhook));

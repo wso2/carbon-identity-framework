@@ -61,6 +61,8 @@ import static org.mockito.Mockito.when;
 public class PublisherSubscriberAdapterTypeHandlerTest {
 
     private static final String WEBHOOK_NAME = "Login webhook";
+    private static final String PROFILE_NAME = "WSO2";
+    private static final String PROFILE_URI = "https://schemas.identity.wso2.org/events";
 
     private PublisherSubscriberAdapterTypeHandler handler;
     private WebhookManagementDAO dao;
@@ -289,6 +291,19 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
     }
 
     @Test(expectedExceptions = WebhookMgtException.class)
+    public void testUpdateWebhookRejectsEventProfileChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
+        when(update.getEventProfileName()).thenReturn("OTHER");
+        try {
+            handler.updateWebhook(update, 1);
+        } finally {
+            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+        }
+    }
+
+    @Test(expectedExceptions = WebhookMgtException.class)
     public void testUpdateWebhookRejectsUnknownWebhook() throws WebhookMgtException {
 
         when(dao.getWebhook("id", 1)).thenReturn(null);
@@ -301,6 +316,8 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         when(stored.getId()).thenReturn("id");
         when(stored.getEndpoint()).thenReturn("https://endpoint");
         when(stored.getName()).thenReturn(WEBHOOK_NAME);
+        when(stored.getEventProfileName()).thenReturn(PROFILE_NAME);
+        when(stored.getEventProfileUri()).thenReturn(PROFILE_URI);
         when(stored.getSecret()).thenReturn("storedSecret");
         when(stored.getStatus()).thenReturn(WebhookStatus.PARTIALLY_ACTIVE);
         when(stored.getEventsSubscribed()).thenReturn(subscriptions("login"));
@@ -317,6 +334,8 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         when(update.getSecret()).thenReturn(secret);
         when(update.getEndpoint()).thenReturn(endpoint);
         when(update.getName()).thenReturn(WEBHOOK_NAME);
+        when(update.getEventProfileName()).thenReturn(PROFILE_NAME);
+        when(update.getEventProfileUri()).thenReturn(PROFILE_URI);
         when(update.getEventsSubscribed()).thenReturn(subscriptions(channelUris));
 
         return update;
