@@ -54,7 +54,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -70,7 +73,6 @@ import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_ADD;
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_RETRIEVE;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.GET_CORS_ORIGINS_BY_APPLICATION_ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ASSOCIATION;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ORIGIN;
@@ -85,6 +87,9 @@ import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.ha
  * Unit test cases for CORSService.
  */
 public class CORSManagementServiceTests {
+
+    private static final String STALE_ORIGIN = "https://MYAPP.example.com:8084";
+    private static final String SUBMITTED_ORIGIN = "https://myapp.example.com:8084";
 
     private ConfigurationManager configurationManager;
     private Connection connection;
@@ -234,62 +239,104 @@ public class CORSManagementServiceTests {
     }
 
     @Test
-    public void testSetCORSOrigins() throws CORSManagementServiceException {
+    public void testSetCORSOrigins() throws Exception {
 
         corsManagementService.setCORSOrigins(SampleApp1.UUID, SAMPLE_ORIGIN_LIST_1, SUPER_TENANT_DOMAIN_NAME);
         corsManagementService.setCORSOrigins(SampleApp2.UUID, SAMPLE_ORIGIN_LIST_2, SUPER_TENANT_DOMAIN_NAME);
 
-        List<CORSOrigin> retrievedCORSOrigins = new ArrayList<>();
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (NamedPreparedStatement namedPreparedStatement =
-                         new NamedPreparedStatement(connection, GET_CORS_ORIGINS_BY_APPLICATION_ID)) {
-                namedPreparedStatement.setInt(1, SUPER_TENANT_ID);
-                namedPreparedStatement.setInt(2, SampleApp1.ID);
-                try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
-                    while (resultSet.next()) {
-                        CORSOrigin corsOrigin = new CORSOrigin();
-                        corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.ID));
-                        corsOrigin.setOrigin(resultSet.getString(CORSOriginTableColumns.ORIGIN));
-                        retrievedCORSOrigins.add(corsOrigin);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw handleServerException(ERROR_CODE_CORS_RETRIEVE, e, SUPER_TENANT_DOMAIN_NAME);
-        }
-
-        assertEquals(retrievedCORSOrigins.stream().map(CORSOrigin::getOrigin).collect(Collectors.toList()),
-                SAMPLE_ORIGIN_LIST_1);
+        assertEquals(getStoredOrigins(SampleApp1.ID), SAMPLE_ORIGIN_LIST_1);
     }
 
     @Test
-    public void testAddCORSOrigins() throws CORSManagementServiceException {
+    public void testSetCORSOriginsReusesCaseInsensitivelyMatchedOrigin() throws Exception {
+
+        createDanglingOrigin(STALE_ORIGIN);
+
+        // The submitted lowercase value matches the dangling row; it must be stored as submitted.
+        corsManagementService.setCORSOrigins(SampleApp2.UUID, Collections.singletonList(SUBMITTED_ORIGIN),
+                SUPER_TENANT_DOMAIN_NAME);
+
+        assertEquals(getStoredOrigins(SampleApp2.ID), Collections.singletonList(SUBMITTED_ORIGIN));
+    }
+
+    @Test
+    public void testAddCORSOriginsReusesCaseInsensitivelyMatchedOrigin() throws Exception {
+
+        createDanglingOrigin(STALE_ORIGIN);
+
+        corsManagementService.addCORSOrigins(SampleApp2.UUID, Collections.singletonList(SUBMITTED_ORIGIN),
+                SUPER_TENANT_DOMAIN_NAME);
+
+        assertEquals(getStoredOrigins(SampleApp2.ID), Collections.singletonList(SUBMITTED_ORIGIN));
+    }
+
+    @Test
+    public void testDAOAssociatesOriginsDifferingOnlyInCaseOnce() throws Exception {
+
+        makeOriginColumnCaseInsensitive();
+        List<CORSOrigin> origins = Arrays.asList(new CORSOrigin(null, STALE_ORIGIN),
+                new CORSOrigin(null, SUBMITTED_ORIGIN));
+
+        corsOriginDAO.setCORSOrigins(SampleApp1.ID, origins, SUPER_TENANT_ID);
+        assertEquals(getStoredOrigins(SampleApp1.ID), Collections.singletonList(STALE_ORIGIN));
+
+        corsOriginDAO.addCORSOrigins(SampleApp2.ID, origins, SUPER_TENANT_ID);
+        assertEquals(getStoredOrigins(SampleApp2.ID), Collections.singletonList(STALE_ORIGIN));
+    }
+
+    /**
+     * Saves an origin for an application and then unlinks it, leaving a dangling row in a case-insensitive table.
+     */
+    private void createDanglingOrigin(String origin) throws Exception {
+
+        makeOriginColumnCaseInsensitive();
+        corsManagementService.setCORSOrigins(SampleApp1.UUID, Collections.singletonList(origin),
+                SUPER_TENANT_DOMAIN_NAME);
+        corsManagementService.setCORSOrigins(SampleApp1.UUID, Collections.emptyList(), SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     * Mimics a case-insensitive database collation (MySQL, SQL Server), where the origin lookup matches regardless
+     * of case. The unique index on the column is left out because H2 ignores an update that only changes the case
+     * of an indexed case-insensitive value, which the real databases do not.
+     */
+    private void makeOriginColumnCaseInsensitive() throws SQLException {
+
+        try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate("DROP TABLE IDN_CORS_ASSOCIATION");
+            statement.executeUpdate("DROP TABLE IDN_CORS_ORIGIN");
+            statement.executeUpdate("CREATE TABLE IDN_CORS_ORIGIN (ID INT NOT NULL AUTO_INCREMENT, " +
+                    "TENANT_ID INT NOT NULL, ORIGIN VARCHAR_IGNORECASE(2048) NOT NULL, UUID CHAR(36) NOT NULL, " +
+                    "PRIMARY KEY (ID))");
+            statement.executeUpdate("CREATE TABLE IDN_CORS_ASSOCIATION (IDN_CORS_ORIGIN_ID INT NOT NULL, " +
+                    "SP_APP_ID INT NOT NULL, PRIMARY KEY (IDN_CORS_ORIGIN_ID, SP_APP_ID), " +
+                    "FOREIGN KEY (IDN_CORS_ORIGIN_ID) REFERENCES IDN_CORS_ORIGIN (ID) ON DELETE CASCADE)");
+        }
+    }
+
+    private List<String> getStoredOrigins(int applicationId) throws SQLException {
+
+        List<String> origins = new ArrayList<>();
+        try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(conn, GET_CORS_ORIGINS_BY_APPLICATION_ID)) {
+            statement.setInt(1, SUPER_TENANT_ID);
+            statement.setInt(2, applicationId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    origins.add(resultSet.getString(CORSOriginTableColumns.ORIGIN));
+                }
+            }
+        }
+        return origins;
+    }
+
+    @Test
+    public void testAddCORSOrigins() throws Exception {
 
         corsManagementService.addCORSOrigins(SampleApp1.UUID, SAMPLE_ORIGIN_LIST_1, SUPER_TENANT_DOMAIN_NAME);
 
-        List<CORSOrigin> retrievedCORSOrigins = new ArrayList<>();
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (NamedPreparedStatement namedPreparedStatement =
-                         new NamedPreparedStatement(connection, GET_CORS_ORIGINS_BY_APPLICATION_ID)) {
-                namedPreparedStatement.setInt(1, SUPER_TENANT_ID);
-                namedPreparedStatement.setInt(2, SampleApp1.ID);
-                try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
-                    while (resultSet.next()) {
-                        CORSOrigin corsOrigin = new CORSOrigin();
-                        corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.ID));
-                        corsOrigin.setOrigin(resultSet.getString(CORSOriginTableColumns.ORIGIN));
-                        retrievedCORSOrigins.add(corsOrigin);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw handleServerException(ERROR_CODE_CORS_RETRIEVE, e, SUPER_TENANT_DOMAIN_NAME);
-        }
-
-        assertEquals(retrievedCORSOrigins.stream().map(CORSOrigin::getOrigin).collect(Collectors.toList()),
-                SAMPLE_ORIGIN_LIST_1);
+        assertEquals(getStoredOrigins(SampleApp1.ID), SAMPLE_ORIGIN_LIST_1);
     }
 
     @Test

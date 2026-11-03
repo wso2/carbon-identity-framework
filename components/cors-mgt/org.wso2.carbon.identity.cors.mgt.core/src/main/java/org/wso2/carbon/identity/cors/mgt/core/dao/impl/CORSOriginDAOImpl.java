@@ -31,7 +31,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_ADD;
@@ -48,6 +50,7 @@ import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.GET_COR
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.GET_CORS_ORIGIN_ID_BY_UUID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ASSOCIATION;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ORIGIN;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.UPDATE_CORS_ORIGIN;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.ORIGIN;
@@ -177,6 +180,8 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
 
                 // cleanupDanglingOrigins(connection, tenantId);
 
+                // Origins can resolve to the same stored row, as the lookup follows the database collation.
+                Set<Integer> associatedOriginIds = new HashSet<>();
                 for (CORSOrigin corsOrigin : corsOrigins) {
                     // Check if the origins is there.
                     try (NamedPreparedStatement namedPreparedStatement2 =
@@ -204,6 +209,12 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                             } else {
                                 // Get origin id.
                                 corsOriginId = resultSet1.getInt(CORSOriginTableColumns.ID);
+                                updateOriginIfCaseDiffers(connection, corsOriginId, corsOrigin.getOrigin(),
+                                        resultSet1.getString(ORIGIN), associatedOriginIds);
+                            }
+
+                            if (!associatedOriginIds.add(corsOriginId)) {
+                                continue;
                             }
 
                             // Add application associations.
@@ -229,6 +240,25 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
     }
 
     /**
+     * The origin lookup follows the database collation, so the matched row can differ in case from the submitted
+     * origin. Store the submitted value, as the CORS valve receives it from the browser. A row already resolved
+     * earlier in the same request keeps its value.
+     */
+    private void updateOriginIfCaseDiffers(Connection connection, int corsOriginId, String submittedOrigin,
+                                           String storedOrigin, Set<Integer> associatedOriginIds)
+            throws SQLException {
+
+        if (associatedOriginIds.contains(corsOriginId) || submittedOrigin.equals(storedOrigin)) {
+            return;
+        }
+        try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_CORS_ORIGIN)) {
+            preparedStatement.setString(1, submittedOrigin);
+            preparedStatement.setInt(2, corsOriginId);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -239,6 +269,8 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
+                // Origins can resolve to the same stored row, as the lookup follows the database collation.
+                Set<Integer> associatedOriginIds = new HashSet<>();
                 for (CORSOrigin corsOrigin : corsOrigins) {
                     // Check if the origins is there.
                     try (NamedPreparedStatement namedPreparedStatement1 = new NamedPreparedStatement(connection,
@@ -267,6 +299,11 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                         try (ResultSet resultSet2 = namedPreparedStatement3.executeQuery()) {
                             if (resultSet2.next()) {
                                 int corsOriginId = resultSet2.getInt("ID");
+                                updateOriginIfCaseDiffers(connection, corsOriginId, corsOrigin.getOrigin(),
+                                        resultSet2.getString(ORIGIN), associatedOriginIds);
+                                if (!associatedOriginIds.add(corsOriginId)) {
+                                    continue;
+                                }
 
                                 // Add application associations.
                                 try (PreparedStatement preparedStatement4 =
