@@ -374,16 +374,16 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
     }
 
     /**
-     * Applies an update that leaves every value the hub holds as it is, and rejects any other.
+     * Applies an update that changes only the organization subscription, and rejects any other.
      * <p>
-     * Only the channel set, the endpoint and the secret are ever given to the hub, and a subscribing
-     * organization is reached through the topic of the organization owning the webhook rather than one of its
-     * own. An update that changes none of those three has nothing to tell the hub, whatever it does to the name
-     * or to the organizations a channel fans out to, so it is written straight to the database.
+     * A subscribing organization is reached through the topic of the organization owning the webhook rather
+     * than one of its own, so the fanout is held here and never reaches the hub. Every other writable property
+     * stays as unchangeable as it was before, the channel set, the endpoint and the secret because the hub
+     * holds them, and the name so that this adapter keeps refusing what it always refused.
      *
      * @param webhook  Webhook as the update requests it.
      * @param tenantId Tenant the webhook belongs to.
-     * @throws WebhookMgtException If the update reaches a value the hub holds, or the write fails.
+     * @throws WebhookMgtException If the update reaches any other property, or the write fails.
      */
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
@@ -393,10 +393,10 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhook.getId());
         }
-        if (!leavesHubStateUntouched(webhook, existingWebhook)) {
+        if (!isOrganizationSubscriptionOnlyUpdate(webhook, existingWebhook)) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
-                    "the PublisherSubscriber adapter beyond the webhook name and its organization subscriptions");
+                    "the PublisherSubscriber adapter beyond the organization subscriptions of its channels");
         }
         /*
          The stored channels, secret and status are carried over rather than taken from the request: this update
@@ -483,20 +483,22 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
     }
 
     /**
-     * Whether an update is confined to values the hub does not hold.
+     * Whether an update carries nothing but the organization subscription of its channels.
      *
      * @param webhook         Webhook as the update requests it.
      * @param existingWebhook Webhook as it is stored.
-     * @return True when the channel set, the endpoint and the secret all stay as they are.
+     * @return True when the channel set, the endpoint, the secret and the name all stay as they are.
      * @throws WebhookMgtException If the stored channels cannot be read.
      */
-    private boolean leavesHubStateUntouched(Webhook webhook, Webhook existingWebhook) throws WebhookMgtException {
+    private boolean isOrganizationSubscriptionOnlyUpdate(Webhook webhook, Webhook existingWebhook)
+            throws WebhookMgtException {
 
         // An absent secret keeps the stored one; a value present is a rotation the hub has to be told about.
         if (StringUtils.isNotEmpty(webhook.getSecret())) {
             return false;
         }
-        if (!StringUtils.equals(webhook.getEndpoint(), existingWebhook.getEndpoint())) {
+        if (!StringUtils.equals(webhook.getEndpoint(), existingWebhook.getEndpoint())
+                || !StringUtils.equals(webhook.getName(), existingWebhook.getName())) {
             return false;
         }
         return channelUrisOf(webhook).equals(channelUrisOf(existingWebhook));

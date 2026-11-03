@@ -60,6 +60,8 @@ import static org.mockito.Mockito.when;
 
 public class PublisherSubscriberAdapterTypeHandlerTest {
 
+    private static final String WEBHOOK_NAME = "Login webhook";
+
     private PublisherSubscriberAdapterTypeHandler handler;
     private WebhookManagementDAO dao;
     private MockedStatic<WebhookManagementComponentServiceHolder> serviceHolderMock;
@@ -231,15 +233,26 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
     }
 
     @Test
-    public void testUpdateWebhookAppliesChangeTheHubDoesNotHold() throws WebhookMgtException {
+    public void testUpdateWebhookAppliesOrganizationSubscriptionOnlyChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+
+        handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
+
+        verify(dao, times(1)).updateWebhook(any(Webhook.class), eq(1));
+    }
+
+    @Test(expectedExceptions = WebhookMgtException.class)
+    public void testUpdateWebhookRejectsNameChange() throws WebhookMgtException {
 
         mockStoredWebhook();
         Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
         when(update.getName()).thenReturn("Renamed webhook");
-
-        handler.updateWebhook(update, 1);
-
-        verify(dao, times(1)).updateWebhook(any(Webhook.class), eq(1));
+        try {
+            handler.updateWebhook(update, 1);
+        } finally {
+            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+        }
     }
 
     @Test(expectedExceptions = WebhookMgtException.class)
@@ -287,6 +300,7 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         Webhook stored = mock(Webhook.class);
         when(stored.getId()).thenReturn("id");
         when(stored.getEndpoint()).thenReturn("https://endpoint");
+        when(stored.getName()).thenReturn(WEBHOOK_NAME);
         when(stored.getSecret()).thenReturn("storedSecret");
         when(stored.getStatus()).thenReturn(WebhookStatus.PARTIALLY_ACTIVE);
         when(stored.getEventsSubscribed()).thenReturn(subscriptions("login"));
@@ -302,6 +316,7 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         when(update.getId()).thenReturn("id");
         when(update.getSecret()).thenReturn(secret);
         when(update.getEndpoint()).thenReturn(endpoint);
+        when(update.getName()).thenReturn(WEBHOOK_NAME);
         when(update.getEventsSubscribed()).thenReturn(subscriptions(channelUris));
 
         return update;
