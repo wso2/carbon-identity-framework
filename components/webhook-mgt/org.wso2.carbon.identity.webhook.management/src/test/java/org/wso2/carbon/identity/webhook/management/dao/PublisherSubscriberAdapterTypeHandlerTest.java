@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.dao;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -39,6 +40,7 @@ import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtExcep
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler.PublisherSubscriberAdapterTypeHandler;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
@@ -237,77 +239,104 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
     @Test
     public void testUpdateWebhookAppliesOrganizationSubscriptionOnlyChange() throws WebhookMgtException {
 
-        mockStoredWebhook();
+        Webhook stored = mockStoredWebhook();
 
         handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
 
-        verify(dao, times(1)).updateWebhook(any(Webhook.class), eq(1));
+        /*
+         Every property is asserted against the stored webhook rather than the request, because the point of
+         the write is that it carries nothing of the request: the organization subscriptions are the whole of
+         the update and the service layer writes those separately.
+         */
+        ArgumentCaptor<Webhook> captor = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao, times(1)).updateWebhook(captor.capture(), eq(1));
+        Webhook written = captor.getValue();
+        Assert.assertEquals(written.getId(), stored.getId());
+        Assert.assertEquals(written.getName(), WEBHOOK_NAME);
+        Assert.assertEquals(written.getEndpoint(), "https://endpoint");
+        Assert.assertEquals(written.getSecret(), "storedSecret");
+        Assert.assertEquals(written.getStatus(), WebhookStatus.PARTIALLY_ACTIVE);
+        Assert.assertEquals(written.getEventProfileName(), PROFILE_NAME);
+        Assert.assertEquals(written.getEventProfileUri(), PROFILE_URI);
+        Assert.assertEquals(channelUrisOf(written), Collections.singletonList("login"));
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
+    @Test
     public void testUpdateWebhookRejectsNameChange() throws WebhookMgtException {
 
         mockStoredWebhook();
         Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
         when(update.getName()).thenReturn("Renamed webhook");
-        try {
-            handler.updateWebhook(update, 1);
-        } finally {
-            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
-        }
+        assertRejectedAsUnsupported(update);
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
+    @Test
     public void testUpdateWebhookRejectsEndpointChange() throws WebhookMgtException {
 
         mockStoredWebhook();
-        try {
-            handler.updateWebhook(mockWebhookUpdate(null, "https://other-endpoint", "login"), 1);
-        } finally {
-            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
-        }
+        assertRejectedAsUnsupported(mockWebhookUpdate(null, "https://other-endpoint", "login"));
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
+    @Test
     public void testUpdateWebhookRejectsSecretRotation() throws WebhookMgtException {
 
         mockStoredWebhook();
-        try {
-            handler.updateWebhook(mockWebhookUpdate("rotatedSecret", "https://endpoint", "login"), 1);
-        } finally {
-            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
-        }
+        assertRejectedAsUnsupported(mockWebhookUpdate("rotatedSecret", "https://endpoint", "login"));
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
+    @Test
     public void testUpdateWebhookRejectsChannelSetChange() throws WebhookMgtException {
 
         mockStoredWebhook();
-        try {
-            handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login", "registration"), 1);
-        } finally {
-            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
-        }
+        assertRejectedAsUnsupported(mockWebhookUpdate(null, "https://endpoint", "login", "registration"));
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
+    @Test
     public void testUpdateWebhookRejectsEventProfileChange() throws WebhookMgtException {
 
         mockStoredWebhook();
         Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
         when(update.getEventProfileName()).thenReturn("OTHER");
-        try {
-            handler.updateWebhook(update, 1);
-        } finally {
-            verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
-        }
+        assertRejectedAsUnsupported(update);
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
+    @Test
     public void testUpdateWebhookRejectsUnknownWebhook() throws WebhookMgtException {
 
         when(dao.getWebhook("id", 1)).thenReturn(null);
-        handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
+
+        assertRejectedWith(mockWebhookUpdate(null, "https://endpoint", "login"),
+                ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND);
+    }
+
+    /**
+     * Asserts that the update is refused as reaching beyond the organization subscriptions, rather than
+     * for some other reason such as the webhook not being found, and that nothing was written.
+     */
+    private void assertRejectedAsUnsupported(Webhook update) throws WebhookMgtException {
+
+        assertRejectedWith(update, ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED);
+    }
+
+    private void assertRejectedWith(Webhook update, ErrorMessage expected) throws WebhookMgtException {
+
+        try {
+            handler.updateWebhook(update, 1);
+            Assert.fail("Expected the update to be rejected with " + expected.getCode() + ".");
+        } catch (WebhookMgtException e) {
+            Assert.assertEquals(e.getErrorCode(), expected.getCode());
+        }
+        verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+    }
+
+    private List<String> channelUrisOf(Webhook webhook) throws WebhookMgtException {
+
+        List<String> channelUris = new ArrayList<>();
+        for (Subscription subscription : webhook.getEventsSubscribed()) {
+            channelUris.add(subscription.getChannelUri());
+        }
+
+        return channelUris;
     }
 
     private Webhook mockStoredWebhook() throws WebhookMgtException {
