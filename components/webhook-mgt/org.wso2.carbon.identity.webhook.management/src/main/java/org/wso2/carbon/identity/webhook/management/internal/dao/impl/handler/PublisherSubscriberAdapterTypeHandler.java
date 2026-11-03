@@ -374,11 +374,12 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
     }
 
     /**
-     * Applies an update that changes only the organization subscriptions, and rejects any other.
+     * Accepts an update that changes only the organization subscriptions, and rejects any other.
+     * Nothing is written here; the service layer writes the organization subscriptions separately.
      *
      * @param webhook  Webhook as the update requests it.
      * @param tenantId Tenant the webhook belongs to.
-     * @throws WebhookMgtException If the update reaches any other property, or the write fails.
+     * @throws WebhookMgtException If the update reaches any other property, or the webhook is unknown.
      */
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
@@ -393,9 +394,8 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
                     "the PublisherSubscriber adapter beyond the organization subscriptions of its channels");
         }
-        // Written from the stored webhook, so no property of the request can reach the row.
-        dao.updateWebhook(buildWebhookWith(existingWebhook, existingWebhook.getEventsSubscribed(),
-                existingWebhook.getSecret(), existingWebhook.getStatus()), tenantId);
+        // The row is left alone: the guard proves it already matches, and rewriting it would put the
+        // status read above over whatever an activation or deactivation has committed since.
     }
 
     @Override

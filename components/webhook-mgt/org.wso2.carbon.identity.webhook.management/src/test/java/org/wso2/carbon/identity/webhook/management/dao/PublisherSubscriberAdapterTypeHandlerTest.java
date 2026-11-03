@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.webhook.management.dao;
 
-import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -237,24 +236,14 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
     }
 
     @Test
-    public void testUpdateWebhookAppliesOrganizationSubscriptionOnlyChange() throws WebhookMgtException {
+    public void testUpdateWebhookAcceptsOrganizationSubscriptionOnlyChange() throws WebhookMgtException {
 
-        Webhook stored = mockStoredWebhook();
+        mockStoredWebhook();
 
         handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
 
-        // Asserted against the stored webhook: the write must carry nothing of the request.
-        ArgumentCaptor<Webhook> captor = ArgumentCaptor.forClass(Webhook.class);
-        verify(dao, times(1)).updateWebhook(captor.capture(), eq(1));
-        Webhook written = captor.getValue();
-        Assert.assertEquals(written.getId(), stored.getId());
-        Assert.assertEquals(written.getName(), WEBHOOK_NAME);
-        Assert.assertEquals(written.getEndpoint(), "https://endpoint");
-        Assert.assertEquals(written.getSecret(), "storedSecret");
-        Assert.assertEquals(written.getStatus(), WebhookStatus.PARTIALLY_ACTIVE);
-        Assert.assertEquals(written.getEventProfileName(), PROFILE_NAME);
-        Assert.assertEquals(written.getEventProfileUri(), PROFILE_URI);
-        Assert.assertEquals(channelUrisOf(written), Collections.singletonList("login"));
+        // The row must be left alone, so no status an activation commits meanwhile can be overwritten.
+        verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
     }
 
     @Test
@@ -303,7 +292,7 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
 
         handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
 
-        verify(dao, times(1)).updateWebhook(any(Webhook.class), eq(1));
+        verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
     }
 
     @Test
@@ -339,16 +328,6 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
             Assert.assertEquals(e.getErrorCode(), expected.getCode());
         }
         verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
-    }
-
-    private List<String> channelUrisOf(Webhook webhook) throws WebhookMgtException {
-
-        List<String> channelUris = new ArrayList<>();
-        for (Subscription subscription : webhook.getEventsSubscribed()) {
-            channelUris.add(subscription.getChannelUri());
-        }
-
-        return channelUris;
     }
 
     private Webhook mockStoredWebhook() throws WebhookMgtException {
