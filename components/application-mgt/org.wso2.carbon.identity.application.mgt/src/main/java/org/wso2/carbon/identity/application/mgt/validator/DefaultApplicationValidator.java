@@ -128,6 +128,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             "store: '%s' in the discoverable groups configuration.";
     private static final String NO_GROUP_WITH_GIVEN_ID = "No group found for the given group ID: '%s'.";
     public static final String IS_HANDLER = "IS_HANDLER";
+    private static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
     private static final int MODE_ESCAPE = 2;
@@ -158,7 +159,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 serviceProvider.getApplicationID());
         validateLocalAndOutBoundAuthenticationConfig(validationErrors,
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
-                tenantDomain);
+                tenantDomain, serviceProvider.isEnhancedOrganizationAuthenticationEnabled());
         validateRequestPathAuthenticationConfig(validationErrors, serviceProvider.getRequestPathAuthenticatorConfigs(),
                 tenantDomain);
         validateTrustedAppMetadata(validationErrors, serviceProvider);
@@ -356,12 +357,13 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      * @param validationMsg                        validation error messages
      * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
      * @param tenantDomain                         tenant domain
+     * @param isEnhancedOrgAuthenticationEnabled   whether enhanced organization authentication is enabled for the app
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
      *                                                authenticator params
      */
     private void validateLocalAndOutBoundAuthenticationConfig(List<String> validationMsg,
               LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig,
-              String tenantDomain)
+              String tenantDomain, boolean isEnhancedOrgAuthenticationEnabled)
             throws IdentityApplicationManagementException {
 
         if (localAndOutBoundAuthenticationConfig == null) {
@@ -388,7 +390,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, localAuth.getName()));
                 } else if (!isAuthenticatorIncluded.get()) {
                     Property[] properties = allLocalAuthenticators.get(localAuth.getName());
-                    if (properties.length == 0) {
+                    if (properties.length == 0 || (isEnhancedOrgAuthenticationEnabled &&
+                            ORGANIZATION_IDENTIFIER_HANDLER.equals(localAuth.getName()))) {
                         isAuthenticatorIncluded.set(true);
                     } else {
                         for (Property property : properties) {
