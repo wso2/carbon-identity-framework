@@ -36,9 +36,11 @@ import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionSt
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.OrganizationSubscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler.PublisherSubscriberAdapterTypeHandler;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
@@ -59,6 +61,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PublisherSubscriberAdapterTypeHandlerTest {
+
+    private static final String WEBHOOK_NAME = "Login webhook";
+    private static final String PROFILE_NAME = "WSO2";
+    private static final String PROFILE_URI = "https://schemas.identity.wso2.org/events";
 
     private PublisherSubscriberAdapterTypeHandler handler;
     private WebhookManagementDAO dao;
@@ -230,11 +236,162 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         verify(dao).getWebhooksCount(1);
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
-    public void testUpdateWebhook() throws WebhookMgtException {
+    @Test
+    public void testUpdateWebhookAcceptsOrganizationSubscriptionOnlyChange() throws WebhookMgtException {
 
-        Webhook webhook = mock(Webhook.class);
-        handler.updateWebhook(webhook, 1);
+        mockStoredWebhook();
+
+        handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
+
+        // The row must be left alone, so no status an activation commits meanwhile can be overwritten.
+        verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+    }
+
+    @Test
+    public void testUpdateWebhookRejectsNameChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
+        when(update.getName()).thenReturn("Renamed webhook");
+        assertRejectedAsUnsupported(update);
+    }
+
+    @Test
+    public void testUpdateWebhookRejectsEndpointChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        assertRejectedAsUnsupported(mockWebhookUpdate(null, "https://other-endpoint", "login"));
+    }
+
+    @Test
+    public void testUpdateWebhookRejectsSecretRotation() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        assertRejectedAsUnsupported(mockWebhookUpdate("rotatedSecret", "https://endpoint", "login"));
+    }
+
+    @Test
+    public void testUpdateWebhookRejectsChannelSetChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        assertRejectedAsUnsupported(mockWebhookUpdate(null, "https://endpoint", "login", "registration"));
+    }
+
+    @Test
+    public void testUpdateWebhookRejectsAnUpdateWithoutOrganizationSubscriptions()
+            throws WebhookMgtException {
+
+        mockStoredWebhook();
+        Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
+        // The shape v1 sends: every property matches, but it carries no organization subscriptions.
+        when(update.getOrganizationSubscriptions()).thenReturn(Collections.emptyList());
+        assertRejectedAsUnsupported(update);
+    }
+
+    @Test
+    public void testUpdateWebhookRejectsStatusChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
+        when(update.getStatus()).thenReturn(WebhookStatus.INACTIVE);
+        assertRejectedAsUnsupported(update);
+    }
+
+    @Test
+    public void testUpdateWebhookAcceptsAnAbsentStatus() throws WebhookMgtException {
+
+        mockStoredWebhook();
+
+        handler.updateWebhook(mockWebhookUpdate(null, "https://endpoint", "login"), 1);
+
+        verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+    }
+
+    @Test
+    public void testUpdateWebhookRejectsEventProfileChange() throws WebhookMgtException {
+
+        mockStoredWebhook();
+        Webhook update = mockWebhookUpdate(null, "https://endpoint", "login");
+        when(update.getEventProfileName()).thenReturn("OTHER");
+        assertRejectedAsUnsupported(update);
+    }
+
+    @Test
+    public void testUpdateWebhookRejectsUnknownWebhook() throws WebhookMgtException {
+
+        when(dao.getWebhook("id", 1)).thenReturn(null);
+
+        assertRejectedWith(mockWebhookUpdate(null, "https://endpoint", "login"),
+                ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND);
+    }
+
+    // Refused by the guard rather than for some other reason, and nothing written.
+    private void assertRejectedAsUnsupported(Webhook update) throws WebhookMgtException {
+
+        assertRejectedWith(update, ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED);
+    }
+
+    private void assertRejectedWith(Webhook update, ErrorMessage expected) throws WebhookMgtException {
+
+        try {
+            handler.updateWebhook(update, 1);
+            Assert.fail("Expected the update to be rejected with " + expected.getCode() + ".");
+        } catch (WebhookMgtException e) {
+            Assert.assertEquals(e.getErrorCode(), expected.getCode());
+        }
+        verify(dao, never()).updateWebhook(any(Webhook.class), anyInt());
+    }
+
+    private Webhook mockStoredWebhook() throws WebhookMgtException {
+
+        Webhook stored = mock(Webhook.class);
+        when(stored.getId()).thenReturn("id");
+        when(stored.getEndpoint()).thenReturn("https://endpoint");
+        when(stored.getName()).thenReturn(WEBHOOK_NAME);
+        when(stored.getEventProfileName()).thenReturn(PROFILE_NAME);
+        when(stored.getEventProfileUri()).thenReturn(PROFILE_URI);
+        when(stored.getSecret()).thenReturn("storedSecret");
+        when(stored.getStatus()).thenReturn(WebhookStatus.PARTIALLY_ACTIVE);
+        when(stored.getEventsSubscribed()).thenReturn(subscriptions("login"));
+        when(dao.getWebhook("id", 1)).thenReturn(stored);
+
+        return stored;
+    }
+
+    private Webhook mockWebhookUpdate(String secret, String endpoint, String... channelUris)
+            throws WebhookMgtException {
+
+        Webhook update = mock(Webhook.class);
+        when(update.getId()).thenReturn("id");
+        when(update.getSecret()).thenReturn(secret);
+        when(update.getEndpoint()).thenReturn(endpoint);
+        when(update.getName()).thenReturn(WEBHOOK_NAME);
+        when(update.getEventProfileName()).thenReturn(PROFILE_NAME);
+        when(update.getEventProfileUri()).thenReturn(PROFILE_URI);
+        when(update.getEventsSubscribed()).thenReturn(subscriptions(channelUris));
+        when(update.getOrganizationSubscriptions()).thenReturn(organizationSubscriptions(channelUris));
+
+        return update;
+    }
+
+    private List<OrganizationSubscription> organizationSubscriptions(String... channelUris) {
+
+        List<OrganizationSubscription> organizationSubscriptionList = new ArrayList<>();
+        for (String channelUri : channelUris) {
+            organizationSubscriptionList.add(OrganizationSubscription.builder().channelUri(channelUri).build());
+        }
+
+        return organizationSubscriptionList;
+    }
+
+    private List<Subscription> subscriptions(String... channelUris) {
+
+        List<Subscription> subscriptions = new ArrayList<>();
+        for (String channelUri : channelUris) {
+            subscriptions.add(Subscription.builder().channelUri(channelUri).build());
+        }
+
+        return subscriptions;
     }
 
     @Test(expectedExceptions = WebhookMgtException.class)
