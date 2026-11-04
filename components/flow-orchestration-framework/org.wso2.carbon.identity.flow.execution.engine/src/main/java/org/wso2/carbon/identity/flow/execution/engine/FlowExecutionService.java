@@ -213,6 +213,12 @@ public class FlowExecutionService {
                         .initiatingPersona(Flow.InitiatingPersona.ADMIN)
                         .build());
                 return true;
+            case PROFILE_UPDATE:
+                IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                        .name(Flow.Name.PROFILE_UPDATE)
+                        .initiatingPersona(Flow.InitiatingPersona.USER)
+                        .build());
+                return true;
             default:
                 return false;
         }

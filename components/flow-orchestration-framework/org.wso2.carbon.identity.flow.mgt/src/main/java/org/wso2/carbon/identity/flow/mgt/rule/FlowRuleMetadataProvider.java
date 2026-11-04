@@ -129,6 +129,9 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
         fields.put(FlowType.INVITED_USER_REGISTRATION, Collections.unmodifiableList(Arrays.asList(
                 USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES, RUNTIME_VALUES,
                 REQUEST_HEADERS)));
+        fields.put(FlowType.PROFILE_UPDATE, Collections.unmodifiableList(Arrays.asList(
+                APPLICATION, USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES,
+                RUNTIME_VALUES, REQUEST_HEADERS)));
         FIELDS_BY_FLOW_TYPE = Collections.unmodifiableMap(fields);
     }
 

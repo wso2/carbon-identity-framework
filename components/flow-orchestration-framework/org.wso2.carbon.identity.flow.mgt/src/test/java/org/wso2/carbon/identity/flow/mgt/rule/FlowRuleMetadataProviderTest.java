@@ -110,6 +110,11 @@ public class FlowRuleMetadataProviderTest {
                 FlowRuleMetadataProvider.USER_DOMAIN, FlowRuleMetadataProvider.USER_GROUPS,
                 FlowRuleMetadataProvider.USER_ROLES, FlowRuleMetadataProvider.RUNTIME_VALUES,
                 FlowRuleMetadataProvider.REQUEST_HEADERS));
+        assertEquals(fieldNamesOf(FlowType.PROFILE_UPDATE), Arrays.asList(
+                FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_ATTRIBUTES,
+                FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES, FlowRuleMetadataProvider.USER_DOMAIN,
+                FlowRuleMetadataProvider.USER_GROUPS, FlowRuleMetadataProvider.USER_ROLES,
+                FlowRuleMetadataProvider.RUNTIME_VALUES, FlowRuleMetadataProvider.REQUEST_HEADERS));
     }
 
     @Test
