@@ -625,10 +625,10 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         }
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
-        String[] federatedMappingsToRemove;
+        long currentTime = FrameworkUtils.getCurrentStandardNano();
+        Set<String> federatedMappingsToRemove;
         try {
             federatedMappingsToRemove = jdbcTemplate.withTransaction(template -> {
-                long currentTime = FrameworkUtils.getCurrentStandardNano();
                 Set<String> terminatedAuthSessionIds = getSessionsTerminated(template, currentTime);
                 String[] sessionsToRemove = terminatedAuthSessionIds.toArray(new String[0]);
 
@@ -645,22 +645,31 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                             SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
                     deleteSessionDataFromTable(sessionsToRemove, template, IDN_AUTH_SESSION_META_DATA_TABLE,
                             SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_META_DATA);
-
-                    // Keep the federated session mappings of sessions that still have a record that has not expired.
-                    terminatedAuthSessionIds.removeAll(getExpiredSessionsWithActiveRecord(template, currentTime));
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("No expired sessions found to remove.");
                     }
                 }
-                return terminatedAuthSessionIds.toArray(new String[0]);
+                return terminatedAuthSessionIds;
             });
         } catch (TransactionException e) {
             log.error("Error while removing expired session information from the database.", e);
             return;
         }
-        if (federatedMappingsToRemove.length > 0) {
-            removeFederatedAuthSessionMappings(federatedMappingsToRemove);
+        if (federatedMappingsToRemove.isEmpty()) {
+            return;
+        }
+
+        // Keep the federated session mappings of sessions that still have a record that has not expired.
+        try {
+            federatedMappingsToRemove.removeAll(getExpiredSessionsWithActiveRecord(jdbcTemplate, currentTime));
+        } catch (DataAccessException e) {
+            log.error("Error while retrieving the expired sessions that still have an active record. Federated " +
+                    "authentication session mappings are not removed in this run.", e);
+            return;
+        }
+        if (!federatedMappingsToRemove.isEmpty()) {
+            removeFederatedAuthSessionMappings(federatedMappingsToRemove.toArray(new String[0]));
         }
     }
 
@@ -1404,16 +1413,16 @@ public class UserSessionDAOImpl implements UserSessionDAO {
      * Get the sessions that have an expired record and also a record that has not expired. Each update of a session
      * adds a record, so these sessions are still active.
      *
-     * @param template    jdbc template bound to the on-going transaction
-     * @param currentTime time used to decide whether a record has expired
+     * @param jdbcTemplate jdbc template of the session database
+     * @param currentTime  time used to decide whether a record has expired
      * @return session ids of the active sessions that have an expired record
      * @throws DataAccessException if the DB execution fails
      */
-    private Set<String> getExpiredSessionsWithActiveRecord(Template<?> template, long currentTime)
+    private Set<String> getExpiredSessionsWithActiveRecord(JdbcTemplate jdbcTemplate, long currentTime)
             throws DataAccessException {
 
         Set<String> activeSessionIds = new HashSet<>();
-        template.executeQuery(SQLQueries.SQL_SELECT_EXPIRED_SESSION_IDS_WITH_ACTIVE_RECORD,
+        jdbcTemplate.executeQuery(SQLQueries.SQL_SELECT_EXPIRED_SESSION_IDS_WITH_ACTIVE_RECORD,
                 (resultSet, rowNumber) -> activeSessionIds.add(resultSet.getString(1)),
                 preparedStatement -> {
                     preparedStatement.setLong(1, currentTime);

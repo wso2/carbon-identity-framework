@@ -59,10 +59,12 @@ import javax.sql.DataSource;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -327,6 +329,43 @@ public class UserSessionDAOImplTest extends IdentityBaseTest {
     }
 
     /**
+     * A failure while looking for active sessions must not undo the removal of the expired session records. The
+     * federated session mappings are kept in that run.
+     */
+    @Test
+    public void testRemoveExpiredSessionRecordsWhenActiveRecordLookupFails() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            String dbName = "testRemoveExpiredActiveRecordLookupFails";
+            initiateH2Base(dbName, getFilePath("h2.sql"));
+            long currentTime = FrameworkUtils.getCurrentStandardNano();
+            try (Connection connection = getConnection(dbName)) {
+                insertSessionContext(connection, "expired-session", currentTime - TimeUnit.MINUTES.toNanos(1));
+                insertUserSessionMapping(connection, "expired-session");
+                insertFederatedSessionMapping(connection, "expired-session-index", "expired-session");
+            }
+            DataSource dataSource = mock(DataSource.class);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getSessionDataSource).thenReturn(dataSource);
+            when(dataSource.getConnection()).thenAnswer(invocation -> {
+                Connection connection = spy(getConnection(dbName));
+                doThrow(new SQLException("Lookup failure")).when(connection)
+                        .prepareStatement(SQLQueries.SQL_SELECT_EXPIRED_SESSION_IDS_WITH_ACTIVE_RECORD);
+                return connection;
+            });
+
+            userSessionDAO.removeExpiredSessionRecords();
+
+            try (Connection connection = getConnection(dbName)) {
+                assertFalse(isUserSessionMappingAvailable(connection, "expired-session"),
+                        "The removal of the expired session records should be committed.");
+                assertTrue(isFederatedSessionMappingAvailable(connection, "expired-session"),
+                        "Federated session mappings should be kept when the active record lookup fails.");
+            }
+        }
+    }
+
+    /**
      * Removing the records of terminated sessions also removes their federated session mappings.
      */
     @Test
@@ -515,6 +554,27 @@ public class UserSessionDAOImplTest extends IdentityBaseTest {
             ps.setString(4, AUTHENTICATOR_ID);
             ps.setString(5, PROTOCOL_TYPE);
             ps.execute();
+        }
+    }
+
+    private void insertUserSessionMapping(Connection connection, String sessionId) throws SQLException {
+
+        try (PreparedStatement ps = connection.prepareStatement("INSERT INTO IDN_AUTH_USER_SESSION_MAPPING " +
+                "(USER_ID, SESSION_ID) VALUES (?, ?)")) {
+            ps.setString(1, "user-id");
+            ps.setString(2, sessionId);
+            ps.execute();
+        }
+    }
+
+    private boolean isUserSessionMappingAvailable(Connection connection, String sessionId) throws SQLException {
+
+        try (PreparedStatement ps = connection.prepareStatement(
+                "SELECT 1 FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID = ?")) {
+            ps.setString(1, sessionId);
+            try (ResultSet resultSet = ps.executeQuery()) {
+                return resultSet.next();
+            }
         }
     }
 
