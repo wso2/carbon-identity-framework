@@ -37,6 +37,7 @@ public class FlowExtensionConstants {
     public static final String MODIFY_PATHS_KEY = "modifyPaths";
     public static final String PENDING_CLAIMS_KEY = "pendingClaims";
     public static final String PENDING_CREDENTIALS_KEY = "pendingCredentials";
+    public static final String PENDING_ORGANIZATION_ATTRIBUTES_KEY = "pendingOrganizationAttributes";
     public static final String PENDING_REDIRECT_URL_KEY = "pendingRedirectUrl";
 
     public static final String ACTION_ID_METADATA_KEY = "actionId";
@@ -84,7 +85,8 @@ public class FlowExtensionConstants {
     }
 
     /**
-     * Default handover policy: which {@code FlowExecutionContext} and {@code FlowUser} fields
+     * Default handover policy: which {@code FlowExecutionContext}, {@code FlowUser}, and
+     * {@code FlowOrganization} fields
      * are forwarded to the action framework. Serves as the documented defaults for the
      * toml-based dynamic config in {@code identity.xml.j2}.
      */
@@ -98,7 +100,8 @@ public class FlowExtensionConstants {
                         "flowType",
                         "callbackUrl",
                         "portalUrl",
-                        "flowUser"
+                        "flowUser",
+                        "flowOrganization"
                 )));
 
         public static final Set<String> INCLUDED_USER_ATTRIBUTES = Collections.unmodifiableSet(
@@ -183,6 +186,8 @@ public class FlowExtensionConstants {
         public static final String ORGANIZATION_ID_PATH = "/organization/id";
         public static final String ORGANIZATION_NAME_PATH = "/organization/name";
         public static final String ORGANIZATION_HANDLE_PATH = "/organization/orgHandle";
+        public static final String ORGANIZATION_DESCRIPTION_PATH = "/organization/description";
+        public static final String ORGANIZATION_ATTRIBUTES_PATH = "/organization/attributes";
         public static final String ORGANIZATION_DEPTH_PATH = "/organization/depth";
 
         private FlowContextPaths() {
