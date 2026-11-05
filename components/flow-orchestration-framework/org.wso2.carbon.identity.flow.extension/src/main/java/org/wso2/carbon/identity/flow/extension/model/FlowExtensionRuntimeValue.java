@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.flow.extension.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.wso2.carbon.identity.flow.extension.util.PlainNumberSerializer;
 
 /**
  * A runtime value of the flow, as sent to the Flow Extension action. The value has the form kept for its data type,
@@ -54,6 +56,7 @@ public class FlowExtensionRuntimeValue {
      * @return The value.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonSerialize(using = PlainNumberSerializer.class)
     public Object getValue() {
 
         return value;

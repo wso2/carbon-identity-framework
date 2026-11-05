@@ -125,18 +125,6 @@ public final class FlowExtensionUtil {
     }
 
     /**
-     * Whether the path addresses an attribute of the organization the flow onboards, as
-     * {@code /subjectOrganization/attributes[name=<name>]}.
-     *
-     * @param path The context path.
-     * @return {@code true} if the path starts with the organization attribute selector.
-     */
-    public static boolean isSubjectOrganizationAttributePath(String path) {
-
-        return path != null && path.startsWith(FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX);
-    }
-
-    /**
      * The attribute name a {@code /subjectOrganization/attributes[name=<name>]} path addresses.
      *
      * @param path The context path.

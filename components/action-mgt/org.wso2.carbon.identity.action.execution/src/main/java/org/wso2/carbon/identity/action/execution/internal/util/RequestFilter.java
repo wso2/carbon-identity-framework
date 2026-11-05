@@ -90,13 +90,23 @@ public class RequestFilter {
         Set<String> normalizedAllowedHeaders = allowedHeaders.stream()
                 .map(header -> header.toLowerCase(Locale.ROOT))
                 .collect(Collectors.toSet());
-        List<Header> normalizeRequestHeaders = requestHeaders.stream()
-                .map(header -> new Header(header.getName().toLowerCase(Locale.ROOT), header.getValue()))
+        List<Header> normalizedRequestHeaders = requestHeaders.stream()
+                .map(RequestFilter::withLowerCaseName)
                 .collect(Collectors.toList());
 
-        return normalizeRequestHeaders.stream()
+        return normalizedRequestHeaders.stream()
                 .filter(header -> normalizedAllowedHeaders.contains(header.getName()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * A header with its name in lower case. A header whose name is already in lower case is kept as it is, so that a
+     * subclass of {@link Header} keeps the form it is sent in.
+     */
+    private static Header withLowerCaseName(Header header) {
+
+        String normalizedName = header.getName().toLowerCase(Locale.ROOT);
+        return normalizedName.equals(header.getName()) ? header : new Header(normalizedName, header.getValue());
     }
 
     /**

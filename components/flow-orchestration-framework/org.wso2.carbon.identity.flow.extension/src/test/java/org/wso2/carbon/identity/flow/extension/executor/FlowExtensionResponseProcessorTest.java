@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.internal.FlowExtensionDataHolder;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
@@ -471,9 +472,6 @@ public class FlowExtensionResponseProcessorTest {
 
     // ------------------------------------------------------------------ runtime values
 
-    /**
-     * A registration flow defining the runtime values plan, attempts, tags and abTestingKey, and the header x-device.
-     */
     private FlowExecutionContext execContextWithFlowVariables() {
 
         FlowVariablesDTO variables = new FlowVariablesDTO();
@@ -481,6 +479,7 @@ public class FlowExtensionResponseProcessorTest {
         variables.getRuntimeValues().add(new FlowRuntimeValueDTO("attempts", FlowVariableDataType.INTEGER));
         variables.getRuntimeValues().add(new FlowRuntimeValueDTO("tags", FlowVariableDataType.STRING_ARRAY));
         variables.getRuntimeValues().add(new FlowRuntimeValueDTO("abTestingKey", FlowVariableDataType.INTEGER));
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("score", FlowVariableDataType.DECIMAL));
         variables.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
         GraphConfig graphConfig = new GraphConfig();
         graphConfig.setFlowVariables(variables);
@@ -492,9 +491,6 @@ public class FlowExtensionResponseProcessorTest {
         return execCtx;
     }
 
-    /**
-     * Process one operation the way the success response does, to read the result it records.
-     */
     private OperationExecutionResult processOperation(PerformableOperation operation, FlowExecutionContext execCtx)
             throws Exception {
 
@@ -533,7 +529,81 @@ public class FlowExtensionResponseProcessorTest {
         Map<?, ?> pending = (Map<?, ?>) actionFlowContext.getContextData()
                 .get(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY);
         assertNotNull(pending);
-        assertEquals(pending.get("tags"), Arrays.asList("a,b", "c"));
+        assertEquals(pending.get("tags"), "[\"a,b\",\"c\"]");
+        assertTrue(FlowVariableResolver.setRuntimeValue(execCtx, "tags", pending.get("tags")));
+        assertEquals(execCtx.getRuntimeValues().get("tags"), Arrays.asList("a,b", "c"));
+    }
+
+    /**
+     * A decimal that rounds to more digits than the type allows when read is still applied, as the extension's value
+     * is staged as it was sent and read once.
+     */
+    @Test
+    public void testRoundedDecimalRuntimeValueIsApplied() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        FlowContext actionFlowContext =
+                FlowContext.create().add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+        List<PerformableOperation> ops =
+                Collections.singletonList(replace("/runtimeValues[name=score]", "999999999999999.99"));
+
+        processor.processSuccessResponse(actionFlowContext, successContext(ops));
+
+        Map<?, ?> pending = (Map<?, ?>) actionFlowContext.getContextData()
+                .get(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY);
+        assertNotNull(pending);
+        assertEquals(pending.get("score"), "999999999999999.99");
+        assertTrue(FlowVariableResolver.setRuntimeValue(execCtx, "score", pending.get("score")));
+        assertEquals(execCtx.getRuntimeValues().get("score"), 1.0E15);
+    }
+
+    /**
+     * An encrypted runtime value is one JWE string, so an array holding one is not read.
+     */
+    @Test(expectedExceptions = ActionExecutionResponseProcessorException.class)
+    public void testEncryptedRuntimeValueInAnArrayIsRejected() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        FlowContext actionFlowContext =
+                FlowContext.create().add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+        actionFlowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, Collections.singletonList(
+                new ContextPath("/runtimeValues[name=tags]", true, "REGISTRATION")));
+        List<PerformableOperation> ops = Collections.singletonList(
+                replace("/runtimeValues[name=tags]", Collections.singletonList("jwe")));
+
+        try (MockedStatic<JWEEncryptionUtil> jwe = mockStatic(JWEEncryptionUtil.class)) {
+            jwe.when(() -> JWEEncryptionUtil.isJWEEncrypted(anyString())).thenReturn(true);
+            jwe.when(() -> JWEEncryptionUtil.decrypt("jwe", TENANT)).thenReturn("[\"a\",\"b\"]");
+
+            processor.processSuccessResponse(actionFlowContext, successContext(ops));
+        }
+    }
+
+    /**
+     * An encrypted primitive runtime value is read for its data type once decrypted.
+     */
+    @Test
+    public void testEncryptedIntegerRuntimeValueIsReadForItsType() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        FlowContext actionFlowContext =
+                FlowContext.create().add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+        actionFlowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, Collections.singletonList(
+                new ContextPath("/runtimeValues[name=attempts]", true, "REGISTRATION")));
+        List<PerformableOperation> ops = Collections.singletonList(replace("/runtimeValues[name=attempts]", "jwe"));
+
+        try (MockedStatic<JWEEncryptionUtil> jwe = mockStatic(JWEEncryptionUtil.class)) {
+            jwe.when(() -> JWEEncryptionUtil.isJWEEncrypted(anyString())).thenReturn(true);
+            jwe.when(() -> JWEEncryptionUtil.decrypt("jwe", TENANT)).thenReturn("3");
+
+            processor.processSuccessResponse(actionFlowContext, successContext(ops));
+        }
+
+        Map<?, ?> pending = (Map<?, ?>) actionFlowContext.getContextData()
+                .get(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY);
+        assertNotNull(pending);
+        assertTrue(FlowVariableResolver.setRuntimeValue(execCtx, "attempts", pending.get("attempts")));
+        assertEquals(execCtx.getRuntimeValues().get("attempts"), 3L);
     }
 
     @Test
@@ -554,9 +624,11 @@ public class FlowExtensionResponseProcessorTest {
         assertNotNull(pending);
         assertEquals(pending.size(), 2);
         assertEquals(pending.get("plan"), "gold");
-        assertEquals(pending.get("attempts"), 3L);
+        assertEquals(pending.get("attempts"), "3");
         // The runtime values change only when the engine applies the pending values.
         assertTrue(execCtx.getRuntimeValues().isEmpty());
+        assertTrue(FlowVariableResolver.setRuntimeValue(execCtx, "attempts", pending.get("attempts")));
+        assertEquals(execCtx.getRuntimeValues().get("attempts"), 3L);
 
         assertEquals(processOperation(replace("/runtimeValues[name=plan]", "gold"), execCtx).getStatus(),
                 OperationExecutionResult.Status.SUCCESS);

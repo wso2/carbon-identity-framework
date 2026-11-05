@@ -641,9 +641,6 @@ public class FlowDAOImpl implements FlowDAO {
     public Map<String, FlowVariablesDTO> getFlowVariables(int tenantId) throws FlowMgtServerException {
 
         Map<String, FlowVariablesDTO> variablesByFlowType = new HashMap<>();
-        if (!isFlowVariablesEnabled()) {
-            return variablesByFlowType;
-        }
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.executeQuery(GET_ALL_FLOW_VARIABLES, LambdaExceptionUtils.rethrowRowMapper(
@@ -657,7 +654,7 @@ public class FlowDAOImpl implements FlowDAO {
                         preparedStatement.setBoolean(2, true);
                     });
         } catch (DataAccessException e) {
-            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantId);
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_FLOW_VARIABLES, e, tenantId);
         }
         return variablesByFlowType;
     }

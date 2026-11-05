@@ -32,6 +32,7 @@ public class FlowExtensionSubjectOrganization {
     private final String id;
     private final String name;
     private final String handle;
+    private final String description;
     private final List<FlowExtensionOrganizationAttribute> attributes;
 
     private FlowExtensionSubjectOrganization(Builder builder) {
@@ -39,6 +40,7 @@ public class FlowExtensionSubjectOrganization {
         this.id = builder.id;
         this.name = builder.name;
         this.handle = builder.handle;
+        this.description = builder.description;
         this.attributes = builder.attributes != null
                 ? Collections.unmodifiableList(builder.attributes) : Collections.emptyList();
     }
@@ -61,6 +63,12 @@ public class FlowExtensionSubjectOrganization {
         return handle;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getDescription() {
+
+        return description;
+    }
+
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<FlowExtensionOrganizationAttribute> getAttributes() {
 
@@ -75,6 +83,7 @@ public class FlowExtensionSubjectOrganization {
         private String id;
         private String name;
         private String handle;
+        private String description;
         private List<FlowExtensionOrganizationAttribute> attributes;
 
         public Builder id(String id) {
@@ -92,6 +101,12 @@ public class FlowExtensionSubjectOrganization {
         public Builder handle(String handle) {
 
             this.handle = handle;
+            return this;
+        }
+
+        public Builder description(String description) {
+
+            this.description = description;
             return this;
         }
 

@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowTypeVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
-import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -114,8 +113,8 @@ public class FlowExtensionContextTreeBuilderTest {
     // ------------------------------------------------------------------ runtime values and request headers
 
     /**
-     * A name two flows give different types is listed once per type, and one two flows give the same type is listed
-     * once, naming both flows.
+     * A name two flows give different types is listed once per type, with keys that name the type, and one two flows
+     * give the same type is listed once, naming both flows.
      */
     @Test
     public void testRuntimeValueLeavesAreListedPerNameAndType() throws Exception {
@@ -150,11 +149,12 @@ public class FlowExtensionContextTreeBuilderTest {
         assertFalse(abTestingKey.isReadOnly());
 
         FlowExtensionContextTreeNode integerAttempts = leaves.get(1);
-        assertEquals(integerAttempts.getKey(), "attempts");
+        assertEquals(integerAttempts.getKey(), "attempts#INTEGER");
+        assertEquals(integerAttempts.getPath(), "/runtimeValues[name=attempts]");
         assertEquals(integerAttempts.getDataType(), "INTEGER");
         assertEquals(integerAttempts.getApplicableFlowTypes(), Collections.singletonList(REGISTRATION));
         FlowExtensionContextTreeNode stringAttempts = leaves.get(2);
-        assertEquals(stringAttempts.getKey(), "attempts");
+        assertEquals(stringAttempts.getKey(), "attempts#STRING");
         assertEquals(stringAttempts.getDataType(), "STRING");
         assertEquals(stringAttempts.getApplicableFlowTypes(), Collections.singletonList(PASSWORD_RECOVERY));
         assertEquals(stringAttempts.getPath(), "/runtimeValues[name=attempts]");
@@ -218,28 +218,10 @@ public class FlowExtensionContextTreeBuilderTest {
     }
 
     @Test
-    public void testNoFlowVariableNodesWhenDisabled() throws Exception {
-
-        FlowMgtService flowMgtService = mock(FlowMgtService.class);
-        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class);
-             MockedStatic<FlowMgtService> flowMgtServiceStatic = mockStatic(FlowMgtService.class)) {
-            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(false);
-            flowMgtServiceStatic.when(FlowMgtService::getInstance).thenReturn(flowMgtService);
-
-            List<FlowExtensionContextTreeNode> tree = new FlowExtensionContextTreeBuilder().build(null)
-                    .getContextTree();
-
-            assertFalse(hasNode(tree, "runtimeValues"));
-            assertFalse(hasNode(tree, "request"));
-            verify(flowMgtService, never()).getFlowVariables(anyInt());
-        }
-    }
-
-    @Test
     public void testNoFlowVariableNodesWhenTheyCannotBeRead() throws Exception {
 
         FlowMgtService flowMgtService = mock(FlowMgtService.class);
-        when(flowMgtService.getFlowVariables(TENANT_ID)).thenThrow(new FlowMgtServerException("error"));
+        when(flowMgtService.getFlowVariables(TENANT_ID, null)).thenThrow(new FlowMgtServerException("error"));
 
         List<FlowExtensionContextTreeNode> tree = buildWithFlowVariables(flowMgtService);
 
@@ -248,7 +230,43 @@ public class FlowExtensionContextTreeBuilderTest {
         assertTrue(hasNode(tree, "user"));
     }
 
+    /**
+     * The tree of a flow type lists only the runtime values and headers of that flow type.
+     */
+    @Test
+    public void testFlowVariableLeavesOfOneFlowType() throws Exception {
+
+        FlowTypeVariablesDTO recovery = new FlowTypeVariablesDTO(PASSWORD_RECOVERY);
+        recovery.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
+        FlowMgtService flowMgtService = mock(FlowMgtService.class);
+        when(flowMgtService.getFlowVariables(TENANT_ID, PASSWORD_RECOVERY))
+                .thenReturn(Collections.singletonList(recovery));
+
+        List<FlowExtensionContextTreeNode> tree = build(flowMgtService, PASSWORD_RECOVERY);
+
+        List<FlowExtensionContextTreeNode> leaves = node(tree, "runtimeValues").getChildren();
+        assertEquals(leaves.size(), 1);
+        assertEquals(leaves.get(0).getKey(), "plan");
+        assertEquals(leaves.get(0).getApplicableFlowTypes(), Collections.singletonList(PASSWORD_RECOVERY));
+    }
+
     // ------------------------------------------------------------------ subject organization
+
+    /**
+     * Only the registration flow onboards an organization, so the tree of another flow type leaves it out and does
+     * not read the registration flow.
+     */
+    @Test
+    public void testNoSubjectOrganizationNodeForOtherFlowTypes() throws Exception {
+
+        FlowMgtService flowMgtService = mock(FlowMgtService.class);
+
+        List<FlowExtensionContextTreeNode> tree = build(flowMgtService, PASSWORD_RECOVERY);
+
+        assertFalse(hasNode(tree, "subjectOrganization"));
+        verify(flowMgtService, never()).getOrganizationAttributes(anyInt());
+        assertTrue(hasNode(build(flowMgtService, REGISTRATION), "subjectOrganization"));
+    }
 
     /**
      * The organization a registration flow onboards applies to registration only, and its fields, including the
@@ -268,10 +286,12 @@ public class FlowExtensionContextTreeBuilderTest {
         assertEquals(subjectOrganization.getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_PREFIX);
         Map<String, FlowExtensionContextTreeNode> children = subjectOrganization.getChildren().stream()
                 .collect(Collectors.toMap(FlowExtensionContextTreeNode::getKey, n -> n));
-        assertEquals(children.keySet(), new java.util.HashSet<>(Arrays.asList("id", "name", "handle", "attributes")));
+        assertEquals(children.keySet(), new java.util.HashSet<>(Arrays.asList("id", "name", "handle", "description",
+                "attributes")));
         assertEquals(children.get("id").getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH);
         assertEquals(children.get("name").getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH);
         assertEquals(children.get("handle").getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH);
+        assertEquals(children.get("description").getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_DESCRIPTION_PATH);
 
         FlowExtensionContextTreeNode attributes = children.get("attributes");
         assertEquals(attributes.getNodeType(), ContextTree.NODE_MAP);
@@ -296,7 +316,7 @@ public class FlowExtensionContextTreeBuilderTest {
         FlowExtensionContextTreeNode attributes = subjectOrganization.getChildren().stream()
                 .filter(n -> "attributes".equals(n.getKey())).findFirst().orElseThrow(AssertionError::new);
         assertTrue(attributes.getChildren().isEmpty());
-        assertEquals(subjectOrganization.getChildren().size(), 4);
+        assertEquals(subjectOrganization.getChildren().size(), 5);
     }
 
     private static void assertExposeOnlyForRegistration(FlowExtensionContextTreeNode node) {
@@ -315,22 +335,25 @@ public class FlowExtensionContextTreeBuilderTest {
             throws Exception {
 
         FlowMgtService flowMgtService = mock(FlowMgtService.class);
-        when(flowMgtService.getFlowVariables(TENANT_ID)).thenReturn(flowVariables);
+        when(flowMgtService.getFlowVariables(TENANT_ID, null)).thenReturn(flowVariables);
         return buildWithFlowVariables(flowMgtService);
     }
 
     private List<FlowExtensionContextTreeNode> buildWithFlowVariables(FlowMgtService flowMgtService) {
 
+        return build(flowMgtService, null);
+    }
+
+    private List<FlowExtensionContextTreeNode> build(FlowMgtService flowMgtService, String flowType) {
+
         PrivilegedCarbonContext carbonContext = mock(PrivilegedCarbonContext.class);
         when(carbonContext.getTenantId()).thenReturn(TENANT_ID);
-        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class);
-             MockedStatic<FlowMgtService> flowMgtServiceStatic = mockStatic(FlowMgtService.class);
+        try (MockedStatic<FlowMgtService> flowMgtServiceStatic = mockStatic(FlowMgtService.class);
              MockedStatic<PrivilegedCarbonContext> carbonContextStatic = mockStatic(PrivilegedCarbonContext.class)) {
-            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
             flowMgtServiceStatic.when(FlowMgtService::getInstance).thenReturn(flowMgtService);
             carbonContextStatic.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
 
-            return new FlowExtensionContextTreeBuilder().build(REGISTRATION).getContextTree();
+            return new FlowExtensionContextTreeBuilder().build(flowType).getContextTree();
         }
     }
 

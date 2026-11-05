@@ -40,7 +40,7 @@ import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUt
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
-import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
@@ -92,7 +92,6 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER_TYPE_CONFIG;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORGANIZATION_IDENTIFIER_TYPE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_DESCRIPTION_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_HANDLE_KEY;
@@ -451,42 +450,10 @@ public class InputValidationService {
      */
     private Map<String, String> resolveIdentifierTypes(FlowExecutionContext context) {
 
-        Map<String, String> identifierTypes = new HashMap<>();
         if (context.getGraphConfig() == null || context.getGraphConfig().getNodePageMappings() == null) {
-            return identifierTypes;
+            return new HashMap<>();
         }
-        for (StepDTO step : context.getGraphConfig().getNodePageMappings().values()) {
-            if (step != null && step.getData() != null) {
-                collectIdentifierTypes(step.getData().getComponents(), identifierTypes);
-            }
-        }
-        return identifierTypes;
-    }
-
-    /**
-     * Collects the {@code identifierType} of each component, recursing into nested components.
-     *
-     * @param components      Components to walk.
-     * @param identifierTypes Map collecting identifier to identifier type.
-     */
-    private void collectIdentifierTypes(List<ComponentDTO> components, Map<String, String> identifierTypes) {
-
-        if (components == null) {
-            return;
-        }
-        for (ComponentDTO component : components) {
-            if (component == null) {
-                continue;
-            }
-            if (MapUtils.isNotEmpty(component.getConfigs())) {
-                Object identifier = component.getConfigs().get(IDENTIFIER);
-                Object identifierType = component.getConfigs().get(IDENTIFIER_TYPE_CONFIG);
-                if (identifier != null && identifierType != null) {
-                    identifierTypes.put(String.valueOf(identifier), String.valueOf(identifierType));
-                }
-            }
-            collectIdentifierTypes(component.getComponents(), identifierTypes);
-        }
+        return FlowMgtUtils.getIdentifierTypes(context.getGraphConfig().getNodePageMappings().values());
     }
 
     /**

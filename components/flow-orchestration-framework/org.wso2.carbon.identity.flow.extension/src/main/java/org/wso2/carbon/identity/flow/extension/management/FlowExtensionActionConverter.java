@@ -27,10 +27,15 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY;
@@ -75,7 +80,27 @@ public class FlowExtensionActionConverter implements ActionConverter {
 
         return new ActionDTO.Builder(flowExtensionAction)
                 .properties(properties)
+                .allowedHeaders(getAllowedHeaders(flowExtensionAction))
                 .build();
+    }
+
+    private List<String> getAllowedHeaders(FlowExtensionAction flowExtensionAction) {
+
+        AccessConfig accessConfig = flowExtensionAction.getAccessConfig();
+        if (accessConfig == null || accessConfig.getExpose() == null) {
+            // Null keeps the allowed headers as they are, as the expose list is not being updated.
+            return null;
+        }
+
+        Set<String> exposedHeaders = new LinkedHashSet<>();
+        for (ContextPath contextPath : accessConfig.getExpose()) {
+            String name = contextPath == null ? null : FlowExtensionUtil.getRequestHeaderName(contextPath.getPath());
+            if (name != null) {
+                exposedHeaders.add(FlowVariableUtils.normalizeHeaderName(name));
+            }
+        }
+
+        return new ArrayList<>(exposedHeaders);
     }
 
     private void putDefaultAccessConfigProperties(Map<String, ActionProperty> properties, AccessConfig accessConfig) {

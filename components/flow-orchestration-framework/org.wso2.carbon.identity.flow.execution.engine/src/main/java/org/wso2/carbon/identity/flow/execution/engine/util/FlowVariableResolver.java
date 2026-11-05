@@ -151,13 +151,7 @@ public final class FlowVariableResolver {
     public static Object toRuntimeValue(FlowExecutionContext context, String name, Object value) {
 
         FlowRuntimeValueDTO runtimeValue = findRuntimeValue(context, name);
-        if (runtimeValue == null) {
-            return null;
-        }
-        if (SystemRuntimeValues.AB_TESTING_KEY.equals(name)) {
-            return FlowVariableUtils.toAbTestingKey(FlowVariableUtils.fromInput(FlowVariableDataType.INTEGER, value));
-        }
-        return FlowVariableUtils.fromInput(runtimeValue.getDataType(), value);
+        return runtimeValue == null ? null : toRuntimeValue(runtimeValue, value);
     }
 
     /**
@@ -171,19 +165,17 @@ public final class FlowVariableResolver {
      */
     public static boolean setRuntimeValue(FlowExecutionContext context, String name, Object value) {
 
-        if (!FlowMgtUtils.isFlowVariablesEnabled()) {
-            return false;
-        }
-        if (findRuntimeValue(context, name) == null) {
+        FlowRuntimeValueDTO runtimeValue = findRuntimeValue(context, name);
+        if (runtimeValue == null) {
             logIgnored(context, FlowVariableTypes.RUNTIME_VALUE, name, NOT_DEFINED);
             return false;
         }
-        Object runtimeValue = toRuntimeValue(context, name, value);
-        if (runtimeValue == null) {
+        Object keptValue = toRuntimeValue(runtimeValue, value);
+        if (keptValue == null) {
             logIgnored(context, FlowVariableTypes.RUNTIME_VALUE, name, NOT_VALID);
             return false;
         }
-        context.getRuntimeValues().put(name, runtimeValue);
+        context.getRuntimeValues().put(name, keptValue);
         return true;
     }
 
@@ -277,6 +269,14 @@ public final class FlowVariableResolver {
             return;
         }
         context.getRequest().getHeaders().put(name, value);
+    }
+
+    private static Object toRuntimeValue(FlowRuntimeValueDTO runtimeValue, Object value) {
+
+        if (SystemRuntimeValues.AB_TESTING_KEY.equals(runtimeValue.getName())) {
+            return FlowVariableUtils.toAbTestingKey(FlowVariableUtils.fromInput(FlowVariableDataType.INTEGER, value));
+        }
+        return FlowVariableUtils.fromInput(runtimeValue.getDataType(), value);
     }
 
     private static void applyAbTestingKey(FlowExecutionContext context, String text) {

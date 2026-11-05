@@ -284,11 +284,6 @@ public class FlowExtensionUtilTest {
     @Test
     public void testSubjectOrganizationAttributeSelector() {
 
-        assertTrue(FlowExtensionUtil.isSubjectOrganizationAttributePath(
-                "/subjectOrganization/attributes[name=industry]"));
-        assertFalse(FlowExtensionUtil.isSubjectOrganizationAttributePath("/subjectOrganization/name"));
-        assertFalse(FlowExtensionUtil.isSubjectOrganizationAttributePath(null));
-
         assertEquals(FlowExtensionUtil.getSubjectOrganizationAttributeName(
                 "/subjectOrganization/attributes[name=industry]"), "industry");
         assertNull(FlowExtensionUtil.getSubjectOrganizationAttributeName("/subjectOrganization/attributes[name=]"));
