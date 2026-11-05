@@ -576,7 +576,7 @@ THEN
     fedMappingCleanupTime := LOCALTIMESTAMP - (fedMappingCleanupTimeInMinutes * INTERVAL '1 minute');
 
     LOOP
-        EXECUTE 'DELETE from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' where id in (select m.id from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' m where m.time_created < $1 and not exists (select 1 from '||quote_ident(purgingTable)||' s where s.session_id = m.session_id) and not exists (select 1 from '||quote_ident(purgingTempTable)||' t where t.session_id = m.session_id) limit '||batchSize||')' USING fedMappingCleanupTime;
+        EXECUTE 'DELETE from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' where id in (select m.id from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' m where m.time_created < $1 and not exists (select 1 from '||quote_ident(purgingTable)||' s where s.session_id = m.session_id) limit '||batchSize||')' USING fedMappingCleanupTime;
         GET diagnostics deleteOrphanedFederatedSessionMappingCount := ROW_COUNT;
         COMMIT;
 

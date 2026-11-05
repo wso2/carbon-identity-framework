@@ -372,7 +372,6 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
         DELETE FROM IDN_FED_AUTH_SESSION_MAPPING
         WHERE TIME_CREATED < @fedMappingCleanupTime
           AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_SESSION_STORE AS S WHERE S.SESSION_ID = IDN_FED_AUTH_SESSION_MAPPING.SESSION_ID)
-          AND NOT EXISTS (SELECT 1 FROM IDN_AUTH_TEMP_SESSION_STORE AS T WHERE T.SESSION_ID = IDN_FED_AUTH_SESSION_MAPPING.SESSION_ID)
         LIMIT batchSize;
         SET @orphanedFederatedMappingsCleanupCount = row_count();
         SET @deletedOrphanedFederatedSessionMappings = @deletedOrphanedFederatedSessionMappings + @orphanedFederatedMappingsCleanupCount;
