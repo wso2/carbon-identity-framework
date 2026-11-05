@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.action.execution.api.model;
 
+import java.util.Locale;
+
 /**
  * This class models the Header.
  * Header is the entity that represents additional headers sent in the action request.
@@ -41,5 +43,17 @@ public class Header {
     public String[] getValue() {
 
         return value;
+    }
+
+    /**
+     * Returns a copy of this header with its name in lower case, as header names are case-insensitive (RFC 7230).
+     * A subclass that serializes its value differently must override this to return a copy of its own type, or the
+     * copy loses that form.
+     *
+     * @return A copy of this header with its name in lower case.
+     */
+    public Header withNormalizedName() {
+
+        return new Header(name.toLowerCase(Locale.ROOT), value);
     }
 }

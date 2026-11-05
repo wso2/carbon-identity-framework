@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.flow.extension.executor;
 
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionHeader;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -58,6 +62,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -522,9 +528,6 @@ public class FlowExtensionRequestBuilderTest {
 
     // ------------------------------------------------------------------ runtime values and request headers
 
-    /**
-     * A registration flow defining the runtime values plan and attempts and the header x-device, with values.
-     */
     private FlowExecutionContext execContextWithFlowVariables() {
 
         FlowVariablesDTO variables = new FlowVariablesDTO();
@@ -612,6 +615,28 @@ public class FlowExtensionRequestBuilderTest {
     }
 
     /**
+     * A number header is sent as the text of its number, without an exponent.
+     */
+    @Test
+    public void testNumberHeaderIsSentAsItsText() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        execCtx.getGraphConfig().getFlowVariables().getHeaders()
+                .add(new FlowVariableDTO("x-count", FlowVariableDataType.NUMBER_ARRAY));
+        execCtx.getRequest().getHeaders().put("x-count", Arrays.asList(10.0, 12345678.0, 2.5, 1.0E-7));
+        AccessConfig accessConfig = new AccessConfig(Collections.singletonList(
+                new ContextPath("/request/additionalHeaders[name=x-count]", false,
+                        FlowExtensionConstants.ContextTree.FLOW_REGISTRATION)), null);
+
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(flowContextWith(execCtx), actionContext(accessConfig));
+
+        List<Header> headers = ((FlowExtensionEvent) request.getEvent()).getRequest().getAdditionalHeaders();
+        assertEquals(headers.size(), 1);
+        assertEquals(headers.get(0).getValue(), new String[]{"10.0", "12345678.0", "2.5", "0.0000001"});
+    }
+
+    /**
      * A runtime value without a value, or a header not received, is left out of the event.
      */
     @Test
@@ -658,11 +683,67 @@ public class FlowExtensionRequestBuilderTest {
         FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
         Object plan = event.getRuntimeValues().get(0).getValue();
         assertTrue(plan instanceof String && JWEEncryptionUtil.isJWEEncrypted((String) plan), String.valueOf(plan));
-        String[] device = event.getRequest().getAdditionalHeaders().get(0).getValue();
-        assertEquals(device.length, 2);
-        for (String entry : device) {
-            assertTrue(JWEEncryptionUtil.isJWEEncrypted(entry), entry);
+        Object device = ((FlowExtensionHeader) event.getRequest().getAdditionalHeaders().get(0)).getSentValue();
+        assertTrue(device instanceof String && JWEEncryptionUtil.isJWEEncrypted((String) device),
+                String.valueOf(device));
+    }
+
+    /**
+     * A primitive value is encrypted as its text and an array as its whole JSON array, with numbers written as they
+     * are when not encrypted. A header is encrypted as the same array of text it is sent as when not encrypted.
+     */
+    @Test
+    public void testEncryptedValuesAreTheirTextOrJsonArray() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        execCtx.getGraphConfig().getFlowVariables().getHeaders()
+                .add(new FlowVariableDTO("x-count", FlowVariableDataType.NUMBER_ARRAY));
+        execCtx.getRequest().getHeaders().put("x-count", Arrays.asList(10.0, 2.5, 1.0E-7));
+        String registration = FlowExtensionConstants.ContextTree.FLOW_REGISTRATION;
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath(PLAN_PATH, true, registration),
+                new ContextPath(ATTEMPTS_PATH, true, registration),
+                new ContextPath(DEVICE_HEADER_PATH, true, registration),
+                new ContextPath("/request/additionalHeaders[name=x-count]", true, registration)), null);
+        Certificate certificate = new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build();
+
+        ActionExecutionRequest request;
+        try (MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<JWEEncryptionUtil> jwe = mockStatic(JWEEncryptionUtil.class)) {
+            tenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT)).thenReturn(1);
+            jwe.when(() -> JWEEncryptionUtil.encrypt(anyString(), eq(TEST_CERTIFICATE)))
+                    .thenAnswer(invocation -> "jwe(" + invocation.getArgument(0) + ")");
+            request = builder.buildActionExecutionRequest(flowContextWith(execCtx),
+                    actionContext(accessConfig, certificate));
         }
+
+        FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
+        Map<String, Object> runtimeValues = new HashMap<>();
+        event.getRuntimeValues().forEach(value -> runtimeValues.put(value.getName(), value.getValue()));
+        assertEquals(runtimeValues.get("plan"), "jwe(gold)");
+        assertEquals(runtimeValues.get("attempts"), "jwe(3)");
+        Map<String, Object> headers = new HashMap<>();
+        event.getRequest().getAdditionalHeaders().forEach(header ->
+                headers.put(header.getName(), ((FlowExtensionHeader) header).getSentValue()));
+        assertEquals(headers.get("x-device"), "jwe([\"mobile\",\"tablet\"])");
+        assertEquals(headers.get("x-count"), "jwe([\"10.0\",\"2.5\",\"0.0000001\"])");
+    }
+
+    /**
+     * In the request JSON, a header's value is its array of values, or the encrypted string when it is encrypted.
+     */
+    @Test
+    public void testHeaderValueInTheRequestJson() throws Exception {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        FlowExtensionRequest request = new FlowExtensionRequest(Arrays.asList(
+                new FlowExtensionHeader("x-device", new String[]{"mobile", "tablet"}),
+                new FlowExtensionHeader("x-count", "jwe")));
+
+        assertEquals(objectMapper.writeValueAsString(request),
+                "{\"additionalHeaders\":[{\"name\":\"x-device\",\"value\":[\"mobile\",\"tablet\"]},"
+                        + "{\"name\":\"x-count\",\"value\":\"jwe\"}]}");
     }
 
     // ------------------------------------------------------------------ subject organization
@@ -681,8 +762,8 @@ public class FlowExtensionRequestBuilderTest {
     }
 
     /**
-     * Only the exposed fields of the organization the flow onboards are sent, including its description, which the
-     * flow keeps apart from the other attributes.
+     * Only the exposed fields of the organization the flow onboards are sent. An attribute the flow has not collected
+     * is left out.
      */
     @Test
     public void testSubjectOrganizationExposedFieldsAreSent() throws Exception {
@@ -691,8 +772,8 @@ public class FlowExtensionRequestBuilderTest {
         AccessConfig accessConfig = new AccessConfig(Arrays.asList(
                 new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH, false, REGISTRATION_FLOW),
                 new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, false, REGISTRATION_FLOW),
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_DESCRIPTION_PATH, false, REGISTRATION_FLOW),
                 new ContextPath("/subjectOrganization/attributes[name=industry]", false, REGISTRATION_FLOW),
-                new ContextPath("/subjectOrganization/attributes[name=organizationDescription]", false, REGISTRATION_FLOW),
                 new ContextPath("/subjectOrganization/attributes[name=size]", false, REGISTRATION_FLOW)), null);
 
         ActionExecutionRequest request =
@@ -704,11 +785,10 @@ public class FlowExtensionRequestBuilderTest {
         assertEquals(organization.getId(), execCtx.getFlowOrganization().getOrganizationId());
         assertEquals(organization.getName(), "Acme");
         assertNull(organization.getHandle());
-        assertEquals(organization.getAttributes().size(), 2);
+        assertEquals(organization.getDescription(), "Acme Corp");
+        assertEquals(organization.getAttributes().size(), 1);
         assertEquals(organization.getAttributes().get(0).getName(), "industry");
         assertEquals(organization.getAttributes().get(0).getValue(), "Retail");
-        assertEquals(organization.getAttributes().get(1).getName(), "organizationDescription");
-        assertEquals(organization.getAttributes().get(1).getValue(), "Acme Corp");
     }
 
     @Test

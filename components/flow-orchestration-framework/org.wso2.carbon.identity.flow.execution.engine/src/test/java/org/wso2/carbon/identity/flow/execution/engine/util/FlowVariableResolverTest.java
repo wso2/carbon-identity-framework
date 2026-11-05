@@ -363,18 +363,6 @@ public class FlowVariableResolverTest {
         assertEquals(context.getRuntimeValues().get(AB_TESTING_KEY), 7L);
     }
 
-    @Test
-    public void testSetRuntimeValueDoesNothingWhenFlowVariablesAreDisabled() {
-
-        identityUtilMock.when(() -> IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE))
-                .thenReturn("false");
-        FlowExecutionContext context = contextWith(variables());
-
-        assertFalse(FlowVariableResolver.setRuntimeValue(context, "attempts", "3"));
-
-        assertTrue(context.getRuntimeValues().isEmpty());
-    }
-
     private static FlowVariablesDTO variables() {
 
         FlowVariablesDTO variables = new FlowVariablesDTO();

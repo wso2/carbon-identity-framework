@@ -194,13 +194,14 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Invalid runtime value path.");
         }
-        Object value = FlowVariableResolver.toRuntimeValue(execCtx, name, operation.getValue());
-        if (value == null) {
+        if (FlowVariableResolver.toRuntimeValue(execCtx, name, operation.getValue()) == null) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "The flow does not define a modifiable runtime value '" + name
                             + "', or the value is not valid for its type.");
         }
-        pendingRuntimeValues.put(name, value);
+        // The engine converts the value when it applies it. Staging the converted value would convert it twice, and
+        // a rounded decimal can then fail the second conversion.
+        pendingRuntimeValues.put(name, operation.getValue());
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
                 "Runtime value updated.");
     }
@@ -499,8 +500,9 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * Uses {@link AccessConfig#isModifyPathEncrypted(String)} for canonical checking. A scalar value
      * is treated as a single JWE compact string, while a multi-valued claim arrives as a
      * single-element array holding one JWE string that encrypts the comma-joined values; that element
-     * is decrypted and its plaintext split on commas back into a list. The decrypted value(s) replace
-     * the original on the returned operation.
+     * is decrypted and its plaintext split on commas back into a list. A runtime value is always one JWE
+     * string, an array being encrypted as its JSON text, and its plaintext is read for its data type when it is
+     * applied. The decrypted value(s) replace the original on the returned operation.
      *
      * @param operation    The operation to potentially decrypt.
      * @param accessConfig The access config with encryption flags (may be null).
@@ -521,7 +523,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         Object value = operation.getValue();
         Object decryptedValue;
-        if (value instanceof List<?> encryptedList) {
+        if (value instanceof List<?> encryptedList && !FlowExtensionUtil.isRuntimeValuePath(operation.getPath())) {
 
             if (encryptedList.size() != 1 || !(encryptedList.getFirst() instanceof String jweString)) {
                 emitEncryptionContractViolation(operation.getPath(),

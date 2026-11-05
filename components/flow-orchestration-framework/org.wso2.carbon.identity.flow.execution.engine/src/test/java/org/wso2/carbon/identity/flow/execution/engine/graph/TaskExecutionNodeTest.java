@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
 import org.wso2.carbon.identity.flow.mgt.model.MessageDTO.MessageType;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
-import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -62,7 +61,6 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -252,9 +250,7 @@ public class TaskExecutionNodeTest {
         executorResponse.setUpdatedRuntimeValues(updatedRuntimeValues);
 
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
-             MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS);
              MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
-            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
             loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
             return taskExecutionNode.execute(runtimeValueContext, nodeConfig);
         }

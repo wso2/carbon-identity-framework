@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowTypeVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
-import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Builds the controlled Flow Extension context tree returned by the metadata endpoint.
@@ -60,9 +60,12 @@ public class FlowExtensionContextTreeBuilder {
         tree.add(buildTenantNode());
         tree.add(buildApplicationNode());
         tree.add(buildOrganizationNode());
-        tree.add(buildSubjectOrganizationNode());
+        // Only the registration flow onboards an organization, so the tree of another flow type leaves it out.
+        if (flowType == null || ContextTree.FLOW_REGISTRATION.equals(flowType)) {
+            tree.add(buildSubjectOrganizationNode());
+        }
         tree.add(buildFlowNode());
-        addFlowVariableNodes(tree);
+        addFlowVariableNodes(tree, flowType);
 
         return new FlowExtensionContextTreeMetadata(
                 flowType,
@@ -229,10 +232,6 @@ public class FlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    /**
-     * Build the node of the organization a registration flow onboards. Its fields can only be exposed. The attributes
-     * are the ones the registration flow collects for the organization, other than its name and handle.
-     */
     private FlowExtensionContextTreeNode buildSubjectOrganizationNode() {
 
         List<String> registrationOnly = Collections.singletonList(ContextTree.FLOW_REGISTRATION);
@@ -253,6 +252,8 @@ public class FlowExtensionContextTreeBuilder {
                 FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH));
         children.add(subjectOrganizationLeaf("handle", "Organization Handle",
                 FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH));
+        children.add(subjectOrganizationLeaf("description", "Organization Description",
+                FlowContextPaths.SUBJECT_ORGANIZATION_DESCRIPTION_PATH));
         children.add(FlowExtensionContextTreeNode.builder()
                 .key("attributes")
                 .title("Attributes")
@@ -299,7 +300,7 @@ public class FlowExtensionContextTreeBuilder {
             return FlowMgtService.getInstance().getOrganizationAttributes(tenantId);
         } catch (FlowMgtFrameworkException e) {
             LOG.error("Error while retrieving the organization attributes of the registration flow of tenant: "
-                    + tenantId + ". The attributes are left out of the context tree. " + e.getMessage());
+                    + tenantId + ". The attributes are left out of the context tree.", e);
             return Collections.emptyList();
         }
     }
@@ -317,24 +318,15 @@ public class FlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    /**
-     * Add the runtime value and request header nodes, when flow variables are enabled. Each flow defines its own
-     * runtime values and headers, so the containers apply to all flows while each entry lists the flow types that
-     * define it. An entry is listed once per name and data type, since flows may give the same name different types.
-     * The entries are the ones an admin can add to the access config.
-     */
-    private void addFlowVariableNodes(List<FlowExtensionContextTreeNode> tree) {
+    private void addFlowVariableNodes(List<FlowExtensionContextTreeNode> tree, String flowType) {
 
-        if (!FlowMgtUtils.isFlowVariablesEnabled()) {
-            return;
-        }
         List<FlowTypeVariablesDTO> flowVariables;
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
         try {
-            flowVariables = FlowMgtService.getInstance().getFlowVariables(tenantId);
+            flowVariables = FlowMgtService.getInstance().getFlowVariables(tenantId, flowType);
         } catch (FlowMgtFrameworkException e) {
             LOG.error("Error while retrieving the flow variables of tenant: " + tenantId
-                    + ". Runtime values and request headers are left out of the context tree. " + e.getMessage());
+                    + ". Runtime values and request headers are left out of the context tree.", e);
             return;
         }
 
@@ -388,12 +380,17 @@ public class FlowExtensionContextTreeBuilder {
             }
         }
 
+        // A name the flows give more than one data type has a leaf per data type, all with the same path, as the
+        // access config entry is the path and the flow type. Their keys name the data type, so that they differ.
+        Map<String, Long> entriesByName = variableByEntry.values().stream()
+                .collect(Collectors.groupingBy(FlowVariableDTO::getName, Collectors.counting()));
+
         List<FlowExtensionContextTreeNode> leaves = new ArrayList<>();
         variableByEntry.forEach((entry, variable) -> {
             String name = variable.getName();
             boolean readOnly = isHeaders;
             leaves.add(FlowExtensionContextTreeNode.builder()
-                    .key(name)
+                    .key(entriesByName.get(name) > 1 ? entry : name)
                     .title(name)
                     .path((isHeaders ? FlowContextPaths.REQUEST_HEADERS_SELECTOR_PREFIX
                             : FlowContextPaths.RUNTIME_VALUES_SELECTOR_PREFIX) + name
@@ -406,7 +403,7 @@ public class FlowExtensionContextTreeBuilder {
                     .applicableFlowTypes(flowTypesByEntry.get(entry))
                     .build());
         });
-        leaves.sort(Comparator.comparing(FlowExtensionContextTreeNode::getKey)
+        leaves.sort(Comparator.comparing(FlowExtensionContextTreeNode::getTitle)
                 .thenComparing(FlowExtensionContextTreeNode::getDataType));
         return leaves;
     }

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.testng.Assert.assertEquals;
@@ -46,5 +47,28 @@ public class FlowExtensionRuntimeValueTest {
         assertEquals(mapper.writeValueAsString(
                         new FlowExtensionRuntimeValue("tags", "STRING_ARRAY", Collections.emptyList())),
                 "{\"name\":\"tags\",\"dataType\":\"STRING_ARRAY\",\"value\":[]}");
+    }
+
+    /**
+     * A number is sent without an exponent, and a decimal keeps its decimal point, whether it is a value or an array
+     * entry.
+     */
+    @Test
+    public void testNumbersAreSerializedAsTheyRead() throws Exception {
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+
+        assertEquals(mapper.writeValueAsString(new FlowExtensionRuntimeValue("score", "DECIMAL", 10.0)),
+                "{\"name\":\"score\",\"dataType\":\"DECIMAL\",\"value\":10.0}");
+        assertEquals(mapper.writeValueAsString(new FlowExtensionRuntimeValue("score", "DECIMAL", 0.0000001)),
+                "{\"name\":\"score\",\"dataType\":\"DECIMAL\",\"value\":0.0000001}");
+        assertEquals(mapper.writeValueAsString(new FlowExtensionRuntimeValue("attempts", "INTEGER", 3L)),
+                "{\"name\":\"attempts\",\"dataType\":\"INTEGER\",\"value\":3}");
+        assertEquals(mapper.writeValueAsString(new FlowExtensionRuntimeValue("scores", "NUMBER_ARRAY",
+                        Arrays.asList(10.0, 2.5, 999999999999999.0))),
+                "{\"name\":\"scores\",\"dataType\":\"NUMBER_ARRAY\",\"value\":[10.0,2.5,999999999999999.0]}");
+        assertEquals(mapper.writeValueAsString(new FlowExtensionRuntimeValue("plan", "STRING", "gold")),
+                "{\"name\":\"plan\",\"dataType\":\"STRING\",\"value\":\"gold\"}");
     }
 }

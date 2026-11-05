@@ -252,15 +252,7 @@ public class FlowAIService {
         }
 
         // Validate flow type against supported types.
-        boolean isValidFlowType = false;
-        for (Constants.FlowTypes flowType : Constants.FlowTypes.values()) {
-            if (flowType.getType().equals(request.getFlowType())) {
-                isValidFlowType = true;
-                break;
-            }
-        }
-
-        if (!isValidFlowType) {
+        if (!Constants.FlowTypes.isValid(request.getFlowType())) {
             throw new FlowMgtClientException("Unsupported flow type: " + request.getFlowType());
         }
     }

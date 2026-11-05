@@ -25,11 +25,13 @@
             <class name="org.wso2.carbon.identity.flow.extension.executor.FlowExtensionResponseProcessorTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.executor.JWEEncryptionUtilTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.executor.PathTypeAnnotationUtilTest"/>
+            <class name="org.wso2.carbon.identity.flow.extension.management.FlowExtensionActionConverterTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.management.FlowExtensionActionDTOModelResolverTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.metadata.FlowExtensionContextTreeBuilderTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.AccessConfigTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.ContextPathTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.FlowExtensionRuntimeValueTest"/>
+            <class name="org.wso2.carbon.identity.flow.extension.model.FlowExtensionHeaderTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.FlowExtensionActionTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.FlowExtensionEventTest"/>
             <class name="org.wso2.carbon.identity.flow.extension.model.FlowExtensionFlowTest"/>

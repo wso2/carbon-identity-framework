@@ -114,6 +114,7 @@ public class Constants {
         public static final String ORGANIZATION_IDENTIFIER_TYPE = "ORGANIZATION";
         public static final String ORGANIZATION_NAME = "organizationName";
         public static final String ORGANIZATION_HANDLE = "organizationHandle";
+        public static final String ORGANIZATION_DESCRIPTION = "organizationDescription";
 
         private OrganizationInputs() {
 
@@ -167,6 +168,8 @@ public class Constants {
                 "Unexpected server error while serializing the value of %s"),
         ERROR_CODE_DESERIALIZE_VARIABLE_VALUE("65017", "Error while deserializing a flow variable value.",
                 "Unexpected server error while deserializing the value of %s"),
+        ERROR_CODE_GET_FLOW_VARIABLES("65018", "Error while retrieving the flow variables.",
+                "Unexpected server error while retrieving the flow variables of tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -280,6 +283,33 @@ public class Constants {
         public ArrayList<FlowCompletionConfig> getSupportedFlowCompletionConfigs() {
 
             return supportedFlowCompletionConfigs;
+        }
+
+        /**
+         * The flow type with the given type.
+         *
+         * @param type The flow type.
+         * @return The flow type, or null when no flow type has the given type.
+         */
+        public static FlowTypes fromType(String type) {
+
+            for (FlowTypes flowType : values()) {
+                if (flowType.getType().equals(type)) {
+                    return flowType;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Whether the given text is the type of a known flow.
+         *
+         * @param type The flow type.
+         * @return True if a flow type has the given type.
+         */
+        public static boolean isValid(String type) {
+
+            return fromType(type) != null;
         }
     }
 

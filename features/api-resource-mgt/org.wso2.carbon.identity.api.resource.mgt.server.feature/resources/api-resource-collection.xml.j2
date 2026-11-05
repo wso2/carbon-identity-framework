@@ -1951,6 +1951,7 @@
             <Update>
                 <Scope name="internal_flow_update"/>
                 <Scope name="internal_governance_update"/>
+                <Scope name="internal_flow_extension_update"/>
             </Update>
             <Delete>
             </Delete>
@@ -1959,6 +1960,7 @@
             <Read>
                 <Scope name="internal_flow_view"/>
                 <Scope name="internal_governance_view"/>
+                <Scope name="internal_flow_extension_view"/>
                 {% if flow_execution.conditional_branching.enable %}
                 <Scope name="internal_application_mgt_view"/>
                 <Scope name="internal_group_mgt_view"/>
@@ -2810,6 +2812,7 @@
             <Update>
                 <Scope name="internal_org_flow_update"/>
                 <Scope name="internal_org_governance_update"/>
+                <Scope name="internal_org_flow_extension_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_org_flow_delete"/>
@@ -2819,6 +2822,7 @@
             <Read>
                 <Scope name="internal_org_flow_view"/>
                 <Scope name="internal_org_governance_view"/>
+                <Scope name="internal_org_flow_extension_view"/>
                 {% if flow_execution.conditional_branching.enable %}
                 <Scope name="internal_org_application_mgt_view"/>
                 <Scope name="internal_org_group_mgt_view"/>

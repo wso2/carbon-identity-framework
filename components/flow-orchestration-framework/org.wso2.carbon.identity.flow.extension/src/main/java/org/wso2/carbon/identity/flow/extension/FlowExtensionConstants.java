@@ -191,16 +191,19 @@ public class FlowExtensionConstants {
         public static final String ORGANIZATION_HANDLE_PATH = "/organization/orgHandle";
         public static final String ORGANIZATION_DEPTH_PATH = "/organization/depth";
 
+        public static final String SUBJECT_ORGANIZATION_PATH = "/subjectOrganization";
         public static final String SUBJECT_ORGANIZATION_PREFIX = "/subjectOrganization/";
         public static final String SUBJECT_ORGANIZATION_ID_PATH = "/subjectOrganization/id";
         public static final String SUBJECT_ORGANIZATION_NAME_PATH = "/subjectOrganization/name";
         public static final String SUBJECT_ORGANIZATION_HANDLE_PATH = "/subjectOrganization/handle";
+        public static final String SUBJECT_ORGANIZATION_DESCRIPTION_PATH = "/subjectOrganization/description";
         public static final String SUBJECT_ORGANIZATION_ATTRIBUTES_PATH = "/subjectOrganization/attributes";
         public static final String SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX =
                 "/subjectOrganization/attributes[name=";
 
         public static final String RUNTIME_VALUES_PATH = "/runtimeValues";
         public static final String RUNTIME_VALUES_SELECTOR_PREFIX = "/runtimeValues[name=";
+        public static final String REQUEST_PATH = "/request";
         public static final String REQUEST_PREFIX = "/request/";
         public static final String REQUEST_HEADERS_PATH = "/request/additionalHeaders";
         public static final String REQUEST_HEADERS_SELECTOR_PREFIX = "/request/additionalHeaders[name=";

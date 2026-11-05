@@ -383,6 +383,21 @@ public class FlowExtensionActionDTOModelResolverTest {
                 new ContextPath(PLAN_PATH, true, REGISTRATION)), TENANT);
     }
 
+    @Test
+    public void testDropsRepeatedEntryForAllFlows() throws Exception {
+
+        withNonModifiablePaths();
+
+        ActionDTO resolved = resolver.resolveForAddOperation(exposeDTO(new ContextPath("/user/id", false),
+                new ContextPath("/user/id", true), new ContextPath(PLAN_PATH, false, REGISTRATION)), TENANT);
+
+        List<ContextPath> expose = stored(resolved, ACCESS_CONFIG_EXPOSE);
+        assertEquals(expose.size(), 2);
+        assertEquals(expose.get(0).getPath(), "/user/id");
+        assertFalse(expose.get(0).isEncrypted());
+        assertEquals(expose.get(1).getPath(), PLAN_PATH);
+    }
+
     @DataProvider
     public Object[][] invalidExposeEntries() {
 
@@ -407,7 +422,20 @@ public class FlowExtensionActionDTOModelResolverTest {
                 {"subject organization for another flow type",
                         new ContextPath("/subjectOrganization/name", false, PASSWORD_RECOVERY)},
                 {"unknown subject organization field",
-                        new ContextPath("/subjectOrganization/orgHandle", false, REGISTRATION)}
+                        new ContextPath("/subjectOrganization/orgHandle", false, REGISTRATION)},
+                {"whole subject organization path", new ContextPath("/subjectOrganization", false)},
+                {"whole subject organization path with flow type",
+                        new ContextPath("/subjectOrganization", false, REGISTRATION)},
+                {"whole request path", new ContextPath("/request", false)},
+                {"subject organization name as an attribute",
+                        new ContextPath("/subjectOrganization/attributes[name=organizationName]", false,
+                                REGISTRATION)},
+                {"subject organization handle as an attribute",
+                        new ContextPath("/subjectOrganization/attributes[name=organizationHandle]", false,
+                                REGISTRATION)},
+                {"subject organization description as an attribute",
+                        new ContextPath("/subjectOrganization/attributes[name=organizationDescription]", false,
+                                REGISTRATION)}
         };
     }
 
@@ -435,10 +463,11 @@ public class FlowExtensionActionDTOModelResolverTest {
 
         ActionDTO resolved = resolver.resolveForAddOperation(exposeDTO(
                 new ContextPath("/subjectOrganization/id", false, REGISTRATION),
-                new ContextPath("/subjectOrganization/attributes[name=industry]", true, REGISTRATION)), TENANT);
+                new ContextPath("/subjectOrganization/attributes[name=industry]", true, REGISTRATION),
+                new ContextPath("/subjectOrganization/description", false, REGISTRATION)), TENANT);
 
         List<ContextPath> expose = stored(resolved, ACCESS_CONFIG_EXPOSE);
-        assertEquals(expose.size(), 2);
+        assertEquals(expose.size(), 3);
         assertEquals(expose.get(1).getPath(), "/subjectOrganization/attributes[name=industry]");
         assertTrue(expose.get(1).isEncrypted());
         assertEquals(expose.get(1).getFlowType(), REGISTRATION);

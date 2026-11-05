@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
+import org.wso2.carbon.identity.flow.mgt.utils.SystemDefaultFlowProvider;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverServiceImpl;
@@ -374,16 +375,6 @@ public class FlowMgtServiceTest {
         assertNull(result);
     }
 
-    @Test
-    public void testGetFlowVariablesIsEmptyWhenFlowVariablesAreDisabled() throws Exception {
-
-        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS)) {
-            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(false);
-
-            assertTrue(service.getFlowVariables(TEST_TENANT_ID).isEmpty());
-        }
-    }
-
     /**
      * Every flow type is listed. One the tenant has not stored has only the system runtime values.
      */
@@ -393,7 +384,7 @@ public class FlowMgtServiceTest {
         try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS)) {
             flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
 
-            List<FlowTypeVariablesDTO> flowVariables = service.getFlowVariables(TEST_TENANT_ID);
+            List<FlowTypeVariablesDTO> flowVariables = service.getFlowVariables(TEST_TENANT_ID, null);
 
             assertEquals(flowVariables.size(), Constants.FlowTypes.values().length);
             for (int i = 0; i < flowVariables.size(); i++) {
@@ -435,7 +426,7 @@ public class FlowMgtServiceTest {
                     childTenantId, "Password Recovery");
 
             Map<String, FlowTypeVariablesDTO> flowVariables = new HashMap<>();
-            for (FlowTypeVariablesDTO variables : service.getFlowVariables(childTenantId)) {
+            for (FlowTypeVariablesDTO variables : service.getFlowVariables(childTenantId, null)) {
                 flowVariables.put(variables.getFlowType(), variables);
             }
 
@@ -461,8 +452,73 @@ public class FlowMgtServiceTest {
     }
 
     /**
+     * The variables of one flow type are read like those of every flow type, and an unknown flow type has none.
+     */
+    @Test
+    public void testGetFlowVariablesOfOneFlowType() throws Exception {
+
+        int tenantId = TEST_TENANT_ID + 102;
+        mockOrganization(tenantId, "singleTypeTenant", "singleTypeOrgId", "singleTypeOrgId");
+        FlowVariablesDTO variables = new FlowVariablesDTO();
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("channel", FlowVariableDataType.STRING));
+
+        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS)) {
+            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
+            new FlowDAOImpl().updateFlow(Constants.FlowTypes.PASSWORD_RECOVERY.getType(),
+                    buildEndOnlyFlow(variables), tenantId, "Password Recovery");
+
+            List<FlowTypeVariablesDTO> flowVariables =
+                    service.getFlowVariables(tenantId, Constants.FlowTypes.PASSWORD_RECOVERY.getType());
+
+            assertEquals(flowVariables.size(), 1);
+            assertEquals(flowVariables.get(0).getFlowType(), Constants.FlowTypes.PASSWORD_RECOVERY.getType());
+            assertEquals(flowVariables.get(0).getRuntimeValues().size(), 2);
+            assertEquals(flowVariables.get(0).getRuntimeValues().get(1).getName(), "channel");
+            assertTrue(service.getFlowVariables(tenantId, "UNKNOWN").isEmpty());
+        }
+    }
+
+    /**
+     * A flow type no organization has runs as the system default flow, so it lists that flow's variables.
+     */
+    @Test
+    public void testGetFlowVariablesListsTheSystemDefaultFlowsVariables() throws Exception {
+
+        FlowVariablesDTO defaultVariables = new FlowVariablesDTO();
+        defaultVariables.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
+        defaultVariables.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
+        FlowDTO defaultFlow = new FlowDTO();
+        defaultFlow.setFlowVariables(defaultVariables);
+        SystemDefaultFlowProvider provider = mock(SystemDefaultFlowProvider.class);
+        when(provider.getSystemDefaultFlow(Constants.FlowTypes.REGISTRATION.getType())).thenReturn(defaultFlow);
+
+        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS);
+             MockedStatic<SystemDefaultFlowProvider> providerStatic = mockStatic(SystemDefaultFlowProvider.class)) {
+            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
+            providerStatic.when(SystemDefaultFlowProvider::getInstance).thenReturn(provider);
+
+            Map<String, FlowTypeVariablesDTO> flowVariables = new HashMap<>();
+            for (FlowTypeVariablesDTO variables : service.getFlowVariables(TEST_TENANT_ID, null)) {
+                flowVariables.put(variables.getFlowType(), variables);
+            }
+
+            FlowTypeVariablesDTO forRegistration = flowVariables.get(Constants.FlowTypes.REGISTRATION.getType());
+            assertEquals(forRegistration.getHeaders().size(), 1);
+            assertEquals(forRegistration.getHeaders().get(0).getName(), "x-device");
+            assertEquals(forRegistration.getRuntimeValues().size(), 2);
+            assertEquals(forRegistration.getRuntimeValues().get(0).getName(),
+                    Constants.SystemRuntimeValues.AB_TESTING_KEY);
+            assertEquals(forRegistration.getRuntimeValues().get(1).getName(), "plan");
+
+            FlowTypeVariablesDTO forRecovery = flowVariables.get(Constants.FlowTypes.PASSWORD_RECOVERY.getType());
+            assertTrue(forRecovery.getHeaders().isEmpty());
+            assertEquals(forRecovery.getRuntimeValues().size(), 1);
+        }
+    }
+
+    /**
      * The organization attributes are the identifiers of the registration flow's organization inputs, found at any
-     * depth, in the order the flow has them, without the organization name and handle.
+     * depth, in the order the flow has them, without the organization name, handle and description.
      */
     @Test
     public void testGetOrganizationAttributesListsTheRegistrationFlowsOrganizationInputs() throws Exception {
@@ -474,7 +530,8 @@ public class FlowMgtServiceTest {
                         organizationInput("organizationName", "ORGANIZATION"),
                         organizationInput("industry", "ORGANIZATION"),
                         organizationInput("http://wso2.org/claims/emailaddress", "USER"),
-                        organizationInput("organizationHandle", "ORGANIZATION")))
+                        organizationInput("organizationHandle", "ORGANIZATION"),
+                        organizationInput("organizationDescription", "ORGANIZATION")))
                 .build();
         FlowDTO flow = new FlowDTO();
         flow.setSteps(Arrays.asList(
