@@ -37,6 +37,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_CLIENT_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_POLL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
@@ -48,6 +49,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionE
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.resolveUserStoreDomain;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.POLL;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
@@ -178,6 +180,15 @@ public class TaskExecutionNode implements Node {
                         .requiredData(response.getRequiredData())
                         .optionalData(response.getOptionalData())
                         .additionalInfo(response.getAdditionalInfo())
+                        .build();
+            case STATUS_POLL:
+                return new NodeResponse.Builder()
+                        .status(STATUS_INCOMPLETE)
+                        .type(POLL)
+                        .requiredData(response.getRequiredData())
+                        .optionalData(response.getOptionalData())
+                        .additionalInfo(response.getAdditionalInfo())
+                        .error(response.getErrorMessage())
                         .build();
             case STATUS_USER_ERROR:
                 if (response.getErrorCode() != null){

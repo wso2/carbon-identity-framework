@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegi
 import org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListener;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 
 /**
  * OSGi DS component for the device registration executor bundle.
@@ -133,6 +134,25 @@ public class DeviceRegistrationServiceComponent {
 
         LOG.debug("Unsetting DevicePolicyEvaluator in the device registration executor.");
         DeviceRegistrationComponentServiceHolder.getInstance().setDevicePolicyEvaluator(null);
+    }
+
+    @Reference(
+            name = "OrganizationManager",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        LOG.debug("Setting OrganizationManager in the device registration executor.");
+        DeviceRegistrationComponentServiceHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        LOG.debug("Unsetting OrganizationManager in the device registration executor.");
+        DeviceRegistrationComponentServiceHolder.getInstance().setOrganizationManager(null);
     }
 
     @Reference(

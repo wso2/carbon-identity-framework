@@ -24,9 +24,11 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -34,7 +36,11 @@ import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionList
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
+import org.wso2.carbon.identity.flow.execution.engine.model.OTFIRetention;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListener;
+import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
@@ -47,21 +53,26 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REQUIRED_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_STEP_NOT_ALLOWED_FOR_RETAINED_OTFI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REDIRECT_URL;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.RETAIN_OTFI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.WEBAUTHN_DATA;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.POLL;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 
@@ -70,6 +81,8 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
  */
 @Test(singleThreaded = true)
 public class FlowEngineTest {
+
+    private static final String RETAINING_EXECUTOR = "DeviceRegistrationExecutor";
 
     private FlowExecutionContext context;
     private GraphConfig defaultGraph;
@@ -368,6 +381,218 @@ public class FlowEngineTest {
             assertEquals(step.getData().getRequiredParams().size(), 3);
             assertEquals(step.getData().getAdditionalData().get("someKey"), "someValue");
         }
+    }
+
+    @Test
+    public void testPollResponseShowsThePageOfTheNode() throws Exception {
+
+        GraphConfig graph = buildGraphWithPage("pollNode");
+        FlowExecutionContext newContext = initiateFlowContext();
+        newContext.setGraphConfig(graph);
+
+        Map<String, String> additionalInfo = new HashMap<>();
+        additionalInfo.put("pollToken", "token");
+
+        try (MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
+                         NodeResponse nodeResponse = new NodeResponse.Builder()
+                                 .status(STATUS_INCOMPLETE)
+                                 .type(POLL)
+                                 .additionalInfo(additionalInfo)
+                                 .requiredData(Arrays.asList("publicKey"))
+                                 .build();
+                         when(mock.execute(any(), any())).thenReturn(nodeResponse);
+                     })) {
+
+            FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
+            assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
+            assertEquals(step.getStepType(), POLL);
+            assertEquals(step.getData().getRequiredParams(), Arrays.asList("publicKey"));
+            assertEquals(step.getData().getAdditionalData().get("pollToken"), "token");
+            assertEquals(step.getData().getComponents().size(), 1);
+            assertEquals(step.getData().getComponents().get(0).getId(), "text_pollNode");
+        }
+    }
+
+    @Test
+    public void testPollResponseWithoutRequiredData() throws Exception {
+
+        GraphConfig graph = buildGraphWithPage("pollNodeNoData");
+        FlowExecutionContext newContext = initiateFlowContext();
+        newContext.setGraphConfig(graph);
+
+        try (MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
+                         NodeResponse nodeResponse = new NodeResponse.Builder()
+                                 .status(STATUS_INCOMPLETE)
+                                 .type(POLL)
+                                 .additionalInfo(new HashMap<>())
+                                 .build();
+                         when(mock.execute(any(), any())).thenReturn(nodeResponse);
+                     })) {
+
+            FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
+            assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
+            assertEquals(step.getStepType(), POLL);
+            org.testng.Assert.assertNull(step.getData().getRequiredParams());
+            assertEquals(step.getData().getComponents().size(), 1);
+        }
+    }
+
+    @Test
+    public void testViewResponseShowsThePageOfTheNodeWithTheError() throws Exception {
+
+        GraphConfig graph = buildGraphWithPage("viewNode");
+        FlowExecutionContext newContext = initiateFlowContext();
+        newContext.setGraphConfig(graph);
+
+        try (MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
+                         NodeResponse nodeResponse = new NodeResponse.Builder()
+                                 .status(STATUS_INCOMPLETE)
+                                 .type(VIEW)
+                                 .additionalInfo(new HashMap<>())
+                                 .requiredData(Arrays.asList("pairingCode"))
+                                 .error("device.registration.pairing.code.invalid")
+                                 .build();
+                         when(mock.execute(any(), any())).thenReturn(nodeResponse);
+                     })) {
+
+            FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
+            assertEquals(step.getStepType(), VIEW);
+            assertEquals(step.getData().getComponents().size(), 1);
+            assertEquals(step.getData().getComponents().get(0).getId(), "text_viewNode");
+            assertEquals(step.getData().getAdditionalData().get("error"), "device.registration.pairing.code.invalid");
+        }
+    }
+
+    @DataProvider
+    public Object[][] nodesNotAllowedForRetainedOTFI() {
+
+        return new Object[][]{
+                {new NodeConfig.Builder().id("promptNode").type(PROMPT_ONLY).build()},
+                {new NodeConfig.Builder().id("otherTaskNode").type(TASK_EXECUTION)
+                        .executorConfig(new ExecutorDTO("OtherExecutor")).build()},
+                {new NodeConfig.Builder().id(org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID)
+                        .type(PROMPT_ONLY).build()}
+        };
+    }
+
+    @Test(dataProvider = "nodesNotAllowedForRetainedOTFI")
+    public void testRetainedOTFIRejectsNodesOfOtherSteps(NodeConfig nextNode) throws Exception {
+
+        GraphConfig graph = buildRetainingGraph(nextNode);
+        FlowExecutionContext newContext = initiateFlowContext();
+        newContext.setGraphConfig(graph);
+        newContext.setProperty(RETAIN_OTFI, new OTFIRetention.Builder().executorName(RETAINING_EXECUTOR).build());
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class);
+             MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> when(mock.execute(any(), any()))
+                             .thenReturn(new NodeResponse.Builder().status("COMPLETE").build()))) {
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getIdentityEventService()).thenReturn(identityEventService);
+
+            FlowExecutionEngine.getInstance().execute(newContext);
+            org.testng.Assert.fail("Another step must not run while the one time flow id is retained.");
+        } catch (FlowEngineClientException e) {
+            assertEquals(e.getErrorCode(), ERROR_CODE_STEP_NOT_ALLOWED_FOR_RETAINED_OTFI.getCode());
+            assertEquals(e.getMessage(), ERROR_CODE_STEP_NOT_ALLOWED_FOR_RETAINED_OTFI.getMessage());
+            // Only the retaining executor's node ran.
+            assertEquals(newContext.getCurrentNode().getId(), nextNode.getId());
+        }
+    }
+
+    @Test
+    public void testRetainedOTFIRejectsOtherStepWithStoredRetention() throws Exception {
+
+        GraphConfig graph = buildGraphWithPage("otherNode");
+        graph.getNodeConfigs().get("otherNode").setExecutorConfig(new ExecutorDTO("OtherExecutor"));
+        FlowExecutionContext newContext = initiateFlowContext();
+        newContext.setGraphConfig(graph);
+        // The retention as read back from the context store.
+        Map<String, Object> storedRetention = new HashMap<>();
+        storedRetention.put("executorName", RETAINING_EXECUTOR);
+        newContext.setProperty(RETAIN_OTFI, storedRetention);
+
+        try (MockedConstruction<TaskExecutionNode> mocked = mockConstruction(TaskExecutionNode.class)) {
+            FlowExecutionEngine.getInstance().execute(newContext);
+            org.testng.Assert.fail("Another step must not run while the one time flow id is retained.");
+        } catch (FlowEngineClientException e) {
+            assertEquals(e.getErrorCode(), ERROR_CODE_STEP_NOT_ALLOWED_FOR_RETAINED_OTFI.getCode());
+        }
+    }
+
+    @Test
+    public void testRetainedOTFIRunsNodesOfTheRetainingExecutor() throws Exception {
+
+        GraphConfig graph = buildGraphWithPage("retainingNode");
+        graph.getNodeConfigs().get("retainingNode").setExecutorConfig(new ExecutorDTO(RETAINING_EXECUTOR));
+        FlowExecutionContext newContext = initiateFlowContext();
+        newContext.setGraphConfig(graph);
+        newContext.setProperty(RETAIN_OTFI, new OTFIRetention.Builder().executorName(RETAINING_EXECUTOR).build());
+
+        try (MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> when(mock.execute(any(), any()))
+                             .thenReturn(new NodeResponse.Builder().status(STATUS_INCOMPLETE).type(VIEW)
+                                     .additionalInfo(new HashMap<>())
+                                     .requiredData(Arrays.asList("signature")).build()))) {
+
+            FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
+            assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
+            assertEquals(step.getStepType(), VIEW);
+            assertEquals(mocked.constructed().size(), 1);
+        }
+    }
+
+    /**
+     * A graph whose first node runs the retaining executor and leads to the given node.
+     */
+    private GraphConfig buildRetainingGraph(NodeConfig nextNode) {
+
+        NodeConfig retainingNode = new NodeConfig.Builder().id("retainingNode").type(TASK_EXECUTION)
+                .executorConfig(new ExecutorDTO(RETAINING_EXECUTOR)).build();
+        retainingNode.setNextNodeId(nextNode.getId());
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put(retainingNode.getId(), retainingNode);
+        nodeMap.put(nextNode.getId(), nextNode);
+        Map<String, StepDTO> pages = new HashMap<>();
+        pages.put(retainingNode.getId(), new StepDTO.Builder().id(retainingNode.getId())
+                .data(new DataDTO.Builder().build()).build());
+        pages.put(nextNode.getId(), new StepDTO.Builder().id(nextNode.getId())
+                .data(new DataDTO.Builder().build()).build());
+        GraphConfig graph = new GraphConfig();
+        graph.setNodeConfigs(nodeMap);
+        graph.setNodePageMappings(pages);
+        graph.setFirstNodeId(retainingNode.getId());
+        return graph;
+    }
+
+    private GraphConfig buildGraphWithNode(String nodeId) {
+
+        NodeConfig node = new NodeConfig.Builder().id(nodeId).type(TASK_EXECUTION).build();
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put(nodeId, node);
+        GraphConfig graph = new GraphConfig();
+        graph.setFirstNodeId(nodeId);
+        graph.setNodeConfigs(nodeMap);
+        return graph;
+    }
+
+    private GraphConfig buildGraphWithPage(String nodeId) {
+
+        GraphConfig graph = buildGraphWithNode(nodeId);
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("text", "Text of " + nodeId);
+        List<ComponentDTO> components = new ArrayList<>();
+        components.add(new ComponentDTO.Builder().id("text_" + nodeId).type("RICH_TEXT").configs(configs).build());
+        StepDTO page = new StepDTO.Builder().id(nodeId).type("EXECUTION")
+                .data(new DataDTO.Builder().components(components).build()).build();
+        Map<String, StepDTO> pages = new HashMap<>();
+        pages.put(nodeId, page);
+        graph.setNodePageMappings(pages);
+        return graph;
     }
 
     @Test

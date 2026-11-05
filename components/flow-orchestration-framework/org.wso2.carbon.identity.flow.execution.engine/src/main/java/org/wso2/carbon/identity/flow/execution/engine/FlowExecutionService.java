@@ -34,6 +34,9 @@ import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngi
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.model.OTFIRetention;
+import org.wso2.carbon.identity.flow.execution.engine.model.PollingState;
+import org.wso2.carbon.identity.flow.execution.engine.poll.FlowPollingService;
 import org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
@@ -45,9 +48,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ANONYMOUS_PROFILE_TRACKER;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTFI;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_EXPIRES_IN;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_INTERVAL;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_INTERVAL_SECONDS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_TOKEN;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_VALIDITY_SECONDS;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.POLL;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 
 /**
@@ -96,6 +106,8 @@ public class FlowExecutionService {
         boolean isFlowEnteredInIdentityContext = false;
         GraphConfig graphConfig = null;
         boolean isInitiation = StringUtils.isBlank(flowId);
+        boolean isOTFIRetainingFlow = false;
+        PollingState previousPollingState = null;
         try {
             if (isInitiation) {
                 // No flowId present hence initiate the flow.
@@ -106,16 +118,21 @@ public class FlowExecutionService {
 
                 // If the incoming flow id is different from the original flow id, it means this is a one time flow id.
                 if (!originalFlowId.equals(flowId)) {
-                    FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
-                    // Retrieve the original context and set it to the current context.
-                    flowId = originalFlowId;
-                    // GraphConfig will be removed from cache when adding to cache.
-                    graphConfig = context.getGraphConfig();
-                    // Cache the context against the original flowId.
-                    FlowExecutionEngineUtils.addFlowContextToCache(context);
-                    context.setGraphConfig(graphConfig);
+                    isOTFIRetainingFlow = shouldRetainOTFI(context);
+                    if (!isOTFIRetainingFlow) {
+                        FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
+                        // Retrieve the original context and set it to the current context.
+                        flowId = originalFlowId;
+                        // GraphConfig will be removed from cache when adding to cache.
+                        graphConfig = context.getGraphConfig();
+                        // Cache the context against the original flowId.
+                        FlowExecutionEngineUtils.addFlowContextToCache(context);
+                        context.setGraphConfig(graphConfig);
+                    }
                 }
             }
+            // Executors change the polling state, and the transitions are applied after the node runs.
+            previousPollingState = context.getPollingState();
             // The graph is attached from here on, so what the flow defines is known.
             FlowVariableResolver.populateRequestHeaders(context);
 
@@ -150,7 +167,10 @@ public class FlowExecutionService {
                 }
             }
             FlowExecutionEngineUtils.publishFlowExecutionSuccessEvent(context, step);
-            if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
+            boolean isFlowComplete = STATUS_COMPLETE.equals(step.getFlowStatus());
+            if (isFlowComplete) {
+                // The waiting client learns that the flow ended.
+                endPolling(context);
                 FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
                 if (step.getData() == null) {
                     step.setData(new DataDTO.Builder().additionalData(new HashMap<>()).build());
@@ -162,7 +182,25 @@ public class FlowExecutionService {
                             AuthenticationAssertionUtils.getSignedUserAssertion(context));
                 }
             } else {
+                updatePolling(context, step, previousPollingState);
+                resolveRetainedOTFI(context, flowId, isOTFIRetainingFlow);
                 cacheContext(context, step);
+            }
+            if (isOTFIRetainingFlow) {
+                // The other client only knows the one time flow id.
+                step.setFlowId(flowId);
+                if (!shouldRetainOTFI(context)) {
+                    // Retention ended, so only the flow id continues the flow.
+                    FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
+                }
+            } else if (shouldRetainOTFI(context)) {
+                // Retention started, so only the one time flow id continues the flow.
+                FlowExecutionEngineUtils.removeFlowContextFromCache(context.getContextIdentifier());
+            }
+            if (!isFlowComplete && previousPollingState == PollingState.IN_PROGRESS
+                    && context.getPollingState() == PollingState.COMPLETED) {
+                // Only now can the waiting client continue the flow with the id it holds.
+                markPollingSuccess(context, flowId);
             }
             step.setFlowType(context.getFlowType());
             return step;
@@ -178,6 +216,14 @@ public class FlowExecutionService {
 
             FlowExecutionEngineUtils.rollbackContext(flowType, flowId);
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
+            String originalFlowId = context != null ? context.getContextIdentifier() : null;
+            if (originalFlowId != null && !originalFlowId.equals(flowId)) {
+                // A request with a retained one time flow id may have moved the flow back to its flow id. Only one
+                // of the two ids is active at a time, so ending both ends the flow once.
+                FlowExecutionEngineUtils.rollbackContext(flowType, originalFlowId);
+                FlowExecutionEngineUtils.removeFlowContextFromCache(originalFlowId);
+            }
+            endPolling(context);
             throw e;
         } finally {
             if (isFlowEnteredInIdentityContext) {
@@ -231,12 +277,143 @@ public class FlowExecutionService {
         if (context == null || context.getProperties() == null) {
             return;
         }
-        String otfiToken = (String) context.getProperty(OTFI);
+        String otfiToken = getOTFIToken(context);
         if (StringUtils.isBlank(otfiToken)) {
             FlowExecutionEngineUtils.addFlowContextToCache(context);
         } else {
             context.getProperties().remove(OTFI);
             FlowExecutionEngineUtils.addFlowContextToCache(otfiToken, context);
         }
+    }
+
+    /**
+     * Make sure a retained one time flow id is set before caching, so the context is cached under the id that stays
+     * active. Continued retention keeps the request's one time flow id. Started retention needs the executor to set
+     * one, as the flow id is removed after caching.
+     *
+     * @param context             Flow execution context.
+     * @param flowId              Flow id of the request.
+     * @param isOTFIRetainingFlow Whether the request used a retained one time flow id.
+     * @throws FlowEngineException If retention starts without a one time flow id.
+     */
+    private void resolveRetainedOTFI(FlowExecutionContext context, String flowId, boolean isOTFIRetainingFlow)
+            throws FlowEngineException {
+
+        if (!shouldRetainOTFI(context) || StringUtils.isNotBlank(getOTFIToken(context))) {
+            return;
+        }
+        if (isOTFIRetainingFlow) {
+            context.setProperty(OTFI, flowId);
+            return;
+        }
+        throw FlowExecutionEngineUtils.handleServerException(context.getFlowType(),
+                Constants.ErrorMessages.ERROR_CODE_RETAINED_OTFI_NOT_FOUND,
+                OTFIRetention.fromContext(context).getExecutorName(), context.getContextIdentifier());
+    }
+
+    /**
+     * Apply the polling state an executor set, before the context is cached. Requested polling replaces any entry
+     * with a new one, and failed polling deletes its entry. Completed polling keeps its entry until the waiting client
+     * continues the flow. Its poll data is added only to a POLL step, as only that step polls.
+     *
+     * @param context              Flow execution context.
+     * @param step                 Current execution step.
+     * @param previousPollingState Polling state of the flow when the request started.
+     * @throws FlowEngineException If the polling entry cannot be created.
+     */
+    private void updatePolling(FlowExecutionContext context, FlowExecutionStep step,
+                               PollingState previousPollingState) throws FlowEngineException {
+
+        PollingState pollingState = context.getPollingState();
+        if (pollingState == PollingState.IN_PROGRESS) {
+            return;
+        }
+        if (pollingState == PollingState.COMPLETED && previousPollingState != PollingState.COMPLETED) {
+            // The waiting client has not continued yet, so it still needs the entry.
+            return;
+        }
+        // Failed or replaced polling ends here, and so does completed polling once the waiting client continued.
+        endPolling(context);
+        if (pollingState != PollingState.REQUESTED) {
+            return;
+        }
+        String pollToken = FlowPollingService.getInstance().create(context.getContextIdentifier());
+        context.setPollToken(pollToken);
+        context.setPollingState(PollingState.IN_PROGRESS);
+        if (!POLL.equals(step.getStepType())) {
+            // No client can poll this step, so the token stays hidden. The entry ends with the polling or expires.
+            return;
+        }
+        if (step.getData() == null) {
+            step.setData(new DataDTO.Builder().additionalData(new HashMap<>()).build());
+        }
+        step.getData().addAdditionalData(POLL_TOKEN, pollToken);
+        step.getData().addAdditionalData(POLL_INTERVAL, String.valueOf(POLL_INTERVAL_SECONDS));
+        step.getData().addAdditionalData(POLL_EXPIRES_IN, String.valueOf(POLL_VALIDITY_SECONDS));
+    }
+
+    /**
+     * Mark the flow's polling entry as successful. If it is not marked, for example because it expired or was
+     * deleted, the waiting client never continues, so the request fails and the error path ends the flow.
+     *
+     * @param context Flow execution context.
+     * @param flowId  Flow id of the request.
+     * @throws FlowEngineException If the entry is not marked.
+     */
+    private void markPollingSuccess(FlowExecutionContext context, String flowId) throws FlowEngineException {
+
+        if (!FlowPollingService.getInstance().markSuccess(context.getPollToken())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("The polling entry of the flow: " + context.getContextIdentifier()
+                        + " is not marked as successful. Hence ending the flow.");
+            }
+            throw FlowExecutionEngineUtils.handleClientException(context.getFlowType(), ERROR_CODE_INVALID_FLOW_ID,
+                    flowId);
+        }
+    }
+
+    /**
+     * End the flow's polling and delete its entry, so the waiting client learns at once that its polling ended.
+     *
+     * @param context Flow execution context, null if the flow was not found.
+     */
+    private void endPolling(FlowExecutionContext context) {
+
+        if (context == null) {
+            return;
+        }
+        String pollToken = context.getPollToken();
+        context.setPollToken(null);
+        context.setPollingState(null);
+        if (pollToken == null) {
+            return;
+        }
+        try {
+            FlowPollingService.getInstance().delete(pollToken);
+        } catch (FlowEngineException e) {
+            LOG.error("Error while deleting the polling entry of the flow: " + context.getContextIdentifier(), e);
+        }
+    }
+
+    /**
+     * Get the one time flow id an executor set in the context.
+     *
+     * @param context Flow execution context.
+     * @return One time flow id, or null if none is set.
+     */
+    private String getOTFIToken(FlowExecutionContext context) {
+
+        return (String) context.getProperty(OTFI);
+    }
+
+    /**
+     * Check whether the executor keeps the one time flow id across requests.
+     *
+     * @param context Flow execution context.
+     * @return True if the one time flow id is retained.
+     */
+    private boolean shouldRetainOTFI(FlowExecutionContext context) {
+
+        return OTFIRetention.fromContext(context) != null;
     }
 }

@@ -49,6 +49,17 @@ public class Constants {
     public static final String ERROR = "error";
     public static final String WEBAUTHN_DATA = "webAuthnData";
     public static final String OTFI = "OTFI";
+    // Holds an OTFIRetention naming the executor that keeps the one time flow id across requests.
+    public static final String RETAIN_OTFI = "RETAIN_OTFI";
+    // Poll data added to the step that starts polling.
+    public static final String POLL_TOKEN = "pollToken";
+    public static final String POLL_INTERVAL = "pollInterval";
+    public static final String POLL_EXPIRES_IN = "expiresIn";
+    // How long a polling entry is valid, and how often its client polls.
+    public static final long POLL_VALIDITY_SECONDS = 180L;
+    public static final long POLL_INTERVAL_SECONDS = 3L;
+    // Node executor metadata key naming the executor phase the node runs.
+    public static final String PHASE = "phase";
 
     public static final String USER_ASSERTION_EXPIRY_PROPERTY = "FlowExecution.UserAssertion.ExpiryTime";
 
@@ -188,6 +199,12 @@ public class Constants {
                 "Conditional branching is not enabled.",
                 "The decision step %s in the %s flow of tenant: %s cannot run because conditional branching is not "
                         + "enabled on this server."),
+        ERROR_CODE_FLOW_POLLING_FAILURE("65038",
+                "Error while handling the polling entry.",
+                "Error occurred while handling the polling entry of the flow."),
+        ERROR_CODE_RETAINED_OTFI_NOT_FOUND("65039",
+                "One time flow id not found.",
+                "The executor: %s retained the one time flow id of the flow: %s without setting one."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
@@ -261,7 +278,10 @@ public class Constants {
                 "An organization with the provided name: %s already exists."),
         ERROR_CODE_ORGANIZATION_HANDLE_ALREADY_EXISTS("60024",
                 "Organization handle already exists.",
-                "An organization with the provided handle: %s already exists.")
+                "An organization with the provided handle: %s already exists."),
+        ERROR_CODE_STEP_NOT_ALLOWED_FOR_RETAINED_OTFI("60025",
+                "Not allowed to execute the current step.",
+                "The current step cannot be executed with the given flow id.")
         ;
 
         private static final String ERROR_PREFIX = "FE";
@@ -311,6 +331,7 @@ public class Constants {
         public static final String STATUS_ERROR = "ERROR";
         public static final String STATUS_USER_ERROR = "USER_ERROR";
         public static final String STATUS_CLIENT_INPUT_REQUIRED = "CLIENT_INPUT_REQUIRED";
+        public static final String STATUS_POLL = "POLL";
 
         private ExecutorStatus() {
 
@@ -332,6 +353,12 @@ public class Constants {
         public static final String SELECT_CONTEXT_SQL = "SELECT FLOW_STATE_JSON FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?" +
                 " AND TENANT_ID = ? AND EXPIRES_AT > ?";
         public static final String DELETE_CONTEXT_SQL = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?";
+        public static final String SELECT_POLL_ENTRY_SQL = "SELECT FLOW_STATE_JSON FROM IDN_FLOW_CONTEXT_STORE WHERE " +
+                "ID = ? AND TENANT_ID = ? AND FLOW_TYPE = ? AND EXPIRES_AT > ?";
+        public static final String UPDATE_POLL_ENTRY_SQL = "UPDATE IDN_FLOW_CONTEXT_STORE SET FLOW_STATE_JSON = ? " +
+                "WHERE ID = ? AND TENANT_ID = ? AND FLOW_TYPE = ?";
+        public static final String DELETE_POLL_ENTRY_SQL = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ? AND " +
+                "TENANT_ID = ? AND FLOW_TYPE = ?";
     }
 
     public static class FlowExecutionConfigs {
