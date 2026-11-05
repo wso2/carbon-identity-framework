@@ -26,6 +26,7 @@ deleteMetadataCount INT := 0;
 deleteFederatedSessionMappingCount INT := 0;
 deleteOrphanedFederatedSessionMappingCount INT := 0;
 fedMappingCleanupTimeInMinutes int;
+sessionDataInIdentityDatabase boolean;
 fedMappingCleanupTime timestamp;
 chunkCount INT := 0;
 batchCount INT := 0;
@@ -61,6 +62,7 @@ sleepTime := 2; -- SET SLEEP TIME FOR AVOID TABLE LOCKS     [DEFAULT : 2]
 enableLog := TRUE; -- ENABLE LOGGING [DEFAULT : TRUE]
 logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE , DEBUG
 fedMappingCleanupTimeInMinutes := 1440; -- FEDERATED SESSION MAPPINGS WITHOUT A SESSION, CREATED BEFORE THIS MANY MINUTES, WILL BE REMOVED [DEFAULT : 1440]
+sessionDataInIdentityDatabase := FALSE; -- SET TO TRUE IF THE SESSION TABLES ARE IN THIS DATABASE, WITH IDN_FED_AUTH_SESSION_MAPPING. THE ORPHANED FEDERATED SESSION MAPPINGS ARE REMOVED ONLY WHEN THIS IS TRUE [DEFAULT : FALSE]
 
 -- ------------------------------------------
 -- CONSTANT VARIABLES
@@ -560,9 +562,10 @@ END LOOP;
 -- --------------------------------------------
 -- The deletes above remove only the federated session mappings of the sessions they remove. Mappings whose session
 -- was removed earlier, for example by the session data cleanup task of the server, are removed here.
+-- Runs only when sessionDataInIdentityDatabase is TRUE: the check below needs the session tables in this database.
 
 EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingFederatedAuthSessionMappingTable;
-IF (rowcount = 1)
+IF (sessionDataInIdentityDatabase AND rowcount = 1)
 THEN
     IF (enableLog) THEN
     RAISE NOTICE '';

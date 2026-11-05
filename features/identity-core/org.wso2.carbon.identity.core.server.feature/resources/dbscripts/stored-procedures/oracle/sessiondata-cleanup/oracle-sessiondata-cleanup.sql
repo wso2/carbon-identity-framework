@@ -42,6 +42,7 @@ CREATE OR REPLACE PROCEDURE wso2_session_cleanup_sp IS
     sessnclntiminminits              INT := 120;      -- Expired Session data older than 120 minutes (2 hours) will be removed.
     opertnclntimeinminits            INT := 720;        -- Operational data older than 720 minutes (12 h) will be removed.
     fedmappingclntimeinminits        INT := 1440;       -- Federated session mappings without a session, created more than 1440 minutes (24 h) ago, will be removed.
+    sessiondatainidentitydb          BOOLEAN := FALSE;  -- SET TO TRUE IF THE SESSION TABLES ARE IN THIS DATABASE, WITH IDN_FED_AUTH_SESSION_MAPPING. THE ORPHANED FEDERATED SESSION MAPPINGS ARE REMOVED ONLY WHEN THIS IS TRUE [DEFAULT : FALSE]
 
 BEGIN
 
@@ -493,9 +494,10 @@ BEGIN
 -- --------------------------------------------
 -- The deletes above remove only the federated session mappings of the sessions they remove. Mappings whose session
 -- was removed earlier, for example by the session data cleanup task of the server, are removed here.
+-- Runs only when sessiondatainidentitydb is TRUE: the check below needs the session tables in this database.
 
     SELECT COUNT(*) INTO rowcount from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_FED_AUTH_SESSION_MAPPING');
-    IF (rowcount = 1) THEN
+    IF (sessiondatainidentitydb AND rowcount = 1) THEN
 
         IF ( tracingenabled ) THEN
             EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),'' '')';

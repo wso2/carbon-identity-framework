@@ -29,6 +29,7 @@ deleteFederatedSessionMappingCount INT := 0;
 deleteOrphanedFederatedSessionMappingCount INT := 0;
 orphanedFederatedSessionMappingsRemoved boolean := FALSE;
 fedMappingCleanupTimeInMinutes int;
+sessionDataInIdentityDatabase boolean;
 fedMappingCleanupTime timestamp;
 chunkCount INT := 0;
 batchCount INT := 0;
@@ -66,6 +67,7 @@ enableLog := TRUE; -- ENABLE LOGGING [DEFAULT : TRUE]
 logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE , DEBUG
 enableAudit := FALSE;  -- SET TRUE FOR  KEEP TRACK OF ALL THE DELETED RECORDS USING A TABLE  [DEFAULT : FALSE]
 fedMappingCleanupTimeInMinutes := 1440; -- FEDERATED SESSION MAPPINGS WITHOUT A SESSION, CREATED BEFORE THIS MANY MINUTES, WILL BE REMOVED [DEFAULT : 1440]
+sessionDataInIdentityDatabase := FALSE; -- SET TO TRUE IF THE SESSION TABLES ARE IN THIS DATABASE, WITH IDN_FED_AUTH_SESSION_MAPPING. THE ORPHANED FEDERATED SESSION MAPPINGS ARE REMOVED ONLY WHEN THIS IS TRUE [DEFAULT : FALSE]
 
 -- ------------------------------------------
 -- CONSTANT VARIABLES
@@ -368,8 +370,9 @@ auditTable :=  purgingTable||'_auditlog';
 
             -- After the expired sessions are purged, each call removes one batch of orphaned federated session
             -- mappings: mappings whose session was removed earlier, for example by the session data cleanup task of
-            -- the server. The call returns CONTINUE until no such mapping is left.
-            IF (operationid = 2)
+            -- the server. The call returns CONTINUE until no such mapping is left. This runs only when
+            -- sessionDataInIdentityDatabase is TRUE: the check needs the session tables in this database.
+            IF (operationid = 2 AND sessionDataInIdentityDatabase)
             THEN
                 EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingFederatedAuthSessionMappingTable;
                 IF (rowcount = 1)

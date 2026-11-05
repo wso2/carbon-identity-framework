@@ -40,6 +40,7 @@ DECLARE @OLD_SQL_SAFE_UPDATES INT;
 DECLARE @SQL_SAFE_UPDATES INT;
 DECLARE @totalsession INT;
 DECLARE @fedMappingCleanupTimeInMinutes INT;
+DECLARE @sessionDataInIdentityDatabase INT;
 DECLARE @fedMappingCleanupTime DATETIME;
 DECLARE @deletedOrphanedFederatedSessionMappings INT;
 DECLARE @orphanedFederatedMappingsCleanupCount INT;
@@ -75,6 +76,9 @@ SET @tracingEnabled = 1;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
 SET @sleepTime = '00:00:02.000';          -- Sleep time in seconds.
 -- Federated session mappings without a session, created more than 1440 minutes (24 h) ago, will be removed.
 SET @fedMappingCleanupTimeInMinutes = 1440;
+-- SET TO 1 IF THE SESSION TABLES ARE IN THIS DATABASE, WITH IDN_FED_AUTH_SESSION_MAPPING. THE ORPHANED FEDERATED SESSION
+-- MAPPINGS ARE REMOVED ONLY WHEN THIS IS 1 [DEFAULT : 0]
+SET @sessionDataInIdentityDatabase = 0;
 SET @autocommit = 0;
 
 SET @sessionCleanUpTempTableCount = 1;
@@ -403,8 +407,9 @@ END;
 -- --------------------------------------------
 -- The deletes above remove only the federated session mappings of the sessions they remove. Mappings whose session
 -- was removed earlier, for example by the session data cleanup task of the server, are removed here.
+-- Runs only when sessionDataInIdentityDatabase is 1: the check below needs the session tables in this database.
 
-IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_FED_AUTH_SESSION_MAPPING'))
+IF (@sessionDataInIdentityDatabase = 1 AND EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_FED_AUTH_SESSION_MAPPING'))
 BEGIN
 SELECT '[' + convert(varchar, getdate(), 121) + '] ORPHANED_FEDERATED_SESSION_MAPPING_CLEANUP_TASK STARTED .... !' AS 'INFO LOG';
 SET @fedMappingCleanupTime = DATEADD(MINUTE, -@fedMappingCleanupTimeInMinutes, GETDATE());
