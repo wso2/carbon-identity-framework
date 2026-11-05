@@ -316,28 +316,16 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (StringUtils.isBlank(userId)) {
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
-        String userIdToSearch = userId;
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        // First check whether a federated association exists for the userId.
-        try {
-            int tenantId = getTenantId(tenantDomain);
-            Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap =
-                    getAuthSessionUserMapFromFedAssociationMapping(tenantId, userId);
-            if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
-                String fedAssociatedUserId = authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.USER_ID);
-                if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
-                    userIdToSearch = fedAssociatedUserId;
-                }
-            }
-        } catch (UserSessionException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
-            }
-        }
-
-        List<UserSession> sessionList = getSessionsByUserId(userIdToSearch);
-        sessionIdList = sessionList.stream().map(UserSession::getSessionId).collect(Collectors.toList());
+        /* The sessions are resolved for the given userId itself, since getSessionsByUserId internally resolves the
+           federated association of the user and appends the sessions of the associated local user id as well.
+           The resolved list can carry the same session id more than once, when a session is mapped to both the
+           local user entry and the federated user entry. Hence the session ids are deduplicated before terminating,
+           to avoid terminating the same session multiple times. */
+        List<UserSession> sessionList = getSessionsByUserId(userId);
+        sessionIdList = sessionList.stream().map(UserSession::getSessionId).distinct()
+                .collect(Collectors.toCollection(ArrayList::new));
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
                 IdPManagementUtil.getPreserveCurrentSessionAtPasswordUpdate(tenantDomain);
@@ -404,6 +392,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                         userSession = userSessionDAO.getSession(fedAssociatedUserId, sessionId);
                         userSession.ifPresent(session -> session.setIdpName(
                                 authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME)));
+                        /* A session of a user who has a federated association can be mapped either to the federated
+                           user id or to the local user id in the user session mapping. Hence if the session is not
+                           found for the resolved federated user id, it is looked up for the local user id as well. */
+                        if (!userSession.isPresent() && !StringUtils.equals(fedAssociatedUserId, userId)) {
+                            userSession = userSessionDAO.getSession(userId, sessionId);
+                        }
                     } else {
                         userSession = userSessionDAO.getSession(userId, sessionId);
                     }
@@ -453,7 +447,13 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         }
 
-        if (isUserSessionMappingExist(userIdToSearch, sessionId)) {
+        /* A session of a user who has a federated association can be mapped either to the federated user id or to
+           the local user id in the user session mapping. Hence the ownership of the session is evaluated against
+           both ids, instead of only the resolved federated user id. */
+        boolean isSessionOwnedByUser = isUserSessionMappingExist(userIdToSearch, sessionId)
+                || (!StringUtils.equals(userIdToSearch, userId) && isUserSessionMappingExist(userId, sessionId));
+
+        if (isSessionOwnedByUser) {
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
