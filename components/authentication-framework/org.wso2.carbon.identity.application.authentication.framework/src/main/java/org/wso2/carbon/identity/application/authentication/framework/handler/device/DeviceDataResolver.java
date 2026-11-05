@@ -18,32 +18,31 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.device;
 
-import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Extension point for resolving verified device data from an authentication initiation request.
- * <p>
- * Implementations are registered as OSGi services and bound by the framework as a dynamic
- * reference. The resolved payload is stored on the authentication context under
- * {@code FrameworkConstants.DEVICE_DATA} and is exposed to adaptive authentication scripts as
- * {@code context.deviceData}.
- * <p>
- * An unresolvable device token is a client error and must be returned as an empty optional. A
- * failure to perform the resolution itself is a server error and fails the authentication flow,
- * hence implementations must not signal client errors by throwing.
+ * Extension point for resolving verified device data from an app native authentication initiation request.
+ * An invalid device token must be returned as an empty optional; throwing fails the authentication flow.
  */
 public interface DeviceDataResolver {
 
     /**
-     * Resolves verified device data from the given initiation request.
+     * Resolves the device data of the device token on the request, in the tenant of the device.
      *
-     * @param request      The initial authentication request, carrying the device token.
-     * @param tenantDomain Tenant domain of the authentication flow.
-     * @return The verified device payload, or an empty optional if no device token is present or
-     *         verification failed.
+     * @param request The initial authentication request carrying the device token.
+     * @return Verified device data, or empty if there is no valid device token.
      */
-    Optional<Map<String, Object>> resolveDeviceData(HttpServletRequest request, String tenantDomain);
+    Optional<ResolvedDeviceData> resolve(HttpServletRequest request);
+
+    /**
+     * Checks whether the device is still active and owned by the user in the tenant.
+     *
+     * @param deviceId     Device ID.
+     * @param userId       User ID of the owner.
+     * @param tenantDomain Tenant domain of the device.
+     * @return True if the device data can still be used for the user.
+     */
+    boolean isValidDevice(String deviceId, String userId, String tenantDomain);
 }

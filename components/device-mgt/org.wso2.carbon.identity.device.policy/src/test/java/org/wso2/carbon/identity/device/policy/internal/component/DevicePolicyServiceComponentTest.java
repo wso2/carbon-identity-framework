@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestatio
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.internal.cleanup.DeviceTokenJtiCleanupService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 
@@ -77,6 +78,7 @@ public class DevicePolicyServiceComponentTest {
         holder.setClientAttestationService(null);
         holder.setDevicePolicyEvaluator(null);
         holder.setIntegrityDataEnricher(null);
+        holder.setOrganizationManager(null);
     }
 
     @Test
@@ -192,5 +194,16 @@ public class DevicePolicyServiceComponentTest {
             // Ignore
         }
         Assert.assertNull(DevicePolicyComponentServiceHolder.getInstance().getClientAttestationService());
+    }
+
+    @Test
+    public void testSetAndUnsetOrganizationManager() {
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        component.setOrganizationManager(organizationManager);
+        Assert.assertEquals(DevicePolicyComponentServiceHolder.getInstance().getOrganizationManager(),
+                organizationManager);
+
+        component.unsetOrganizationManager(organizationManager);
+        Assert.assertNull(DevicePolicyComponentServiceHolder.getInstance().getOrganizationManager());
     }
 }

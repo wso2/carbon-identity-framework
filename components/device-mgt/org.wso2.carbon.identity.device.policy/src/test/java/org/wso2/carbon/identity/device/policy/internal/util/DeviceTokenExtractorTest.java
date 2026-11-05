@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
@@ -75,6 +76,8 @@ public class DeviceTokenExtractorTest {
 
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final int TENANT_ID = -1234;
+    private static final String SUB_ORG_TENANT_DOMAIN = "sub-org-tenant";
+    private static final int SUB_ORG_TENANT_ID = 5;
     private static final String DEVICE_ID = "test-device-id";
     private static final String CORRELATION_ID = "test-correlation-id";
     private static final String JTI = "test-jti";
@@ -124,14 +127,14 @@ public class DeviceTokenExtractorTest {
         mockedLoggerUtils.close();
     }
 
-    // ------------------------------------------------------------------ extractFromToken
+    // ------------------------------------------------------------------ extract
 
     @Test
     public void testExtractFromToken() throws Exception {
 
         registerDevice(DEVICE_ID, Device.Status.ACTIVE, base64PublicKey);
 
-        Map<String, Object> result = extractor.extractFromToken(validToken, TENANT_DOMAIN);
+        Map<String, Object> result = extractor.extract(validToken).getDeviceData();
 
         assertNotNull(result);
         assertEquals(result.get("platform"), "android");
@@ -148,7 +151,7 @@ public class DeviceTokenExtractorTest {
                 .claim("osVersion", 15)
                 .claim("isRooted", false));
 
-        Map<String, Object> result = extractor.extractFromToken(token, TENANT_DOMAIN);
+        Map<String, Object> result = extractor.extract(token).getDeviceData();
 
         assertEquals(result.get("osVersion"), "15");
         assertEquals(result.get("isRooted"), "false");
@@ -164,7 +167,7 @@ public class DeviceTokenExtractorTest {
                 .claim("platform", "android")
                 .claim("nullClaim", null));
 
-        Map<String, Object> result = extractor.extractFromToken(token, TENANT_DOMAIN);
+        Map<String, Object> result = extractor.extract(token).getDeviceData();
 
         assertTrue(result.containsKey("platform"));
         assertFalse(result.containsKey("nullClaim"), "Null claims must not be copied into the device data.");
@@ -175,14 +178,14 @@ public class DeviceTokenExtractorTest {
 
         String plainJwt = new PlainJWT(new JWTClaimsSet.Builder().jwtID(JTI).build()).serialize();
 
-        assertClientError(() -> extractor.extractFromToken(plainJwt, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(plainJwt),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_PARSE_FAILED);
     }
 
     @Test
     public void testExtractFromTokenWithMalformedToken() {
 
-        assertClientError(() -> extractor.extractFromToken("this-is-not-a-jwt", TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract("this-is-not-a-jwt"),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_PARSE_FAILED);
     }
 
@@ -191,7 +194,7 @@ public class DeviceTokenExtractorTest {
 
         String token = buildToken(keyPair, null, JTI, new Date());
 
-        assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(token),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_MISSING_DEVICE_ID);
     }
 
@@ -200,7 +203,7 @@ public class DeviceTokenExtractorTest {
 
         String token = buildToken(keyPair, "   ", JTI, new Date());
 
-        assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(token),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_MISSING_DEVICE_ID);
     }
 
@@ -210,19 +213,19 @@ public class DeviceTokenExtractorTest {
         registerDevice(DEVICE_ID, Device.Status.ACTIVE, base64PublicKey);
         String token = buildToken(keyPair, "\"\\" + DEVICE_ID + "\\\"", JTI, new Date());
 
-        extractor.extractFromToken(token, TENANT_DOMAIN);
+        extractor.extract(token);
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
-        verify(deviceManagementServiceMock).getDeviceById(idCaptor.capture(), eq(TENANT_DOMAIN));
+        verify(deviceManagementServiceMock).getTenantDeviceById(idCaptor.capture());
         assertEquals(idCaptor.getValue(), DEVICE_ID, "Stray quotes and backslashes must be stripped.");
     }
 
     @Test
     public void testExtractFromTokenWhenDeviceNotFound() throws Exception {
 
-        when(deviceManagementServiceMock.getDeviceById(DEVICE_ID, TENANT_DOMAIN)).thenReturn(null);
+        when(deviceManagementServiceMock.getTenantDeviceById(DEVICE_ID)).thenReturn(null);
 
-        DevicePolicyException e = assertClientError(() -> extractor.extractFromToken(validToken, TENANT_DOMAIN),
+        DevicePolicyException e = assertClientError(() -> extractor.extract(validToken),
                 DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE);
         assertTrue(e.getDescription().contains(DEVICE_ID));
     }
@@ -232,17 +235,17 @@ public class DeviceTokenExtractorTest {
 
         registerDevice(DEVICE_ID, Device.Status.INACTIVE, base64PublicKey);
 
-        assertClientError(() -> extractor.extractFromToken(validToken, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(validToken),
                 DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE);
     }
 
     @Test
     public void testExtractFromTokenWhenDeviceLookupFails() throws Exception {
 
-        when(deviceManagementServiceMock.getDeviceById(DEVICE_ID, TENANT_DOMAIN))
+        when(deviceManagementServiceMock.getTenantDeviceById(DEVICE_ID))
                 .thenThrow(new DeviceMgtException("lookup failed", "desc", "DM-65000"));
 
-        assertServerError(() -> extractor.extractFromToken(validToken, TENANT_DOMAIN),
+        assertServerError(() -> extractor.extract(validToken),
                 DevicePolicyErrorMessage.ERROR_DEVICE_LOOKUP_FAILED);
     }
 
@@ -251,7 +254,7 @@ public class DeviceTokenExtractorTest {
 
         registerDevice(DEVICE_ID, Device.Status.ACTIVE, "not-a-valid-key");
 
-        assertServerError(() -> extractor.extractFromToken(validToken, TENANT_DOMAIN),
+        assertServerError(() -> extractor.extract(validToken),
                 DevicePolicyErrorMessage.ERROR_DEVICE_PUBLIC_KEY_DECODE_FAILED);
     }
 
@@ -260,7 +263,7 @@ public class DeviceTokenExtractorTest {
 
         registerDevice(DEVICE_ID, Device.Status.ACTIVE, encodePublicKey(generateKeyPair()));
 
-        assertClientError(() -> extractor.extractFromToken(validToken, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(validToken),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_SIGNATURE_INVALID);
     }
 
@@ -272,7 +275,7 @@ public class DeviceTokenExtractorTest {
         registerDevice(DEVICE_ID, Device.Status.ACTIVE, base64PublicKey);
         String token = buildToken(keyPair, DEVICE_ID, null, new Date());
 
-        assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(token),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_MISSING_JTI);
     }
 
@@ -282,7 +285,7 @@ public class DeviceTokenExtractorTest {
         registerDevice(DEVICE_ID, Device.Status.ACTIVE, base64PublicKey);
         String token = buildToken(keyPair, DEVICE_ID, "  ", new Date());
 
-        assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(token),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_MISSING_JTI);
     }
 
@@ -292,7 +295,7 @@ public class DeviceTokenExtractorTest {
         registerDevice(DEVICE_ID, Device.Status.ACTIVE, base64PublicKey);
         String token = buildToken(keyPair, DEVICE_ID, JTI, null);
 
-        assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(token),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_MISSING_IAT);
     }
 
@@ -304,7 +307,7 @@ public class DeviceTokenExtractorTest {
                 - DeviceTokenConstants.TOKEN_FRESHNESS_WINDOW_MILLIS - 60_000L);
         String token = buildToken(keyPair, DEVICE_ID, JTI, stale);
 
-        DevicePolicyException e = assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
+        DevicePolicyException e = assertClientError(() -> extractor.extract(token),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_EXPIRED);
         assertTrue(e.getDescription().contains(
                 String.valueOf(DeviceTokenConstants.TOKEN_FRESHNESS_WINDOW_MILLIS / 1000)));
@@ -317,7 +320,7 @@ public class DeviceTokenExtractorTest {
         Date future = new Date(System.currentTimeMillis() + DeviceTokenConstants.CLOCK_SKEW_MILLIS + 60_000L);
         String token = buildToken(keyPair, DEVICE_ID, JTI, future);
 
-        assertClientError(() -> extractor.extractFromToken(token, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(token),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_EXPIRED);
     }
 
@@ -328,7 +331,7 @@ public class DeviceTokenExtractorTest {
         Date slightlyAhead = new Date(System.currentTimeMillis() + (DeviceTokenConstants.CLOCK_SKEW_MILLIS / 2));
         String token = buildToken(keyPair, DEVICE_ID, JTI, slightlyAhead);
 
-        assertNotNull(extractor.extractFromToken(token, TENANT_DOMAIN),
+        assertNotNull(extractor.extract(token),
                 "A token issued within the allowed clock skew must be accepted.");
     }
 
@@ -341,7 +344,7 @@ public class DeviceTokenExtractorTest {
                 - DeviceTokenConstants.TOKEN_FRESHNESS_WINDOW_MILLIS + 2_000L);
         String token = buildToken(keyPair, DEVICE_ID, JTI, boundary);
 
-        assertNotNull(extractor.extractFromToken(token, TENANT_DOMAIN));
+        assertNotNull(extractor.extract(token));
     }
 
     @Test
@@ -351,7 +354,7 @@ public class DeviceTokenExtractorTest {
         Date issuedAt = new Date();
         String token = buildToken(keyPair, DEVICE_ID, JTI, issuedAt);
 
-        extractor.extractFromToken(token, TENANT_DOMAIN);
+        extractor.extract(token);
 
         ArgumentCaptor<String> jtiCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Date> iatCaptor = ArgumentCaptor.forClass(Date.class);
@@ -370,8 +373,46 @@ public class DeviceTokenExtractorTest {
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_REPLAYED.getCode()))
                 .when(replayServiceMock).assertUnusedAndRecord(anyString(), any(Date.class), anyInt(), anyString());
 
-        assertClientError(() -> extractor.extractFromToken(validToken, TENANT_DOMAIN),
+        assertClientError(() -> extractor.extract(validToken),
                 DevicePolicyErrorMessage.ERROR_DEVICE_TOKEN_REPLAYED);
+    }
+
+    @Test
+    public void testExtractForDeviceOfTheTenant() throws Exception {
+
+        registerDevice(DEVICE_ID, Device.Status.ACTIVE, base64PublicKey, TENANT_DOMAIN, "owner");
+
+        DeviceTokenExtractor.VerifiedDeviceToken result = extractor.extract(validToken);
+
+        assertEquals(result.getDeviceId(), DEVICE_ID);
+        assertEquals(result.getOwnerUserId(), "owner");
+        assertEquals(result.getTenantDomain(), TENANT_DOMAIN);
+        assertEquals(result.getDeviceData().get("jti"), JTI);
+    }
+
+    @Test
+    public void testExtractLooksUpDeviceByIdAcrossTenants() throws Exception {
+
+        // The device is registered in a sub organization; it is found by its id only.
+        registerDevice(DEVICE_ID, Device.Status.ACTIVE, base64PublicKey, SUB_ORG_TENANT_DOMAIN, "sub-org-user");
+        mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUB_ORG_TENANT_DOMAIN))
+                .thenReturn(SUB_ORG_TENANT_ID);
+
+        DeviceTokenExtractor.VerifiedDeviceToken result = extractor.extract(validToken);
+
+        assertEquals(result.getOwnerUserId(), "sub-org-user");
+        assertEquals(result.getTenantDomain(), SUB_ORG_TENANT_DOMAIN);
+        verify(deviceManagementServiceMock, never()).getDeviceById(anyString(), anyString());
+        // The jti is recorded in the tenant of the device.
+        verify(replayServiceMock).assertUnusedAndRecord(eq(JTI), any(Date.class), eq(SUB_ORG_TENANT_ID),
+                anyString());
+    }
+
+    @Test
+    public void testExtractForUnknownDevice() throws Exception {
+
+        assertClientError(() -> extractor.extract(validToken),
+                DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE);
     }
 
     // ------------------------------------------------------------------ extractWithPublicKey
@@ -392,6 +433,7 @@ public class DeviceTokenExtractorTest {
         extractor.extractWithPublicKey(validToken, base64PublicKey, CORRELATION_ID, TENANT_DOMAIN);
 
         verify(deviceManagementServiceMock, never()).getDeviceById(anyString(), anyString());
+        verify(deviceManagementServiceMock, never()).getTenantDeviceById(anyString());
     }
 
     @Test
@@ -481,10 +523,18 @@ public class DeviceTokenExtractorTest {
 
     private void registerDevice(String deviceId, Device.Status status, String publicKey) throws DeviceMgtException {
 
+        registerDevice(deviceId, status, publicKey, TENANT_DOMAIN, "owner");
+    }
+
+    private void registerDevice(String deviceId, Device.Status status, String publicKey, String tenantDomain,
+                                String ownerUserId) throws DeviceMgtException {
+
         Device device = mock(Device.class);
         when(device.getStatus()).thenReturn(status);
         when(device.getPublicKey()).thenReturn(publicKey);
-        when(deviceManagementServiceMock.getDeviceById(deviceId, TENANT_DOMAIN)).thenReturn(device);
+        when(device.getUserId()).thenReturn(ownerUserId);
+        when(deviceManagementServiceMock.getTenantDeviceById(deviceId)).thenReturn(new TenantDevice(device,
+                tenantDomain));
     }
 
     private KeyPair generateKeyPair() throws Exception {

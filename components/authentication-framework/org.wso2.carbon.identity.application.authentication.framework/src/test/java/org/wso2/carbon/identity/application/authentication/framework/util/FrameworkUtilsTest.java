@@ -69,6 +69,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
@@ -2196,4 +2197,43 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 "/auth" + FrameworkConstants.TENANT_CONTEXT_PREFIX + DUMMY_TENANT_DOMAIN + "/");
     }
 
+
+    @DataProvider(name = "userResidentTenantDomainProvider")
+    public Object[][] userResidentTenantDomainProvider() {
+
+        return new Object[][]{
+                // Local root user.
+                {false, SUPER_TENANT_DOMAIN_NAME, null, SUPER_TENANT_DOMAIN_NAME},
+                // Local native sub-organization user.
+                {false, "sub-org-tenant", "sub-org-id", "sub-org-tenant"},
+                // Local shared user in a shared app login, resident org set to the accessing org.
+                {false, SUPER_TENANT_DOMAIN_NAME, "sub-org-id", SUPER_TENANT_DOMAIN_NAME},
+                // Federated organization user.
+                {true, SUPER_TENANT_DOMAIN_NAME, "sub-org-id", "sub-org-tenant"},
+                // Federated user without a resident organization.
+                {true, DUMMY_TENANT_DOMAIN, null, DUMMY_TENANT_DOMAIN}
+        };
+    }
+
+    @Test(dataProvider = "userResidentTenantDomainProvider")
+    public void testResolveUserResidentTenantDomain(boolean federated, String tenantDomain,
+                                                    String residentOrganization, String expected)
+            throws Exception {
+
+        OrganizationManager previousOrganizationManager =
+                FrameworkServiceDataHolder.getInstance().getOrganizationManager();
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        lenient().when(organizationManager.resolveTenantDomain("sub-org-id")).thenReturn("sub-org-tenant");
+        FrameworkServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        try {
+            AuthenticatedUser user = new AuthenticatedUser();
+            user.setFederatedUser(federated);
+            user.setTenantDomain(tenantDomain);
+            user.setUserResidentOrganization(residentOrganization);
+
+            assertEquals(FrameworkUtils.resolveUserResidentTenantDomain(user), expected);
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setOrganizationManager(previousOrganizationManager);
+        }
+    }
 }

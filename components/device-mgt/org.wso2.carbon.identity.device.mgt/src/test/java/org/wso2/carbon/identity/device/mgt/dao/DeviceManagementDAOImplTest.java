@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.device.mgt.dao;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.internal.dao.impl.DeviceManagementDAOImpl;
 
@@ -31,6 +34,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Unit tests for {@link DeviceManagementDAOImpl}.
@@ -179,6 +184,32 @@ public class DeviceManagementDAOImplTest {
         List<Device> allOtherTenant = deviceManagementDAO.getDevices(OTHER_TENANT_ID, 0, 100);
         long found = allOtherTenant.stream().filter(d -> d.getId().equals(id)).count();
         Assert.assertEquals(found, 0);
+    }
+
+    /**
+     * Tests resolving the tenant of a device by its id only.
+     *
+     * @throws DeviceMgtException If the DAO operation fails.
+     */
+    @Test(priority = 8)
+    public void testGetTenantDeviceById() throws DeviceMgtException {
+
+        String id = UUID.randomUUID().toString();
+        deviceManagementDAO.registerDevice(buildDevice(id, "Other Tenant Device", Device.Status.ACTIVE),
+                new UserDeviceAssociation(id, TEST_USER_ID), OTHER_TENANT_ID);
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(OTHER_TENANT_ID))
+                    .thenReturn("other.tenant");
+
+            TenantDevice tenantDevice = deviceManagementDAO.getTenantDeviceById(id);
+            Assert.assertEquals(tenantDevice.getDevice().getId(), id);
+            Assert.assertEquals(tenantDevice.getDevice().getUserId(), TEST_USER_ID);
+            Assert.assertEquals(tenantDevice.getTenantDomain(), "other.tenant");
+            Assert.assertNull(deviceManagementDAO.getTenantDeviceById(UUID.randomUUID().toString()));
+        } finally {
+            deviceManagementDAO.deleteDevice(id, OTHER_TENANT_ID);
+        }
     }
 
     /**

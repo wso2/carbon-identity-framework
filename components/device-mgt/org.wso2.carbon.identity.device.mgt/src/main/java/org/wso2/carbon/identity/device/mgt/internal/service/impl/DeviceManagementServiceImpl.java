@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.device.mgt.internal.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
@@ -26,19 +27,26 @@ import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
+import org.wso2.carbon.identity.device.mgt.internal.component.DeviceMgtComponentServiceHolder;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.dao.impl.CacheBackedDeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.dao.impl.DeviceManagementDAOImpl;
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceManagementAuditLogger;
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceManagementExceptionHandler;
 import org.wso2.carbon.identity.device.mgt.internal.util.DeviceValidator;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link DeviceManagementService}.
@@ -90,6 +98,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         DEVICE_VALIDATOR.validateDeviceForRegistration(device);
         DEVICE_VALIDATOR.validateAssociation(association);
+        validateDeviceRegistration(((UserDeviceAssociation) association).getUserId(), tenantDomain);
 
         String deviceId = device.getId();
         Timestamp registeredAt = device.getRegisteredAt() != null
@@ -116,6 +125,16 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         return registeredDevice != null ? registeredDevice : device;
     }
 
+    private void validateDeviceRegistration(String userId, String tenantDomain) throws DeviceMgtException {
+
+        DEVICE_VALIDATOR.validateRequiredField(userId, FIELD_USER_ID);
+        // Shared users inherit devices from their resident organization.
+        if (!userId.equals(resolveDeviceOwner(userId, tenantDomain).userId)) {
+            throw DeviceManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_DEVICE_REGISTRATION_FOR_SHARED_USER, tenantDomain);
+        }
+    }
+
     @Override
     public Device getDeviceById(String deviceId, String tenantDomain)
             throws DeviceMgtException {
@@ -124,6 +143,31 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         DEVICE_VALIDATOR.validateRequiredField(deviceId, FIELD_DEVICE_ID);
         return deviceManagementDAO.getDeviceById(
                 deviceId, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public Device getDeviceOfResidentUser(String deviceId, String residentUserId, String tenantDomain)
+            throws DeviceMgtException {
+
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(deviceId, FIELD_DEVICE_ID);
+        DEVICE_VALIDATOR.validateRequiredField(residentUserId, FIELD_USER_ID);
+        DeviceOwner owner = resolveDeviceOwnerOfResidentUser(residentUserId, tenantDomain);
+        Device device = getDeviceOfOwner(deviceId, owner.userId, owner.tenantDomain);
+        return device != null ? toDisplayedDevice(device, owner) : null;
+    }
+
+    private Device getDeviceOfOwner(String deviceId, String userId, String tenantDomain) throws DeviceMgtException {
+
+        Device device = getDeviceById(deviceId, tenantDomain);
+        return device != null && userId.equals(device.getUserId()) ? device : null;
+    }
+
+    @Override
+    public TenantDevice getTenantDeviceById(String deviceId) throws DeviceMgtException {
+
+        DEVICE_VALIDATOR.validateRequiredField(deviceId, FIELD_DEVICE_ID);
+        return deviceManagementDAO.getTenantDeviceById(deviceId);
     }
 
     @Override
@@ -140,8 +184,16 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 
         DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         DEVICE_VALIDATOR.validateRequiredField(userId, FIELD_USER_ID);
-        return deviceManagementDAO.getDevicesByUserId(
-                userId, IdentityTenantUtil.getTenantId(tenantDomain), offset, DEVICE_VALIDATOR.validateLimit(limit));
+        int validatedLimit = DEVICE_VALIDATOR.validateLimit(limit);
+        DeviceOwner owner = resolveDeviceOwner(userId, tenantDomain);
+        List<Device> devices = deviceManagementDAO.getDevicesByUserId(
+                owner.userId, IdentityTenantUtil.getTenantId(owner.tenantDomain), offset, validatedLimit);
+        if (userId.equals(owner.userId)) {
+            return devices;
+        }
+        return devices.stream()
+                .map(device -> toDisplayedDevice(device, owner))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -156,7 +208,34 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 
         DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         DEVICE_VALIDATOR.validateRequiredField(userId, FIELD_USER_ID);
-        return deviceManagementDAO.getDeviceCountByUserId(userId, IdentityTenantUtil.getTenantId(tenantDomain));
+        DeviceOwner owner = resolveDeviceOwner(userId, tenantDomain);
+        return deviceManagementDAO.getDeviceCountByUserId(
+                owner.userId, IdentityTenantUtil.getTenantId(owner.tenantDomain));
+    }
+
+    @Override
+    public List<Device> getDevicesOfResidentUser(String residentUserId, String tenantDomain, int offset, int limit)
+            throws DeviceMgtException {
+
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(residentUserId, FIELD_USER_ID);
+        int validatedLimit = DEVICE_VALIDATOR.validateLimit(limit);
+        DeviceOwner owner = resolveDeviceOwnerOfResidentUser(residentUserId, tenantDomain);
+        List<Device> devices = deviceManagementDAO.getDevicesByUserId(
+                owner.userId, IdentityTenantUtil.getTenantId(owner.tenantDomain), offset, validatedLimit);
+        return devices.stream()
+                .map(device -> toDisplayedDevice(device, owner))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public int getDeviceCountOfResidentUser(String residentUserId, String tenantDomain) throws DeviceMgtException {
+
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(residentUserId, FIELD_USER_ID);
+        DeviceOwner owner = resolveDeviceOwnerOfResidentUser(residentUserId, tenantDomain);
+        return deviceManagementDAO.getDeviceCountByUserId(
+                owner.userId, IdentityTenantUtil.getTenantId(owner.tenantDomain));
     }
 
     @Override
@@ -262,6 +341,104 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Devices deleted for user id: " + userId + LOG_IN_TENANT + tenantDomain);
+        }
+    }
+
+    /**
+     * Resolves the user and tenant that own the devices of the given user.
+     *
+     * @param userId       User ID.
+     * @param tenantDomain Tenant domain of the user.
+     * @return The resident user and its tenant for a shared user, otherwise the given user and tenant.
+     * @throws DeviceMgtException If the user association cannot be resolved.
+     */
+    private DeviceOwner resolveDeviceOwner(String userId, String tenantDomain) throws DeviceMgtException {
+
+        DeviceMgtComponentServiceHolder holder = DeviceMgtComponentServiceHolder.getInstance();
+        OrganizationManager organizationManager = holder.getOrganizationManager();
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                return new DeviceOwner(userId, tenantDomain, userId);
+            }
+            String orgId = organizationManager.resolveOrganizationId(tenantDomain);
+            UserAssociation association = holder.getOrganizationUserSharingService().getUserAssociation(userId, orgId);
+            if (!isSharedUserAssociation(association, orgId)) {
+                return new DeviceOwner(userId, tenantDomain, userId);
+            }
+            // Devices are only in the resident organization; shared users can't register devices in sub-orgs.
+            return new DeviceOwner(association.getAssociatedUserId(),
+                    organizationManager.resolveTenantDomain(association.getUserResidentOrganizationId()), userId);
+        } catch (OrganizationManagementException e) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RESOLVING_INHERITED_DEVICES, e, tenantDomain);
+        }
+    }
+
+    /**
+     * Resolves the user and tenant that own the devices of the given resident user in the request tenant.
+     *
+     * @param residentUserId User ID of the user in its resident organization.
+     * @param tenantDomain   Tenant domain of the request.
+     * @return The resident user and its tenant, with the shared user ID to display for a shared user.
+     * @throws DeviceMgtException If the user association cannot be resolved.
+     */
+    private DeviceOwner resolveDeviceOwnerOfResidentUser(String residentUserId, String tenantDomain)
+            throws DeviceMgtException {
+
+        DeviceMgtComponentServiceHolder holder = DeviceMgtComponentServiceHolder.getInstance();
+        OrganizationManager organizationManager = holder.getOrganizationManager();
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                return new DeviceOwner(residentUserId, tenantDomain, residentUserId);
+            }
+            String orgId = organizationManager.resolveOrganizationId(tenantDomain);
+            UserAssociation association = holder.getOrganizationUserSharingService()
+                    .getUserAssociationOfAssociatedUserByOrgId(residentUserId, orgId);
+            if (!isSharedUserAssociation(association, orgId)) {
+                return new DeviceOwner(residentUserId, tenantDomain, residentUserId);
+            }
+            // Devices are only in the resident organization; shared users can't register devices in sub-orgs.
+            return new DeviceOwner(residentUserId,
+                    organizationManager.resolveTenantDomain(association.getUserResidentOrganizationId()),
+                    association.getUserId());
+        } catch (OrganizationManagementException e) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RESOLVING_INHERITED_DEVICES, e, tenantDomain);
+        }
+    }
+
+    private boolean isSharedUserAssociation(UserAssociation association, String orgId) {
+
+        return association != null && StringUtils.isNotBlank(association.getUserId())
+                && StringUtils.isNotBlank(association.getAssociatedUserId())
+                && StringUtils.isNotBlank(association.getUserResidentOrganizationId())
+                && !orgId.equals(association.getUserResidentOrganizationId());
+    }
+
+    private Device toDisplayedDevice(Device device, DeviceOwner owner) {
+
+        if (owner.displayUserId.equals(device.getUserId())) {
+            return device;
+        }
+        return new Device.Builder(device)
+                .userId(owner.displayUserId)
+                .build();
+    }
+
+    /**
+     * The user and tenant that own a user's devices, and the user ID to show the devices with.
+     */
+    private static final class DeviceOwner {
+
+        private final String userId;
+        private final String tenantDomain;
+        private final String displayUserId;
+
+        private DeviceOwner(String userId, String tenantDomain, String displayUserId) {
+
+            this.userId = userId;
+            this.tenantDomain = tenantDomain;
+            this.displayUserId = displayUserId;
         }
     }
 }

@@ -23,6 +23,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
@@ -50,6 +52,7 @@ import java.util.UUID;
  * Implementation of Policy Management Service.
  * Dispatches per-resource create/enrich/delete to the {@link PolicyResourceManager} registered for
  * each resource's type, and orchestrates best-effort saga compensation around the DAO layer.
+ * Policies are managed only in root organizations.
  */
 @Capability(
         namespace = "osgi.service",
@@ -86,6 +89,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     public Policy addPolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
 
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
+        validatePolicyManagementAllowed(tenantDomain);
         POLICY_VALIDATOR.validateForAdd(policy);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Creating %s policy with name: %s for tenant: %s",
@@ -136,6 +140,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     public Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
 
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
+        validatePolicyManagementAllowed(tenantDomain);
         POLICY_VALIDATOR.validateForUpdate(policy);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         Policy existingPolicy = policyManagementDAO.getPolicyById(policy.getId(), tenantId);
@@ -203,6 +208,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     public void deletePolicy(String policyId, String tenantDomain) throws PolicyManagementException {
 
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
+        validatePolicyManagementAllowed(tenantDomain);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Deleting policy with ID: %s for tenant: %s",
                     policyId, tenantDomain));
@@ -347,6 +353,25 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                     ErrorMessage.ERROR_NO_RESOURCE_MANAGER_FOR_TYPE, String.valueOf(resourceType));
         }
         return manager;
+    }
+
+    /**
+     * Rejects policy changes in organizations, since they inherit policies from ancestors.
+     *
+     * @param tenantDomain Tenant domain.
+     * @throws PolicyManagementException If the tenant is an organization or the check fails.
+     */
+    private void validatePolicyManagementAllowed(String tenantDomain) throws PolicyManagementException {
+
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                throw PolicyManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_POLICY_MANAGEMENT_NOT_ALLOWED_FOR_ORGANIZATION, tenantDomain);
+            }
+        } catch (OrganizationManagementException e) {
+            throw PolicyManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RESOLVING_ORGANIZATION, e, tenantDomain);
+        }
     }
 
     private void validateUniquePolicyName(String type, String name, int tenantId)

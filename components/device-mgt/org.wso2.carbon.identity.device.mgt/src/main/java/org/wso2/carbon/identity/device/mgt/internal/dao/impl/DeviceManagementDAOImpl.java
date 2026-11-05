@@ -26,11 +26,13 @@ import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.internal.constant.DeviceMgtSQLConstants;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
@@ -135,6 +137,34 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     }
 
 
+
+    @Override
+    public TenantDevice getTenantDeviceById(String deviceId) throws DeviceMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.<TenantDevice, RuntimeException>withTransaction(
+                    template -> template.fetchSingleRecord(
+                            DeviceMgtSQLConstants.Query.GET_DEVICE_WITH_TENANT_BY_ID,
+                            (resultSet, rowNumber) -> new TenantDevice(new Device.Builder()
+                                    .id(resultSet.getString(DeviceMgtSQLConstants.Column.ID))
+                                    .userId(resultSet.getString(DeviceMgtSQLConstants.Column.USER_ID))
+                                    .deviceName(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_NAME))
+                                    .deviceModel(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_MODEL))
+                                    .publicKey(resultSet.getString(DeviceMgtSQLConstants.Column.PUBLIC_KEY))
+                                    .status(Device.Status.valueOf(
+                                            resultSet.getString(DeviceMgtSQLConstants.Column.STATUS)))
+                                    .registeredAt(resultSet.getTimestamp(DeviceMgtSQLConstants.Column.REGISTERED_AT))
+                                    .build(),
+                                    IdentityTenantUtil.getTenantDomain(
+                                            resultSet.getInt(DeviceMgtSQLConstants.Column.TENANT_ID))),
+                            preparedStatement -> preparedStatement.setString(DeviceMgtSQLConstants.Column.ID,
+                                    deviceId)));
+        } catch (TransactionException e) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e, deviceId);
+        }
+    }
 
     @Override
     public List<Device> getDevices(int tenantId, int offset, int limit) throws DeviceMgtException {
