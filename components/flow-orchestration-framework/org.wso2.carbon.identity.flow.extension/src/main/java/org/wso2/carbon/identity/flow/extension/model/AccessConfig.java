@@ -54,7 +54,7 @@ public class AccessConfig {
      * entries for that flow type.
      *
      * @param flowType The flow type of the running flow.
-     * @return The access config for the flow type.
+     * @return The access config for the flow type. A list that is not configured is empty.
      */
     public AccessConfig forFlowType(String flowType) {
 
@@ -64,12 +64,12 @@ public class AccessConfig {
     private static List<ContextPath> filterByFlowType(List<ContextPath> paths, String flowType) {
 
         if (paths == null) {
-            return null;
+            return Collections.emptyList();
         }
         return paths.stream()
                 .filter(path -> path != null
                         && (path.getFlowType() == null || path.getFlowType().equals(flowType)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

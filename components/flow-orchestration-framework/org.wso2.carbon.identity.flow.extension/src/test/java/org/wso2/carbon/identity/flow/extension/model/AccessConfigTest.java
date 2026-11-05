@@ -26,7 +26,6 @@ import java.util.List;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -155,11 +154,11 @@ public class AccessConfigTest {
     }
 
     @Test
-    public void testForFlowTypeKeepsNullListsAndDropsNullEntries() {
+    public void testForFlowTypeGivesEmptyListsAndDropsNullEntries() {
 
         AccessConfig nullLists = new AccessConfig(null, null).forFlowType("REGISTRATION");
-        assertNull(nullLists.getExpose());
-        assertNull(nullLists.getModify());
+        assertTrue(nullLists.getExpose().isEmpty());
+        assertTrue(nullLists.getModify().isEmpty());
 
         AccessConfig withNull = new AccessConfig(Arrays.asList(null, new ContextPath("/user/id", false)), null)
                 .forFlowType("REGISTRATION");

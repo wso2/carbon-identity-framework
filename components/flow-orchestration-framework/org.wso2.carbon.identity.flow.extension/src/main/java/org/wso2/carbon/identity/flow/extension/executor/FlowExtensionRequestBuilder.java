@@ -213,7 +213,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
     private List<ContextPath> dropUndefinedVariablePaths(List<ContextPath> paths, FlowExecutionContext context) {
 
         if (paths == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<ContextPath> definedPaths = new ArrayList<>();
         for (ContextPath contextPath : paths) {

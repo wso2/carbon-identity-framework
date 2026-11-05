@@ -258,7 +258,9 @@ public class FlowExtensionContextTreeBuilderTest {
     public void testSubjectOrganizationNodeIsExposeOnlyForRegistration() throws Exception {
 
         FlowMgtService flowMgtService = mock(FlowMgtService.class);
-        when(flowMgtService.getOrganizationAttributes(TENANT_ID)).thenReturn(Arrays.asList("industry", "country"));
+        // A name with the selector's closing bracket cannot be addressed by a path, so it is left out.
+        when(flowMgtService.getOrganizationAttributes(TENANT_ID))
+                .thenReturn(Arrays.asList("industry", "department[code]", "country"));
 
         FlowExtensionContextTreeNode subjectOrganization = node(buildWithFlowVariables(flowMgtService),
                 "subjectOrganization");

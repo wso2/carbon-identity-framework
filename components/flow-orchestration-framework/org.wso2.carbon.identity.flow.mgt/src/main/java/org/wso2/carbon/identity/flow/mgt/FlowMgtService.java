@@ -174,6 +174,9 @@ public class FlowMgtService {
                     variablesByTenant.put(tenantIdWithResource, storedVariables);
                 }
                 stored = storedVariables.get(flowType.getType());
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("No flow found for type: " + flowType.getType() + " in tenant hierarchy. Listing only the "
+                        + "system runtime values for it.");
             }
 
             FlowTypeVariablesDTO variables = new FlowTypeVariablesDTO(flowType.getType());

@@ -194,9 +194,6 @@ public class TaskExecutionNodeTest {
     }
 
     /**
-     * The runtime values an executor gives are kept when the flow defines them and they are valid for their type.
-     */
-    /**
      * The runtime values an executor gives are applied, including the A/B testing key, except invalid ones and ones
      * the flow does not define.
      */

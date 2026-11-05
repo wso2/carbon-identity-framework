@@ -238,6 +238,10 @@ public class FlowExtensionContextTreeBuilder {
         List<String> registrationOnly = Collections.singletonList(ContextTree.FLOW_REGISTRATION);
         List<FlowExtensionContextTreeNode> attributeLeaves = new ArrayList<>();
         for (String name : getOrganizationAttributes()) {
+            // A name with the selector's closing bracket cannot be addressed by a path.
+            if (name.contains(FlowContextPaths.NAME_SELECTOR_SUFFIX)) {
+                continue;
+            }
             attributeLeaves.add(subjectOrganizationLeaf(name, name,
                     FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX + name
                             + FlowContextPaths.NAME_SELECTOR_SUFFIX));
@@ -295,7 +299,7 @@ public class FlowExtensionContextTreeBuilder {
             return FlowMgtService.getInstance().getOrganizationAttributes(tenantId);
         } catch (FlowMgtFrameworkException e) {
             LOG.error("Error while retrieving the organization attributes of the registration flow of tenant: "
-                    + tenantId + ". The attributes are left out of the context tree.", e);
+                    + tenantId + ". The attributes are left out of the context tree. " + e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -330,7 +334,7 @@ public class FlowExtensionContextTreeBuilder {
             flowVariables = FlowMgtService.getInstance().getFlowVariables(tenantId);
         } catch (FlowMgtFrameworkException e) {
             LOG.error("Error while retrieving the flow variables of tenant: " + tenantId
-                    + ". Runtime values and request headers are left out of the context tree.", e);
+                    + ". Runtime values and request headers are left out of the context tree. " + e.getMessage());
             return;
         }
 

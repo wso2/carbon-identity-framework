@@ -472,13 +472,14 @@ public class FlowExtensionResponseProcessorTest {
     // ------------------------------------------------------------------ runtime values
 
     /**
-     * A registration flow defining the runtime values plan, attempts and abTestingKey, and the header x-device.
+     * A registration flow defining the runtime values plan, attempts, tags and abTestingKey, and the header x-device.
      */
     private FlowExecutionContext execContextWithFlowVariables() {
 
         FlowVariablesDTO variables = new FlowVariablesDTO();
         variables.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
         variables.getRuntimeValues().add(new FlowRuntimeValueDTO("attempts", FlowVariableDataType.INTEGER));
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("tags", FlowVariableDataType.STRING_ARRAY));
         variables.getRuntimeValues().add(new FlowRuntimeValueDTO("abTestingKey", FlowVariableDataType.INTEGER));
         variables.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
         GraphConfig graphConfig = new GraphConfig();
@@ -506,6 +507,33 @@ public class FlowExtensionResponseProcessorTest {
         } catch (InvocationTargetException e) {
             throw (Exception) e.getCause();
         }
+    }
+
+    /**
+     * An encrypted array runtime value arrives as one JWE string over the JSON array, so an entry keeps a comma it
+     * holds.
+     */
+    @Test
+    public void testEncryptedArrayRuntimeValueIsReadAsJson() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        FlowContext actionFlowContext =
+                FlowContext.create().add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+        actionFlowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, Collections.singletonList(
+                new ContextPath("/runtimeValues[name=tags]", true, "REGISTRATION")));
+        List<PerformableOperation> ops = Collections.singletonList(replace("/runtimeValues[name=tags]", "jwe"));
+
+        try (MockedStatic<JWEEncryptionUtil> jwe = mockStatic(JWEEncryptionUtil.class)) {
+            jwe.when(() -> JWEEncryptionUtil.isJWEEncrypted(anyString())).thenReturn(true);
+            jwe.when(() -> JWEEncryptionUtil.decrypt("jwe", TENANT)).thenReturn("[\"a,b\",\"c\"]");
+
+            processor.processSuccessResponse(actionFlowContext, successContext(ops));
+        }
+
+        Map<?, ?> pending = (Map<?, ?>) actionFlowContext.getContextData()
+                .get(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY);
+        assertNotNull(pending);
+        assertEquals(pending.get("tags"), Arrays.asList("a,b", "c"));
     }
 
     @Test

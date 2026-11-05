@@ -221,7 +221,8 @@ public class FlowExtensionUtilTest {
 
     /**
      * The copy handed to an extension carries the runtime values, the request headers and the definitions of the
-     * flow's variables, but not its steps, and changing the copy leaves the original as it was.
+     * flow's variables, but not its steps. The runtime values and request headers are copied, so changing them in the
+     * copy leaves the original as it was. The definitions are only read, so they are shared rather than copied.
      */
     @Test
     @SuppressWarnings("unchecked")

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
@@ -382,44 +383,40 @@ public class FlowExtensionActionDTOModelResolverTest {
                 new ContextPath(PLAN_PATH, true, REGISTRATION)), TENANT);
     }
 
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsRuntimeValueWithoutFlowType() throws Exception {
+    @DataProvider
+    public Object[][] invalidExposeEntries() {
 
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(new ContextPath(PLAN_PATH, false)), TENANT);
+        return new Object[][]{
+                {"runtime value without flow type", new ContextPath(PLAN_PATH, false)},
+                {"header without flow type", new ContextPath(DEVICE_HEADER_PATH, false)},
+                {"unknown flow type", new ContextPath(PLAN_PATH, false, "LOGIN")},
+                {"flow type in a different case", new ContextPath(PLAN_PATH, false, "registration")},
+                {"flow type on a path for all flows", new ContextPath("/user/id", false, REGISTRATION)},
+                {"whole runtime values path", new ContextPath("/runtimeValues", false, REGISTRATION)},
+                {"whole request headers path", new ContextPath("/request/additionalHeaders", false, REGISTRATION)},
+                {"other request path", new ContextPath("/request/body", false)},
+                {"malformed runtime value selector", new ContextPath("/runtimeValues[name=plan", false, REGISTRATION)},
+                {"runtime value selector with a path after it",
+                        new ContextPath("/runtimeValues[name=plan]/x", false, REGISTRATION)},
+                {"invalid runtime value name", new ContextPath("/runtimeValues[name=my-plan]", false, REGISTRATION)},
+                {"invalid header name",
+                        new ContextPath("/request/additionalHeaders[name=-device]", false, REGISTRATION)},
+                {"subject organization without flow type", new ContextPath("/subjectOrganization/name", false)},
+                {"subject organization attribute path without name",
+                        new ContextPath("/subjectOrganization/attributes[name=]", false, REGISTRATION)},
+                {"subject organization for another flow type",
+                        new ContextPath("/subjectOrganization/name", false, PASSWORD_RECOVERY)},
+                {"unknown subject organization field",
+                        new ContextPath("/subjectOrganization/orgHandle", false, REGISTRATION)}
+        };
     }
 
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsHeaderWithoutFlowType() throws Exception {
+    @Test(dataProvider = "invalidExposeEntries", expectedExceptions = ActionDTOModelResolverClientException.class)
+    public void testRejectsInvalidExposeEntry(String description, ContextPath entry) throws Exception {
 
         withNonModifiablePaths();
 
-        resolver.resolveForAddOperation(exposeDTO(new ContextPath(DEVICE_HEADER_PATH, false)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsUnknownFlowType() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(new ContextPath(PLAN_PATH, false, "LOGIN")), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsFlowTypeInADifferentCase() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(new ContextPath(PLAN_PATH, false, "registration")), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsFlowTypeOnAPathForAllFlows() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(new ContextPath("/user/id", false, REGISTRATION)), TENANT);
+        resolver.resolveForAddOperation(exposeDTO(entry), TENANT);
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
@@ -429,68 +426,6 @@ public class FlowExtensionActionDTOModelResolverTest {
 
         resolver.resolveForAddOperation(accessConfigDTO(null,
                 Collections.singletonList(new ContextPath(GIVEN_NAME_PATH, false, REGISTRATION))), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsWholeRuntimeValuesPath() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(new ContextPath("/runtimeValues", false, REGISTRATION)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsWholeRequestHeadersPath() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(
-                exposeDTO(new ContextPath("/request/additionalHeaders", false, REGISTRATION)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsOtherRequestPath() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(new ContextPath("/request/body", false)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsMalformedRuntimeValueSelector() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(
-                exposeDTO(new ContextPath("/runtimeValues[name=plan", false, REGISTRATION)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsRuntimeValueSelectorWithAPathAfterIt() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(
-                exposeDTO(new ContextPath("/runtimeValues[name=plan]/x", false, REGISTRATION)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsInvalidRuntimeValueName() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(
-                exposeDTO(new ContextPath("/runtimeValues[name=my-plan]", false, REGISTRATION)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsInvalidHeaderName() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(
-                exposeDTO(new ContextPath("/request/additionalHeaders[name=-device]", false, REGISTRATION)),
-                TENANT);
     }
 
     @Test
@@ -516,32 +451,6 @@ public class FlowExtensionActionDTOModelResolverTest {
 
         resolver.resolveForAddOperation(accessConfigDTO(null,
                 Collections.singletonList(new ContextPath("/subjectOrganization/name", false, REGISTRATION))), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsSubjectOrganizationAttributePathWithoutName() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(
-                new ContextPath("/subjectOrganization/attributes[name=]", false, REGISTRATION)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsSubjectOrganizationWithoutFlowType() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(new ContextPath("/subjectOrganization/name", false)), TENANT);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
-    public void testRejectsSubjectOrganizationForAnotherFlowType() throws Exception {
-
-        withNonModifiablePaths();
-
-        resolver.resolveForAddOperation(exposeDTO(
-                new ContextPath("/subjectOrganization/name", false, PASSWORD_RECOVERY)), TENANT);
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class)

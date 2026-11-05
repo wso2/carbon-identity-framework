@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.flow.extension.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * A runtime value of the flow, as sent to the Flow Extension action. The value has the form kept for its data type,
  * or is a JWE compact string when the runtime value is exposed encrypted.
@@ -45,6 +47,13 @@ public class FlowExtensionRuntimeValue {
         return dataType;
     }
 
+    /**
+     * NON_NULL overrides the ObjectMapper-level NON_EMPTY so that an empty text or array value is sent rather than
+     * omitted.
+     *
+     * @return The value.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Object getValue() {
 
         return value;

@@ -31,7 +31,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * for modify paths, inbound values from the external service are encrypted with IS's key.
  * </p>
  * <p>
- * A runtime value or request header entry names the flow type it applies to, as each flow defines its own.
+ * A runtime value or request header entry names the flow type it applies to, as each flow defines its own. An entry
+ * of the organization a flow onboards names the {@code REGISTRATION} flow type, as only that flow onboards one.
  * Every other entry has no flow type and applies to all flows.
  * </p>
  */
