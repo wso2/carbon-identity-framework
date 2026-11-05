@@ -61,8 +61,10 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -456,6 +458,52 @@ public class FlowMgtServiceTest {
             assertTrue(forInvitation.getHeaders().isEmpty());
             assertEquals(forInvitation.getRuntimeValues().size(), 1);
         }
+    }
+
+    /**
+     * The organization attributes are the identifiers of the registration flow's organization inputs, found at any
+     * depth, in the order the flow has them, without the organization name and handle.
+     */
+    @Test
+    public void testGetOrganizationAttributesListsTheRegistrationFlowsOrganizationInputs() throws Exception {
+
+        ComponentDTO form = new ComponentDTO.Builder()
+                .id("form")
+                .type("FORM")
+                .components(Arrays.asList(
+                        organizationInput("organizationName", "ORGANIZATION"),
+                        organizationInput("industry", "ORGANIZATION"),
+                        organizationInput("http://wso2.org/claims/emailaddress", "USER"),
+                        organizationInput("organizationHandle", "ORGANIZATION")))
+                .build();
+        FlowDTO flow = new FlowDTO();
+        flow.setSteps(Arrays.asList(
+                createViewStep("STEP_1", Arrays.asList(form, organizationInput("country", "ORGANIZATION"))),
+                createViewStep("STEP_2", Collections.singletonList(organizationInput("industry", "ORGANIZATION")))));
+        FlowMgtService spyService = spy(service);
+        doReturn(flow).when(spyService).getFlow(Constants.FlowTypes.REGISTRATION.getType(), TEST_TENANT_ID);
+
+        assertEquals(spyService.getOrganizationAttributes(TEST_TENANT_ID), Arrays.asList("industry", "country"));
+    }
+
+    @Test
+    public void testGetOrganizationAttributesIsEmptyWithoutOrganizationInputs() throws Exception {
+
+        FlowDTO flow = new FlowDTO();
+        flow.setSteps(Collections.singletonList(createViewStep("STEP_1",
+                Collections.singletonList(organizationInput("organizationName", "ORGANIZATION")))));
+        FlowMgtService spyService = spy(service);
+        doReturn(flow).when(spyService).getFlow(Constants.FlowTypes.REGISTRATION.getType(), TEST_TENANT_ID);
+
+        assertTrue(spyService.getOrganizationAttributes(TEST_TENANT_ID).isEmpty());
+    }
+
+    private static ComponentDTO organizationInput(String identifier, String identifierType) {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("identifier", identifier);
+        configs.put("identifierType", identifierType);
+        return new ComponentDTO.Builder().id(identifier).type("INPUT").configs(configs).build();
     }
 
     private void mockOrganization(int tenantId, String tenantDomain, String orgId, String... ancestorOrgIds)

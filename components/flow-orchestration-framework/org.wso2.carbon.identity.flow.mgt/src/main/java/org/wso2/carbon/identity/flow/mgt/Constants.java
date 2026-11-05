@@ -104,6 +104,22 @@ public class Constants {
         }
     }
 
+    /**
+     * Inputs a flow collects for the organization it onboards. An input is marked as one by its identifier type.
+     */
+    public static class OrganizationInputs {
+
+        public static final String IDENTIFIER = "identifier";
+        public static final String IDENTIFIER_TYPE = "identifierType";
+        public static final String ORGANIZATION_IDENTIFIER_TYPE = "ORGANIZATION";
+        public static final String ORGANIZATION_NAME = "organizationName";
+        public static final String ORGANIZATION_HANDLE = "organizationHandle";
+
+        private OrganizationInputs() {
+
+        }
+    }
+
     private Constants() {
 
     }

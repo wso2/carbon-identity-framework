@@ -60,6 +60,7 @@ public class FlowExtensionContextTreeBuilder {
         tree.add(buildTenantNode());
         tree.add(buildApplicationNode());
         tree.add(buildOrganizationNode());
+        tree.add(buildSubjectOrganizationNode());
         tree.add(buildFlowNode());
         addFlowVariableNodes(tree);
 
@@ -226,6 +227,77 @@ public class FlowExtensionContextTreeBuilder {
                 .readOnly(true)
                 .children(children)
                 .build();
+    }
+
+    /**
+     * Build the node of the organization a registration flow onboards. Its fields can only be exposed. The attributes
+     * are the ones the registration flow collects for the organization, other than its name and handle.
+     */
+    private FlowExtensionContextTreeNode buildSubjectOrganizationNode() {
+
+        List<String> registrationOnly = Collections.singletonList(ContextTree.FLOW_REGISTRATION);
+        List<FlowExtensionContextTreeNode> attributeLeaves = new ArrayList<>();
+        for (String name : getOrganizationAttributes()) {
+            attributeLeaves.add(subjectOrganizationLeaf(name, name,
+                    FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX + name
+                            + FlowContextPaths.NAME_SELECTOR_SUFFIX));
+        }
+
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
+        children.add(subjectOrganizationLeaf("id", "Organization ID", FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH));
+        children.add(subjectOrganizationLeaf("name", "Organization Name",
+                FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH));
+        children.add(subjectOrganizationLeaf("handle", "Organization Handle",
+                FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH));
+        children.add(FlowExtensionContextTreeNode.builder()
+                .key("attributes")
+                .title("Attributes")
+                .path(FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_PATH)
+                .dataType("Map<String, String>")
+                .nodeType(ContextTree.NODE_MAP)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .dynamicEntryAllowed(false)
+                .applicableFlowTypes(registrationOnly)
+                .children(attributeLeaves)
+                .build());
+        return FlowExtensionContextTreeNode.builder()
+                .key("subjectOrganization")
+                .title("Subject Organization")
+                .path(FlowContextPaths.SUBJECT_ORGANIZATION_PREFIX)
+                .dataType("")
+                .nodeType(ContextTree.NODE_OBJECT)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .applicableFlowTypes(registrationOnly)
+                .children(children)
+                .build();
+    }
+
+    private FlowExtensionContextTreeNode subjectOrganizationLeaf(String key, String title, String path) {
+
+        return FlowExtensionContextTreeNode.builder()
+                .key(key)
+                .title(title)
+                .path(path)
+                .dataType(ContextTree.DATA_TYPE_STRING)
+                .nodeType(ContextTree.NODE_LEAF)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .applicableFlowTypes(Collections.singletonList(ContextTree.FLOW_REGISTRATION))
+                .build();
+    }
+
+    private List<String> getOrganizationAttributes() {
+
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+        try {
+            return FlowMgtService.getInstance().getOrganizationAttributes(tenantId);
+        } catch (FlowMgtFrameworkException e) {
+            LOG.error("Error while retrieving the organization attributes of the registration flow of tenant: "
+                    + tenantId + ". The attributes are left out of the context tree.", e);
+            return Collections.emptyList();
+        }
     }
 
     private FlowExtensionContextTreeNode readOnlyLeaf(String key, String title, String path) {

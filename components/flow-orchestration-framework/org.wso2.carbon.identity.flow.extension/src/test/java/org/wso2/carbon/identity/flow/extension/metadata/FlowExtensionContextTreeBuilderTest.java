@@ -68,8 +68,8 @@ public class FlowExtensionContextTreeBuilderTest {
     @BeforeClass
     public void buildTree() {
 
-        FlowExtensionContextTreeMetadata metadata = new FlowExtensionContextTreeBuilder().build(null);
-        FlowExtensionContextTreeNode userNode = metadata.getContextTree().stream()
+        List<FlowExtensionContextTreeNode> tree = buildWithFlowVariables(mock(FlowMgtService.class));
+        FlowExtensionContextTreeNode userNode = tree.stream()
                 .filter(n -> "user".equals(n.getKey()))
                 .findFirst()
                 .orElse(null);
@@ -246,6 +246,67 @@ public class FlowExtensionContextTreeBuilderTest {
         assertFalse(hasNode(tree, "runtimeValues"));
         assertFalse(hasNode(tree, "request"));
         assertTrue(hasNode(tree, "user"));
+    }
+
+    // ------------------------------------------------------------------ subject organization
+
+    /**
+     * The organization a registration flow onboards applies to registration only, and its fields, including the
+     * attributes the registration flow collects, can only be exposed.
+     */
+    @Test
+    public void testSubjectOrganizationNodeIsExposeOnlyForRegistration() throws Exception {
+
+        FlowMgtService flowMgtService = mock(FlowMgtService.class);
+        when(flowMgtService.getOrganizationAttributes(TENANT_ID)).thenReturn(Arrays.asList("industry", "country"));
+
+        FlowExtensionContextTreeNode subjectOrganization = node(buildWithFlowVariables(flowMgtService),
+                "subjectOrganization");
+
+        assertEquals(subjectOrganization.getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_PREFIX);
+        Map<String, FlowExtensionContextTreeNode> children = subjectOrganization.getChildren().stream()
+                .collect(Collectors.toMap(FlowExtensionContextTreeNode::getKey, n -> n));
+        assertEquals(children.keySet(), new java.util.HashSet<>(Arrays.asList("id", "name", "handle", "attributes")));
+        assertEquals(children.get("id").getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH);
+        assertEquals(children.get("name").getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH);
+        assertEquals(children.get("handle").getPath(), FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH);
+
+        FlowExtensionContextTreeNode attributes = children.get("attributes");
+        assertEquals(attributes.getNodeType(), ContextTree.NODE_MAP);
+        assertFalse(attributes.isDynamicEntryAllowed());
+        assertEquals(attributes.getChildren().size(), 2);
+        assertEquals(attributes.getChildren().get(0).getKey(), "industry");
+        assertEquals(attributes.getChildren().get(0).getPath(), "/subjectOrganization/attributes[name=industry]");
+        assertEquals(attributes.getChildren().get(1).getPath(), "/subjectOrganization/attributes[name=country]");
+
+        assertExposeOnlyForRegistration(subjectOrganization);
+    }
+
+    @Test
+    public void testSubjectOrganizationHasNoAttributesWhenTheyCannotBeRead() throws Exception {
+
+        FlowMgtService flowMgtService = mock(FlowMgtService.class);
+        when(flowMgtService.getOrganizationAttributes(TENANT_ID)).thenThrow(new FlowMgtServerException("error"));
+
+        FlowExtensionContextTreeNode subjectOrganization = node(buildWithFlowVariables(flowMgtService),
+                "subjectOrganization");
+
+        FlowExtensionContextTreeNode attributes = subjectOrganization.getChildren().stream()
+                .filter(n -> "attributes".equals(n.getKey())).findFirst().orElseThrow(AssertionError::new);
+        assertTrue(attributes.getChildren().isEmpty());
+        assertEquals(subjectOrganization.getChildren().size(), 4);
+    }
+
+    private static void assertExposeOnlyForRegistration(FlowExtensionContextTreeNode node) {
+
+        assertEquals(node.getApplicableFlowTypes(), Collections.singletonList(REGISTRATION),
+                node.getPath() + " must apply to registration only.");
+        assertEquals(node.getAllowedOperations(), Collections.singletonList(ContextTree.OP_EXPOSE),
+                node.getPath() + " must allow EXPOSE only.");
+        assertTrue(node.isReadOnly(), node.getPath() + " must be read-only.");
+        for (FlowExtensionContextTreeNode child : node.getChildren()) {
+            assertExposeOnlyForRegistration(child);
+        }
     }
 
     private List<FlowExtensionContextTreeNode> buildWithFlowVariables(List<FlowTypeVariablesDTO> flowVariables)

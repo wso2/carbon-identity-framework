@@ -159,7 +159,8 @@ public class AccessConfig {
     }
 
     /**
-     * Returns {@code true} if the path is in the read-only {@code /flow/} or {@code /request/} area.
+     * Returns {@code true} if the path is in the read-only {@code /flow/}, {@code /request/} or
+     * {@code /subjectOrganization/} area.
      */
     public static boolean isReadOnly(String path) {
 
@@ -167,7 +168,8 @@ public class AccessConfig {
             return false;
         }
         return path.startsWith(FlowExtensionConstants.FlowContextPaths.FLOW_PREFIX)
-                || path.startsWith(FlowExtensionConstants.FlowContextPaths.REQUEST_PREFIX);
+                || path.startsWith(FlowExtensionConstants.FlowContextPaths.REQUEST_PREFIX)
+                || path.startsWith(FlowExtensionConstants.FlowContextPaths.SUBJECT_ORGANIZATION_PREFIX);
     }
 
     /**

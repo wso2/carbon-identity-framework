@@ -102,7 +102,8 @@ public class FlowExtensionConstants {
                         "flowUser",
                         "flowVariables",
                         "runtimeValues",
-                        "request"
+                        "request",
+                        "flowOrganization"
                 )));
 
         public static final Set<String> INCLUDED_USER_ATTRIBUTES = Collections.unmodifiableSet(
@@ -189,6 +190,14 @@ public class FlowExtensionConstants {
         public static final String ORGANIZATION_NAME_PATH = "/organization/name";
         public static final String ORGANIZATION_HANDLE_PATH = "/organization/orgHandle";
         public static final String ORGANIZATION_DEPTH_PATH = "/organization/depth";
+
+        public static final String SUBJECT_ORGANIZATION_PREFIX = "/subjectOrganization/";
+        public static final String SUBJECT_ORGANIZATION_ID_PATH = "/subjectOrganization/id";
+        public static final String SUBJECT_ORGANIZATION_NAME_PATH = "/subjectOrganization/name";
+        public static final String SUBJECT_ORGANIZATION_HANDLE_PATH = "/subjectOrganization/handle";
+        public static final String SUBJECT_ORGANIZATION_ATTRIBUTES_PATH = "/subjectOrganization/attributes";
+        public static final String SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX =
+                "/subjectOrganization/attributes[name=";
 
         public static final String RUNTIME_VALUES_PATH = "/runtimeValues";
         public static final String RUNTIME_VALUES_SELECTOR_PREFIX = "/runtimeValues[name=";

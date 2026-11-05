@@ -36,6 +36,7 @@ public class FlowExtensionEvent extends Event {
     private final FlowExtensionFlow flow;
     private final String callbackUrl;
     private final List<FlowExtensionRuntimeValue> runtimeValues;
+    private final FlowExtensionSubjectOrganization subjectOrganization;
 
     private FlowExtensionEvent(Builder builder) {
 
@@ -47,6 +48,7 @@ public class FlowExtensionEvent extends Event {
         this.callbackUrl = builder.callbackUrl;
         this.runtimeValues = builder.runtimeValues != null
                 ? Collections.unmodifiableList(builder.runtimeValues) : Collections.emptyList();
+        this.subjectOrganization = builder.subjectOrganization;
     }
 
     /**
@@ -85,6 +87,17 @@ public class FlowExtensionEvent extends Event {
     }
 
     /**
+     * Get the organization the flow onboards, with the fields exposed to the extension.
+     *
+     * @return The organization, or {@code null} when none of its fields are exposed or the flow onboards none.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public FlowExtensionSubjectOrganization getSubjectOrganization() {
+
+        return subjectOrganization;
+    }
+
+    /**
      * Builder for the InFlowExtensionEvent.
      */
     public static class Builder {
@@ -96,6 +109,7 @@ public class FlowExtensionEvent extends Event {
         private String callbackUrl;
         private FlowExtensionRequest request;
         private List<FlowExtensionRuntimeValue> runtimeValues;
+        private FlowExtensionSubjectOrganization subjectOrganization;
 
         public Builder flow(FlowExtensionFlow flow) {
 
@@ -136,6 +150,12 @@ public class FlowExtensionEvent extends Event {
         public Builder runtimeValues(List<FlowExtensionRuntimeValue> runtimeValues) {
 
             this.runtimeValues = runtimeValues;
+            return this;
+        }
+
+        public Builder subjectOrganization(FlowExtensionSubjectOrganization subjectOrganization) {
+
+            this.subjectOrganization = subjectOrganization;
             return this;
         }
 

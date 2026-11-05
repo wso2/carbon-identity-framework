@@ -493,6 +493,67 @@ public class FlowExtensionActionDTOModelResolverTest {
                 TENANT);
     }
 
+    @Test
+    public void testAcceptsSubjectOrganizationInExpose() throws Exception {
+
+        withNonModifiablePaths();
+
+        ActionDTO resolved = resolver.resolveForAddOperation(exposeDTO(
+                new ContextPath("/subjectOrganization/id", false, REGISTRATION),
+                new ContextPath("/subjectOrganization/attributes[name=industry]", true, REGISTRATION)), TENANT);
+
+        List<ContextPath> expose = stored(resolved, ACCESS_CONFIG_EXPOSE);
+        assertEquals(expose.size(), 2);
+        assertEquals(expose.get(1).getPath(), "/subjectOrganization/attributes[name=industry]");
+        assertTrue(expose.get(1).isEncrypted());
+        assertEquals(expose.get(1).getFlowType(), REGISTRATION);
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
+    public void testRejectsSubjectOrganizationInModify() throws Exception {
+
+        withNonModifiablePaths();
+
+        resolver.resolveForAddOperation(accessConfigDTO(null,
+                Collections.singletonList(new ContextPath("/subjectOrganization/name", false, REGISTRATION))), TENANT);
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
+    public void testRejectsSubjectOrganizationAttributePathWithoutName() throws Exception {
+
+        withNonModifiablePaths();
+
+        resolver.resolveForAddOperation(exposeDTO(
+                new ContextPath("/subjectOrganization/attributes[name=]", false, REGISTRATION)), TENANT);
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
+    public void testRejectsSubjectOrganizationWithoutFlowType() throws Exception {
+
+        withNonModifiablePaths();
+
+        resolver.resolveForAddOperation(exposeDTO(new ContextPath("/subjectOrganization/name", false)), TENANT);
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
+    public void testRejectsSubjectOrganizationForAnotherFlowType() throws Exception {
+
+        withNonModifiablePaths();
+
+        resolver.resolveForAddOperation(exposeDTO(
+                new ContextPath("/subjectOrganization/name", false, PASSWORD_RECOVERY)), TENANT);
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
+    public void testRejectsDuplicateSubjectOrganizationEntry() throws Exception {
+
+        withNonModifiablePaths();
+
+        resolver.resolveForAddOperation(exposeDTO(
+                new ContextPath("/subjectOrganization/name", false, REGISTRATION),
+                new ContextPath("/subjectOrganization/name", true, REGISTRATION)), TENANT);
+    }
+
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class)
     public void testRejectsHeaderInModify() throws Exception {
 

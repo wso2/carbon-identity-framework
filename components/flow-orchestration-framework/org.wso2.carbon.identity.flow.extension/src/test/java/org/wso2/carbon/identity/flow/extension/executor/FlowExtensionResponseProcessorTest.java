@@ -577,6 +577,22 @@ public class FlowExtensionResponseProcessorTest {
     }
 
     @Test
+    public void testSubjectOrganizationReplaceFailsAsReadOnly() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        execCtx.getFlowOrganization().setOrganizationName("Acme");
+
+        for (PerformableOperation op : Arrays.asList(replace("/subjectOrganization/name", "Other"),
+                replace("/subjectOrganization/attributes[name=industry]", "Banking"))) {
+            OperationExecutionResult result = processOperation(op, execCtx);
+            assertEquals(result.getStatus(), OperationExecutionResult.Status.FAILURE, op.getPath());
+            assertTrue(result.getMessage().contains("read-only"), result.getMessage());
+        }
+        assertEquals(execCtx.getFlowOrganization().getOrganizationName(), "Acme");
+        assertTrue(execCtx.getFlowOrganization().getAttributes().isEmpty());
+    }
+
+    @Test
     public void testRequestHeaderReplaceFailsAsReadOnly() throws Exception {
 
         FlowExecutionContext execCtx = execContextWithFlowVariables();

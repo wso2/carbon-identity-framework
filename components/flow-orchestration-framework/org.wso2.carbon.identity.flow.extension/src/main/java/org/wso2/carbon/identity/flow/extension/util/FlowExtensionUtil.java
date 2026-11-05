@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelRe
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.extension.executor.PathTypeAnnotationUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowRequest;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
@@ -121,6 +122,29 @@ public final class FlowExtensionUtil {
     public static boolean isRequestHeaderPath(String path) {
 
         return path != null && path.startsWith(FlowContextPaths.REQUEST_HEADERS_SELECTOR_PREFIX);
+    }
+
+    /**
+     * Whether the path addresses an attribute of the organization the flow onboards, as
+     * {@code /subjectOrganization/attributes[name=<name>]}.
+     *
+     * @param path The context path.
+     * @return {@code true} if the path starts with the organization attribute selector.
+     */
+    public static boolean isSubjectOrganizationAttributePath(String path) {
+
+        return path != null && path.startsWith(FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX);
+    }
+
+    /**
+     * The attribute name a {@code /subjectOrganization/attributes[name=<name>]} path addresses.
+     *
+     * @param path The context path.
+     * @return The name, or {@code null} when the path is not a well-formed organization attribute path.
+     */
+    public static String getSubjectOrganizationAttributeName(String path) {
+
+        return getSelectedName(path, FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX);
     }
 
     /**
@@ -238,6 +262,11 @@ public final class FlowExtensionUtil {
                     break;
                 case "request":
                     dst.setRequest(new FlowRequest(src.getRequest()));
+                    break;
+                case "flowOrganization":
+                    if (src.getFlowOrganization() != null) {
+                        dst.setFlowOrganization(new FlowOrganization(src.getFlowOrganization()));
+                    }
                     break;
                 default:
                     LOG.warn("Skipping unmapped handover context attribute: " + name

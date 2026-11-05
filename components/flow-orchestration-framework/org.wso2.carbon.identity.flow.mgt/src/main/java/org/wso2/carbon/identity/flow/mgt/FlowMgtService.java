@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
+import org.wso2.carbon.identity.flow.mgt.Constants.OrganizationInputs;
 import org.wso2.carbon.identity.flow.mgt.cache.FlowResolveCache;
 import org.wso2.carbon.identity.flow.mgt.cache.FlowResolveCacheEntry;
 import org.wso2.carbon.identity.flow.mgt.cache.FlowResolveCacheKey;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.flow.mgt.dao.FlowDAO;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
+import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
@@ -41,6 +43,7 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.rule.FlowRuleValidator;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
@@ -58,9 +61,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.flow.mgt.Constants.AuditLogConstants.EXECUTOR;
@@ -180,6 +185,32 @@ public class FlowMgtService {
             flowTypeVariables.add(variables);
         }
         return flowTypeVariables;
+    }
+
+    /**
+     * Get the attributes the registration flow collects for the organization it onboards, as the flow extension
+     * metadata lists them. The flow is read from the first tenant in the organization hierarchy that has it, and the
+     * attributes are the identifiers of its inputs marked as organization inputs. The organization name and handle
+     * are left out, as every onboarded organization has them.
+     *
+     * @param tenantID The tenant ID.
+     * @return The attribute names, in the order the flow has them.
+     * @throws FlowMgtFrameworkException If an error occurs while retrieving the registration flow.
+     */
+    public List<String> getOrganizationAttributes(int tenantID) throws FlowMgtFrameworkException {
+
+        FlowDTO flow = getFlow(Constants.FlowTypes.REGISTRATION.getType(), tenantID);
+        Set<String> attributes = new LinkedHashSet<>();
+        if (flow != null && flow.getSteps() != null) {
+            for (StepDTO step : flow.getSteps()) {
+                if (step != null && step.getData() != null) {
+                    collectOrganizationAttributes(step.getData().getComponents(), attributes);
+                }
+            }
+        }
+        attributes.remove(OrganizationInputs.ORGANIZATION_NAME);
+        attributes.remove(OrganizationInputs.ORGANIZATION_HANDLE);
+        return new ArrayList<>(attributes);
     }
 
     /**
@@ -330,6 +361,27 @@ public class FlowMgtService {
             FlowMgtUtils.clearCache(cacheKey, FlowResolveCache.getInstance(), tenantId);
         } catch (OrganizationManagementException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CLEAR_CACHE_FAILED, e, currentTenantDomain);
+        }
+    }
+
+    private void collectOrganizationAttributes(List<ComponentDTO> components, Set<String> attributes) {
+
+        if (components == null) {
+            return;
+        }
+        for (ComponentDTO component : components) {
+            if (component == null) {
+                continue;
+            }
+            Map<String, Object> configs = component.getConfigs();
+            if (configs != null && OrganizationInputs.ORGANIZATION_IDENTIFIER_TYPE.equals(
+                    configs.get(OrganizationInputs.IDENTIFIER_TYPE))) {
+                Object identifier = configs.get(OrganizationInputs.IDENTIFIER);
+                if (identifier != null && !String.valueOf(identifier).trim().isEmpty()) {
+                    attributes.add(String.valueOf(identifier));
+                }
+            }
+            collectOrganizationAttributes(component.getComponents(), attributes);
         }
     }
 

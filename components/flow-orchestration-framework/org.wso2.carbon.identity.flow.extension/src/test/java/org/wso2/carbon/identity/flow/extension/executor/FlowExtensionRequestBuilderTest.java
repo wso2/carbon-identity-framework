@@ -35,13 +35,16 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionRuntimeValue;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionSubjectOrganization;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionUser;
 import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
@@ -660,5 +663,111 @@ public class FlowExtensionRequestBuilderTest {
         for (String entry : device) {
             assertTrue(JWEEncryptionUtil.isJWEEncrypted(entry), entry);
         }
+    }
+
+    // ------------------------------------------------------------------ subject organization
+
+    private static final String REGISTRATION_FLOW = FlowExtensionConstants.ContextTree.FLOW_REGISTRATION;
+
+    private FlowExecutionContext execContextWithOrganization() {
+
+        FlowExecutionContext execCtx = execContext();
+        FlowOrganization organization = execCtx.getFlowOrganization();
+        organization.setOrganizationName("Acme");
+        organization.setOrganizationHandle("acme");
+        organization.setOrganizationDescription("Acme Corp");
+        organization.setAttribute("industry", "Retail");
+        return execCtx;
+    }
+
+    /**
+     * Only the exposed fields of the organization the flow onboards are sent, including its description, which the
+     * flow keeps apart from the other attributes.
+     */
+    @Test
+    public void testSubjectOrganizationExposedFieldsAreSent() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithOrganization();
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH, false, REGISTRATION_FLOW),
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, false, REGISTRATION_FLOW),
+                new ContextPath("/subjectOrganization/attributes[name=industry]", false, REGISTRATION_FLOW),
+                new ContextPath("/subjectOrganization/attributes[name=organizationDescription]", false, REGISTRATION_FLOW),
+                new ContextPath("/subjectOrganization/attributes[name=size]", false, REGISTRATION_FLOW)), null);
+
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(flowContextWith(execCtx), actionContext(accessConfig));
+
+        FlowExtensionSubjectOrganization organization =
+                ((FlowExtensionEvent) request.getEvent()).getSubjectOrganization();
+        assertNotNull(organization);
+        assertEquals(organization.getId(), execCtx.getFlowOrganization().getOrganizationId());
+        assertEquals(organization.getName(), "Acme");
+        assertNull(organization.getHandle());
+        assertEquals(organization.getAttributes().size(), 2);
+        assertEquals(organization.getAttributes().get(0).getName(), "industry");
+        assertEquals(organization.getAttributes().get(0).getValue(), "Retail");
+        assertEquals(organization.getAttributes().get(1).getName(), "organizationDescription");
+        assertEquals(organization.getAttributes().get(1).getValue(), "Acme Corp");
+    }
+
+    @Test
+    public void testSubjectOrganizationIsNotSentWhenNotExposed() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(
+                Collections.singletonList(new ContextPath(FlowContextPaths.USER_ID_PATH, false)), null);
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContextWithOrganization()), actionContext(accessConfig));
+
+        assertNull(((FlowExtensionEvent) request.getEvent()).getSubjectOrganization());
+    }
+
+    /**
+     * A flow that has collected no organization details onboards no organization, so none is sent, not even its ID.
+     */
+    @Test
+    public void testSubjectOrganizationIsNotSentWhenTheFlowOnboardsNone() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH, false, REGISTRATION_FLOW),
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, false, REGISTRATION_FLOW)), null);
+
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(flowContextWith(execContext()), actionContext(accessConfig));
+
+        assertNull(((FlowExtensionEvent) request.getEvent()).getSubjectOrganization());
+    }
+
+    @Test
+    public void testSubjectOrganizationIsNotSentInAnotherFlow() throws Exception {
+
+        FlowExecutionContext execCtx = execContext(PASSWORD_RECOVERY);
+        execCtx.getFlowOrganization().setOrganizationName("Acme");
+        AccessConfig accessConfig = new AccessConfig(Collections.singletonList(
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, false, REGISTRATION_FLOW)), null);
+
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(flowContextWith(execCtx), actionContext(accessConfig));
+
+        assertNull(((FlowExtensionEvent) request.getEvent()).getSubjectOrganization());
+    }
+
+    @Test
+    public void testEncryptedSubjectOrganizationFieldsAreSentAsJwe() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH, true, REGISTRATION_FLOW),
+                new ContextPath("/subjectOrganization/attributes[name=industry]", true, REGISTRATION_FLOW)), null);
+        Certificate certificate = new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build();
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContextWithOrganization()), actionContext(accessConfig, certificate));
+
+        FlowExtensionSubjectOrganization organization =
+                ((FlowExtensionEvent) request.getEvent()).getSubjectOrganization();
+        assertTrue(JWEEncryptionUtil.isJWEEncrypted(organization.getHandle()), organization.getHandle());
+        String industry = (String) organization.getAttributes().get(0).getValue();
+        assertTrue(JWEEncryptionUtil.isJWEEncrypted(industry), industry);
     }
 }

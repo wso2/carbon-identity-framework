@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelReso
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ContextTree;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
@@ -261,7 +262,8 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
 
     /**
      * Validate the flow type of each entry. A runtime value or request header entry must name a valid flow type, as
-     * each flow defines its own, and no other entry may name one. Header names are kept in lower case.
+     * each flow defines its own, and an entry of the organization a flow onboards must name the registration flow.
+     * No other entry may name one. Header names are kept in lower case.
      *
      * @param paths  The entries of the expose or modify list.
      * @param modify Whether the entries are modify entries.
@@ -299,6 +301,14 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
                 path = FlowContextPaths.REQUEST_HEADERS_SELECTOR_PREFIX + FlowVariableUtils.normalizeHeaderName(name)
                         + FlowContextPaths.NAME_SELECTOR_SUFFIX;
                 contextPath = new ContextPath(path, contextPath.isEncrypted(), flowType);
+            } else if (path.startsWith(FlowContextPaths.SUBJECT_ORGANIZATION_PREFIX)) {
+                validateSubjectOrganizationPath(path, modify);
+                // Only a registration flow onboards an organization.
+                if (!ContextTree.FLOW_REGISTRATION.equals(flowType)) {
+                    throw new ActionDTOModelResolverClientException("Invalid flow type.",
+                            String.format("Path '%s' must have the flow type %s, as only that flow onboards an "
+                                    + "organization.", path, ContextTree.FLOW_REGISTRATION));
+                }
             } else {
                 if (path.startsWith(FlowContextPaths.RUNTIME_VALUES_PATH)
                         || path.startsWith(FlowContextPaths.REQUEST_PREFIX)) {
@@ -338,6 +348,26 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             }
         }
         return false;
+    }
+
+    /**
+     * Validate a path of the organization the flow onboards. Its fields can only be exposed, and an attribute path
+     * must name the attribute.
+     */
+    private void validateSubjectOrganizationPath(String path, boolean modify)
+            throws ActionDTOModelResolverClientException {
+
+        if (modify) {
+            throw new ActionDTOModelResolverClientException("Invalid modify path.",
+                    String.format("Path '%s' cannot be marked as modifiable.", path));
+        }
+        if (path.startsWith(FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_PATH)
+                && FlowExtensionUtil.getSubjectOrganizationAttributeName(path) == null) {
+            throw new ActionDTOModelResolverClientException("Invalid expose path.",
+                    String.format("Path '%s' must be '%s<name>%s'.", path,
+                            FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX,
+                            FlowContextPaths.NAME_SELECTOR_SUFFIX));
+        }
     }
 
     private void validateContextPathFormat(List<ContextPath> expose) throws ActionDTOModelResolverClientException {

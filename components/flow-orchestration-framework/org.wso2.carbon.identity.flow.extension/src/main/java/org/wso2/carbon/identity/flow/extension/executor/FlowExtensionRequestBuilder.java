@@ -32,8 +32,10 @@ import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionFlow;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionOrganizationAttribute;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionRequest;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionRuntimeValue;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionSubjectOrganization;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionUser;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
@@ -58,6 +60,7 @@ import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContex
 import org.wso2.carbon.identity.flow.extension.util.CredentialWireFormatUtil;
 import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableDiagnosticLogger;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
@@ -74,6 +77,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORG_DESCRIPTION_KEY;
 import static org.wso2.carbon.identity.flow.extension.executor.JWEEncryptionUtil.encrypt;
 
 /**
@@ -190,6 +194,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         applyFlowMetadata(flowBuilder, context, expose);
         applyRuntimeValues(eventBuilder, context, expose, accessConfig, certificatePEM);
         applyRequestHeaders(eventBuilder, context, expose, accessConfig, certificatePEM);
+        applySubjectOrganization(eventBuilder, context, expose, accessConfig, certificatePEM);
 
         eventBuilder.flow(flowBuilder.build());
         return eventBuilder.build();
@@ -279,6 +284,69 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         if (!headers.isEmpty()) {
             eventBuilder.request(new FlowExtensionRequest(headers));
         }
+    }
+
+    /**
+     * Add the exposed fields of the organization the flow onboards. Nothing is added when the flow has collected no
+     * organization details, as it then onboards no organization.
+     */
+    private void applySubjectOrganization(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                                          List<String> expose, AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        if (!isAreaExposed(FlowContextPaths.SUBJECT_ORGANIZATION_PREFIX, expose)) {
+            return;
+        }
+        FlowOrganization organization = context.getFlowOrganization();
+        if (!hasOrganizationDetails(organization)) {
+            return;
+        }
+
+        FlowExtensionSubjectOrganization.Builder organizationBuilder = new FlowExtensionSubjectOrganization.Builder();
+        if (isLeafExposed(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH, expose)) {
+            organizationBuilder.id(encryptIfConfigured(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH,
+                    organization.getOrganizationId(), accessConfig, certificatePEM));
+        }
+        if (isLeafExposed(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, expose)) {
+            organizationBuilder.name(encryptIfConfigured(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH,
+                    organization.getOrganizationName(), accessConfig, certificatePEM));
+        }
+        if (isLeafExposed(FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH, expose)) {
+            organizationBuilder.handle(encryptIfConfigured(FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH,
+                    organization.getOrganizationHandle(), accessConfig, certificatePEM));
+        }
+
+        List<FlowExtensionOrganizationAttribute> attributes = new ArrayList<>();
+        for (String path : expose) {
+            String name = FlowExtensionUtil.getSubjectOrganizationAttributeName(path);
+            if (name == null) {
+                continue;
+            }
+            String value = encryptIfConfigured(path, getOrganizationAttribute(organization, name), accessConfig,
+                    certificatePEM);
+            if (value != null) {
+                attributes.add(new FlowExtensionOrganizationAttribute(name, value));
+            }
+        }
+        organizationBuilder.attributes(attributes);
+        eventBuilder.subjectOrganization(organizationBuilder.build());
+    }
+
+    private boolean hasOrganizationDetails(FlowOrganization organization) {
+
+        return organization != null && (StringUtils.isNotBlank(organization.getOrganizationName())
+                || StringUtils.isNotBlank(organization.getOrganizationHandle())
+                || StringUtils.isNotBlank(organization.getOrganizationDescription())
+                || !organization.getAttributes().isEmpty());
+    }
+
+    private String getOrganizationAttribute(FlowOrganization organization, String name) {
+
+        // The flow keeps the description apart from the other attributes it collects.
+        if (ORG_DESCRIPTION_KEY.equals(name)) {
+            return organization.getOrganizationDescription();
+        }
+        return organization.getAttribute(name);
     }
 
     private Object encryptVariableIfConfigured(String path, Object value, AccessConfig accessConfig,

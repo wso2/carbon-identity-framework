@@ -257,6 +257,44 @@ public class FlowExtensionUtilTest {
         assertEquals(device, Collections.singletonList("mobile"));
     }
 
+    /**
+     * The copy carries the organization the flow onboards, with the same ID, and changing the copy leaves the
+     * original as it was.
+     */
+    @Test
+    public void testFilterContextCopiesTheFlowOrganization() {
+
+        FlowExecutionContext original = contextWithUser();
+        original.getFlowOrganization().setOrganizationName("Acme");
+        original.getFlowOrganization().setAttribute("industry", "Retail");
+
+        FlowExecutionContext copy = FlowExtensionUtil.filterContext(original);
+
+        assertNotSame(copy.getFlowOrganization(), original.getFlowOrganization());
+        assertEquals(copy.getFlowOrganization().getOrganizationId(),
+                original.getFlowOrganization().getOrganizationId());
+        assertEquals(copy.getFlowOrganization().getOrganizationName(), "Acme");
+        assertEquals(copy.getFlowOrganization().getAttribute("industry"), "Retail");
+
+        copy.getFlowOrganization().setAttribute("industry", "Banking");
+        assertEquals(original.getFlowOrganization().getAttribute("industry"), "Retail");
+    }
+
+    @Test
+    public void testSubjectOrganizationAttributeSelector() {
+
+        assertTrue(FlowExtensionUtil.isSubjectOrganizationAttributePath(
+                "/subjectOrganization/attributes[name=industry]"));
+        assertFalse(FlowExtensionUtil.isSubjectOrganizationAttributePath("/subjectOrganization/name"));
+        assertFalse(FlowExtensionUtil.isSubjectOrganizationAttributePath(null));
+
+        assertEquals(FlowExtensionUtil.getSubjectOrganizationAttributeName(
+                "/subjectOrganization/attributes[name=industry]"), "industry");
+        assertNull(FlowExtensionUtil.getSubjectOrganizationAttributeName("/subjectOrganization/attributes[name=]"));
+        assertNull(FlowExtensionUtil.getSubjectOrganizationAttributeName("/subjectOrganization/attributes"));
+        assertNull(FlowExtensionUtil.getSubjectOrganizationAttributeName("/runtimeValues[name=industry]"));
+    }
+
     @Test
     public void testFilterContextWithoutGraphConfig() {
 
