@@ -59,6 +59,7 @@ import static org.mockito.Mockito.CALLS_REAL_METHODS;
 public class FlowRuleMetadataProviderTest {
 
     private static final String TENANT_DOMAIN = "carbon.super";
+    private static final String EXCLUDED_USERSTORES = "FlowExecution.ExcludedUserstores.Userstore";
 
     private final FlowRuleMetadataProvider provider = new FlowRuleMetadataProvider();
     private MockedStatic<RuleMetadataConfigFactory> configFactoryMock;
@@ -236,6 +237,28 @@ public class FlowRuleMetadataProviderTest {
             assertEquals(((OptionsInputValue) field.getValue()).getValues().stream().map(OptionsValue::getName)
                     .toList(), Arrays.asList("PRIMARY", "LDAP"));
         } finally {
+            FlowMgtServiceDataHolder.getInstance().setRealmService(
+                    UserStoreMocks.realmWithUserStores("PRIMARY", new String[]{"LDAP"}, "ARCHIVED"));
+        }
+    }
+
+    /**
+     * The user stores the server excludes from flows are never offered, whatever case they are configured in.
+     */
+    @Test
+    public void testUserDomainLeavesOutTheExcludedUserStores() throws Exception {
+
+        FlowMgtServiceDataHolder.getInstance().setRealmService(
+                UserStoreMocks.realmWithUserStores("PRIMARY", new String[]{"LDAP", "JDBC", "agent"}, null));
+        identityUtilMock.when(() -> IdentityUtil.getPropertyAsList(EXCLUDED_USERSTORES))
+                .thenReturn(Arrays.asList(" ldap ", "PRIMARY"));
+        try {
+            FieldDefinition field = fieldsOf(FlowType.PASSWORD_RECOVERY).get(FlowRuleMetadataProvider.USER_DOMAIN);
+            assertEquals(((OptionsInputValue) field.getValue()).getValues().stream().map(OptionsValue::getName)
+                    .toList(), Collections.singletonList("JDBC"));
+        } finally {
+            identityUtilMock.when(() -> IdentityUtil.getPropertyAsList(EXCLUDED_USERSTORES))
+                    .thenReturn(Collections.emptyList());
             FlowMgtServiceDataHolder.getInstance().setRealmService(
                     UserStoreMocks.realmWithUserStores("PRIMARY", new String[]{"LDAP"}, "ARCHIVED"));
         }
