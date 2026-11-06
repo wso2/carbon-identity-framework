@@ -24,6 +24,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
+import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
@@ -38,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -57,6 +60,17 @@ public class AuthorizedAPIManagementServiceImplMockUnitTest {
     private static final String APP_ID = "test-app-id";
     private static final String TENANT_DOMAIN = "test.tenant.com";
     private static final int TENANT_ID = 1;
+    private static final String SHARED_APP_ID = "shared-app-id";
+    private static final String MAIN_APP_ID = "main-app-id";
+    private static final String MAIN_APP_TENANT_DOMAIN = "carbon.super";
+    private static final int MAIN_APP_TENANT_ID = -1234;
+    private static final String MANAGEMENT_SCOPE = "internal_user_mgt_view";
+    private static final String ORGANIZATION_SCOPE = "internal_org_user_mgt_view";
+    private static final String CONSOLE_SCOPE = "console:users";
+    private static final String CONSOLE_ORG_SCOPE = "console:org:users";
+    private static final String BUSINESS_SCOPE = "orders:read";
+    private static final List<String> API_TYPES = Arrays.asList("TENANT", "ORGANIZATION", "SYSTEM", "BUSINESS",
+            "CONSOLE_FEATURE", "CONSOLE_ORG_FEATURE");
 
     private AuthorizedAPIManagementServiceImpl service;
     private AuthorizedAPIDAO mockDAO;
@@ -242,5 +256,83 @@ public class AuthorizedAPIManagementServiceImplMockUnitTest {
                 "All-tenant RBAC entry must not contain internal scopes when mergeByPolicy is disabled");
         Assert.assertTrue(appEntryCarriesInternalScope,
                 "App-sourced entry must carry the internal scope as-is when mergeByPolicy is disabled");
+    }
+
+    private void stubSharedApp() throws Exception {
+
+        when(mockAppMgtService.getMainAppId(SHARED_APP_ID)).thenReturn(MAIN_APP_ID);
+        when(mockAppMgtService.getTenantIdByApp(MAIN_APP_ID)).thenReturn(MAIN_APP_TENANT_ID);
+        mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(MAIN_APP_TENANT_ID))
+                .thenReturn(MAIN_APP_TENANT_DOMAIN);
+        mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(MAIN_APP_TENANT_DOMAIN))
+                .thenReturn(MAIN_APP_TENANT_ID);
+    }
+
+    @Test
+    public void shouldExcludeManagementScopesForSharedApp() throws Exception {
+
+        stubSharedApp();
+        AuthorizedScopes mainAppScopes = authorizedScopes("RBAC", MANAGEMENT_SCOPE, ORGANIZATION_SCOPE,
+                CONSOLE_SCOPE, CONSOLE_ORG_SCOPE, BUSINESS_SCOPE);
+        when(mockDAO.getAuthorizedScopes(MAIN_APP_ID, MAIN_APP_TENANT_ID))
+                .thenReturn(Collections.singletonList(mainAppScopes));
+
+        List<AuthorizedScopes> result = service.getAuthorizedScopes(SHARED_APP_ID, TENANT_DOMAIN);
+
+        Assert.assertEquals(result.size(), 1);
+        Assert.assertEquals(result.get(0).getPolicyId(), "RBAC");
+        Assert.assertEquals(result.get(0).getScopes(),
+                Arrays.asList(ORGANIZATION_SCOPE, CONSOLE_ORG_SCOPE, BUSINESS_SCOPE),
+                "Management API scopes of the main application must be excluded for the shared application");
+        // The authorized scopes of the main application can be cached entries, hence must not be modified.
+        Assert.assertEquals(mainAppScopes.getScopes().size(), 5);
+    }
+
+    @Test
+    public void shouldNotExcludeManagementScopesForMainApp() throws Exception {
+
+        when(mockDAO.getAuthorizedScopes(APP_ID, TENANT_ID)).thenReturn(Collections.singletonList(
+                authorizedScopes("RBAC", MANAGEMENT_SCOPE, ORGANIZATION_SCOPE, CONSOLE_SCOPE, BUSINESS_SCOPE)));
+
+        List<AuthorizedScopes> result = service.getAuthorizedScopes(APP_ID, TENANT_DOMAIN);
+
+        Assert.assertEquals(result.get(0).getScopes(),
+                Arrays.asList(MANAGEMENT_SCOPE, ORGANIZATION_SCOPE, CONSOLE_SCOPE, BUSINESS_SCOPE));
+    }
+
+    @Test
+    public void shouldExcludeManagementAPIsForSharedApp() throws Exception {
+
+        stubSharedApp();
+        stubAuthorizedAPIs(MAIN_APP_ID, MAIN_APP_TENANT_ID, MAIN_APP_TENANT_DOMAIN);
+
+        List<AuthorizedAPI> result = service.getAuthorizedAPIs(SHARED_APP_ID, TENANT_DOMAIN);
+
+        Assert.assertEquals(result.stream().map(AuthorizedAPI::getType).collect(Collectors.toList()),
+                Arrays.asList("ORGANIZATION", "BUSINESS", "CONSOLE_ORG_FEATURE"),
+                "Management API resources of the main application must be excluded for the shared application");
+    }
+
+    @Test
+    public void shouldNotExcludeManagementAPIsForMainApp() throws Exception {
+
+        stubAuthorizedAPIs(APP_ID, TENANT_ID, TENANT_DOMAIN);
+
+        List<AuthorizedAPI> result = service.getAuthorizedAPIs(APP_ID, TENANT_DOMAIN);
+
+        Assert.assertEquals(result.size(), API_TYPES.size());
+    }
+
+    private void stubAuthorizedAPIs(String appId, int tenantId, String tenantDomain) throws Exception {
+
+        List<AuthorizedAPI> authorizedAPIs = new ArrayList<>();
+        for (String type : API_TYPES) {
+            authorizedAPIs.add(new AuthorizedAPI.AuthorizedAPIBuilder().appId(appId).apiId(type + "-api")
+                    .policyId("RBAC").build());
+            when(mockAPIResourceManager.getAPIResourceById(type + "-api", tenantDomain)).thenReturn(
+                    new APIResource.APIResourceBuilder().id(type + "-api").identifier("/" + type)
+                            .name(type).type(type).build());
+        }
+        when(mockDAO.getAuthorizedAPIs(appId, tenantId)).thenReturn(authorizedAPIs);
     }
 }
