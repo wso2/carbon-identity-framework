@@ -79,6 +79,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private static final String IDN_AUTH_USER_SESSION_MAPPING_TABLE = "IDN_AUTH_USER_SESSION_MAPPING";
     private static final String IDN_AUTH_SESSION_APP_INFO_TABLE = "IDN_AUTH_SESSION_APP_INFO_TABLE";
     private static final String IDN_AUTH_SESSION_META_DATA_TABLE = "IDN_AUTH_SESSION_META_DATA";
+    private static final String IDN_FED_AUTH_SESSION_MAPPING_TABLE = "IDN_FED_AUTH_SESSION_MAPPING";
     private static final String COLUMN_SESSION_ID = "SESSION_ID";
     private static final String COLUMN_SUBJECT = "SUBJECT";
     private static final String COLUMN_APP_ID = "APP_ID";
@@ -624,9 +625,11 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         }
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        long currentTime = FrameworkUtils.getCurrentStandardNano();
+        Set<String> federatedMappingsToRemove;
         try {
-            jdbcTemplate.withTransaction(template -> {
-                Set<String> terminatedAuthSessionIds = getSessionsTerminated(template);
+            federatedMappingsToRemove = jdbcTemplate.withTransaction(template -> {
+                Set<String> terminatedAuthSessionIds = getSessionsTerminated(template, currentTime);
                 String[] sessionsToRemove = terminatedAuthSessionIds.toArray(new String[0]);
 
                 if (!terminatedAuthSessionIds.isEmpty()) {
@@ -647,10 +650,26 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                         log.debug("No expired sessions found to remove.");
                     }
                 }
-                return null;
+                return terminatedAuthSessionIds;
             });
         } catch (TransactionException e) {
             log.error("Error while removing expired session information from the database.", e);
+            return;
+        }
+        if (federatedMappingsToRemove.isEmpty()) {
+            return;
+        }
+
+        // Keep the federated session mappings of sessions that still have a record that has not expired.
+        try {
+            federatedMappingsToRemove.removeAll(getExpiredSessionsWithActiveRecord(jdbcTemplate, currentTime));
+        } catch (DataAccessException e) {
+            log.error("Error while retrieving the expired sessions that still have an active record. Federated " +
+                    "authentication session mappings are not removed in this run.", e);
+            return;
+        }
+        if (!federatedMappingsToRemove.isEmpty()) {
+            removeFederatedAuthSessionMappings(federatedMappingsToRemove.toArray(new String[0]));
         }
     }
 
@@ -681,6 +700,29 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             });
         } catch (TransactionException e) {
             log.error("Error while removing the terminated session information from the database.", e);
+            return;
+        }
+        removeFederatedAuthSessionMappings(sessionsToRemove);
+    }
+
+    /**
+     * Remove the federated authentication session mappings of the given sessions. The mappings are stored in the
+     * identity database, while the other session records are stored in the session database.
+     *
+     * @param sessionsToRemove array of session ids whose mappings should be removed
+     */
+    private void removeFederatedAuthSessionMappings(String[] sessionsToRemove) {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                deleteSessionDataFromTable(sessionsToRemove, template, IDN_FED_AUTH_SESSION_MAPPING_TABLE,
+                        SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO);
+                return null;
+            });
+        } catch (TransactionException e) {
+            log.error("Error while removing the federated authentication session mappings of the removed sessions " +
+                    "from the database.", e);
         }
     }
 
@@ -1348,7 +1390,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         return activeSessionIds.size();
     }
 
-    private Set<String> getSessionsTerminated(Template<?> template) throws DataAccessException {
+    private Set<String> getSessionsTerminated(Template<?> template, long currentTime) throws DataAccessException {
 
         Set<String> terminatedSessionIds = new HashSet<>();
 
@@ -1362,9 +1404,31 @@ public class UserSessionDAOImpl implements UserSessionDAO {
          */
         template.executeQuery(SQLQueries.SQL_SELECT_TERMINATED_SESSION_IDS,
                 (resultSet, rowNumber) -> terminatedSessionIds.add(resultSet.getString(1)),
-                preparedStatement -> preparedStatement.setLong(1, FrameworkUtils.getCurrentStandardNano()));
+                preparedStatement -> preparedStatement.setLong(1, currentTime));
 
         return terminatedSessionIds;
+    }
+
+    /**
+     * Get the sessions that have an expired record and also a record that has not expired. Each update of a session
+     * adds a record, so these sessions are still active.
+     *
+     * @param jdbcTemplate jdbc template of the session database
+     * @param currentTime  time used to decide whether a record has expired
+     * @return session ids of the active sessions that have an expired record
+     * @throws DataAccessException if the DB execution fails
+     */
+    private Set<String> getExpiredSessionsWithActiveRecord(JdbcTemplate jdbcTemplate, long currentTime)
+            throws DataAccessException {
+
+        Set<String> activeSessionIds = new HashSet<>();
+        jdbcTemplate.executeQuery(SQLQueries.SQL_SELECT_EXPIRED_SESSION_IDS_WITH_ACTIVE_RECORD,
+                (resultSet, rowNumber) -> activeSessionIds.add(resultSet.getString(1)),
+                preparedStatement -> {
+                    preparedStatement.setLong(1, currentTime);
+                    preparedStatement.setLong(2, currentTime);
+                });
+        return activeSessionIds;
     }
 
     /**
