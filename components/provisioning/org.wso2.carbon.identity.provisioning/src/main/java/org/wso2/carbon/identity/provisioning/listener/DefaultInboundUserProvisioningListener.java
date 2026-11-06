@@ -315,7 +315,17 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
             String[] userList = new String[0];
             // Passing all user list of the role is not used, hence we can remove this logic if unnecessary.
             if (!RoleManagementUtils.isHybridRole(roleName)) {
-                userList = userStoreManager.getUserListOfRole(roleName);
+                if (ProvisioningUtil.isSkipFullMemberListOnGroupUpdateEnabled()) {
+                    /*
+                     * Loading all users of the role reads every member of the group from the user store, which is
+                     * costly for large groups, hence only the newly added users are passed.
+                     */
+                    if (newUsers != null) {
+                        userList = newUsers;
+                    }
+                } else {
+                    userList = userStoreManager.getUserListOfRole(roleName);
+                }
             }
 
             Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
