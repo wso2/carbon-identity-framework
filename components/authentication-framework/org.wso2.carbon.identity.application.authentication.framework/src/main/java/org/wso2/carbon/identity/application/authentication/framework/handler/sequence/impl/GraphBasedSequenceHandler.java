@@ -373,11 +373,38 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.debug("Request is successfully authenticated");
         }
 
+        removeStepsNotExecutedInCurrentFlow(context);
         handlePostAuthentication(request, response, context);
 
         // we should get out of steps now.
         if (log.isDebugEnabled()) {
             log.debug("Step processing is completed");
+        }
+    }
+
+    /**
+     * Remove the steps that were not executed by the script in the current flow from the step map.
+     * In an SSO flow, the step map is initialized with the steps of the previously authenticated sequence. Steps are
+     * stored against the execution order (1 to current step), hence any step after the current step is a stale step
+     * from the previous authentication, which should not be considered for post authentication (subject and
+     * attribute resolution, JIT provisioning, account association etc.) or persisted back to the session.
+     *
+     * @param context Authentication context.
+     */
+    private void removeStepsNotExecutedInCurrentFlow(AuthenticationContext context) {
+
+        int currentStep = context.getCurrentStep();
+        if (currentStep <= 0) {
+            return;
+        }
+        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+        if (MapUtils.isEmpty(stepMap)) {
+            return;
+        }
+        boolean isRemoved = stepMap.keySet().removeIf(stepNumber -> stepNumber > currentStep);
+        if (isRemoved && log.isDebugEnabled()) {
+            log.debug("Removed the steps after step: " + currentStep + " which were not executed in the current " +
+                    "flow, from the step map of the application: " + context.getServiceProviderName());
         }
     }
 

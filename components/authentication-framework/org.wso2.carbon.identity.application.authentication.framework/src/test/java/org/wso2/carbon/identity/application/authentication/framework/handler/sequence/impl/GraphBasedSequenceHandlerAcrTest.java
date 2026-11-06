@@ -25,11 +25,16 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -54,6 +59,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
@@ -129,6 +135,61 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
                 {"js-sp-1.xml", new String[]{"acr2"}, 2},
                 {"js-sp-1.xml", new String[]{"notMatchingAcr"}, 3}
         };
+    }
+
+    @Test
+    public void testStepsNotExecutedInCurrentFlowAreRemoved() throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
+
+        AuthenticationContext context = getAuthenticationContext(sp1);
+        // Script executes only step 1 for acr1.
+        context.addRequestedAcr("acr1");
+
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
+        SequenceConfig sequenceConfig = configurationLoader.getSequenceConfig(context, Collections.emptyMap(), sp1);
+        context.setSequenceConfig(sequenceConfig);
+
+        // Simulate an SSO flow where the step map is restored from a previously authenticated sequence which had
+        // executed steps 2 and 3 as well.
+        AuthenticatedUser staleUser = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
+                "stale_user");
+        sequenceConfig.getStepMap().put(2, createAuthenticatedStep(2, "HwkMockAuthenticator", staleUser));
+        sequenceConfig.getStepMap().put(3, createAuthenticatedStep(3, "FptMockAuthenticator", staleUser));
+
+        HttpServletRequest req = createMockHttpServletRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        utilsStaticMock.when(() ->
+                Utils.isClaimAndOIDCScopeInheritanceEnabled("test_domain")).thenReturn(true);
+        UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        graphBasedSequenceHandler.handle(req, resp, context);
+
+        assertTrue(context.getSequenceConfig().isCompleted());
+        assertEquals(context.getSequenceConfig().getStepMap().keySet(), Collections.singleton(1));
+        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
+                "test_user");
+    }
+
+    private StepConfig createAuthenticatedStep(int order, String authenticatorName, AuthenticatedUser user) {
+
+        AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig(authenticatorName, true, null);
+        authenticatorConfig.setApplicationAuthenticator(new MockAuthenticator(authenticatorName));
+
+        StepConfig stepConfig = new StepConfig();
+        stepConfig.setOrder(order);
+        stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
+        stepConfig.setAuthenticatedIdP(FrameworkConstants.LOCAL_IDP_NAME);
+        stepConfig.setAuthenticatedUser(user);
+        stepConfig.setSubjectIdentifierStep(true);
+        stepConfig.setSubjectAttributeStep(true);
+        stepConfig.setCompleted(true);
+        return stepConfig;
     }
 
     @Test(expectedExceptions = FrameworkException.class)
