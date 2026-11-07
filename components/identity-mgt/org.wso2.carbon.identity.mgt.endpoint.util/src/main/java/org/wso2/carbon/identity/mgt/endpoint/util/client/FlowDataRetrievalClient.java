@@ -27,6 +27,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.net.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.core.HTTPClientManager;
@@ -35,7 +36,13 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.flow.v1.FlowExecu
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -47,6 +54,28 @@ public class FlowDataRetrievalClient {
     private static final String FLOW_EXECUTE_API_PATH = "/api/server/v1/flow/execute";
     private static final Log LOG = LogFactory.getLog(FlowDataRetrievalClient.class);
 
+    // Headers that are connection/entity scoped and must never be relayed as-is onto a new outbound request:
+    // forwarding them verbatim can leak proxy credentials (Proxy-Authorization), misroute the request (Host),
+    // or make the receiving server misinterpret the freshly-built JSON entity (Content-Type/Content-Encoding).
+    private static final Set<String> HOP_BY_HOP_HEADERS;
+
+    static {
+        Set<String> headers = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        headers.add(HttpHeaders.CONNECTION);
+        headers.add(HttpHeaders.CONTENT_LENGTH);
+        headers.add(HttpHeaders.TRANSFER_ENCODING);
+        headers.add(HttpHeaders.HOST);
+        headers.add(HttpHeaders.KEEP_ALIVE);
+        headers.add(HttpHeaders.TE);
+        headers.add(HttpHeaders.UPGRADE);
+        headers.add(HttpHeaders.PROXY_AUTHORIZATION);
+        headers.add(HttpHeaders.PROXY_AUTHENTICATE);
+        headers.add("Proxy-Authentication-Info");
+        headers.add(HttpHeaders.CONTENT_TYPE);
+        headers.add(HttpHeaders.CONTENT_ENCODING);
+        HOP_BY_HOP_HEADERS = headers;
+    }
+
     /**
      * Execute a flow by invoking the Flow Execution API.
      *
@@ -57,14 +86,58 @@ public class FlowDataRetrievalClient {
      */
     public FlowExecutionResponse executeFlow(String jsonBody, String tenantDomain) throws ApiException {
 
+        return executeFlow(jsonBody, tenantDomain, null, null);
+    }
+
+    /**
+     * Execute a flow by invoking the Flow Execution API, forwarding the given headers and query parameters.
+     *
+     * @param jsonBody     The JSON body to be sent in the request.
+     * @param tenantDomain The tenant domain for which the flow is to be executed.
+     * @param headerParams Headers to be forwarded to the Flow Execution API, keyed by header name with all values
+     *                      for that name.
+     * @param queryParams  Query parameters to be forwarded to the Flow Execution API, keyed by parameter name with
+     *                      all values for that name.
+     * @return FlowExecutionResponse containing the status code and response body from the API.
+     * @throws ApiException If there is an error during API invocation or if input validation fails.
+     */
+    public FlowExecutionResponse executeFlow(String jsonBody, String tenantDomain,
+                                              Map<String, List<String>> headerParams,
+                                              Map<String, List<String>> queryParams) throws ApiException {
+
         validateInputs(jsonBody, tenantDomain);
 
         return HTTPClientManager.executeWithHttpClient(httpClient -> {
             try {
                 String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH,
                         true, false);
-                HttpPost postRequest = new HttpPost(path);
-                postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+                URIBuilder uriBuilder = new URIBuilder(path);
+                if (queryParams != null) {
+                    queryParams.forEach((name, values) -> values.forEach(value -> uriBuilder.addParameter(name, value)));
+                }
+
+                HttpPost postRequest = new HttpPost(uriBuilder.build());
+                boolean callerSuppliedAccept = headerParams != null && headerParams.keySet().stream()
+                        .anyMatch(HttpHeaders.ACCEPT::equalsIgnoreCase);
+                if (!callerSuppliedAccept) {
+                    postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+                }
+                if (headerParams != null) {
+                    Set<String> excludedHeaders = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+                    excludedHeaders.addAll(HOP_BY_HOP_HEADERS);
+                    headerParams.forEach((name, values) -> {
+                        if (HttpHeaders.CONNECTION.equalsIgnoreCase(name)) {
+                            values.forEach(value -> Arrays.stream(value.split(","))
+                                    .map(String::trim)
+                                    .forEach(excludedHeaders::add));
+                        }
+                    });
+                    headerParams.forEach((name, values) -> {
+                        if (!excludedHeaders.contains(name)) {
+                            values.forEach(value -> postRequest.addHeader(name, value));
+                        }
+                    });
+                }
                 postRequest.setEntity(new StringEntity(jsonBody,
                         ContentType.create(HTTPConstants.MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
@@ -81,8 +154,8 @@ public class FlowDataRetrievalClient {
                         return new FlowExecutionResponse(statusCode, new JSONObject(content));
                     }
                 });
-            } catch (JSONException | IOException e) {
-                LOG.error("Error while invoking flow execution request.", e);
+            } catch (JSONException | IOException | URISyntaxException e) {
+                LOG.error("Error while invoking flow execution request: " + e.getMessage());
                 throw new ApiException("Error while invoking flow execution request.");
             }
         });
