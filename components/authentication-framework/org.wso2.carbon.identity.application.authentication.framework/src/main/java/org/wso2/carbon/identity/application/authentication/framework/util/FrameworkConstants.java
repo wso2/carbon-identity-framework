@@ -478,6 +478,13 @@ public abstract class FrameworkConstants {
         public static final String USE_RESIDENT_USER_ID_FOR_AUTHENTICATED_SHARED_USERS =
                 "UseResidentUserIdForAuthenticatedSharedUsers";
 
+        /**
+         * Compatibility setting to use the shared user id of the accessing organization as the subject identifier,
+         * when a shared user logs in to an organization through an interactive authentication flow.
+         */
+        public static final String SHARED_USER_COMPATIBILITY_SETTING_GROUP = "sharedUser";
+        public static final String USE_SHARED_USER_ID_AS_SUBJECT_COMPATIBILITY_SETTING = "useSharedUserIdAsSubject";
+
         private Config() {
         }
 
