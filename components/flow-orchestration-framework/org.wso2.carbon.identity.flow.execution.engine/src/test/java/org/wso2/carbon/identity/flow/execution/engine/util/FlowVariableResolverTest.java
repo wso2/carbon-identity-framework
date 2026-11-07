@@ -310,6 +310,59 @@ public class FlowVariableResolverTest {
                 FlowVariableDataType.INTEGER);
     }
 
+    /**
+     * A value given during the flow is read for the type the flow defines, so both 3 and "3" are an integer.
+     */
+    @Test
+    public void testToRuntimeValueReadsTheValueForItsType() {
+
+        FlowExecutionContext context = contextWith(variables());
+
+        assertEquals(FlowVariableResolver.toRuntimeValue(context, "attempts", "3"), 3L);
+        assertEquals(FlowVariableResolver.toRuntimeValue(context, "attempts", 3), 3L);
+        assertEquals(FlowVariableResolver.toRuntimeValue(context, "plan", "gold"), "gold");
+        assertNull(FlowVariableResolver.toRuntimeValue(context, "attempts", "three"));
+        assertNull(FlowVariableResolver.toRuntimeValue(context, "undefined", "x"));
+        assertEquals(FlowVariableResolver.toRuntimeValue(context, AB_TESTING_KEY, "42"), 42L);
+        assertNull(FlowVariableResolver.toRuntimeValue(context, AB_TESTING_KEY, 100));
+        assertNull(FlowVariableResolver.toRuntimeValue(context, AB_TESTING_KEY, -1));
+    }
+
+    @Test
+    public void testSetRuntimeValueKeepsAValidValue() {
+
+        FlowExecutionContext context = contextWith(variables());
+        context.getRuntimeValues().put("attempts", 1L);
+
+        assertTrue(FlowVariableResolver.setRuntimeValue(context, "attempts", "3"));
+        assertTrue(FlowVariableResolver.setRuntimeValue(context, "plan", "gold"));
+        assertTrue(FlowVariableResolver.setRuntimeValue(context, AB_TESTING_KEY, 42));
+
+        assertEquals(context.getRuntimeValues().get("attempts"), 3L);
+        assertEquals(context.getRuntimeValues().get("plan"), "gold");
+        assertEquals(context.getRuntimeValues().get(AB_TESTING_KEY), 42L);
+    }
+
+    /**
+     * An invalid value, a runtime value the flow does not define, or an A/B testing key out of range is ignored, and
+     * the value the flow had stays.
+     */
+    @Test
+    public void testSetRuntimeValueIgnoresWhatItCannotKeep() {
+
+        FlowExecutionContext context = contextWith(variables());
+        context.getRuntimeValues().put("attempts", 1L);
+        context.getRuntimeValues().put(AB_TESTING_KEY, 7L);
+
+        assertFalse(FlowVariableResolver.setRuntimeValue(context, "attempts", "three"));
+        assertFalse(FlowVariableResolver.setRuntimeValue(context, "undefined", "x"));
+        assertFalse(FlowVariableResolver.setRuntimeValue(context, AB_TESTING_KEY, 100));
+
+        assertEquals(context.getRuntimeValues().get("attempts"), 1L);
+        assertFalse(context.getRuntimeValues().containsKey("undefined"));
+        assertEquals(context.getRuntimeValues().get(AB_TESTING_KEY), 7L);
+    }
+
     private static FlowVariablesDTO variables() {
 
         FlowVariablesDTO variables = new FlowVariablesDTO();

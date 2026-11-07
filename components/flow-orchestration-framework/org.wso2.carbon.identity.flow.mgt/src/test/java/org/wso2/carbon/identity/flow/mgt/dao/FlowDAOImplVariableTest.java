@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mockStatic;
@@ -192,6 +193,41 @@ public class FlowDAOImplVariableTest {
         assertTrue(stored.getHeaders().isEmpty());
         assertEquals(stored.getRuntimeValues().size(), 1);
         assertEquals(stored.getRuntimeValues().get(0).getName(), Constants.SystemRuntimeValues.AB_TESTING_KEY);
+    }
+
+    /**
+     * One query reads the variables of every flow the tenant has stored, grouped by flow type, without adding the
+     * system runtime values.
+     */
+    @Test(dependsOnMethods = "testSavingWithNoVariablesClearsThem")
+    public void testVariablesOfEveryFlowAreReadTogether() throws Exception {
+
+        FlowVariablesDTO registration = new FlowVariablesDTO();
+        registration.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
+        registration.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
+        FlowVariablesDTO passwordRecovery = new FlowVariablesDTO();
+        passwordRecovery.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.INTEGER));
+        passwordRecovery.getRuntimeValues().add(new FlowRuntimeValueDTO("risk", FlowVariableDataType.DECIMAL));
+
+        flowDAO.updateFlow(FLOW_TYPE, new GraphBuilder().withSteps(Collections.singletonList(endStep()))
+                .withFlowVariables(registration).build(), TENANT_ID, "Registration");
+        flowDAO.updateFlow("PASSWORD_RECOVERY", new GraphBuilder().withSteps(Collections.singletonList(endStep()))
+                .withFlowVariables(passwordRecovery).build(), TENANT_ID, "PasswordRecovery");
+
+        Map<String, FlowVariablesDTO> stored = flowDAO.getFlowVariables(TENANT_ID);
+
+        assertEquals(stored.size(), 2);
+        assertEquals(stored.get(FLOW_TYPE).getHeaders().size(), 1);
+        assertEquals(stored.get(FLOW_TYPE).getHeaders().get(0).getName(), "x-device");
+        assertEquals(stored.get(FLOW_TYPE).getRuntimeValues().size(), 1);
+        assertEquals(stored.get(FLOW_TYPE).getRuntimeValues().get(0).getDataType(), FlowVariableDataType.STRING);
+        List<FlowRuntimeValueDTO> recoveryValues = stored.get("PASSWORD_RECOVERY").getRuntimeValues();
+        assertEquals(recoveryValues.size(), 2);
+        assertEquals(recoveryValues.get(0).getName(), "plan");
+        assertEquals(recoveryValues.get(0).getDataType(), FlowVariableDataType.INTEGER);
+        assertEquals(recoveryValues.get(1).getName(), "risk");
+        assertTrue(stored.get("PASSWORD_RECOVERY").getHeaders().isEmpty());
+        assertTrue(flowDAO.getFlowVariables(TENANT_ID + 1).isEmpty());
     }
 
     private static StepDTO endStep() {

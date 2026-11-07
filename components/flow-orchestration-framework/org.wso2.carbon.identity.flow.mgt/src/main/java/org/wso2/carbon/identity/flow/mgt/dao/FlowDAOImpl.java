@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -73,6 +74,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_ALL_FLOW_VARIABLES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW_VARIABLES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW_NODE_BRANCHES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
@@ -94,6 +96,7 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_X;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_Y;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_DATA_TYPE;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_FLOW_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT;
@@ -624,23 +627,7 @@ public class FlowDAOImpl implements FlowDAO {
         FlowVariablesDTO variables = new FlowVariablesDTO();
         jdbcTemplate.executeQuery(GET_FLOW_VARIABLES, LambdaExceptionUtils.rethrowRowMapper(
                 (resultSet, rowNumber) -> {
-                    String name = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_NAME);
-                    FlowVariableDataType dataType =
-                            FlowVariableDataType.fromName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DATA_TYPE));
-                    if (dataType == null) {
-                        LOG.warn("Skipping " + name + " of the " + flowType + " flow, as its data type is not known.");
-                        return null;
-                    }
-                    String variableType = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE);
-                    if (HEADER.equals(variableType)) {
-                        variables.getHeaders().add(new FlowVariableDTO(name, dataType));
-                    } else if (RUNTIME_VALUE.equals(variableType)) {
-                        FlowRuntimeValueDTO runtimeValue = new FlowRuntimeValueDTO(name, dataType);
-                        runtimeValue.setValue(deserializeRuntimeValue(runtimeValue,
-                                resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_INITIAL_VALUE)));
-                        runtimeValue.setClientWritable(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_CLIENT_WRITABLE));
-                        variables.getRuntimeValues().add(runtimeValue);
-                    }
+                    addFlowVariable(variables, resultSet, flowType);
                     return null;
                 }), preparedStatement -> {
                     preparedStatement.setInt(1, tenantId);
@@ -648,6 +635,50 @@ public class FlowDAOImpl implements FlowDAO {
                     preparedStatement.setString(3, flowType);
                 });
         return FlowVariableUtils.withSystemRuntimeValues(variables);
+    }
+
+    @Override
+    public Map<String, FlowVariablesDTO> getFlowVariables(int tenantId) throws FlowMgtServerException {
+
+        Map<String, FlowVariablesDTO> variablesByFlowType = new HashMap<>();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeQuery(GET_ALL_FLOW_VARIABLES, LambdaExceptionUtils.rethrowRowMapper(
+                    (resultSet, rowNumber) -> {
+                        String flowType = resultSet.getString(DB_SCHEMA_COLUMN_NAME_FLOW_TYPE);
+                        addFlowVariable(variablesByFlowType.computeIfAbsent(flowType, type -> new FlowVariablesDTO()),
+                                resultSet, flowType);
+                        return null;
+                    }), preparedStatement -> {
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setBoolean(2, true);
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_FLOW_VARIABLES, e, tenantId);
+        }
+        return variablesByFlowType;
+    }
+
+    private void addFlowVariable(FlowVariablesDTO variables, ResultSet resultSet, String flowType)
+            throws SQLException, FlowMgtServerException {
+
+        String name = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_NAME);
+        FlowVariableDataType dataType =
+                FlowVariableDataType.fromName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DATA_TYPE));
+        if (dataType == null) {
+            LOG.warn("Skipping " + name + " of the " + flowType + " flow, as its data type is not known.");
+            return;
+        }
+        String variableType = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE);
+        if (HEADER.equals(variableType)) {
+            variables.getHeaders().add(new FlowVariableDTO(name, dataType));
+        } else if (RUNTIME_VALUE.equals(variableType)) {
+            FlowRuntimeValueDTO runtimeValue = new FlowRuntimeValueDTO(name, dataType);
+            runtimeValue.setValue(deserializeRuntimeValue(runtimeValue,
+                    resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_INITIAL_VALUE)));
+            runtimeValue.setClientWritable(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_CLIENT_WRITABLE));
+            variables.getRuntimeValues().add(runtimeValue);
+        }
     }
 
     private static Optional<byte[]> serializeRuntimeValue(String name, Object value)

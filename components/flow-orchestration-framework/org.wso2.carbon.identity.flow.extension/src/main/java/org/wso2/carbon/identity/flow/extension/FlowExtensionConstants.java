@@ -37,6 +37,7 @@ public class FlowExtensionConstants {
     public static final String MODIFY_PATHS_KEY = "modifyPaths";
     public static final String PENDING_CLAIMS_KEY = "pendingClaims";
     public static final String PENDING_CREDENTIALS_KEY = "pendingCredentials";
+    public static final String PENDING_RUNTIME_VALUES_KEY = "pendingRuntimeValues";
     public static final String PENDING_REDIRECT_URL_KEY = "pendingRedirectUrl";
 
     public static final String ACTION_ID_METADATA_KEY = "actionId";
@@ -98,7 +99,11 @@ public class FlowExtensionConstants {
                         "flowType",
                         "callbackUrl",
                         "portalUrl",
-                        "flowUser"
+                        "flowUser",
+                        "flowVariables",
+                        "runtimeValues",
+                        "request",
+                        "flowOrganization"
                 )));
 
         public static final Set<String> INCLUDED_USER_ATTRIBUTES = Collections.unmodifiableSet(
@@ -134,6 +139,7 @@ public class FlowExtensionConstants {
         public static final String OP_EXPOSE = "EXPOSE";
         public static final String OP_MODIFY = "MODIFY";
         public static final String DATA_TYPE_STRING = "String";
+        public static final String ALL_FLOW_TYPES = "ALL";
 
         private ContextTree() {
 
@@ -184,6 +190,24 @@ public class FlowExtensionConstants {
         public static final String ORGANIZATION_NAME_PATH = "/organization/name";
         public static final String ORGANIZATION_HANDLE_PATH = "/organization/orgHandle";
         public static final String ORGANIZATION_DEPTH_PATH = "/organization/depth";
+
+        public static final String SUBJECT_ORGANIZATION_PATH = "/subjectOrganization";
+        public static final String SUBJECT_ORGANIZATION_PREFIX = "/subjectOrganization/";
+        public static final String SUBJECT_ORGANIZATION_ID_PATH = "/subjectOrganization/id";
+        public static final String SUBJECT_ORGANIZATION_NAME_PATH = "/subjectOrganization/name";
+        public static final String SUBJECT_ORGANIZATION_HANDLE_PATH = "/subjectOrganization/handle";
+        public static final String SUBJECT_ORGANIZATION_DESCRIPTION_PATH = "/subjectOrganization/description";
+        public static final String SUBJECT_ORGANIZATION_ATTRIBUTES_PATH = "/subjectOrganization/attributes";
+        public static final String SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX =
+                "/subjectOrganization/attributes[name=";
+
+        public static final String RUNTIME_VALUES_PATH = "/runtimeValues";
+        public static final String RUNTIME_VALUES_SELECTOR_PREFIX = "/runtimeValues[name=";
+        public static final String REQUEST_PATH = "/request";
+        public static final String REQUEST_PREFIX = "/request/";
+        public static final String REQUEST_HEADERS_PATH = "/request/additionalHeaders";
+        public static final String REQUEST_HEADERS_SELECTOR_PREFIX = "/request/additionalHeaders[name=";
+        public static final String NAME_SELECTOR_SUFFIX = "]";
 
         private FlowContextPaths() {
 

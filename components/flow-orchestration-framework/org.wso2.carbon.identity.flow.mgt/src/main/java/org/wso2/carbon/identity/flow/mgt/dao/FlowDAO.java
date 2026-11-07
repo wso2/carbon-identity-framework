@@ -21,7 +21,10 @@ package org.wso2.carbon.identity.flow.mgt.dao;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+
+import java.util.Map;
 
 /**
  * DAO interface for flow management.
@@ -49,6 +52,16 @@ public interface FlowDAO {
      * @throws FlowMgtServerException If an error occurs while retrieving the default flow.
      */
     FlowDTO getFlow(String flowType, int tenantId) throws FlowMgtServerException;
+
+    /**
+     * Get the headers and runtime values of every flow the given tenant has stored, by flow type, with one query.
+     * The organization hierarchy and the system default flows are not looked up.
+     *
+     * @param tenantId The tenant ID.
+     * @return The variables of each stored flow that defines any, keyed by flow type.
+     * @throws FlowMgtServerException If an error occurs while retrieving the variables.
+     */
+    Map<String, FlowVariablesDTO> getFlowVariables(int tenantId) throws FlowMgtServerException;
 
     /**
      * Delete the specific flow of the given tenant.

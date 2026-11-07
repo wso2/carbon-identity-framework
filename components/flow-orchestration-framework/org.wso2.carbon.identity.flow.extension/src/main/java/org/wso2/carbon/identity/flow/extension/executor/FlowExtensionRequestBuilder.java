@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.flow.extension.executor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +33,11 @@ import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionFlow;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionHeader;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionOrganizationAttribute;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionRequest;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionRuntimeValue;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionSubjectOrganization;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionUser;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
@@ -38,6 +46,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Application;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Header;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
@@ -52,8 +61,14 @@ import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
 import org.wso2.carbon.identity.flow.extension.util.CredentialWireFormatUtil;
 import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
+import org.wso2.carbon.identity.flow.extension.util.PlainNumberSerializer;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableDiagnosticLogger;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
+import org.wso2.carbon.identity.flow.mgt.Constants.FlowVariableTypes;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -80,6 +95,12 @@ import static org.wso2.carbon.identity.flow.extension.executor.JWEEncryptionUtil
 public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilder {
 
     private static final Log LOG = LogFactory.getLog(FlowExtensionRequestBuilder.class);
+    // Numbers in an encrypted array are written as they are when the array is not encrypted.
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .registerModule(new SimpleModule().addSerializer(Double.class, new PlainNumberSerializer()));
+    private static final FlowVariableDiagnosticLogger VARIABLE_DIAGNOSTIC_LOGGER = new FlowVariableDiagnosticLogger();
+    private static final String NOT_DEFINED_FOR_EXTENSION =
+            "The flow does not define it, so the flow extension's access to it is left out.";
     private static final int MAX_DIAGNOSTIC_PATHS = 20;
     private static final String DIAGNOSTIC_REASON = "reason";
     private static final String REASON_OMITTED_ENCRYPTED_EXPOSE_PATHS = "omitted-encrypted-expose-paths";
@@ -98,7 +119,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         FlowExecutionContext execCtx = getFlowExecutionContext(actionFlowContext);
         FlowExtensionAction flowExtensionAction = getFlowExtensionAction(actionExecutionContext);
 
-        AccessConfig accessConfig = flowExtensionAction.getAccessConfig();
+        AccessConfig accessConfig = resolveAccessConfigForFlow(flowExtensionAction.getAccessConfig(), execCtx);
         Certificate certificate = flowExtensionAction.getCertificate();
 
         List<String> exposePaths = resolveExposePaths(accessConfig);
@@ -175,9 +196,211 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         applyApplication(eventBuilder, context, expose);
         applyUser(flowBuilder, context, expose, accessConfig, certificatePEM);
         applyFlowMetadata(flowBuilder, context, expose);
+        applyRuntimeValues(eventBuilder, context, expose, accessConfig, certificatePEM);
+        applyRequestHeaders(eventBuilder, context, expose, accessConfig, certificatePEM);
+        applySubjectOrganization(eventBuilder, context, expose, accessConfig, certificatePEM);
 
         eventBuilder.flow(flowBuilder.build());
         return eventBuilder.build();
+    }
+
+    private AccessConfig resolveAccessConfigForFlow(AccessConfig accessConfig, FlowExecutionContext context) {
+
+        if (accessConfig == null) {
+            return null;
+        }
+        AccessConfig forFlowType = accessConfig.forFlowType(context.getFlowType());
+        return new AccessConfig(dropUndefinedVariablePaths(forFlowType.getExpose(), context),
+                dropUndefinedVariablePaths(forFlowType.getModify(), context));
+    }
+
+    private List<ContextPath> dropUndefinedVariablePaths(List<ContextPath> paths, FlowExecutionContext context) {
+
+        if (paths == null) {
+            return Collections.emptyList();
+        }
+        List<ContextPath> definedPaths = new ArrayList<>();
+        for (ContextPath contextPath : paths) {
+            if (isDefinedVariablePath(contextPath.getPath(), context)) {
+                definedPaths.add(contextPath);
+            }
+        }
+        return definedPaths;
+    }
+
+    /**
+     * Whether the flow defines the runtime value or header a path addresses. A path that addresses neither is
+     * defined. An undefined one is logged, as the extension's access to it is left out.
+     */
+    private boolean isDefinedVariablePath(String path, FlowExecutionContext context) {
+
+        String variableType;
+        String name;
+        boolean defined;
+        if (FlowExtensionUtil.isRuntimeValuePath(path)) {
+            variableType = FlowVariableTypes.RUNTIME_VALUE;
+            name = FlowExtensionUtil.getRuntimeValueName(path);
+            defined = FlowVariableResolver.getRuntimeValueType(context, name) != null;
+        } else if (FlowExtensionUtil.isRequestHeaderPath(path)) {
+            variableType = FlowVariableTypes.HEADER;
+            name = FlowExtensionUtil.getRequestHeaderName(path);
+            defined = FlowVariableResolver.getHeaderType(context, name) != null;
+        } else {
+            return true;
+        }
+        if (!defined) {
+            VARIABLE_DIAGNOSTIC_LOGGER.logValueIgnored(context.getFlowType(), variableType, name,
+                    NOT_DEFINED_FOR_EXTENSION);
+        }
+        return defined;
+    }
+
+    private void applyRuntimeValues(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                                    List<String> expose, AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        List<FlowExtensionRuntimeValue> runtimeValues = new ArrayList<>();
+        for (String path : expose) {
+            FlowExtensionRuntimeValue runtimeValue = FlowExtensionUtil.isRuntimeValuePath(path)
+                    ? buildRuntimeValue(path, context, accessConfig, certificatePEM) : null;
+            if (runtimeValue != null) {
+                runtimeValues.add(runtimeValue);
+            }
+        }
+        if (!runtimeValues.isEmpty()) {
+            eventBuilder.runtimeValues(runtimeValues);
+        }
+    }
+
+    /**
+     * The runtime value a path addresses, as sent to the extension.
+     *
+     * @return The runtime value, or null when the flow does not define it or it has no value.
+     */
+    private FlowExtensionRuntimeValue buildRuntimeValue(String path, FlowExecutionContext context,
+                                                        AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        String name = FlowExtensionUtil.getRuntimeValueName(path);
+        Object value = FlowVariableResolver.getRuntimeValue(context, name);
+        FlowVariableDataType dataType = FlowVariableResolver.getRuntimeValueType(context, name);
+        if (value == null || dataType == null) {
+            return null;
+        }
+        return new FlowExtensionRuntimeValue(name, dataType.name(),
+                encryptVariableIfConfigured(path, value, accessConfig, certificatePEM));
+    }
+
+    private void applyRequestHeaders(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                                     List<String> expose, AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        List<Header> headers = new ArrayList<>();
+        for (String path : expose) {
+            Header header = FlowExtensionUtil.isRequestHeaderPath(path)
+                    ? buildHeader(path, context, accessConfig, certificatePEM) : null;
+            if (header != null) {
+                headers.add(header);
+            }
+        }
+        if (!headers.isEmpty()) {
+            eventBuilder.request(new FlowExtensionRequest(headers));
+        }
+    }
+
+    /**
+     * The request header a path addresses, as sent to the extension. A header is sent as an array of text, as
+     * received. An encrypted header is that same array, encrypted as JSON, so that the extension reads the same values
+     * either way.
+     *
+     * @return The header, or null when the flow does not define it or it was not received.
+     */
+    private Header buildHeader(String path, FlowExecutionContext context, AccessConfig accessConfig,
+                               String certificatePEM) throws ActionExecutionRequestBuilderException {
+
+        String name = FlowExtensionUtil.getRequestHeaderName(path);
+        if (!(FlowVariableResolver.getHeader(context, name) instanceof List<?> entries) || entries.isEmpty()) {
+            return null;
+        }
+        List<String> texts = entries.stream().map(FlowExtensionRequestBuilder::toText).toList();
+        Object value = encryptVariableIfConfigured(path, texts, accessConfig, certificatePEM);
+        return value instanceof String encrypted ? new FlowExtensionHeader(name, encrypted)
+                : new FlowExtensionHeader(name, texts.toArray(String[]::new));
+    }
+
+    private void applySubjectOrganization(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                                          List<String> expose, AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        if (!isAreaExposed(FlowContextPaths.SUBJECT_ORGANIZATION_PREFIX, expose)) {
+            return;
+        }
+        FlowOrganization organization = context.getFlowOrganization();
+        if (!hasOrganizationDetails(organization)) {
+            return;
+        }
+
+        FlowExtensionSubjectOrganization.Builder organizationBuilder = new FlowExtensionSubjectOrganization.Builder();
+        if (isLeafExposed(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH, expose)) {
+            organizationBuilder.id(encryptIfConfigured(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH,
+                    organization.getOrganizationId(), accessConfig, certificatePEM));
+        }
+        if (isLeafExposed(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, expose)) {
+            organizationBuilder.name(encryptIfConfigured(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH,
+                    organization.getOrganizationName(), accessConfig, certificatePEM));
+        }
+        if (isLeafExposed(FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH, expose)) {
+            organizationBuilder.handle(encryptIfConfigured(FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH,
+                    organization.getOrganizationHandle(), accessConfig, certificatePEM));
+        }
+        if (isLeafExposed(FlowContextPaths.SUBJECT_ORGANIZATION_DESCRIPTION_PATH, expose)) {
+            organizationBuilder.description(encryptIfConfigured(FlowContextPaths.SUBJECT_ORGANIZATION_DESCRIPTION_PATH,
+                    organization.getOrganizationDescription(), accessConfig, certificatePEM));
+        }
+
+        List<FlowExtensionOrganizationAttribute> attributes = new ArrayList<>();
+        for (String path : expose) {
+            String name = FlowExtensionUtil.getSubjectOrganizationAttributeName(path);
+            if (name == null) {
+                continue;
+            }
+            String value = encryptIfConfigured(path, organization.getAttribute(name), accessConfig,
+                    certificatePEM);
+            if (value != null) {
+                attributes.add(new FlowExtensionOrganizationAttribute(name, value));
+            }
+        }
+        organizationBuilder.attributes(attributes);
+        eventBuilder.subjectOrganization(organizationBuilder.build());
+    }
+
+    private boolean hasOrganizationDetails(FlowOrganization organization) {
+
+        return organization != null && (StringUtils.isNotBlank(organization.getOrganizationName())
+                || StringUtils.isNotBlank(organization.getOrganizationHandle())
+                || StringUtils.isNotBlank(organization.getOrganizationDescription())
+                || !organization.getAttributes().isEmpty());
+    }
+
+    private Object encryptVariableIfConfigured(String path, Object value, AccessConfig accessConfig,
+                                               String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        if (!isEncryptionRequired(path, accessConfig, certificatePEM)) {
+            return value;
+        }
+        String text;
+        try {
+            text = value instanceof List ? OBJECT_MAPPER.writeValueAsString(value) : toText(value);
+        } catch (JsonProcessingException e) {
+            throw new ActionExecutionRequestBuilderException("Failed to serialize the value of path: " + path, e);
+        }
+        return encryptValue(text, certificatePEM);
+    }
+
+    private static String toText(Object value) {
+
+        return value instanceof Number number ? PlainNumberSerializer.toText(number) : String.valueOf(value);
     }
 
     /**
@@ -828,18 +1051,23 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         if (isBlankExposedValue(value)) {
             return null;
         }
-
-        boolean encryptionRequired = accessConfig != null && accessConfig.isExposePathEncrypted(path);
-        if (!encryptionRequired) {
+        if (!isEncryptionRequired(path, accessConfig, certificatePEM)) {
             return value instanceof char[] ? new String((char[]) value) : value.toString();
         }
+        return encryptValue(value, certificatePEM);
+    }
 
+    private boolean isEncryptionRequired(String path, AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        if (accessConfig == null || !accessConfig.isExposePathEncrypted(path)) {
+            return false;
+        }
         if (certificatePEM == null) {
             throw new ActionExecutionRequestBuilderException(
                     "Missing outbound certificate for encrypted expose path: " + path);
         }
-
-        return encryptValue(value, certificatePEM);
+        return true;
     }
 
     /**

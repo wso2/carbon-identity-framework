@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.flow.mgt.dao.FlowDAOImpl;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
@@ -37,9 +38,16 @@ import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowTypeVariablesDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
+import org.wso2.carbon.identity.flow.mgt.utils.SystemDefaultFlowProvider;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverServiceImpl;
@@ -53,12 +61,16 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.EXECUTOR;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.NEXT;
@@ -361,6 +373,216 @@ public class FlowMgtServiceTest {
         // Same as above but for graph config.
         GraphConfig result = service.getGraphConfig("REGISTRATION", TEST_TENANT_ID);
         assertNull(result);
+    }
+
+    /**
+     * Every flow type is listed. One the tenant has not stored has only the system runtime values.
+     */
+    @Test
+    public void testGetFlowVariablesListsEveryFlowType() throws Exception {
+
+        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS)) {
+            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
+
+            List<FlowTypeVariablesDTO> flowVariables = service.getFlowVariables(TEST_TENANT_ID, null);
+
+            assertEquals(flowVariables.size(), Constants.FlowTypes.values().length);
+            for (int i = 0; i < flowVariables.size(); i++) {
+                assertEquals(flowVariables.get(i).getFlowType(), Constants.FlowTypes.values()[i].getType());
+                assertTrue(flowVariables.get(i).getHeaders().isEmpty());
+                assertEquals(flowVariables.get(i).getRuntimeValues().size(), 1);
+                assertEquals(flowVariables.get(i).getRuntimeValues().get(0).getName(),
+                        Constants.SystemRuntimeValues.AB_TESTING_KEY);
+            }
+        }
+    }
+
+    /**
+     * Each flow type is read from the first organization in the hierarchy that has the flow. The variables are listed
+     * after the system runtime values, and a flow type no organization has has only the system runtime values.
+     */
+    @Test
+    public void testGetFlowVariablesReadsEachFlowFromTheFirstOrganizationWithIt() throws Exception {
+
+        int parentTenantId = TEST_TENANT_ID + 100;
+        int childTenantId = TEST_TENANT_ID + 101;
+        mockOrganization(parentTenantId, "parentTenant", "parentOrgId", "parentOrgId");
+        mockOrganization(childTenantId, "childTenant", "childOrgId", "childOrgId", "parentOrgId");
+
+        FlowVariablesDTO parentVariables = new FlowVariablesDTO();
+        parentVariables.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
+        parentVariables.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
+        FlowVariablesDTO childVariables = new FlowVariablesDTO();
+        childVariables.getRuntimeValues().add(new FlowRuntimeValueDTO("channel", FlowVariableDataType.STRING));
+
+        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS)) {
+            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
+            FlowDAOImpl flowDAO = new FlowDAOImpl();
+            flowDAO.updateFlow(Constants.FlowTypes.REGISTRATION.getType(), buildEndOnlyFlow(parentVariables),
+                    parentTenantId, "Registration");
+            flowDAO.updateFlow(Constants.FlowTypes.PASSWORD_RECOVERY.getType(), buildEndOnlyFlow(parentVariables),
+                    parentTenantId, "Password Recovery");
+            flowDAO.updateFlow(Constants.FlowTypes.PASSWORD_RECOVERY.getType(), buildEndOnlyFlow(childVariables),
+                    childTenantId, "Password Recovery");
+
+            Map<String, FlowTypeVariablesDTO> flowVariables = new HashMap<>();
+            for (FlowTypeVariablesDTO variables : service.getFlowVariables(childTenantId, null)) {
+                flowVariables.put(variables.getFlowType(), variables);
+            }
+
+            assertEquals(flowVariables.size(), Constants.FlowTypes.values().length);
+            FlowTypeVariablesDTO forRegistration = flowVariables.get(Constants.FlowTypes.REGISTRATION.getType());
+            assertEquals(forRegistration.getHeaders().size(), 1);
+            assertEquals(forRegistration.getHeaders().get(0).getName(), "x-device");
+            assertEquals(forRegistration.getRuntimeValues().size(), 2);
+            assertEquals(forRegistration.getRuntimeValues().get(0).getName(),
+                    Constants.SystemRuntimeValues.AB_TESTING_KEY);
+            assertEquals(forRegistration.getRuntimeValues().get(1).getName(), "plan");
+
+            FlowTypeVariablesDTO forRecovery = flowVariables.get(Constants.FlowTypes.PASSWORD_RECOVERY.getType());
+            assertTrue(forRecovery.getHeaders().isEmpty());
+            assertEquals(forRecovery.getRuntimeValues().size(), 2);
+            assertEquals(forRecovery.getRuntimeValues().get(1).getName(), "channel");
+
+            FlowTypeVariablesDTO forInvitation = flowVariables.get(Constants.FlowTypes.INVITED_USER_REGISTRATION
+                    .getType());
+            assertTrue(forInvitation.getHeaders().isEmpty());
+            assertEquals(forInvitation.getRuntimeValues().size(), 1);
+        }
+    }
+
+    /**
+     * The variables of one flow type are read like those of every flow type, and an unknown flow type has none.
+     */
+    @Test
+    public void testGetFlowVariablesOfOneFlowType() throws Exception {
+
+        int tenantId = TEST_TENANT_ID + 102;
+        mockOrganization(tenantId, "singleTypeTenant", "singleTypeOrgId", "singleTypeOrgId");
+        FlowVariablesDTO variables = new FlowVariablesDTO();
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("channel", FlowVariableDataType.STRING));
+
+        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS)) {
+            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
+            new FlowDAOImpl().updateFlow(Constants.FlowTypes.PASSWORD_RECOVERY.getType(),
+                    buildEndOnlyFlow(variables), tenantId, "Password Recovery");
+
+            List<FlowTypeVariablesDTO> flowVariables =
+                    service.getFlowVariables(tenantId, Constants.FlowTypes.PASSWORD_RECOVERY.getType());
+
+            assertEquals(flowVariables.size(), 1);
+            assertEquals(flowVariables.get(0).getFlowType(), Constants.FlowTypes.PASSWORD_RECOVERY.getType());
+            assertEquals(flowVariables.get(0).getRuntimeValues().size(), 2);
+            assertEquals(flowVariables.get(0).getRuntimeValues().get(1).getName(), "channel");
+            assertTrue(service.getFlowVariables(tenantId, "UNKNOWN").isEmpty());
+        }
+    }
+
+    /**
+     * A flow type no organization has runs as the system default flow, so it lists that flow's variables.
+     */
+    @Test
+    public void testGetFlowVariablesListsTheSystemDefaultFlowsVariables() throws Exception {
+
+        FlowVariablesDTO defaultVariables = new FlowVariablesDTO();
+        defaultVariables.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
+        defaultVariables.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
+        FlowDTO defaultFlow = new FlowDTO();
+        defaultFlow.setFlowVariables(defaultVariables);
+        SystemDefaultFlowProvider provider = mock(SystemDefaultFlowProvider.class);
+        when(provider.getSystemDefaultFlow(Constants.FlowTypes.REGISTRATION.getType())).thenReturn(defaultFlow);
+
+        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class, CALLS_REAL_METHODS);
+             MockedStatic<SystemDefaultFlowProvider> providerStatic = mockStatic(SystemDefaultFlowProvider.class)) {
+            flowMgtUtils.when(FlowMgtUtils::isFlowVariablesEnabled).thenReturn(true);
+            providerStatic.when(SystemDefaultFlowProvider::getInstance).thenReturn(provider);
+
+            Map<String, FlowTypeVariablesDTO> flowVariables = new HashMap<>();
+            for (FlowTypeVariablesDTO variables : service.getFlowVariables(TEST_TENANT_ID, null)) {
+                flowVariables.put(variables.getFlowType(), variables);
+            }
+
+            FlowTypeVariablesDTO forRegistration = flowVariables.get(Constants.FlowTypes.REGISTRATION.getType());
+            assertEquals(forRegistration.getHeaders().size(), 1);
+            assertEquals(forRegistration.getHeaders().get(0).getName(), "x-device");
+            assertEquals(forRegistration.getRuntimeValues().size(), 2);
+            assertEquals(forRegistration.getRuntimeValues().get(0).getName(),
+                    Constants.SystemRuntimeValues.AB_TESTING_KEY);
+            assertEquals(forRegistration.getRuntimeValues().get(1).getName(), "plan");
+
+            FlowTypeVariablesDTO forRecovery = flowVariables.get(Constants.FlowTypes.PASSWORD_RECOVERY.getType());
+            assertTrue(forRecovery.getHeaders().isEmpty());
+            assertEquals(forRecovery.getRuntimeValues().size(), 1);
+        }
+    }
+
+    /**
+     * The organization attributes are the identifiers of the registration flow's organization inputs, found at any
+     * depth, in the order the flow has them, without the organization name, handle and description.
+     */
+    @Test
+    public void testGetOrganizationAttributesListsTheRegistrationFlowsOrganizationInputs() throws Exception {
+
+        ComponentDTO form = new ComponentDTO.Builder()
+                .id("form")
+                .type("FORM")
+                .components(Arrays.asList(
+                        organizationInput("organizationName", "ORGANIZATION"),
+                        organizationInput("industry", "ORGANIZATION"),
+                        organizationInput("http://wso2.org/claims/emailaddress", "USER"),
+                        organizationInput("organizationHandle", "ORGANIZATION"),
+                        organizationInput("organizationDescription", "ORGANIZATION")))
+                .build();
+        FlowDTO flow = new FlowDTO();
+        flow.setSteps(Arrays.asList(
+                createViewStep("STEP_1", Arrays.asList(form, organizationInput("country", "ORGANIZATION"))),
+                createViewStep("STEP_2", Collections.singletonList(organizationInput("industry", "ORGANIZATION")))));
+        FlowMgtService spyService = spy(service);
+        doReturn(flow).when(spyService).getFlow(Constants.FlowTypes.REGISTRATION.getType(), TEST_TENANT_ID);
+
+        assertEquals(spyService.getOrganizationAttributes(TEST_TENANT_ID), Arrays.asList("industry", "country"));
+    }
+
+    @Test
+    public void testGetOrganizationAttributesIsEmptyWithoutOrganizationInputs() throws Exception {
+
+        FlowDTO flow = new FlowDTO();
+        flow.setSteps(Collections.singletonList(createViewStep("STEP_1",
+                Collections.singletonList(organizationInput("organizationName", "ORGANIZATION")))));
+        FlowMgtService spyService = spy(service);
+        doReturn(flow).when(spyService).getFlow(Constants.FlowTypes.REGISTRATION.getType(), TEST_TENANT_ID);
+
+        assertTrue(spyService.getOrganizationAttributes(TEST_TENANT_ID).isEmpty());
+    }
+
+    private static ComponentDTO organizationInput(String identifier, String identifierType) {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("identifier", identifier);
+        configs.put("identifierType", identifierType);
+        return new ComponentDTO.Builder().id(identifier).type("INPUT").configs(configs).build();
+    }
+
+    private void mockOrganization(int tenantId, String tenantDomain, String orgId, String... ancestorOrgIds)
+            throws Exception {
+
+        identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                .thenReturn(tenantDomain);
+        identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId(tenantDomain)).thenReturn(tenantId);
+        OrganizationManager organizationManager = FlowMgtServiceDataHolder.getInstance().getOrganizationManager();
+        when(organizationManager.resolveOrganizationId(tenantDomain)).thenReturn(orgId);
+        when(organizationManager.resolveTenantDomain(orgId)).thenReturn(tenantDomain);
+        when(organizationManager.getAncestorOrganizationIds(orgId)).thenReturn(Arrays.asList(ancestorOrgIds));
+    }
+
+    private GraphConfig buildEndOnlyFlow(FlowVariablesDTO variables) throws Exception {
+
+        StepDTO end = new StepDTO.Builder()
+                .id(Constants.END_NODE_ID)
+                .type(Constants.StepTypes.END)
+                .data(new DataDTO.Builder().build())
+                .build();
+        return new GraphBuilder().withSteps(Collections.singletonList(end)).withFlowVariables(variables).build();
     }
 
     private StepDTO createViewStep(String id, List<ComponentDTO> components) {

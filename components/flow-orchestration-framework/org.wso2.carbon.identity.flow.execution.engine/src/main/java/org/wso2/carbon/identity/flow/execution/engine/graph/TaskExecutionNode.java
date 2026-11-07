@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_FAILURE;
@@ -224,6 +225,10 @@ public class TaskExecutionNode implements Node {
         }
         if (response.getUserCredentials() != null) {
             user.getUserCredentials().putAll(response.getUserCredentials());
+        }
+        if (response.getUpdatedRuntimeValues() != null) {
+            response.getUpdatedRuntimeValues()
+                    .forEach((name, value) -> FlowVariableResolver.setRuntimeValue(context, name, value));
         }
 
         if (CollectionUtils.isNotEmpty(configs.getEdges())) {

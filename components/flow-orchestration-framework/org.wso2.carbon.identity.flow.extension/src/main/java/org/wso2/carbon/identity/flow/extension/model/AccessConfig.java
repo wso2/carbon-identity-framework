@@ -50,6 +50,29 @@ public class AccessConfig {
     }
 
     /**
+     * Returns the access config that applies to a flow of the given type: the entries without a flow type, and the
+     * entries for that flow type.
+     *
+     * @param flowType The flow type of the running flow.
+     * @return The access config for the flow type. A list that is not configured is empty.
+     */
+    public AccessConfig forFlowType(String flowType) {
+
+        return new AccessConfig(filterByFlowType(expose, flowType), filterByFlowType(modify, flowType));
+    }
+
+    private static List<ContextPath> filterByFlowType(List<ContextPath> paths, String flowType) {
+
+        if (paths == null) {
+            return Collections.emptyList();
+        }
+        return paths.stream()
+                .filter(path -> path != null
+                        && (path.getFlowType() == null || path.getFlowType().equals(flowType)))
+                .toList();
+    }
+
+    /**
      * Returns the list of expose path entries.
      *
      * @return Unmodifiable list of {@link ContextPath} entries, or {@code null} if not configured.
@@ -136,14 +159,17 @@ public class AccessConfig {
     }
 
     /**
-     * Returns {@code true} if the path is in the read-only {@code /flow/} area.
+     * Returns {@code true} if the path is in the read-only {@code /flow/}, {@code /request/} or
+     * {@code /subjectOrganization/} area.
      */
     public static boolean isReadOnly(String path) {
 
         if (path == null) {
             return false;
         }
-        return path.startsWith(FlowExtensionConstants.FlowContextPaths.FLOW_PREFIX);
+        return path.startsWith(FlowExtensionConstants.FlowContextPaths.FLOW_PREFIX)
+                || path.startsWith(FlowExtensionConstants.FlowContextPaths.REQUEST_PREFIX)
+                || path.startsWith(FlowExtensionConstants.FlowContextPaths.SUBJECT_ORGANIZATION_PREFIX);
     }
 
     /**

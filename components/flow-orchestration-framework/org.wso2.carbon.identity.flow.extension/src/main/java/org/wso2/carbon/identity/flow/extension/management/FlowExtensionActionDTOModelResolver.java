@@ -33,11 +33,17 @@ import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelReso
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ContextTree;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.Constants.OrganizationInputs;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +56,6 @@ import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.Act
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.CERTIFICATE;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.CERTIFICATE_NAME_PREFIX;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ICON_URL;
-import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.MAX_EXPOSE_PATHS;
 
 /**
  * ActionDTOModelResolver implementation for Flow Extension actions.
@@ -59,6 +64,14 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
 
     private static final Log LOG = LogFactory.getLog(FlowExtensionActionDTOModelResolver.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final Set<String> SUBJECT_ORGANIZATION_FIELD_PATHS = new HashSet<>(Arrays.asList(
+            FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH, FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH,
+            FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH,
+            FlowContextPaths.SUBJECT_ORGANIZATION_DESCRIPTION_PATH));
+    private static final Map<String, String> STANDARD_INPUT_FIELD_PATHS = Map.of(
+            OrganizationInputs.ORGANIZATION_NAME, FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH,
+            OrganizationInputs.ORGANIZATION_HANDLE, FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH,
+            OrganizationInputs.ORGANIZATION_DESCRIPTION, FlowContextPaths.SUBJECT_ORGANIZATION_DESCRIPTION_PATH);
     private static final TypeReference<List<ContextPath>> CONTEXT_PATH_LIST_TYPE_REF =
             new TypeReference<List<ContextPath>>() { };
 
@@ -214,7 +227,6 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
         return emptyList();
     }
 
-    @SuppressWarnings("unchecked")
     private List<ContextPath> validateAccessConfig(String accessConfig, Object exposeValue)
             throws ActionDTOModelResolverException {
 
@@ -225,35 +237,177 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
 
         List<?> exposeList = (List<?>) exposeValue;
         List<ContextPath> result = new ArrayList<>();
-
         for (Object item : exposeList) {
-            if (item instanceof Map) {
-                Map<?, ?> map = (Map<?, ?>) item;
-                if (!map.containsKey("path") || !(map.get("path") instanceof String)) {
-                    throw new ActionDTOModelResolverClientException("Invalid expose format.",
-                            "Each expose entry must be an object with a 'path' field.");
-                }
-                String path = (String) map.get("path");
-                boolean encrypted = map.containsKey("encrypted") && toBooleanSafe(map.get("encrypted"));
-                result.add(new ContextPath(path, encrypted));
-            } else if (item instanceof ContextPath contextPath) {
-                result.add(contextPath);
-            } else {
-                throw new ActionDTOModelResolverClientException("Invalid expose format.",
-                        "Each expose entry must be an object with 'path' and optional 'encrypted' fields.");
-            }
+            result.add(toContextPath(item));
         }
 
         validateContextPathFormat(result);
-        if (ACCESS_CONFIG_MODIFY.equals(accessConfig)) {
+        boolean modify = ACCESS_CONFIG_MODIFY.equals(accessConfig);
+        if (modify) {
             FlowExtensionUtil.validateModifyPaths(result);
+        }
+        return validateFlowSpecificPaths(result, modify);
+    }
+
+    private ContextPath toContextPath(Object item) throws ActionDTOModelResolverClientException {
+
+        if (item instanceof ContextPath contextPath) {
+            return contextPath;
+        }
+        if (!(item instanceof Map<?, ?> map)) {
+            throw new ActionDTOModelResolverClientException("Invalid expose format.",
+                    "Each expose entry must be an object with 'path' and optional 'encrypted' fields.");
+        }
+        if (!(map.get("path") instanceof String path)) {
+            throw new ActionDTOModelResolverClientException("Invalid expose format.",
+                    "Each expose entry must be an object with a 'path' field.");
+        }
+        boolean encrypted = map.containsKey("encrypted") && toBooleanSafe(map.get("encrypted"));
+        Object flowType = map.get("flowType");
+        if (flowType != null && !(flowType instanceof String)) {
+            throw new ActionDTOModelResolverClientException("Invalid expose format.",
+                    "The 'flowType' field of an entry must be a string.");
+        }
+        return new ContextPath(path, encrypted, (String) flowType);
+    }
+
+    private List<ContextPath> validateFlowSpecificPaths(List<ContextPath> paths, boolean modify)
+            throws ActionDTOModelResolverClientException {
+
+        List<ContextPath> result = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (ContextPath contextPath : paths) {
+            ContextPath validated = validateFlowSpecificPath(contextPath, modify);
+            if (!seen.add(validated.getPath() + "#" + validated.getFlowType())) {
+                if (validated.getFlowType() != null) {
+                    throw new ActionDTOModelResolverClientException("Duplicate entry.",
+                            String.format("Path '%s' is given more than once for flow type '%s'.",
+                                    validated.getPath(), validated.getFlowType()));
+                }
+                LOG.debug(String.format("Ignoring duplicate path '%s'.", validated.getPath()));
+                continue;
+            }
+            result.add(validated);
         }
         return result;
     }
 
+    private ContextPath validateFlowSpecificPath(ContextPath contextPath, boolean modify)
+            throws ActionDTOModelResolverClientException {
+
+        String path = contextPath.getPath();
+        if (FlowExtensionUtil.isRuntimeValuePath(path)) {
+            validateRuntimeValuePath(path);
+        } else if (FlowExtensionUtil.isRequestHeaderPath(path)) {
+            contextPath = validateRequestHeaderPath(contextPath, modify);
+        } else if (isInArea(path, FlowContextPaths.SUBJECT_ORGANIZATION_PATH)) {
+            validateSubjectOrganizationPath(contextPath, modify);
+        } else {
+            validateFlowWidePath(contextPath);
+            return contextPath;
+        }
+        validateFlowType(contextPath);
+        return contextPath;
+    }
+
+    private void validateRuntimeValuePath(String path) throws ActionDTOModelResolverClientException {
+
+        if (!FlowVariableUtils.isValidRuntimeValueName(FlowExtensionUtil.getRuntimeValueName(path))) {
+            throw new ActionDTOModelResolverClientException("Invalid runtime value path.",
+                    String.format("Path '%s' must be '%s<name>%s', where the name has only letters and digits.",
+                            path, FlowContextPaths.RUNTIME_VALUES_SELECTOR_PREFIX,
+                            FlowContextPaths.NAME_SELECTOR_SUFFIX));
+        }
+    }
+
+    private ContextPath validateRequestHeaderPath(ContextPath contextPath, boolean modify)
+            throws ActionDTOModelResolverClientException {
+
+        String path = contextPath.getPath();
+        String name = FlowExtensionUtil.getRequestHeaderName(path);
+        if (!FlowVariableUtils.isValidHeaderName(name)) {
+            throw new ActionDTOModelResolverClientException("Invalid request header path.",
+                    String.format("Path '%s' must be '%s<name>%s' with a valid header name.", path,
+                            FlowContextPaths.REQUEST_HEADERS_SELECTOR_PREFIX, FlowContextPaths.NAME_SELECTOR_SUFFIX));
+        }
+        if (modify) {
+            throw new ActionDTOModelResolverClientException("Invalid modify path.",
+                    String.format("Path '%s' cannot be marked as modifiable.", path));
+        }
+        return new ContextPath(FlowContextPaths.REQUEST_HEADERS_SELECTOR_PREFIX
+                + FlowVariableUtils.normalizeHeaderName(name) + FlowContextPaths.NAME_SELECTOR_SUFFIX,
+                contextPath.isEncrypted(), contextPath.getFlowType());
+    }
+
+    private void validateSubjectOrganizationPath(ContextPath contextPath, boolean modify)
+            throws ActionDTOModelResolverClientException {
+
+        String path = contextPath.getPath();
+        if (modify) {
+            throw new ActionDTOModelResolverClientException("Invalid modify path.",
+                    String.format("Path '%s' cannot be marked as modifiable.", path));
+        }
+        if (path.startsWith(FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_PATH)) {
+            String name = FlowExtensionUtil.getSubjectOrganizationAttributeName(path);
+            if (name == null) {
+                throw new ActionDTOModelResolverClientException("Invalid expose path.",
+                        String.format("Path '%s' must be '%s<name>%s'.", path,
+                                FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX,
+                                FlowContextPaths.NAME_SELECTOR_SUFFIX));
+            }
+            // The standard organization inputs are fields of their own, not attributes.
+            String fieldPath = STANDARD_INPUT_FIELD_PATHS.get(name);
+            if (fieldPath != null) {
+                throw new ActionDTOModelResolverClientException("Invalid expose path.",
+                        String.format("Path '%s' is not an attribute of the subject organization. Expose '%s' "
+                                + "instead.", path, fieldPath));
+            }
+        } else if (!SUBJECT_ORGANIZATION_FIELD_PATHS.contains(path)) {
+            throw new ActionDTOModelResolverClientException("Invalid expose path.",
+                    String.format("Path '%s' is not a field of the subject organization.", path));
+        }
+        if (!ContextTree.FLOW_REGISTRATION.equals(contextPath.getFlowType())) {
+            throw new ActionDTOModelResolverClientException("Invalid flow type.",
+                    String.format("Path '%s' must have the flow type %s, as only that flow onboards an "
+                            + "organization.", path, ContextTree.FLOW_REGISTRATION));
+        }
+    }
+
+    private void validateFlowWidePath(ContextPath contextPath) throws ActionDTOModelResolverClientException {
+
+        String path = contextPath.getPath();
+        if (path.startsWith(FlowContextPaths.RUNTIME_VALUES_PATH)
+                || isInArea(path, FlowContextPaths.REQUEST_PATH)) {
+            throw new ActionDTOModelResolverClientException("Invalid expose path.",
+                    String.format("Path '%s' must address a single runtime value or request header.", path));
+        }
+        if (contextPath.getFlowType() != null) {
+            throw new ActionDTOModelResolverClientException("Invalid flow type.",
+                    String.format("Path '%s' applies to all flows and cannot have a flow type.", path));
+        }
+    }
+
+    private void validateFlowType(ContextPath contextPath) throws ActionDTOModelResolverClientException {
+
+        String flowType = contextPath.getFlowType();
+        if (flowType == null) {
+            throw new ActionDTOModelResolverClientException("Invalid flow type.",
+                    String.format("Path '%s' must have a flow type, as each flow defines its own.",
+                            contextPath.getPath()));
+        }
+        if (!Constants.FlowTypes.isValid(flowType)) {
+            throw new ActionDTOModelResolverClientException("Invalid flow type.",
+                    String.format("Flow type '%s' of path '%s' is not valid.", flowType, contextPath.getPath()));
+        }
+    }
+
+    private static boolean isInArea(String path, String areaPath) {
+
+        return path.equals(areaPath) || path.startsWith(areaPath + "/");
+    }
+
     private void validateContextPathFormat(List<ContextPath> expose) throws ActionDTOModelResolverClientException {
 
-        Set<String> seen = new HashSet<>();
         for (ContextPath exposePath : expose) {
             String path = exposePath.getPath();
             if (path == null || path.trim().isEmpty()) {
@@ -267,9 +421,6 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             if (path.endsWith("/")) {
                 throw new ActionDTOModelResolverClientException("Invalid expose path.",
                         String.format("Expose path '%s' must not end with a trailing '/'.", path));
-            }
-            if (!seen.add(path)) {
-                LOG.debug(String.format("Ignoring duplicate expose path '%s'.", path));
             }
             //Todo: validate user/claims format
         }

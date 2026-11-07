@@ -99,6 +99,16 @@ public class SQLConstants {
                     "WHERE f.TENANT_ID = ? AND f.IS_DEFAULT = ? AND f.TYPE = ? " +
                     "ORDER BY v.ID";
 
+    /**
+     * The headers and runtime values of every flow of a tenant, with the type of the flow they belong to, in the
+     * order they were defined.
+     */
+    public static final String GET_ALL_FLOW_VARIABLES =
+            "SELECT f.TYPE AS FLOW_TYPE, v.VARIABLE_TYPE, v.VARIABLE_NAME, v.DATA_TYPE, v.INITIAL_VALUE, " +
+                    "v.CLIENT_WRITABLE FROM IDN_FLOW f JOIN IDN_FLOW_VARIABLE v ON f.ID = v.FLOW_ID " +
+                    "WHERE f.TENANT_ID = ? AND f.IS_DEFAULT = ? " +
+                    "ORDER BY f.TYPE, v.ID";
+
     public static final String GET_NODE_EXECUTOR_META =
             "SELECT METADATA_NAME, METADATA_VALUE FROM IDN_FLOW_NODE_EXECUTOR_META WHERE EXECUTOR_ID = ?";
 
@@ -130,6 +140,7 @@ public class SQLConstants {
         public static final String DB_SCHEMA_COLUMN_NAME_BRANCH_NAME = "BRANCH_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_RULE_CONTENT = "RULE_CONTENT";
         public static final String DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE = "VARIABLE_TYPE";
+        public static final String DB_SCHEMA_COLUMN_NAME_FLOW_TYPE = "FLOW_TYPE";
         public static final String DB_SCHEMA_COLUMN_NAME_VARIABLE_NAME = "VARIABLE_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_DATA_TYPE = "DATA_TYPE";
         public static final String DB_SCHEMA_COLUMN_NAME_INITIAL_VALUE = "INITIAL_VALUE";

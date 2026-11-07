@@ -55,6 +55,8 @@ import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.OperationExecutionResult;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowVariableResolver;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
@@ -97,6 +99,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         Map<String, Object> pendingClaims = new HashMap<>();
         Map<String, char[]> pendingCredentials = new HashMap<>();
+        Map<String, Object> pendingRuntimeValues = new HashMap<>();
 
         List<OperationExecutionResult> results = new ArrayList<>();
 
@@ -109,7 +112,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
                 }
                 results.add(processOperation(
-                        operation, pendingClaims, pendingCredentials, tenantDomain));
+                        operation, pendingClaims, pendingCredentials, pendingRuntimeValues, execCtx));
             }
         } else {
             if (LOG.isDebugEnabled()) {
@@ -122,6 +125,9 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
         if (!pendingCredentials.isEmpty()) {
             actionFlowContext.add(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
+        }
+        if (!pendingRuntimeValues.isEmpty()) {
+            actionFlowContext.add(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY, pendingRuntimeValues);
         }
 
         logOperationExecutionResults(results);
@@ -138,14 +144,18 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * @param operation           The operation to process.
      * @param pendingClaims       Accumulator map for user claim updates.
      * @param pendingCredentials  Accumulator map for user credential updates.
-     * @param tenantDomain        Tenant domain, used for claim URI validation.
+     * @param pendingRuntimeValues Accumulator map for runtime value updates.
+     * @param execCtx             The FlowExecutionContext, used for claim URI and runtime value validation.
      * @return The result of the operation execution.
      */
     private OperationExecutionResult processOperation(PerformableOperation operation,
                                                       Map<String, Object> pendingClaims,
                                                       Map<String, char[]> pendingCredentials,
-                                                      String tenantDomain)
+                                                      Map<String, Object> pendingRuntimeValues,
+                                                      FlowExecutionContext execCtx)
             throws ActionExecutionResponseProcessorException {
+
+        String tenantDomain = execCtx.getTenantDomain();
 
         String path = operation.getPath();
         if (StringUtils.isBlank(path)) {
@@ -167,10 +177,33 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
         } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
+        } else if (FlowExtensionUtil.isRuntimeValuePath(path)) {
+            return handleRuntimeValueOperation(operation, pendingRuntimeValues, execCtx);
         }
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                 "Unknown path");
+    }
+
+    private OperationExecutionResult handleRuntimeValueOperation(PerformableOperation operation,
+                                                                 Map<String, Object> pendingRuntimeValues,
+                                                                 FlowExecutionContext execCtx) {
+
+        String name = FlowExtensionUtil.getRuntimeValueName(operation.getPath());
+        if (name == null) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Invalid runtime value path.");
+        }
+        if (FlowVariableResolver.toRuntimeValue(execCtx, name, operation.getValue()) == null) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "The flow does not define a modifiable runtime value '" + name
+                            + "', or the value is not valid for its type.");
+        }
+        // The engine converts the value when it applies it. Staging the converted value would convert it twice, and
+        // a rounded decimal can then fail the second conversion.
+        pendingRuntimeValues.put(name, operation.getValue());
+        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
+                "Runtime value updated.");
     }
 
     /**
@@ -467,8 +500,9 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * Uses {@link AccessConfig#isModifyPathEncrypted(String)} for canonical checking. A scalar value
      * is treated as a single JWE compact string, while a multi-valued claim arrives as a
      * single-element array holding one JWE string that encrypts the comma-joined values; that element
-     * is decrypted and its plaintext split on commas back into a list. The decrypted value(s) replace
-     * the original on the returned operation.
+     * is decrypted and its plaintext split on commas back into a list. A runtime value is always one JWE
+     * string, an array being encrypted as its JSON text, and its plaintext is read for its data type when it is
+     * applied. The decrypted value(s) replace the original on the returned operation.
      *
      * @param operation    The operation to potentially decrypt.
      * @param accessConfig The access config with encryption flags (may be null).
@@ -489,7 +523,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         Object value = operation.getValue();
         Object decryptedValue;
-        if (value instanceof List<?> encryptedList) {
+        if (value instanceof List<?> encryptedList && !FlowExtensionUtil.isRuntimeValuePath(operation.getPath())) {
 
             if (encryptedList.size() != 1 || !(encryptedList.getFirst() instanceof String jweString)) {
                 emitEncryptionContractViolation(operation.getPath(),

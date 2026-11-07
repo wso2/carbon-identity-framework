@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.flow.extension.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -39,5 +41,48 @@ public class ContextPathTest {
         ContextPath plain = new ContextPath("/user/id", false);
         assertEquals(plain.getPath(), "/user/id");
         assertFalse(plain.isEncrypted());
+    }
+
+    @Test
+    public void testTwoArgumentConstructorHasNoFlowType() {
+
+        assertNull(new ContextPath("/user/id", false).getFlowType());
+        assertEquals(new ContextPath("/runtimeValues[name=plan]", true, "REGISTRATION").getFlowType(),
+                "REGISTRATION");
+    }
+
+    /**
+     * An entry without a flow type is stored as before, so stored access configs read back unchanged.
+     */
+    @Test
+    public void testJsonRoundTripWithoutFlowType() throws Exception {
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String json = mapper.writeValueAsString(new ContextPath("/user/id", true));
+        assertFalse(json.contains("flowType"), json);
+
+        ContextPath read = mapper.readValue(json, ContextPath.class);
+        assertEquals(read.getPath(), "/user/id");
+        assertTrue(read.isEncrypted());
+        assertNull(read.getFlowType());
+
+        ContextPath legacy = mapper.readValue("{\"path\":\"/user/id\",\"encrypted\":false}", ContextPath.class);
+        assertEquals(legacy.getPath(), "/user/id");
+        assertNull(legacy.getFlowType());
+    }
+
+    @Test
+    public void testJsonRoundTripWithFlowType() throws Exception {
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String json = mapper.writeValueAsString(new ContextPath("/runtimeValues[name=plan]", false, "REGISTRATION"));
+        assertTrue(json.contains("\"flowType\":\"REGISTRATION\""), json);
+
+        ContextPath read = mapper.readValue(json, ContextPath.class);
+        assertEquals(read.getPath(), "/runtimeValues[name=plan]");
+        assertFalse(read.isEncrypted());
+        assertEquals(read.getFlowType(), "REGISTRATION");
     }
 }

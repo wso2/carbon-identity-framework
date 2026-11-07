@@ -90,11 +90,9 @@ public class RequestFilter {
         Set<String> normalizedAllowedHeaders = allowedHeaders.stream()
                 .map(header -> header.toLowerCase(Locale.ROOT))
                 .collect(Collectors.toSet());
-        List<Header> normalizeRequestHeaders = requestHeaders.stream()
-                .map(header -> new Header(header.getName().toLowerCase(Locale.ROOT), header.getValue()))
-                .collect(Collectors.toList());
+        List<Header> normalizedRequestHeaders = requestHeaders.stream().map(Header::withNormalizedName).toList();
 
-        return normalizeRequestHeaders.stream()
+        return normalizedRequestHeaders.stream()
                 .filter(header -> normalizedAllowedHeaders.contains(header.getName()))
                 .collect(Collectors.toList());
     }

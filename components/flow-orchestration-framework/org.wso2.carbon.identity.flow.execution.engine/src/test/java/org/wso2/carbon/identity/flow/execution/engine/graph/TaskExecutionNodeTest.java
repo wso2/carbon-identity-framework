@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
@@ -37,7 +38,11 @@ import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
+import org.wso2.carbon.identity.flow.mgt.Constants.SystemRuntimeValues;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
 import org.wso2.carbon.identity.flow.mgt.model.MessageDTO.MessageType;
@@ -61,6 +66,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_FAILURE;
@@ -85,6 +91,7 @@ public class TaskExecutionNodeTest {
 
     private static final String TENANT_DOMAIN = "test.com";
     private static final String TEST_EXECUTOR = "TestExecutor";
+    private static final String AB_TESTING_KEY = SystemRuntimeValues.AB_TESTING_KEY;
     public static final String IDP_NAME = "idpName";
     private TaskExecutionNode taskExecutionNode;
     private FlowExecutionContext context;
@@ -181,6 +188,71 @@ public class TaskExecutionNodeTest {
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_COMPLETE);
             assertEquals(context.getFlowUser().getClaims().get("email"), "test@example.com");
+        }
+    }
+
+    /**
+     * The runtime values an executor gives are applied, including the A/B testing key, except invalid ones and ones
+     * the flow does not define.
+     */
+    @Test
+    public void testExecutorUpdatedRuntimeValuesAreApplied() throws Exception {
+
+        FlowExecutionContext runtimeValueContext = runtimeValueContext();
+        Map<String, Object> updatedRuntimeValues = new HashMap<>();
+        updatedRuntimeValues.put("attempts", "3");
+        updatedRuntimeValues.put("limit", "many");
+        updatedRuntimeValues.put("undefined", "x");
+        updatedRuntimeValues.put(AB_TESTING_KEY, "42");
+
+        NodeResponse nodeResponse = executeWithRuntimeValues(runtimeValueContext, updatedRuntimeValues);
+
+        assertEquals(nodeResponse.getStatus(), STATUS_COMPLETE);
+        assertEquals(runtimeValueContext.getRuntimeValues().get("attempts"), 3L);
+        assertEquals(runtimeValueContext.getRuntimeValues().get("limit"), 5L);
+        assertFalse(runtimeValueContext.getRuntimeValues().containsKey("undefined"));
+        assertEquals(runtimeValueContext.getRuntimeValues().get(AB_TESTING_KEY), 42L);
+    }
+
+    @Test
+    public void testExecutorAbTestingKeyOutOfRangeIsIgnored() throws Exception {
+
+        FlowExecutionContext runtimeValueContext = runtimeValueContext();
+
+        executeWithRuntimeValues(runtimeValueContext, Collections.singletonMap(AB_TESTING_KEY, "100"));
+
+        assertEquals(runtimeValueContext.getRuntimeValues().get(AB_TESTING_KEY), 7L);
+    }
+
+    private FlowExecutionContext runtimeValueContext() {
+
+        FlowVariablesDTO variables = new FlowVariablesDTO();
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO(AB_TESTING_KEY, FlowVariableDataType.INTEGER));
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("attempts", FlowVariableDataType.INTEGER));
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("limit", FlowVariableDataType.INTEGER));
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.setFlowVariables(variables);
+        FlowExecutionContext runtimeValueContext = new FlowExecutionContext();
+        runtimeValueContext.setTenantDomain(TENANT_DOMAIN);
+        runtimeValueContext.setFlowType("REGISTRATION");
+        runtimeValueContext.setGraphConfig(graphConfig);
+        runtimeValueContext.setFlowUser(new FlowUser());
+        runtimeValueContext.getRuntimeValues().put("limit", 5L);
+        runtimeValueContext.getRuntimeValues().put(AB_TESTING_KEY, 7L);
+        return runtimeValueContext;
+    }
+
+    private NodeResponse executeWithRuntimeValues(FlowExecutionContext runtimeValueContext,
+                                                  Map<String, Object> updatedRuntimeValues) throws Exception {
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_COMPLETE);
+        executorResponse.setUpdatedRuntimeValues(updatedRuntimeValues);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            return taskExecutionNode.execute(runtimeValueContext, nodeConfig);
         }
     }
 
