@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
@@ -75,6 +76,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_INPUT_VALIDATOR_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_META_DATA_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_ID;
@@ -326,6 +328,48 @@ public class InputValidationService {
                 validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
             }
         }
+        validateWithFlowInputValidators(context);
+    }
+
+    /**
+     * Run the registered flow input validators on the inputs submitted to the current step.
+     * These run after the built-in validations, so that simple input errors are shown before any validator
+     * that calls an external service. The first validator that rejects the inputs stops the validation.
+     *
+     * @param context Flow context.
+     * @throws FlowEngineException If a validator rejects the inputs or fails.
+     */
+    private void validateWithFlowInputValidators(FlowExecutionContext context) throws FlowEngineException {
+
+        List<FlowInputValidator> validators = FlowExecutionEngineDataHolder.getInstance().getFlowInputValidators();
+        if (validators.isEmpty()) {
+            return;
+        }
+        FlowInputValidationRequest request = new FlowInputValidationRequest(context);
+        for (FlowInputValidator validator : validators) {
+            try {
+                if (!isFlowTypeSupported(validator, context.getFlowType()) || !validator.canHandle(request)) {
+                    continue;
+                }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Running flow input validator: " + validator.getName() + " for flow: " +
+                            context.getFlowType());
+                }
+                validator.validate(request);
+            } catch (RuntimeException e) {
+                throw handleServerException(ERROR_CODE_FLOW_INPUT_VALIDATOR_FAILURE, e, validator.getName(),
+                        context.getFlowType(), context.getTenantDomain());
+            }
+        }
+    }
+
+    private boolean isFlowTypeSupported(FlowInputValidator validator, String flowType) {
+
+        Set<FlowTypes> supportedFlowTypes = validator.getSupportedFlowTypes();
+        if (supportedFlowTypes == null || supportedFlowTypes.isEmpty()) {
+            return true;
+        }
+        return supportedFlowTypes.stream().anyMatch(type -> type.getType().equals(flowType));
     }
 
     /**

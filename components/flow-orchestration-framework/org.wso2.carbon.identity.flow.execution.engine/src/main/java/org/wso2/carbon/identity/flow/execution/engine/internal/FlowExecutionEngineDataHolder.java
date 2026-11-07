@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
+import org.wso2.carbon.identity.flow.execution.engine.validation.FlowInputValidator;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -34,9 +35,12 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Data holder for the User Flow Service.
@@ -56,6 +60,9 @@ public class FlowExecutionEngineDataHolder {
     private RuleEvaluationService ruleEvaluationService;
     private RoleManagementService roleManagementService;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
+    private final List<FlowInputValidator> flowInputValidators = new CopyOnWriteArrayList<>();
+    private static final Comparator<FlowInputValidator> flowInputValidatorComparator =
+            Comparator.comparingInt(FlowInputValidator::getOrder).thenComparing(FlowInputValidator::getName);
 
     private FlowExecutionEngineDataHolder() {
 
@@ -309,5 +316,39 @@ public class FlowExecutionEngineDataHolder {
     public void setOrganizationManager(OrganizationManager organizationManager) {
 
         this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Get the registered flow input validators, sorted by order and name.
+     *
+     * @return Read-only list of flow input validators.
+     */
+    public List<FlowInputValidator> getFlowInputValidators() {
+
+        return Collections.unmodifiableList(flowInputValidators);
+    }
+
+    /**
+     * Add a flow input validator. Ignored if it reports a blank name.
+     *
+     * @param flowInputValidator Flow input validator to add.
+     */
+    public synchronized void addFlowInputValidator(FlowInputValidator flowInputValidator) {
+
+        if (StringUtils.isBlank(flowInputValidator.getName())) {
+            return;
+        }
+        flowInputValidators.add(flowInputValidator);
+        flowInputValidators.sort(flowInputValidatorComparator);
+    }
+
+    /**
+     * Remove a flow input validator.
+     *
+     * @param flowInputValidator Flow input validator to remove.
+     */
+    public synchronized void removeFlowInputValidator(FlowInputValidator flowInputValidator) {
+
+        flowInputValidators.remove(flowInputValidator);
     }
 }
