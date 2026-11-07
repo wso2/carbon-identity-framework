@@ -2513,6 +2513,15 @@
         {% if outbound_provisioning_management.enable_scim_compliant_email_attribute is defined %}
             <EnableSCIMCompliantEmailAttribute>{{outbound_provisioning_management.enable_scim_compliant_email_attribute}}</EnableSCIMCompliantEmailAttribute>
         {% endif %}
+        {% if outbound_provisioning_management.skip_full_member_list_on_group_update is defined %}
+            <!--
+                Enabling this configuration will skip loading all members of a group from the user store on a group
+                membership update. Only the newly added users will be passed to the outbound provisioning connectors
+                as the user list of the group. Disable it to pass all members of the group.
+                The default value of the configuration is true.
+            -->
+            <SkipFullMemberListOnGroupUpdate>{{outbound_provisioning_management.skip_full_member_list_on_group_update}}</SkipFullMemberListOnGroupUpdate>
+        {% endif %}
         <SCIM2Client>
             <!--
                 HTTP retry count for SCIM2 outbound provisioning client.
