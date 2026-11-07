@@ -71,11 +71,11 @@ public class DeviceSignatureVerifier {
                 throw DeviceRegistrationExceptionHandler.handleClientException(
                         ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE, registrationId);
             }
-        } catch (IllegalArgumentException | SignatureException e) {
-            // Malformed base64 input or an unparsable/incorrectly-encoded signature is a client error.
+        } catch (IllegalArgumentException | SignatureException | InvalidKeySpecException e) {
+            // Malformed base64, a non EC X.509 key or a bad signature is a client error.
             throw DeviceRegistrationExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE, e, registrationId);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw DeviceRegistrationExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_VERIFYING_SIGNATURE, e, registrationId);
         }

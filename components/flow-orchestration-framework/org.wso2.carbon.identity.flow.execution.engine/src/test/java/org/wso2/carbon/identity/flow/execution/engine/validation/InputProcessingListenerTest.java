@@ -23,6 +23,7 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
 
 /**
  * Unit tests for InputProcessingListener.
@@ -182,6 +184,45 @@ public class InputProcessingListenerTest {
 
         Assert.assertTrue(result);
         verify(mockInputValidationService).prepareStepInputs(eq(null), eq(context));
+    }
+
+    @Test
+    public void testDoPreExecute_WhenNotInitiationAndNoStepInputs_ThrowsInvalidUserInput() throws Exception {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setFlowType("REGISTRATION");
+        context.addUserInputData("http://wso2.org/claims/emailaddress", "attacker@example.com");
+        context.setCurrentNode(new NodeConfig.Builder().id(TASK_NODE_ID).type("TASK_EXECUTION").build());
+
+        FlowEngineClientException exception = Assert.expectThrows(FlowEngineClientException.class,
+                () -> listener.doPreExecute(context));
+
+        Assert.assertEquals(exception.getErrorCode(), ERROR_CODE_INVALID_USER_INPUT.getCode());
+        verify(mockInputValidationService, never()).prepareStepInputs(any(), any());
+    }
+
+    @Test
+    public void testDoPreExecute_WhenNotInitiationAndNoInputs_Passes() throws FlowEngineException {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setCurrentNode(new NodeConfig.Builder().id(TASK_NODE_ID).type("TASK_EXECUTION").build());
+
+        Assert.assertTrue(listener.doPreExecute(context));
+        verify(mockInputValidationService, never()).prepareStepInputs(any(), any());
+    }
+
+    @Test
+    public void testDoPreExecute_WhenNotInitiationAndStepInputsPresent_SkipsProcessing() throws FlowEngineException {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.addUserInputData("username", TEST_USERNAME);
+        Map<String, Set<String>> stepInputs = new HashMap<>();
+        stepInputs.put("action1", new HashSet<>());
+        context.setCurrentStepInputs(stepInputs);
+        context.setCurrentNode(new NodeConfig.Builder().id(TASK_NODE_ID).type("TASK_EXECUTION").build());
+
+        Assert.assertTrue(listener.doPreExecute(context));
+        verify(mockInputValidationService, never()).prepareStepInputs(any(), any());
     }
 
     @Test

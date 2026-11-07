@@ -62,6 +62,8 @@ public class FlowExecutionContext implements Serializable {
     @JsonIgnore
     private ExternalIdPConfig externalIdPConfig;
     private boolean generateAuthenticationAssertion = false;
+    private String pollToken;
+    private PollingState pollingState;
 
     public NodeConfig getCurrentNode() {
 
@@ -323,5 +325,70 @@ public class FlowExecutionContext implements Serializable {
     public void setGenerateAuthenticationAssertion(boolean generateAuthenticationAssertion) {
 
         this.generateAuthenticationAssertion = generateAuthenticationAssertion;
+    }
+
+    /**
+     * This step waits for something outside the flow. Starting again replaces the current polling.
+     */
+    public void startPolling() {
+
+        pollingState = PollingState.REQUESTED;
+    }
+
+    /**
+     * The wait is over: on success the waiting client can continue; otherwise polling fails. Polling that has not
+     * started yet just ends, as no client waits on it.
+     *
+     * @param success Whether the wait ended successfully.
+     */
+    public void endPolling(boolean success) {
+
+        if (pollingState == PollingState.REQUESTED) {
+            pollingState = null;
+        } else if (pollingState == PollingState.IN_PROGRESS) {
+            pollingState = success ? PollingState.COMPLETED : PollingState.FAILED;
+        }
+    }
+
+    /**
+     * Whether a client is waiting on this flow.
+     *
+     * @return True if the polling state is IN_PROGRESS.
+     */
+    @JsonIgnore
+    public boolean isPolling() {
+
+        return pollingState == PollingState.IN_PROGRESS;
+    }
+
+    /**
+     * Whether polling ended successfully, so the waiting client can continue the flow.
+     *
+     * @return True if the polling state is COMPLETED.
+     */
+    @JsonIgnore
+    public boolean isPollingCompleted() {
+
+        return pollingState == PollingState.COMPLETED;
+    }
+
+    public String getPollToken() {
+
+        return pollToken;
+    }
+
+    public void setPollToken(String pollToken) {
+
+        this.pollToken = pollToken;
+    }
+
+    public PollingState getPollingState() {
+
+        return pollingState;
+    }
+
+    public void setPollingState(PollingState pollingState) {
+
+        this.pollingState = pollingState;
     }
 }

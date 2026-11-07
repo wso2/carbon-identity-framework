@@ -2059,6 +2059,7 @@
 
     <!-- Flow execution API -->
     <Resource context="(.*)/api/server/v1/flow/(.*)" secured="false" http-method="POST" />
+    <Resource context="(.*)/api/server/v1/flow/poll(.*)" secured="false" http-method="GET" />
 
     <!-- Organization Flow management API -->
     <Resource context="(.*)/o/api/server/v1/flow(.*)" secured="true" http-method="GET">

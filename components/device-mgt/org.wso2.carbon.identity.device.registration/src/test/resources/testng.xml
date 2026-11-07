@@ -21,11 +21,13 @@
     <test name="Device_Registration_Handler_Tests">
         <classes>
             <class name="org.wso2.carbon.identity.device.registration.internal.handler.DeviceRegistrationHandlerTest"/>
+            <class name="org.wso2.carbon.identity.device.registration.internal.handler.CrossDeviceRegistrationHandlerTest"/>
         </classes>
     </test>
     <test name="Device_Registration_Executor_Tests">
         <classes>
             <class name="org.wso2.carbon.identity.device.registration.executor.DeviceRegistrationExecutorTest"/>
+            <class name="org.wso2.carbon.identity.device.registration.executor.DeviceRegistrationExecutorExternalDeviceTest"/>
             <class name="org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListenerTest"/>
         </classes>
     </test>

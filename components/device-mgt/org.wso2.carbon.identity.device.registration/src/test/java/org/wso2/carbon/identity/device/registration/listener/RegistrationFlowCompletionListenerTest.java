@@ -46,6 +46,8 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -244,6 +246,48 @@ public class RegistrationFlowCompletionListenerTest {
         boolean result = listener.doPostExecute(completeStep(), context);
 
         assertTrue(result);
+    }
+
+    @Test
+    public void testDoPostExecutePersistsDeviceReadBackFromStoredContext() throws Exception {
+
+        // A stored and reloaded context holds the device as a map, with the time in epoch milliseconds.
+        long registeredAt = 1_700_000_000_000L;
+        Map<String, Object> storedDevice = new LinkedHashMap<>();
+        storedDevice.put("id", DEVICE_ID);
+        storedDevice.put("deviceName", "Alice's Pixel");
+        storedDevice.put("deviceModel", "Pixel");
+        storedDevice.put("publicKey", "base64PublicKey");
+        storedDevice.put("registeredAt", registeredAt);
+
+        FlowExecutionContext context = registrationContext();
+        context.getFlowUser().setUserId(PROVISIONED_USER_ID);
+        context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, storedDevice);
+
+        boolean result = listener.doPostExecute(completeStep(), context);
+
+        assertTrue(result);
+        verify(deviceManagementService, times(1)).registerDevice(
+                argThat(device -> DEVICE_ID.equals(device.getId()) && "Pixel".equals(device.getDeviceModel())
+                        && "base64PublicKey".equals(device.getPublicKey())
+                        && device.getRegisteredAt().getTime() == registeredAt),
+                argThatOwnerUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
+    }
+
+    @Test
+    public void testDoPostExecuteInvalidStoredDeviceIsNotPersisted() throws Exception {
+
+        Map<String, Object> storedDevice = new LinkedHashMap<>();
+        storedDevice.put("id", DEVICE_ID);
+
+        FlowExecutionContext context = registrationContext();
+        context.getFlowUser().setUserId(PROVISIONED_USER_ID);
+        context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, storedDevice);
+
+        boolean result = listener.doPostExecute(completeStep(), context);
+
+        assertTrue(result);
+        verify(deviceManagementService, never()).registerDevice(any(), any(), any());
     }
 
     private FlowExecutionContext registrationContext() {

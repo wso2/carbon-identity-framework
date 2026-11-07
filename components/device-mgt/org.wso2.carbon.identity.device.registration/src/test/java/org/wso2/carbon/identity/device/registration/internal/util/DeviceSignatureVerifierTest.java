@@ -124,8 +124,9 @@ public class DeviceSignatureVerifierTest {
             DeviceSignatureVerifier.verify(REGISTRATION_ID, challenge, garbageKey, fakeSignature);
             Assert.fail("Expected DeviceRegistrationException for a structurally invalid key");
         } catch (DeviceRegistrationException ex) {
-            Assert.assertFalse(ex.isClientError());
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_WHILE_VERIFYING_SIGNATURE.getCode());
+            // A malformed key from the device is a client error.
+            Assert.assertTrue(ex.isClientError());
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE.getCode());
         }
     }
 

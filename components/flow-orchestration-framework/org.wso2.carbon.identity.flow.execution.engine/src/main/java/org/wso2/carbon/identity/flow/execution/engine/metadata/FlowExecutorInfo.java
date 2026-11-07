@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -116,6 +117,14 @@ public class FlowExecutorInfo {
     public boolean isConnectionRequired() {
 
         return declaredMetadata.isConnectionRequired();
+    }
+
+    /**
+     * @return Phases of the executor, or empty if none are declared.
+     */
+    public List<FlowExecutorPhase> getPhases() {
+
+        return declaredMetadata.getPhases();
     }
 
     /**

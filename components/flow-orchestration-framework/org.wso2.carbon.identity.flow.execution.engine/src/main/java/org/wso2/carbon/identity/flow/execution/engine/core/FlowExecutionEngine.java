@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.UserChoiceDecisionNo
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
+import org.wso2.carbon.identity.flow.execution.engine.model.OTFIRetention;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidator;
 import org.wso2.carbon.identity.flow.mgt.Constants;
@@ -43,16 +44,19 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REQUIRED_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_STEP_NOT_ALLOWED_FOR_RETAINED_OTFI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.WEBAUTHN_DATA;
+import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.publishFlowExecutionSuccessEvent;
 import static org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.POLL;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
@@ -104,6 +108,7 @@ public class FlowExecutionEngine {
         }
 
         while (currentNode != null) {
+            validateNodeForRetainedOTFI(currentNode, context);
             NodeResponse nodeResponse = triggerNode(currentNode, context);
             // If the current node was changed during execution, update the reference to the current node.
             if (currentNode.getId() != null && !currentNode.getId().equals(context.getCurrentNode().getId())) {
@@ -140,6 +145,10 @@ public class FlowExecutionEngine {
             if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
                     INTERNAL_PROMPT.equals(nodeResponse.getType())) {
                 return resolveStepForInternalPrompt(context, nodeResponse);
+            }
+
+            if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) && POLL.equals(nodeResponse.getType())) {
+                return resolveStepForPoll(graph, currentNode, context, nodeResponse);
             }
 
             FlowExecutionStep step = resolveStepForPrompt(graph, currentNode, context, nodeResponse);
@@ -197,6 +206,31 @@ public class FlowExecutionEngine {
             currentNode.setNextNodeId(null);
         }
         return nextNode;
+    }
+
+    /**
+     * Allow only the retaining executor's nodes to run while the one time flow id is retained.
+     *
+     * @param nodeConfig Node to run.
+     * @param context    Flow context.
+     * @throws FlowEngineException If the node is not allowed.
+     */
+    private void validateNodeForRetainedOTFI(NodeConfig nodeConfig, FlowExecutionContext context)
+            throws FlowEngineException {
+
+        OTFIRetention retention = OTFIRetention.fromContext(context);
+        if (retention == null) {
+            return;
+        }
+        if (Constants.NodeTypes.TASK_EXECUTION.equals(nodeConfig.getType()) && nodeConfig.getExecutorConfig() != null
+                && retention.getExecutorName().equals(nodeConfig.getExecutorConfig().getName())) {
+            return;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Node " + nodeConfig.getId() + " is not allowed while the one time flow id is retained by "
+                    + retention.getExecutorName() + ". Context id: " + context.getContextIdentifier());
+        }
+        throw handleClientException(context.getFlowType(), ERROR_CODE_STEP_NOT_ALLOWED_FOR_RETAINED_OTFI);
     }
 
     /**
@@ -338,6 +372,35 @@ public class FlowExecutionEngine {
                         .requiredParams(nodeResponse.getRequiredData())
                         .optionalParams(nodeResponse.getOptionalData())
                         .build())
+                .build();
+    }
+
+    /**
+     * Resolve the prompt step of an executor that waits on something outside the flow, such as another device.
+     *
+     * @param graph        Graph of the flow.
+     * @param currentNode  Current node.
+     * @param context      Flow context.
+     * @param nodeResponse Node response.
+     * @return Poll step.
+     */
+    private FlowExecutionStep resolveStepForPoll(GraphConfig graph, NodeConfig currentNode,
+                                                 FlowExecutionContext context, NodeResponse nodeResponse) {
+
+        DataDTO pageData = graph.getNodePageMappings().get(currentNode.getId()).getData();
+        DataDTO dataDTO = new DataDTO.Builder()
+                .components(pageData != null ? pageData.getComponents() : null)
+                .requiredParams(nodeResponse.getRequiredData())
+                .optionalParams(nodeResponse.getOptionalData())
+                .additionalData(nodeResponse.getAdditionalInfo())
+                .messages(nodeResponse.getMessages())
+                .build();
+        handleError(dataDTO, nodeResponse);
+        return new FlowExecutionStep.Builder()
+                .flowId(context.getContextIdentifier())
+                .flowStatus(STATUS_INCOMPLETE)
+                .stepType(POLL)
+                .data(dataDTO)
                 .build();
     }
 

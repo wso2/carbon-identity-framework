@@ -131,6 +131,25 @@ public class FlowExecutorMetadataServiceTest {
     }
 
     @Test
+    public void testDeclaredPhasesAreSurfaced() {
+
+        FlowExecutorInfo info = FlowExecutorInfo.builder()
+                .name(DECLARING_EXECUTOR)
+                .metadata(FlowExecutorMetadata.builder()
+                        .phase(new FlowExecutorPhase("START", "Start the work."))
+                        .phase(new FlowExecutorPhase("FINISH", "Finish the work."))
+                        .build())
+                .build();
+
+        assertEquals(info.getPhases().size(), 2);
+        assertEquals(info.getPhases().get(0).getName(), "START");
+        assertEquals(info.getPhases().get(0).getDescription(), "Start the work.");
+        assertEquals(info.getPhases().get(1).getName(), "FINISH");
+        assertTrue(FlowExecutorInfo.builder().name(PLAIN_EXECUTOR).build().getPhases().isEmpty(),
+                "An executor that declares no phases has none.");
+    }
+
+    @Test
     public void testDeclaredMetadataIsSurfaced() {
 
         register(new DeclaringExecutor());

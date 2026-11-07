@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.device.registration.internal.component.DeviceReg
 import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
 import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
+import org.wso2.carbon.identity.device.registration.internal.handler.CrossDeviceRegistrationHandler;
 import org.wso2.carbon.identity.device.registration.internal.handler.DeviceRegistrationHandler;
 import org.wso2.carbon.identity.device.registration.internal.model.DeviceRegistrationChallenge;
 import org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistrationDiagnosticLogger;
@@ -39,12 +40,16 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorInfo;
 import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadata;
 import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorMetadataService;
+import org.wso2.carbon.identity.flow.execution.engine.metadata.FlowExecutorPhase;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.OTFIRetention;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,26 +58,38 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants.PHASE_FINISH_REGISTRATION;
+import static org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants.PHASE_INIT_REGISTRATION;
+import static org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants.PHASE_NATIVE_DEVICE_REGISTRATION;
+import static org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants.PHASE_PROCESS_DEVICE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_CLIENT_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_ERROR;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_POLL;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTFI;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PHASE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_VALIDITY_SECONDS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.RETAIN_OTFI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.INVITED_USER_REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
 
 /**
- * Flow executor implementing the two-phase device registration challenge-response protocol.
- *
- * Phase 1 (no registrationId in context) generates a challenge via
- * {@link DeviceRegistrationHandler#initiate}. Phase 2 (registrationId present) verifies the
- * signature and, if a policy is configured, evaluates device compliance. The verified device is
- * always deferred to
+ * Flow executor that registers the user's device. Each node runs the phase named in its executor metadata.
+ * NATIVE_DEVICE_REGISTRATION (the default) registers the device the flow runs on by challenge, signature and an
+ * optional policy check. INIT_REGISTRATION, PROCESS_DEVICE and FINISH_REGISTRATION run in consecutive nodes to
+ * register another device by QR code and pairing code.
+ * The verified device is always deferred to
  * {@link org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListener},
  * since a userId is not guaranteed to be available on FlowUser until the whole flow completes.
+ * Only one QR code registration is supported in a flow.
  */
 public class DeviceRegistrationExecutor implements Executor {
 
@@ -101,12 +118,24 @@ public class DeviceRegistrationExecutor implements Executor {
             return response;
         }
 
-        String registrationId = (String) context.getProperty(DeviceRegistrationConstants.CTX_REGISTRATION_ID);
-
-        if (registrationId == null) {
-            return initiateRegistration(context);
+        String phase = resolvePhase(context.getCurrentNode());
+        switch (phase) {
+            case PHASE_NATIVE_DEVICE_REGISTRATION:
+                String registrationId = (String) context.getProperty(DeviceRegistrationConstants.CTX_REGISTRATION_ID);
+                if (registrationId == null) {
+                    return initiateRegistration(context);
+                }
+                return completeRegistration(context, registrationId);
+            case PHASE_INIT_REGISTRATION:
+                return initCrossDeviceRegistration(context);
+            case PHASE_PROCESS_DEVICE:
+                return processDevice(context);
+            case PHASE_FINISH_REGISTRATION:
+                return finishCrossDeviceRegistration(context);
+            default:
+                diagnosticLogger.logRegistrationFailure("Invalid device registration phase: " + phase);
+                return errorResponse(STATUS_ERROR, ErrorMessage.ERROR_INVALID_PHASE, phase);
         }
-        return completeRegistration(context, registrationId);
     }
 
     @Override
@@ -137,6 +166,14 @@ public class DeviceRegistrationExecutor implements Executor {
                 .displayName("Device Registration")
                 .description("Register the user's device.")
                 .icon("assets/images/icons/device-registration.svg")
+                .phase(new FlowExecutorPhase(PHASE_NATIVE_DEVICE_REGISTRATION,
+                        "Register the device the flow runs on. This is the default."))
+                .phase(new FlowExecutorPhase(PHASE_INIT_REGISTRATION,
+                        "Show a QR code to register another device and wait for the device."))
+                .phase(new FlowExecutorPhase(PHASE_PROCESS_DEVICE,
+                        "Verify the device that scanned the QR code and show it a pairing code."))
+                .phase(new FlowExecutorPhase(PHASE_FINISH_REGISTRATION,
+                        "Ask for the pairing code shown on the device and register the device."))
                 .build();
     }
 
@@ -269,8 +306,11 @@ public class DeviceRegistrationExecutor implements Executor {
                     response.setErrorDescription(ErrorMessage.ERROR_DEVICE_DATA_REQUIRED.getDescription());
                     return response;
                 }
-                ExecutorResponse policyResult = evaluatePolicy(policyName, registrationId, context);
+                ExecutorResponse policyResult = evaluatePolicy(policyName, registrationId,
+                        input.get(DeviceRegistrationConstants.FIELD_DEVICE_DATA),
+                        input.get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY), context);
                 if (policyResult != null) {
+                    context.getProperties().remove(DeviceRegistrationConstants.CTX_CHALLENGE);
                     return policyResult;
                 }
             }
@@ -304,6 +344,358 @@ public class DeviceRegistrationExecutor implements Executor {
         }
     }
 
+    /**
+     * INIT_REGISTRATION: start polling for the browser and show a QR code carrying a retained one time flow id.
+     * The device is then the flow's only writer until it registers. Completes on the device's first request.
+     *
+     * @param context Flow execution context.
+     * @return Poll response, or complete once the device has scanned the QR code.
+     */
+    private ExecutorResponse initCrossDeviceRegistration(FlowExecutionContext context) {
+
+        if (context.getProperty(DeviceRegistrationConstants.CTX_ONE_TIME_FLOW_ID) != null) {
+            // Only the device knows the one time flow id, so this is its first request.
+            ExecutorResponse response = new ExecutorResponse();
+            response.setResult(STATUS_COMPLETE);
+            return response;
+        }
+        if (isBlank(context.getFlowUser().getUsername())) {
+            diagnosticLogger.logRegistrationFailure("User could not be identified to initiate device registration.");
+            return errorResponse(STATUS_ERROR, ErrorMessage.ERROR_USER_NOT_IDENTIFIED);
+        }
+        int qrCodeCount = parseCount(context.getProperty(DeviceRegistrationConstants.CTX_QR_COUNT));
+        if (qrCodeCount >= DeviceRegistrationConstants.MAX_QR_CODES) {
+            diagnosticLogger.logRegistrationFailure("The maximum number of QR codes for the step was reached.");
+            return errorResponse(STATUS_USER_ERROR, ErrorMessage.ERROR_QR_CODE_LIMIT_REACHED);
+        }
+
+        try {
+            String oneTimeFlowId = CrossDeviceRegistrationHandler.generateOneTimeFlowId();
+            String qrCodeData = CrossDeviceRegistrationHandler.buildQrCodeData(oneTimeFlowId,
+                    context.getTenantDomain());
+
+            // The engine creates the polling entry and adds its poll data. Re-entering the step replaces it.
+            context.startPolling();
+            // The QR code expires with the polling entry.
+            long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(POLL_VALIDITY_SECONDS);
+            clearDeviceProperties(context);
+
+            Map<String, Object> contextProperties = new HashMap<>();
+            contextProperties.put(OTFI, oneTimeFlowId);
+            contextProperties.put(RETAIN_OTFI, new OTFIRetention.Builder().executorName(getName()).build());
+            contextProperties.put(DeviceRegistrationConstants.CTX_ONE_TIME_FLOW_ID, oneTimeFlowId);
+            contextProperties.put(DeviceRegistrationConstants.CTX_QR_COUNT, String.valueOf(qrCodeCount + 1));
+            contextProperties.put(DeviceRegistrationConstants.CTX_QR_EXPIRES_AT, String.valueOf(expiresAt));
+
+            Map<String, String> additionalInfo = new HashMap<>();
+            additionalInfo.put(DeviceRegistrationConstants.PROP_QR_CODE_DATA, qrCodeData);
+
+            // The device's first request sends only the one time flow id.
+            ExecutorResponse response = new ExecutorResponse();
+            response.setResult(STATUS_POLL);
+            response.setAdditionalInfo(additionalInfo);
+            response.setContextProperty(contextProperties);
+            return response;
+        } catch (DeviceRegistrationException e) {
+            diagnosticLogger.logRegistrationFailure("Error creating the QR code: " + e.getMessage());
+            LOG.error("Error creating the device registration QR code in tenant: " + context.getTenantDomain(), e);
+            return errorResponse(e);
+        }
+    }
+
+    /**
+     * PROCESS_DEVICE: verify the device by challenge and signature, then give it a pairing code, end the one time
+     * flow id and end polling successfully. Completes on the browser's next request.
+     *
+     * @param context Flow execution context.
+     * @return Executor response.
+     */
+    private ExecutorResponse processDevice(FlowExecutionContext context) {
+
+        if (context.isPollingCompleted()) {
+            // The browser continues after its poll reports success.
+            ExecutorResponse response = new ExecutorResponse();
+            response.setResult(STATUS_COMPLETE);
+            return response;
+        }
+        if (!context.isPolling() || context.getProperty(DeviceRegistrationConstants.CTX_ONE_TIME_FLOW_ID) == null) {
+            diagnosticLogger.logRegistrationFailure("The device step runs without a QR code in the flow.");
+            return errorResponse(STATUS_ERROR, ErrorMessage.ERROR_INVALID_PHASE_ORDER, PHASE_PROCESS_DEVICE);
+        }
+        long expiresAt = parseLong(context.getProperty(DeviceRegistrationConstants.CTX_QR_EXPIRES_AT));
+        if (System.currentTimeMillis() >= expiresAt) {
+            diagnosticLogger.logRegistrationFailure("The device used an expired QR code.");
+            return errorResponse(STATUS_USER_ERROR, ErrorMessage.ERROR_INVALID_QR_CODE);
+        }
+        String registrationId = (String) context.getProperty(DeviceRegistrationConstants.CTX_REGISTRATION_ID);
+        try {
+            if (registrationId == null) {
+                return initiateExternalDevice(context);
+            }
+            return completeExternalDevice(context, registrationId);
+        } catch (DeviceRegistrationException e) {
+            if (!e.isClientError()) {
+                diagnosticLogger.logRegistrationFailure("Error registering the device: " + e.getMessage());
+                LOG.error("Error registering the device for registrationId: " + registrationId, e);
+                return errorResponse(e);
+            }
+            diagnosticLogger.logRegistrationFailure("The device could not be registered: " + e.getMessage());
+            return errorResponse(e);
+        }
+    }
+
+    private ExecutorResponse initiateExternalDevice(FlowExecutionContext context)
+            throws DeviceRegistrationException {
+
+        String username = context.getFlowUser().getUsername();
+        DeviceRegistrationChallenge initiation = DeviceRegistrationHandler.initiate(username,
+                context.getTenantDomain());
+        diagnosticLogger.logRegistrationInitiated(initiation.getRegistrationId());
+
+        Map<String, Object> contextProperties = new HashMap<>();
+        contextProperties.put(DeviceRegistrationConstants.CTX_REGISTRATION_ID, initiation.getRegistrationId());
+        contextProperties.put(DeviceRegistrationConstants.CTX_CHALLENGE, initiation.getChallenge());
+        // Keep the one time flow id for the device's next request.
+        contextProperties.put(OTFI, context.getProperty(DeviceRegistrationConstants.CTX_ONE_TIME_FLOW_ID));
+
+        List<String> requiredFields = new ArrayList<>(Arrays.asList(DeviceRegistrationConstants.FIELD_PUBLIC_KEY,
+                DeviceRegistrationConstants.FIELD_SIGNATURE));
+        // A device policy needs the device data.
+        if (resolvePolicyName(context.getCurrentNode()) != null) {
+            requiredFields.add(DeviceRegistrationConstants.FIELD_DEVICE_DATA);
+        }
+        Map<String, String> additionalInfo = new HashMap<>();
+        additionalInfo.put(DeviceRegistrationConstants.PROP_REGISTRATION_ID, initiation.getRegistrationId());
+        additionalInfo.put(DeviceRegistrationConstants.PROP_CHALLENGE, initiation.getChallenge());
+        additionalInfo.put(DeviceRegistrationConstants.PROP_ACCOUNT_HINT, LoggerUtils.getMaskedContent(username));
+
+        ExecutorResponse response = new ExecutorResponse();
+        response.setResult(STATUS_CLIENT_INPUT_REQUIRED);
+        response.setRequiredData(requiredFields);
+        response.setOptionalData(new ArrayList<>(
+                Collections.singletonList(DeviceRegistrationConstants.FIELD_DEVICE_MODEL)));
+        response.setAdditionalInfo(additionalInfo);
+        response.setContextProperty(contextProperties);
+        return response;
+    }
+
+    private ExecutorResponse completeExternalDevice(FlowExecutionContext context, String registrationId)
+            throws DeviceRegistrationException {
+
+        String challenge = (String) context.getProperty(DeviceRegistrationConstants.CTX_CHALLENGE);
+        if (isBlank(challenge)) {
+            return errorResponse(STATUS_USER_ERROR, ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND,
+                    registrationId);
+        }
+        Map<String, String> input = context.getUserInputData();
+        String publicKey = input.get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY);
+        String deviceModel = input.get(DeviceRegistrationConstants.FIELD_DEVICE_MODEL);
+        // The challenge is single use.
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_CHALLENGE);
+        if (deviceModel != null && deviceModel.length() > DeviceRegistrationConstants.MAX_DEVICE_MODEL_LENGTH) {
+            return errorResponse(STATUS_USER_ERROR, ErrorMessage.ERROR_INVALID_DEVICE_MODEL,
+                    String.valueOf(DeviceRegistrationConstants.MAX_DEVICE_MODEL_LENGTH));
+        }
+        DeviceRegistrationHandler.verifySignature(registrationId, challenge, publicKey,
+                input.get(DeviceRegistrationConstants.FIELD_SIGNATURE));
+
+        String policyName = resolvePolicyName(context.getCurrentNode());
+        if (policyName != null) {
+            String deviceData = input.get(DeviceRegistrationConstants.FIELD_DEVICE_DATA);
+            if (isBlank(deviceData)) {
+                diagnosticLogger.logRegistrationFailure("Device data is required for policy evaluation "
+                        + "but was not provided.");
+                return errorResponse(STATUS_USER_ERROR, ErrorMessage.ERROR_DEVICE_DATA_REQUIRED);
+            }
+            ExecutorResponse policyResult = evaluatePolicy(policyName, registrationId, deviceData, publicKey,
+                    context);
+            if (policyResult != null) {
+                return policyResult;
+            }
+        }
+
+        String pairingCode = CrossDeviceRegistrationHandler.generatePairingCode();
+        Map<String, Object> contextProperties = new HashMap<>();
+        contextProperties.put(DeviceRegistrationConstants.CTX_PAIRING_CODE_HASH,
+                CrossDeviceRegistrationHandler.hashPairingCode(pairingCode));
+        contextProperties.put(DeviceRegistrationConstants.CTX_PAIRING_ATTEMPTS, "0");
+        // Used to build the verified device after the pairing code.
+        contextProperties.put(DeviceRegistrationConstants.CTX_PUBLIC_KEY, publicKey);
+        if (isNotBlank(deviceModel)) {
+            contextProperties.put(DeviceRegistrationConstants.CTX_DEVICE_MODEL, deviceModel);
+        }
+        // End the one time flow id so the browser continues with its own flow id, once its poll reports success.
+        context.getProperties().remove(RETAIN_OTFI);
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_ONE_TIME_FLOW_ID);
+        context.endPolling(true);
+
+        Map<String, String> additionalInfo = new HashMap<>();
+        additionalInfo.put(DeviceRegistrationConstants.PROP_DEVICE_ID, registrationId);
+        additionalInfo.put(DeviceRegistrationConstants.PROP_PAIRING_CODE, pairingCode);
+        additionalInfo.put(DeviceRegistrationConstants.PROP_ACCOUNT_HINT,
+                LoggerUtils.getMaskedContent(context.getFlowUser().getUsername()));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Device verified for registrationId: " + registrationId + ". Waiting for the pairing code.");
+        }
+
+        // The device gets this node's page; the browser continues without inputs.
+        ExecutorResponse response = new ExecutorResponse();
+        response.setResult(STATUS_USER_INPUT_REQUIRED);
+        response.setAdditionalInfo(additionalInfo);
+        response.setContextProperty(contextProperties);
+        return response;
+    }
+
+    /**
+     * FINISH_REGISTRATION: verify the pairing code shown on the device, then end polling. Three wrong codes end the
+     * flow.
+     *
+     * @param context Flow execution context.
+     * @return Executor response.
+     */
+    private ExecutorResponse finishCrossDeviceRegistration(FlowExecutionContext context) {
+
+        String expectedHash = (String) context.getProperty(DeviceRegistrationConstants.CTX_PAIRING_CODE_HASH);
+        if (expectedHash == null) {
+            diagnosticLogger.logRegistrationFailure("The pairing code step runs before the device was verified.");
+            return errorResponse(STATUS_ERROR, ErrorMessage.ERROR_INVALID_PHASE_ORDER, PHASE_FINISH_REGISTRATION);
+        }
+        String pairingCode = context.getUserInputData().get(DeviceRegistrationConstants.FIELD_PAIRING_CODE);
+        if (pairingCode == null) {
+            return pairingCodeResponse(context, STATUS_USER_INPUT_REQUIRED);
+        }
+
+        try {
+            if (!CrossDeviceRegistrationHandler.matches(CrossDeviceRegistrationHandler.hashPairingCode(pairingCode),
+                    expectedHash)) {
+                int attempts = parseCount(context.getProperty(DeviceRegistrationConstants.CTX_PAIRING_ATTEMPTS)) + 1;
+                if (attempts >= DeviceRegistrationConstants.MAX_PAIRING_ATTEMPTS) {
+                    diagnosticLogger.logRegistrationFailure("The pairing code was entered wrongly too many times.");
+                    return errorResponse(STATUS_USER_ERROR, ErrorMessage.ERROR_INVALID_PAIRING_CODE);
+                }
+                context.setProperty(DeviceRegistrationConstants.CTX_PAIRING_ATTEMPTS, String.valueOf(attempts));
+                ExecutorResponse response = pairingCodeResponse(context, STATUS_RETRY);
+                response.setErrorMessage(DeviceRegistrationConstants.I18N_INVALID_PAIRING_CODE);
+                return response;
+            }
+
+            String registrationId = (String) context.getProperty(DeviceRegistrationConstants.CTX_REGISTRATION_ID);
+            String deviceModel = (String) context.getProperty(DeviceRegistrationConstants.CTX_DEVICE_MODEL);
+            VerifiedDevice verified = new VerifiedDevice.Builder()
+                    .id(registrationId)
+                    .deviceName(buildDeviceName(context, deviceModel))
+                    .deviceModel(deviceModel)
+                    .publicKey((String) context.getProperty(DeviceRegistrationConstants.CTX_PUBLIC_KEY))
+                    .registeredAt(Timestamp.from(Instant.now()))
+                    .build();
+
+            clearDeviceProperties(context);
+            context.getProperties().remove(DeviceRegistrationConstants.CTX_QR_COUNT);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Pairing code verified for registrationId: " + registrationId);
+            }
+
+            ExecutorResponse response = new ExecutorResponse();
+            response.setResult(STATUS_COMPLETE);
+            Map<String, Object> ctxProps = new HashMap<>();
+            ctxProps.put(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, verified);
+            response.setContextProperty(ctxProps);
+            return response;
+        } catch (DeviceRegistrationException e) {
+            diagnosticLogger.logRegistrationFailure("Error verifying the pairing code: " + e.getMessage());
+            LOG.error("Error verifying the device registration pairing code.", e);
+            return errorResponse(e);
+        } catch (IllegalArgumentException e) {
+            diagnosticLogger.logRegistrationFailure("The verified device in the flow context is incomplete.");
+            return errorResponse(STATUS_ERROR, ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND,
+                    StringUtils.EMPTY);
+        }
+    }
+
+    private ExecutorResponse pairingCodeResponse(FlowExecutionContext context, String status) {
+
+        Map<String, String> additionalInfo = new HashMap<>();
+        String deviceModel = (String) context.getProperty(DeviceRegistrationConstants.CTX_DEVICE_MODEL);
+        if (isNotBlank(deviceModel)) {
+            additionalInfo.put(DeviceRegistrationConstants.PROP_DEVICE_MODEL, deviceModel);
+        }
+        ExecutorResponse response = new ExecutorResponse();
+        response.setResult(status);
+        response.setRequiredData(new ArrayList<>(
+                Collections.singletonList(DeviceRegistrationConstants.FIELD_PAIRING_CODE)));
+        response.setAdditionalInfo(additionalInfo);
+        return response;
+    }
+
+    /**
+     * Resolve the phase a node runs.
+     *
+     * @param node Node of the executor.
+     * @return Phase of the node, NATIVE_DEVICE_REGISTRATION if it does not name one.
+     */
+    private static String resolvePhase(NodeConfig node) {
+
+        if (node == null || node.getExecutorConfig() == null || node.getExecutorConfig().getMetadata() == null) {
+            return PHASE_NATIVE_DEVICE_REGISTRATION;
+        }
+        String phase = node.getExecutorConfig().getMetadata().get(PHASE);
+        return isBlank(phase) ? PHASE_NATIVE_DEVICE_REGISTRATION : phase;
+    }
+
+    private void clearDeviceProperties(FlowExecutionContext context) {
+
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_REGISTRATION_ID);
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_CHALLENGE);
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_PUBLIC_KEY);
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_DEVICE_MODEL);
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_PAIRING_CODE_HASH);
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_PAIRING_ATTEMPTS);
+        context.getProperties().remove(DeviceRegistrationConstants.CTX_QR_EXPIRES_AT);
+    }
+
+    private static int parseCount(Object value) {
+
+        try {
+            return value == null ? 0 : Integer.parseInt(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private static long parseLong(Object value) {
+
+        try {
+            return value == null ? 0L : Long.parseLong(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
+    }
+
+    private static ExecutorResponse errorResponse(DeviceRegistrationException e) {
+
+        return errorResponse(e.isClientError() ? STATUS_USER_ERROR : STATUS_ERROR, e.getErrorCode(), e.getMessage(),
+                e.getDescription());
+    }
+
+    private static ExecutorResponse errorResponse(String status, ErrorMessage error, String... data) {
+
+        String description = error.getDescription();
+        if (data != null && data.length > 0) {
+            description = String.format(description, (Object[]) data);
+        }
+        return errorResponse(status, error.getCode(), error.getMessage(), description);
+    }
+
+    private static ExecutorResponse errorResponse(String status, String code, String message, String description) {
+
+        ExecutorResponse response = new ExecutorResponse();
+        response.setResult(status);
+        response.setErrorCode(code);
+        response.setErrorMessage(message);
+        response.setErrorDescription(description);
+        return response;
+    }
+
     private String buildDeviceName(FlowExecutionContext context, String deviceModel) {
 
         String username = context.getFlowUser().getUsername();
@@ -313,7 +705,11 @@ public class DeviceRegistrationExecutor implements Executor {
 
     private String resolvePolicyName(FlowExecutionContext context) {
 
-        NodeConfig node = context.getCurrentNode();
+        return resolvePolicyName(context.getCurrentNode());
+    }
+
+    private static String resolvePolicyName(NodeConfig node) {
+
         if (node == null || node.getExecutorConfig() == null) {
             return null;
         }
@@ -325,7 +721,8 @@ public class DeviceRegistrationExecutor implements Executor {
         return isBlank(policyName) ? null : policyName;
     }
 
-    private ExecutorResponse evaluatePolicy(String policyName, String registrationId, FlowExecutionContext context) {
+    private ExecutorResponse evaluatePolicy(String policyName, String registrationId, String deviceData,
+                                            String publicKey, FlowExecutionContext context) {
 
         DeviceRegistrationComponentServiceHolder holder = DeviceRegistrationComponentServiceHolder.getInstance();
         DevicePolicyEvaluator evaluator = holder.getDevicePolicyEvaluator();
@@ -335,8 +732,8 @@ public class DeviceRegistrationExecutor implements Executor {
             // challenge signature, then evaluates the policy against the resolved device data.
             DevicePolicyEvaluationResult result = evaluator.evaluateFromTokenByPolicyName(
                     policyName,
-                    context.getUserInputData().get(DeviceRegistrationConstants.FIELD_DEVICE_DATA),
-                    context.getUserInputData().get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY),
+                    deviceData,
+                    publicKey,
                     registrationId,
                     context.getApplicationId(),
                     context.getTenantDomain());
@@ -355,8 +752,6 @@ public class DeviceRegistrationExecutor implements Executor {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Device failed policy: " + policyName + " fields: [" + failedFields + "]");
             }
-
-            context.getProperties().remove(DeviceRegistrationConstants.CTX_CHALLENGE);
 
             ExecutorResponse response = new ExecutorResponse();
             response.setResult(STATUS_USER_ERROR);

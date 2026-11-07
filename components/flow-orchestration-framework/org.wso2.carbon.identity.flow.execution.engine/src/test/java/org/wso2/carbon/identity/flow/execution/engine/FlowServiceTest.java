@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
@@ -53,10 +54,15 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.expectThrows;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
@@ -320,6 +326,39 @@ public class FlowServiceTest {
                     .thenThrow(new FlowEngineException("Failed"));
             FlowExecutionService.getInstance().executeFlow(null, null,
                     flowId, "actionId", FLOW_TYPE, inputMap);
+        }
+    }
+
+    @Test
+    public void testContinueFlowRejectsInputsNoStepDeclared() throws Exception {
+
+        String emailClaim = "http://wso2.org/claims/emailaddress";
+        FlowExecutionContext context = initTestContext();
+        String flowId = context.getContextIdentifier();
+        // The step before declared no inputs, for example a task that only verified the email.
+        context.setCurrentNode(new NodeConfig.Builder().id("taskNode").type(TASK_EXECUTION).build());
+        context.getFlowUser().addClaim(emailClaim, "verified@test.com");
+        FlowExecutionEngineDataHolder.getInstance().addFlowExecutionListeners(new InputProcessingListener());
+
+        Map<String, String> inputs = new HashMap<>();
+        inputs.put(emailClaim, "other@test.com");
+
+        try (MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
+                FlowExecutionEngineUtils.class);
+             MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class)) {
+            engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId))
+                    .thenReturn(context);
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.handleClientException(anyString(),
+                    eq(ERROR_CODE_INVALID_USER_INPUT), anyString())).thenCallRealMethod();
+
+            FlowEngineClientException exception = expectThrows(FlowEngineClientException.class,
+                    () -> FlowExecutionService.getInstance().executeFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, flowId,
+                            null, FLOW_TYPE, inputs));
+
+            assertEquals(exception.getErrorCode(), ERROR_CODE_INVALID_USER_INPUT.getCode());
+            assertEquals(context.getFlowUser().getClaim(emailClaim), "verified@test.com");
+            verify(engineMock, never()).execute(context);
         }
     }
 

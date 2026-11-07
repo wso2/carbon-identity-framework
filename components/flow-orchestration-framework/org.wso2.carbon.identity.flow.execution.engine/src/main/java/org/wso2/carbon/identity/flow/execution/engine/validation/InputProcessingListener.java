@@ -26,10 +26,13 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineExcept
 import org.wso2.carbon.identity.flow.execution.engine.listener.AbstractFlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
 
 /**
  * Listener to handle input processing.
@@ -59,6 +62,11 @@ public class InputProcessingListener extends AbstractFlowExecutionListener {
             throws FlowEngineException {
 
         if (MapUtils.isNotEmpty(context.getUserInputData()) && MapUtils.isEmpty(context.getCurrentStepInputs())) {
+            if (context.getCurrentNode() != null) {
+                // Only the initiation request may send inputs that no step declared.
+                throw FlowExecutionEngineUtils.handleClientException(context.getFlowType(),
+                        ERROR_CODE_INVALID_USER_INPUT, context.getFlowType());
+            }
             GraphConfig graphConfig = context.getGraphConfig();
             NodeConfig currentNode = graphConfig.getNodeConfigs().get(graphConfig.getFirstNodeId());
 

@@ -202,7 +202,9 @@ public class DeviceRegistrationHandlerTest {
                     "Device", null);
             Assert.fail("Expected DeviceRegistrationException");
         } catch (DeviceRegistrationException ex) {
-            Assert.assertEquals(ex.getErrorCode(), "DR-65001");
+            // A malformed key sent by a device is a client error.
+            Assert.assertEquals(ex.getErrorCode(), "DR-60002");
+            Assert.assertTrue(ex.isClientError());
         }
     }
 
