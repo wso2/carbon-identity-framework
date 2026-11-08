@@ -112,7 +112,7 @@ public class DeviceRegistrationExecutor implements Executor {
         if (!isUserAuthenticated(context)) {
             diagnosticLogger.logRegistrationFailure("User must be authenticated before registering a device.");
             ExecutorResponse response = new ExecutorResponse();
-            response.setResult(STATUS_ERROR);
+            response.setResult(STATUS_USER_ERROR);
             response.setErrorCode(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
             response.setErrorMessage(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getMessage());
             response.setErrorDescription(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getDescription());
@@ -180,25 +180,16 @@ public class DeviceRegistrationExecutor implements Executor {
     /**
      * Identifying the user, for example with a user resolve step, does not prove who is registering the device.
      * Require an authentication executor to have completed earlier on the executed path so the device can only be
-     * bound to an authenticated user. In an invited user registration, the confirmed invite link also counts, as it
-     * proves the user owns the invited email address.
+     * bound to an authenticated user.
      *
      * @param context Flow execution context.
-     * @return True if the user has been authenticated in this flow.
+     * @return True if an authentication executor has completed in this flow.
      */
     private boolean isUserAuthenticated(FlowExecutionContext context) {
 
-        boolean isInvitedUserRegistration = INVITED_USER_REGISTRATION.getType().equals(context.getFlowType());
         for (NodeConfig completedNode : context.getCompletedNodes()) {
             ExecutorDTO executorConfig = completedNode.getExecutorConfig();
-            if (executorConfig == null) {
-                continue;
-            }
-            if (isInvitedUserRegistration && DeviceRegistrationConstants.INVITE_CONFIRMATION_EXECUTOR_NAME
-                    .equals(executorConfig.getName())) {
-                return true;
-            }
-            if (FlowExecutorMetadataService.getInstance()
+            if (executorConfig != null && FlowExecutorMetadataService.getInstance()
                     .getExecutor(executorConfig.getName())
                     .map(FlowExecutorInfo::isAuthenticationExecutor)
                     .orElse(false)) {

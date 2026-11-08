@@ -30,6 +30,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.net.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.core.HTTPClientManager;
@@ -38,7 +39,7 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.flow.v1.FlowExecu
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLEncoder;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletResponse;
@@ -92,19 +93,15 @@ public class FlowDataRetrievalClient {
         if (StringUtils.isBlank(pollToken)) {
             throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, "Missing the poll token when polling flow.");
         }
-        if (StringUtils.isBlank(tenantDomain)) {
-            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
-                    "Missing the required parameter 'tenantDomain' when polling flow.");
-        }
+        validateTenantDomain(tenantDomain, "polling flow");
 
         return HTTPClientManager.executeWithHttpClient(httpClient -> {
             try {
                 String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_POLL_API_PATH,
                         true, false);
-                HttpGet getRequest = new HttpGet(path + "?token="
-                        + URLEncoder.encode(pollToken, StandardCharsets.UTF_8.name()));
+                HttpGet getRequest = new HttpGet(new URIBuilder(path).addParameter("token", pollToken).build());
                 return execute(httpClient, getRequest);
-            } catch (JSONException | IOException e) {
+            } catch (JSONException | IOException | URISyntaxException e) {
                 LOG.error("Error while invoking flow poll request.", e);
                 throw new ApiException("Error while invoking flow poll request.");
             }
@@ -136,9 +133,14 @@ public class FlowDataRetrievalClient {
             throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, "Missing the request body when executing flow.");
         }
 
+        validateTenantDomain(tenantDomain, "executing flow");
+    }
+
+    private void validateTenantDomain(String tenantDomain, String operation) throws ApiException {
+
         if (StringUtils.isBlank(tenantDomain)) {
             throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
-                    "Missing the required parameter 'tenantDomain' when executing flow.");
+                    "Missing the required parameter 'tenantDomain' when " + operation + ".");
         }
     }
 }

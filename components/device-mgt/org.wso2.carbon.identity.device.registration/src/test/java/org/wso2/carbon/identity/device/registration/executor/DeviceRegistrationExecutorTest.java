@@ -598,7 +598,7 @@ public class DeviceRegistrationExecutorTest {
 
         try (MockedStatic<DeviceRegistrationHandler> mocked = mockStatic(DeviceRegistrationHandler.class)) {
             ExecutorResponse response = executor.execute(context);
-            assertEquals(response.getResult(), STATUS_ERROR);
+            assertEquals(response.getResult(), STATUS_USER_ERROR);
             assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
             assertEquals(response.getErrorMessage(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getMessage());
             mocked.verify(() -> DeviceRegistrationHandler.initiate(any(), any()), never());
@@ -618,7 +618,7 @@ public class DeviceRegistrationExecutorTest {
                     completedNode("UserResolveExecutor"))));
 
             ExecutorResponse response = executor.execute(context);
-            assertEquals(response.getResult(), STATUS_ERROR);
+            assertEquals(response.getResult(), STATUS_USER_ERROR);
             assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
         } finally {
             FlowExecutionEngineDataHolder.getInstance().removeExecutor(userResolveExecutor);
@@ -634,7 +634,7 @@ public class DeviceRegistrationExecutorTest {
         context.setCompletedNodes(new ArrayList<>());
 
         ExecutorResponse response = executor.execute(context);
-        assertEquals(response.getResult(), STATUS_ERROR);
+        assertEquals(response.getResult(), STATUS_USER_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
     }
 
@@ -653,32 +653,17 @@ public class DeviceRegistrationExecutorTest {
     }
 
     @Test
-    public void testExecuteProceedsAfterInviteConfirmation() throws Exception {
+    public void testInviteConfirmationDoesNotAuthenticateTheUser() throws Exception {
 
+        // The invite link only identifies the user, so an invited flow still needs an authentication executor.
         FlowExecutionContext context = newContext();
         context.getFlowUser().setUserId(USER_ID);
         context.setFlowType(FlowTypes.INVITED_USER_REGISTRATION.getType());
         context.setCompletedNodes(new ArrayList<>(Collections.singletonList(
-                completedNode(DeviceRegistrationConstants.INVITE_CONFIRMATION_EXECUTOR_NAME))));
-
-        ExecutorResponse response;
-        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
-            response = executor.execute(context);
-        }
-        assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
-    }
-
-    @Test
-    public void testInviteConfirmationDoesNotAuthenticateSelfRegistration() throws Exception {
-
-        FlowExecutionContext context = newContext();
-        context.getFlowUser().setUserId(USER_ID);
-        context.setFlowType(FlowTypes.REGISTRATION.getType());
-        context.setCompletedNodes(new ArrayList<>(Collections.singletonList(
-                completedNode(DeviceRegistrationConstants.INVITE_CONFIRMATION_EXECUTOR_NAME))));
+                completedNode("ConfirmationCodeValidationExecutor"))));
 
         ExecutorResponse response = executor.execute(context);
-        assertEquals(response.getResult(), STATUS_ERROR);
+        assertEquals(response.getResult(), STATUS_USER_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
     }
 

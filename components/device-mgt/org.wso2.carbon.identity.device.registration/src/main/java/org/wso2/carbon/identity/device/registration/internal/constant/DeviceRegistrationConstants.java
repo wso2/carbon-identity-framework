@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCom
 public class DeviceRegistrationConstants {
 
     public static final String EXECUTOR_NAME = "DeviceRegistrationExecutor";
-    public static final String INVITE_CONFIRMATION_EXECUTOR_NAME = "ConfirmationCodeValidationExecutor";
 
     public static final String CLAIM_USER_ID = "http://wso2.org/claims/userid";
 
