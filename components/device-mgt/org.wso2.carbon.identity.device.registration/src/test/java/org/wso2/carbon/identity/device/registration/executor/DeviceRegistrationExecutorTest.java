@@ -208,7 +208,7 @@ public class DeviceRegistrationExecutorTest {
         assertNotNull(metadata);
         assertEquals(metadata.getDisplayName(), "Device Registration");
         assertEquals(metadata.getIcon(), "assets/images/icons/device-registration.svg");
-        assertNotNull(metadata.getDescription());
+        assertNull(metadata.getDescription());
     }
 
     // ----- execute() : initiation leg -----
@@ -650,6 +650,36 @@ public class DeviceRegistrationExecutorTest {
             response = executor.execute(context);
         }
         assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+    }
+
+    @Test
+    public void testExecuteProceedsAfterInviteConfirmation() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setFlowType(FlowTypes.INVITED_USER_REGISTRATION.getType());
+        context.setCompletedNodes(new ArrayList<>(Collections.singletonList(
+                completedNode(DeviceRegistrationConstants.INVITE_CONFIRMATION_EXECUTOR_NAME))));
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+            response = executor.execute(context);
+        }
+        assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+    }
+
+    @Test
+    public void testInviteConfirmationDoesNotAuthenticateSelfRegistration() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setFlowType(FlowTypes.REGISTRATION.getType());
+        context.setCompletedNodes(new ArrayList<>(Collections.singletonList(
+                completedNode(DeviceRegistrationConstants.INVITE_CONFIRMATION_EXECUTOR_NAME))));
+
+        ExecutorResponse response = executor.execute(context);
+        assertEquals(response.getResult(), STATUS_ERROR);
+        assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
     }
 
     private FlowExecutionContext newContext() {

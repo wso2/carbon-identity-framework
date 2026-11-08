@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCom
 public class DeviceRegistrationConstants {
 
     public static final String EXECUTOR_NAME = "DeviceRegistrationExecutor";
+    public static final String INVITE_CONFIRMATION_EXECUTOR_NAME = "ConfirmationCodeValidationExecutor";
 
     public static final String CLAIM_USER_ID = "http://wso2.org/claims/userid";
 
@@ -71,6 +72,8 @@ public class DeviceRegistrationConstants {
     public static final int MAX_PAIRING_ATTEMPTS = 3;
     public static final int MAX_DEVICE_MODEL_LENGTH = 64;
     public static final String I18N_INVALID_PAIRING_CODE = "device.registration.pairing.code.invalid";
+    public static final String INVALID_PAIRING_CODE_MESSAGE =
+            "The code does not match the code shown on your device. Try again.";
 
     public static final String DISABLE_REGISTRATION_EXECUTOR_CONFIG = "DeviceManagement.DisableRegistrationExecutor";
 

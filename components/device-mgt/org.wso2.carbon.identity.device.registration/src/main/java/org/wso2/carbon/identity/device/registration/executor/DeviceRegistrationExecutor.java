@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.OTFIRetention;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.sql.Timestamp;
@@ -164,32 +165,40 @@ public class DeviceRegistrationExecutor implements Executor {
 
         return FlowExecutorMetadata.builder()
                 .displayName("Device Registration")
-                .description("Register the user's device.")
                 .icon("assets/images/icons/device-registration.svg")
                 .phase(new FlowExecutorPhase(PHASE_NATIVE_DEVICE_REGISTRATION,
-                        "Register the device the flow runs on. This is the default."))
+                        "Register the device the user is on."))
                 .phase(new FlowExecutorPhase(PHASE_INIT_REGISTRATION,
-                        "Show a QR code to register another device and wait for the device."))
+                        "Show a QR code for another device to scan."))
                 .phase(new FlowExecutorPhase(PHASE_PROCESS_DEVICE,
-                        "Verify the device that scanned the QR code and show it a pairing code."))
+                        "Verify the scanning device and show it a pairing code."))
                 .phase(new FlowExecutorPhase(PHASE_FINISH_REGISTRATION,
-                        "Ask for the pairing code shown on the device and register the device."))
+                        "Check the pairing code and register the device."))
                 .build();
     }
 
     /**
      * Identifying the user, for example with a user resolve step, does not prove who is registering the device.
      * Require an authentication executor to have completed earlier on the executed path so the device can only be
-     * bound to an authenticated user.
+     * bound to an authenticated user. In an invited user registration, the confirmed invite link also counts, as it
+     * proves the user owns the invited email address.
      *
      * @param context Flow execution context.
-     * @return True if an authentication executor has completed in this flow.
+     * @return True if the user has been authenticated in this flow.
      */
     private boolean isUserAuthenticated(FlowExecutionContext context) {
 
+        boolean isInvitedUserRegistration = INVITED_USER_REGISTRATION.getType().equals(context.getFlowType());
         for (NodeConfig completedNode : context.getCompletedNodes()) {
             ExecutorDTO executorConfig = completedNode.getExecutorConfig();
-            if (executorConfig != null && FlowExecutorMetadataService.getInstance()
+            if (executorConfig == null) {
+                continue;
+            }
+            if (isInvitedUserRegistration && DeviceRegistrationConstants.INVITE_CONFIRMATION_EXECUTOR_NAME
+                    .equals(executorConfig.getName())) {
+                return true;
+            }
+            if (FlowExecutorMetadataService.getInstance()
                     .getExecutor(executorConfig.getName())
                     .map(FlowExecutorInfo::isAuthenticationExecutor)
                     .orElse(false)) {
@@ -575,7 +584,9 @@ public class DeviceRegistrationExecutor implements Executor {
                 }
                 context.setProperty(DeviceRegistrationConstants.CTX_PAIRING_ATTEMPTS, String.valueOf(attempts));
                 ExecutorResponse response = pairingCodeResponse(context, STATUS_RETRY);
-                response.setErrorMessage(DeviceRegistrationConstants.I18N_INVALID_PAIRING_CODE);
+                response.addMessage(MessageDTO.MessageType.ERROR,
+                        DeviceRegistrationConstants.INVALID_PAIRING_CODE_MESSAGE,
+                        DeviceRegistrationConstants.I18N_INVALID_PAIRING_CODE);
                 return response;
             }
 

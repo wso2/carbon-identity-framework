@@ -22,7 +22,10 @@ import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -35,6 +38,7 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.flow.v1.FlowExecu
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletResponse;
@@ -45,6 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 public class FlowDataRetrievalClient {
 
     private static final String FLOW_EXECUTE_API_PATH = "/api/server/v1/flow/execute";
+    private static final String FLOW_POLL_API_PATH = "/api/server/v1/flow/poll";
     private static final Log LOG = LogFactory.getLog(FlowDataRetrievalClient.class);
 
     /**
@@ -64,26 +69,63 @@ public class FlowDataRetrievalClient {
                 String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH,
                         true, false);
                 HttpPost postRequest = new HttpPost(path);
-                postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
                 postRequest.setEntity(new StringEntity(jsonBody,
                         ContentType.create(HTTPConstants.MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
-
-                return httpClient.execute(postRequest, response -> {
-                    int statusCode = response.getCode();
-                    HttpEntity entity = response.getEntity();
-
-                    if (entity == null) {
-                        return new FlowExecutionResponse(statusCode, new JSONObject());
-                    }
-
-                    try (InputStream is = entity.getContent()) {
-                        String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                        return new FlowExecutionResponse(statusCode, new JSONObject(content));
-                    }
-                });
+                return execute(httpClient, postRequest);
             } catch (JSONException | IOException e) {
                 LOG.error("Error while invoking flow execution request.", e);
                 throw new ApiException("Error while invoking flow execution request.");
+            }
+        });
+    }
+
+    /**
+     * Get the status of a flow's polling entry by invoking the Flow Execution API.
+     *
+     * @param pollToken    Poll token of the flow.
+     * @param tenantDomain The tenant domain of the flow.
+     * @return FlowExecutionResponse containing the status code and response body from the API.
+     * @throws ApiException If there is an error during API invocation or if input validation fails.
+     */
+    public FlowExecutionResponse pollFlow(String pollToken, String tenantDomain) throws ApiException {
+
+        if (StringUtils.isBlank(pollToken)) {
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, "Missing the poll token when polling flow.");
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing the required parameter 'tenantDomain' when polling flow.");
+        }
+
+        return HTTPClientManager.executeWithHttpClient(httpClient -> {
+            try {
+                String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_POLL_API_PATH,
+                        true, false);
+                HttpGet getRequest = new HttpGet(path + "?token="
+                        + URLEncoder.encode(pollToken, StandardCharsets.UTF_8.name()));
+                return execute(httpClient, getRequest);
+            } catch (JSONException | IOException e) {
+                LOG.error("Error while invoking flow poll request.", e);
+                throw new ApiException("Error while invoking flow poll request.");
+            }
+        });
+    }
+
+    private FlowExecutionResponse execute(CloseableHttpClient httpClient, HttpUriRequestBase request)
+            throws IOException {
+
+        request.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+        return httpClient.execute(request, response -> {
+            int statusCode = response.getCode();
+            HttpEntity entity = response.getEntity();
+
+            if (entity == null) {
+                return new FlowExecutionResponse(statusCode, new JSONObject());
+            }
+
+            try (InputStream is = entity.getContent()) {
+                String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                return new FlowExecutionResponse(statusCode, new JSONObject(content));
             }
         });
     }
