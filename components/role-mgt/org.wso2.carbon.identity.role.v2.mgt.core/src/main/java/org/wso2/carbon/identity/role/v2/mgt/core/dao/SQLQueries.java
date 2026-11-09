@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -38,6 +38,9 @@ public class SQLQueries {
     public static final String ADD_ROLE_SCOPE_SQL = "INSERT INTO ROLE_SCOPE (ROLE_ID, SCOPE_ID) SELECT :ROLE_ID;," +
             " SCOPE.ID FROM SCOPE WHERE SCOPE.NAME = :SCOPE_NAME; AND ( SCOPE.TENANT_ID = :TENANT_ID; OR " +
             "SCOPE.TENANT_ID IS NULL)";
+
+    public static final String ADD_ROLE_SCOPE_BY_ID_SQL = "INSERT INTO ROLE_SCOPE (ROLE_ID, SCOPE_ID) VALUES " +
+            "(:ROLE_ID;, :SCOPE_ID;)";
 
     public static final String DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL = "DELETE FROM ROLE_SCOPE WHERE ROLE_ID =:ROLE_ID;" +
             " AND SCOPE_ID IN (SELECT ID FROM SCOPE WHERE NAME = :SCOPE_NAME;)";
