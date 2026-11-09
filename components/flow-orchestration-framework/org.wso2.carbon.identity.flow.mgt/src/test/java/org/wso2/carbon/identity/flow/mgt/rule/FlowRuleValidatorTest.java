@@ -585,14 +585,14 @@ public class FlowRuleValidatorTest {
      * Numbers in a list are compared as text, so 18.0 would never match the 18 the flow keeps.
      */
     @Test
-    public void testNumberHeaderRejectsANumberNotWrittenAsTheFlowWritesIt() throws Exception {
+    public void testNumberArrayRejectsANumberNotWrittenAsTheFlowWritesIt() throws Exception {
 
         FlowRuleValidator.validate(flowWith(inputs(),
-                inputExpression(FlowRuleMetadataProvider.REQUEST_HEADERS, "x-age", "in",
+                inputExpression(FlowRuleMetadataProvider.RUNTIME_VALUES, "ages", "in",
                         new Value(Arrays.asList("18", "21.5")))), TENANT_DOMAIN);
 
         FlowDTO flow = flowWith(inputs(),
-                inputExpression(FlowRuleMetadataProvider.REQUEST_HEADERS, "x-age", "in",
+                inputExpression(FlowRuleMetadataProvider.RUNTIME_VALUES, "ages", "in",
                         new Value(Collections.singletonList("18.0"))));
         FlowMgtClientException e = expectThrows(FlowMgtClientException.class,
                 () -> FlowRuleValidator.validate(flow, TENANT_DOMAIN));
@@ -604,8 +604,8 @@ public class FlowRuleValidatorTest {
         FlowVariablesDTO inputs = new FlowVariablesDTO();
         inputs.getRuntimeValues().add(new FlowRuntimeValueDTO("attempts", FlowVariableDataType.INTEGER));
         inputs.getRuntimeValues().add(new FlowRuntimeValueDTO("trusted", FlowVariableDataType.BOOLEAN));
+        inputs.getRuntimeValues().add(new FlowRuntimeValueDTO("ages", FlowVariableDataType.NUMBER_ARRAY));
         inputs.getHeaders().add(new FlowVariableDTO("x-ab-variant", FlowVariableDataType.STRING_ARRAY));
-        inputs.getHeaders().add(new FlowVariableDTO("x-age", FlowVariableDataType.NUMBER_ARRAY));
         return inputs;
     }
 

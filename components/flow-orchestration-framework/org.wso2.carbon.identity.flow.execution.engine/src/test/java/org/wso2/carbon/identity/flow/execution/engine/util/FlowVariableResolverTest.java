@@ -121,6 +121,21 @@ public class FlowVariableResolverTest {
     }
 
     @Test
+    public void testNumberArrayHeaderIsReadAsStringArray() {
+
+        FlowVariablesDTO variables = variables();
+        variables.getHeaders().add(new FlowVariableDTO("x-age", FlowVariableDataType.NUMBER_ARRAY));
+        FlowExecutionContext context = contextWith(variables);
+
+        receive(Collections.singletonMap("x-age", Collections.singletonList("18")));
+        FlowVariableResolver.populateRequestHeaders(context);
+
+        assertEquals(context.getRequest().getHeaders().get("x-age"), Collections.singletonList("18"));
+        assertEquals(FlowVariableResolver.getHeaderType(context, "x-age"), FlowVariableDataType.STRING_ARRAY);
+        assertEquals(FlowVariableResolver.getHeader(context, "x-age"), Collections.singletonList("18"));
+    }
+
+    @Test
     public void testUndefinedRequestValuesAreNotKept() {
 
         FlowExecutionContext context = contextWith(variables());
