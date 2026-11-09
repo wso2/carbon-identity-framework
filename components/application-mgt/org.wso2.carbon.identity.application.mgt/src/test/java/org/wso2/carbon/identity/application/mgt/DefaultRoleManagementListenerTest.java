@@ -133,6 +133,7 @@ public class DefaultRoleManagementListenerTest {
                     mockApplicationManagementService(applicationManagementServiceMockedStatic, APPLICATION_AUD);
             mockMainApplication(applicationManagementService, identityTenantUtilMockedStatic,
                     isEnhancedOrgAuthEnabled, isOrganizationCustomRolesEnabled, mainAppAudience);
+            IdentityUtil.threadLocalProperties.get().put(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW, true);
 
             try {
                 defaultRoleManagementListener.preAddRole(ROLE_NAME, new ArrayList<>(), new ArrayList<>(),
@@ -152,7 +153,7 @@ public class DefaultRoleManagementListenerTest {
     }
 
     @Test
-    public void testPreAddRoleForFragmentAppInSharedRoleProvisioningFlow() throws Exception {
+    public void testPreAddRoleForFragmentAppWithoutOrganizationCustomRoleCreationFlow() throws Exception {
 
         try (MockedStatic<ApplicationManagementService> applicationManagementServiceMockedStatic =
                      mockStatic(ApplicationManagementService.class)) {
@@ -160,9 +161,8 @@ public class DefaultRoleManagementListenerTest {
             ApplicationManagementService applicationManagementService =
                     mockApplicationManagementService(applicationManagementServiceMockedStatic, APPLICATION_AUD);
             when(applicationManagementService.getMainAppId(APPLICATION_RES_ID)).thenReturn(MAIN_APPLICATION_RES_ID);
-            IdentityUtil.threadLocalProperties.get().put(RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW, true);
 
-            // Inherited roles are provisioned regardless of the main application configuration.
+            // Roles not created by an organization, such as the inherited roles, are not validated.
             defaultRoleManagementListener.preAddRole(ROLE_NAME, new ArrayList<>(), new ArrayList<>(),
                     new ArrayList<>(), APPLICATION_AUD, APPLICATION_RES_ID, TENANT_DOMAIN);
 

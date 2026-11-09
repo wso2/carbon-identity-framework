@@ -294,9 +294,8 @@ public class RoleDAOTest {
         // Mock the threadLocalProperties static variable.
         Map<String, Object> mockThreadLocalProperties = new HashMap<>();
         mockThreadLocalProperties.put(IS_FRAGMENT_APP, Boolean.TRUE.toString());
-        mockThreadLocalProperties.put(RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW, Boolean.TRUE);
         IdentityUtil.threadLocalProperties.set(mockThreadLocalProperties);
-        // Add an shared role to a fragment application. When doing this we need to stop adding the role to the
+        // Add role to a fragment application. WHen doing this we need to stop adding the role to the
         // application mapping.
         RoleBasicInfo sharedRoleBasicInfo = addRole(SHARED_APP_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID, roleDAO);
         List<String> appIDs = roleDAO.getAssociatedApplicationIdsByRoleId(sharedRoleBasicInfo.getId(),
@@ -305,31 +304,31 @@ public class RoleDAOTest {
         assertTrue(appIDs.isEmpty());
         // Assert the thread local properties to check whether the IS_FRAGMENT_APP is removed.
         assertFalse(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
-        IdentityUtil.threadLocalProperties.get().remove(RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW);
     }
 
     @DataProvider(name = "subOrgAppRoleThreadLocalProvider")
     public Object[][] subOrgAppRoleThreadLocalProvider() {
 
         return new Object[][]{
-                // isFragmentApp, isSharedRoleProvisioningFlow.
+                // isFragmentApp, isOrganizationCustomRoleCreationFlow.
                 // A role created by the sub organization for a fragment application.
-                {true, false},
-                // A role created outside a fragment application while the role sharing flow property is set.
-                {false, true}
+                {true, true},
+                // A role created outside a fragment application.
+                {false, false}
         };
     }
 
     @Test(dataProvider = "subOrgAppRoleThreadLocalProvider")
-    public void testAddSubOrgAppRoleToFragmentApp(boolean isFragmentApp, boolean isSharedRoleProvisioningFlow)
+    public void testAddSubOrgAppRoleToFragmentApp(boolean isFragmentApp, boolean isOrganizationCustomRoleCreationFlow)
             throws Exception {
 
         RoleDAOImpl roleDAO = setupRoleDaoImpl();
         if (isFragmentApp) {
             IdentityUtil.threadLocalProperties.get().put(IS_FRAGMENT_APP, Boolean.TRUE.toString());
         }
-        if (isSharedRoleProvisioningFlow) {
-            IdentityUtil.threadLocalProperties.get().put(RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW, Boolean.TRUE);
+        if (isOrganizationCustomRoleCreationFlow) {
+            IdentityUtil.threadLocalProperties.get().put(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW,
+                    Boolean.TRUE);
         }
         try {
             // The role is associated with the application like any application audience role.
@@ -342,7 +341,7 @@ public class RoleDAOTest {
             assertFalse(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(IS_FRAGMENT_APP);
-            IdentityUtil.threadLocalProperties.get().remove(RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW);
+            IdentityUtil.threadLocalProperties.get().remove(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW);
         }
     }
 

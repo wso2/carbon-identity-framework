@@ -66,7 +66,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVA
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.IS_SHARED_ROLE_PROVISIONING_FLOW;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
 /**
@@ -588,7 +588,9 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     /**
-     * Validate whether a role can be authored in a sub organization against the given shared application.
+     * Validate whether a role can be authored in a sub organization against the given shared application. Only the
+     * roles created by the organization, marked by the caller, are validated. The roles provisioned by the role sharing
+     * flows are not.
      *
      * @param sharedAppId Shared application ID.
      * @param mainAppId   Main application ID of the shared application.
@@ -598,7 +600,8 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     private void validateOrganizationCustomRoleCreationAllowed(String sharedAppId, String mainAppId)
             throws IdentityRoleManagementException {
 
-        if (Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get().get(IS_SHARED_ROLE_PROVISIONING_FLOW))) {
+        if (!Boolean.TRUE.equals(
+                IdentityUtil.threadLocalProperties.get().get(IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW))) {
             return;
         }
         ServiceProvider mainApp;
