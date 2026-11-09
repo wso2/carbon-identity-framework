@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.OTFIRetention;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.sql.Timestamp;
@@ -111,7 +112,7 @@ public class DeviceRegistrationExecutor implements Executor {
         if (!isUserAuthenticated(context)) {
             diagnosticLogger.logRegistrationFailure("User must be authenticated before registering a device.");
             ExecutorResponse response = new ExecutorResponse();
-            response.setResult(STATUS_ERROR);
+            response.setResult(STATUS_USER_ERROR);
             response.setErrorCode(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
             response.setErrorMessage(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getMessage());
             response.setErrorDescription(ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getDescription());
@@ -164,16 +165,15 @@ public class DeviceRegistrationExecutor implements Executor {
 
         return FlowExecutorMetadata.builder()
                 .displayName("Device Registration")
-                .description("Register the user's device.")
                 .icon("assets/images/icons/device-registration.svg")
                 .phase(new FlowExecutorPhase(PHASE_NATIVE_DEVICE_REGISTRATION,
-                        "Register the device the flow runs on. This is the default."))
+                        "Register the device the user is on."))
                 .phase(new FlowExecutorPhase(PHASE_INIT_REGISTRATION,
-                        "Show a QR code to register another device and wait for the device."))
+                        "Show a QR code for another device to scan."))
                 .phase(new FlowExecutorPhase(PHASE_PROCESS_DEVICE,
-                        "Verify the device that scanned the QR code and show it a pairing code."))
+                        "Verify the scanning device and show it a pairing code."))
                 .phase(new FlowExecutorPhase(PHASE_FINISH_REGISTRATION,
-                        "Ask for the pairing code shown on the device and register the device."))
+                        "Check the pairing code and register the device."))
                 .build();
     }
 
@@ -575,7 +575,9 @@ public class DeviceRegistrationExecutor implements Executor {
                 }
                 context.setProperty(DeviceRegistrationConstants.CTX_PAIRING_ATTEMPTS, String.valueOf(attempts));
                 ExecutorResponse response = pairingCodeResponse(context, STATUS_RETRY);
-                response.setErrorMessage(DeviceRegistrationConstants.I18N_INVALID_PAIRING_CODE);
+                response.addMessage(MessageDTO.MessageType.ERROR,
+                        DeviceRegistrationConstants.INVALID_PAIRING_CODE_MESSAGE,
+                        DeviceRegistrationConstants.I18N_INVALID_PAIRING_CODE);
                 return response;
             }
 

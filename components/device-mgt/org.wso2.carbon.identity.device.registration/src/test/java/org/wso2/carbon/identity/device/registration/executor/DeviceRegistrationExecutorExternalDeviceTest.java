@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.OTFIRetention;
 import org.wso2.carbon.identity.flow.execution.engine.model.PollingState;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 
@@ -359,7 +360,10 @@ public class DeviceRegistrationExecutorExternalDeviceTest {
 
         ExecutorResponse first = request(context, Collections.singletonMap("pairingCode", "000000x"));
         assertEquals(first.getResult(), STATUS_RETRY);
-        assertEquals(first.getErrorMessage(), DeviceRegistrationConstants.I18N_INVALID_PAIRING_CODE);
+        MessageDTO message = first.getMessages().get(0);
+        assertEquals(message.getType(), MessageDTO.MessageType.ERROR);
+        assertEquals(message.getI18nKey(), DeviceRegistrationConstants.I18N_INVALID_PAIRING_CODE);
+        assertEquals(message.getMessage(), DeviceRegistrationConstants.INVALID_PAIRING_CODE_MESSAGE);
         assertEquals(first.getRequiredData(), Collections.singletonList("pairingCode"));
         ExecutorResponse second = request(context, Collections.singletonMap("pairingCode", "000000y"));
         assertEquals(second.getResult(), STATUS_RETRY);

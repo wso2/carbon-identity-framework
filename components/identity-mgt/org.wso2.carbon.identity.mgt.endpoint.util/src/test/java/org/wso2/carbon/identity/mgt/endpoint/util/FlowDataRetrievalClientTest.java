@@ -22,7 +22,9 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
@@ -43,6 +45,7 @@ import java.io.InputStream;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -58,6 +61,9 @@ public class FlowDataRetrievalClientTest {
     private static final String MOCK_RESPONSE_JSON =
             "{\"flowId\":\"c8e06de8-7123-44ac-8209-02be5b55387e\",\"flowType\":\"REGISTRATION\","
                     + "\"flowStatus\":\"INCOMPLETE\",\"type\":\"VIEW\",\"data\":{\"components\":[]}}";
+
+    private static final String FLOW_POLL_PATH = "https://localhost:9443/api/server/v1/flow/poll";
+    private static final String POLL_TOKEN = "poll token+/=";
 
     private final FlowDataRetrievalClient flowDataRetrievalClient = new FlowDataRetrievalClient();
 
@@ -221,5 +227,96 @@ public class FlowDataRetrievalClientTest {
 
             flowDataRetrievalClient.executeFlow(VALID_JSON_BODY, SUPER_TENANT_DOMAIN);
         }
+    }
+
+    /**
+     * Test that polling a flow sends a GET request with the encoded poll token.
+     *
+     * @throws Exception If an error occurs.
+     */
+    @Test
+    public void testPollFlowSuccess() throws Exception {
+
+        try (MockedStatic<IdentityManagementEndpointUtil> endpointUtil = mockStatic(
+                     IdentityManagementEndpointUtil.class);
+             MockedStatic<HTTPClientManager> httpClientManager = mockPollClient()) {
+
+            endpointUtil.when(() -> IdentityManagementEndpointUtil.getBasePath(
+                    SUPER_TENANT_DOMAIN, "/api/server/v1/flow/poll", true, false)).thenReturn(FLOW_POLL_PATH);
+
+            FlowExecutionResponse response = flowDataRetrievalClient.pollFlow(POLL_TOKEN, SUPER_TENANT_DOMAIN);
+
+            Assert.assertEquals(response.getStatusCode(), 200);
+            ArgumentCaptor<ClassicHttpRequest> request = ArgumentCaptor.forClass(ClassicHttpRequest.class);
+            verify(httpClient).execute(request.capture(), any(HttpClientResponseHandler.class));
+            Assert.assertEquals(request.getValue().getMethod(), "GET");
+            Assert.assertEquals(request.getValue().getUri().toString(),
+                    FLOW_POLL_PATH + "?token=poll%20token%2B%2F%3D");
+            Assert.assertEquals(request.getValue().getFirstHeader(HttpHeaders.ACCEPT).getValue(),
+                    "application/json; charset=UTF-8");
+        }
+    }
+
+    /**
+     * Data provider for invalid poll inputs.
+     *
+     * @return Poll token and tenant domain combinations.
+     */
+    @DataProvider(name = "invalidPollInputProvider")
+    public Object[][] invalidPollInputProvider() {
+
+        return new Object[][]{
+                {null, SUPER_TENANT_DOMAIN},
+                {"", SUPER_TENANT_DOMAIN},
+                {POLL_TOKEN, null},
+                {POLL_TOKEN, ""}
+        };
+    }
+
+    /**
+     * Test that a missing poll token or tenant domain throws ApiException.
+     *
+     * @param pollToken    The poll token.
+     * @param tenantDomain The tenant domain.
+     * @throws ApiException Expected exception for invalid inputs.
+     */
+    @Test(dataProvider = "invalidPollInputProvider", expectedExceptions = ApiException.class,
+            expectedExceptionsMessageRegExp = "Missing the.*when polling flow.")
+    public void testPollFlowWithInvalidInputs(String pollToken, String tenantDomain) throws ApiException {
+
+        flowDataRetrievalClient.pollFlow(pollToken, tenantDomain);
+    }
+
+    /**
+     * Test that an IOException while polling throws ApiException.
+     *
+     * @throws Exception Expected exception wrapping the IOException.
+     */
+    @Test(expectedExceptions = ApiException.class,
+            expectedExceptionsMessageRegExp = "Error while invoking flow poll request.")
+    public void testPollFlowIOException() throws Exception {
+
+        try (MockedStatic<IdentityManagementEndpointUtil> endpointUtil = mockStatic(
+                     IdentityManagementEndpointUtil.class);
+             MockedStatic<HTTPClientManager> httpClientManager = mockPollClient()) {
+
+            endpointUtil.when(() -> IdentityManagementEndpointUtil.getBasePath(
+                    SUPER_TENANT_DOMAIN, "/api/server/v1/flow/poll", true, false)).thenReturn(FLOW_POLL_PATH);
+            when(httpClient.execute(any(ClassicHttpRequest.class), any(HttpClientResponseHandler.class)))
+                    .thenThrow(new IOException("Connection refused"));
+
+            flowDataRetrievalClient.pollFlow(POLL_TOKEN, SUPER_TENANT_DOMAIN);
+        }
+    }
+
+    private MockedStatic<HTTPClientManager> mockPollClient() {
+
+        MockedStatic<HTTPClientManager> httpClientManager = mockStatic(HTTPClientManager.class);
+        httpClientManager.when(() -> HTTPClientManager.executeWithHttpClient(any()))
+                .thenAnswer(invocation -> {
+                    HTTPClientManager.HttpClientOperation<?, ?> operation = invocation.getArgument(0);
+                    return operation.execute(httpClient);
+                });
+        return httpClientManager;
     }
 }
