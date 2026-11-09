@@ -644,6 +644,45 @@ public class UnifiedClaimMetadataManagerTest {
         claimMetadataManager.updateExternalClaim(updatedExternalClaim, 1);
         verify(dbBasedClaimMetadataManager, times(1))
                 .updateExternalClaim(updatedExternalClaim, 1);
+        clearInvocations(dbBasedClaimMetadataManager);
+    }
+
+    @Test
+    public void testUpdateExternalClaimDefensiveCopyClaimProperties() throws ClaimMetadataException {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(ClaimConstants.IS_SYSTEM_CLAIM, "true");
+        properties.put("customProp", "customValue");
+        Map<String, String> unmodifiableProperties = Collections.unmodifiableMap(properties);
+        ExternalClaim updatedExternalClaim = new ExternalClaim(
+                EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_2, unmodifiableProperties);
+
+        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
+                .thenReturn(Optional.of(new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1)));
+        claimMetadataManager.updateExternalClaim(updatedExternalClaim, 1);
+
+        assertFalse(updatedExternalClaim.getClaimProperties().containsKey(ClaimConstants.IS_SYSTEM_CLAIM));
+        assertEquals(updatedExternalClaim.getClaimProperties().get("customProp"), "customValue");
+        assertTrue(unmodifiableProperties.containsKey(ClaimConstants.IS_SYSTEM_CLAIM));
+        verify(dbBasedClaimMetadataManager, times(1)).updateExternalClaim(updatedExternalClaim, 1);
+        clearInvocations(dbBasedClaimMetadataManager);
+    }
+
+    @Test
+    public void testAddLocalClaimDefensiveCopyClaimProperties() throws ClaimMetadataException {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(ClaimConstants.IS_SYSTEM_CLAIM, "true");
+        properties.put("customProp", "customValue");
+        Map<String, String> unmodifiableProperties = Collections.unmodifiableMap(properties);
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1, new ArrayList<>(), unmodifiableProperties);
+
+        claimMetadataManager.addLocalClaim(localClaim, 1);
+        assertFalse(localClaim.getClaimProperties().containsKey(ClaimConstants.IS_SYSTEM_CLAIM));
+        assertEquals(localClaim.getClaimProperties().get("customProp"), "customValue");
+        assertTrue(unmodifiableProperties.containsKey(ClaimConstants.IS_SYSTEM_CLAIM));
+        verify(dbBasedClaimMetadataManager, times(1)).addLocalClaim(localClaim, 1);
+        clearInvocations(dbBasedClaimMetadataManager);
     }
 
     @Test

@@ -997,7 +997,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void addExternalClaim(ExternalClaim externalClaim, int tenantId)
             throws ClaimMetadataException {
 
-        externalClaim.getClaimProperties().remove(ClaimConstants.IS_SYSTEM_CLAIM);
+        if (externalClaim.getClaimProperties() != null) {
+            Map<String, String> properties = new HashMap<>(externalClaim.getClaimProperties());
+            properties.remove(ClaimConstants.IS_SYSTEM_CLAIM);
+            externalClaim.setClaimProperties(properties);
+        }
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         if (!isClaimDialectInDB(externalClaim.getClaimDialectURI(), tenantId, tenantDomain)) {
             addSystemDefaultDialectToDB(externalClaim.getClaimDialectURI(), tenantId);
@@ -1022,7 +1026,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void updateExternalClaim(ExternalClaim externalClaim, int tenantId)
             throws ClaimMetadataException {
 
-        externalClaim.getClaimProperties().remove(ClaimConstants.IS_SYSTEM_CLAIM);
+        if (externalClaim.getClaimProperties() != null) {
+            Map<String, String> properties = new HashMap<>(externalClaim.getClaimProperties());
+            properties.remove(ClaimConstants.IS_SYSTEM_CLAIM);
+            externalClaim.setClaimProperties(properties);
+        }
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         if (!isLocalClaimInDB(externalClaim.getMappedLocalClaim(), tenantId, tenantDomain)) {
             addSystemDefaultLocalClaimToDB(externalClaim.getMappedLocalClaim(), tenantId);
@@ -1259,7 +1267,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     private void validateNonModifiableClaimProperties(LocalClaim localClaim) throws ClaimMetadataClientException {
 
         //isSystemClaim is removed without throwing an exception to make it non-modifiable to preserve backward compatibility.
-        localClaim.getClaimProperties().remove(ClaimConstants.IS_SYSTEM_CLAIM);
+        if (localClaim.getClaimProperties() != null) {
+            Map<String, String> properties = new HashMap<>(localClaim.getClaimProperties());
+            properties.remove(ClaimConstants.IS_SYSTEM_CLAIM);
+            localClaim.setClaimProperties(properties);
+        }
         if (localClaim.getClaimProperty(ClaimConstants.FLOW_INITIATOR) != null) {
             throw new ClaimMetadataClientException(
                     ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY.getCode(),

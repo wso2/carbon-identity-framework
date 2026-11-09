@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -31,6 +32,7 @@ import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -84,6 +86,7 @@ public class SystemDefaultClaimMetadataManager implements ReadOnlyClaimMetadataM
 
         return localClaims.stream()
                 .map(LocalClaim.class::cast)
+                .map(this::copyLocalClaim)
                 .collect(Collectors.toList());
     }
 
@@ -97,6 +100,7 @@ public class SystemDefaultClaimMetadataManager implements ReadOnlyClaimMetadataM
         return claims.getOrDefault(LOCAL_CLAIM_DIALECT_URI, Collections.emptyList()).stream()
                 .filter(claim -> localClaimURI.equals(claim.getClaimURI()))
                 .map(LocalClaim.class::cast)
+                .map(this::copyLocalClaim)
                 .findFirst();
     }
 
@@ -114,6 +118,7 @@ public class SystemDefaultClaimMetadataManager implements ReadOnlyClaimMetadataM
 
         return claims.getOrDefault(externalClaimDialectURI, Collections.emptyList()).stream()
                 .map(ExternalClaim.class::cast)
+                .map(this::copyExternalClaim)
                 .collect(Collectors.toList());
     }
 
@@ -132,6 +137,7 @@ public class SystemDefaultClaimMetadataManager implements ReadOnlyClaimMetadataM
         return claims.getOrDefault(externalClaimDialectURI, Collections.emptyList()).stream()
                 .filter(claim -> claimURI.equals(claim.getClaimURI()))
                 .map(ExternalClaim.class::cast)
+                .map(this::copyExternalClaim)
                 .findFirst();
     }
 
@@ -150,11 +156,33 @@ public class SystemDefaultClaimMetadataManager implements ReadOnlyClaimMetadataM
             List<Claim> externalClaims = entry.getValue().stream()
                     .map(ExternalClaim.class::cast)
                     .filter(claim -> localClaimURI.equals(claim.getMappedLocalClaim()))
-                    .map(Claim.class::cast)
+                    .map(this::copyExternalClaim)
                     .collect(Collectors.toList());
             mappedExternalClaims.addAll(externalClaims);
         }
         return mappedExternalClaims;
+    }
+
+    private LocalClaim copyLocalClaim(LocalClaim claim) {
+
+        if (claim == null) {
+            return null;
+        }
+        List<AttributeMapping> mappedAttributesCopy = claim.getMappedAttributes() != null ?
+                claim.getMappedAttributes().stream()
+                        .map(attr -> new AttributeMapping(attr.getUserStoreDomain(), attr.getAttributeName()))
+                        .collect(Collectors.toList()) : new ArrayList<>();
+        return new LocalClaim(claim.getClaimURI(), mappedAttributesCopy,
+                claim.getClaimProperties() != null ? new HashMap<>(claim.getClaimProperties()) : new HashMap<>());
+    }
+
+    private ExternalClaim copyExternalClaim(ExternalClaim claim) {
+
+        if (claim == null) {
+            return null;
+        }
+        return new ExternalClaim(claim.getClaimDialectURI(), claim.getClaimURI(), claim.getMappedLocalClaim(),
+                claim.getClaimProperties() != null ? new HashMap<>(claim.getClaimProperties()) : new HashMap<>());
     }
 
     @Override
