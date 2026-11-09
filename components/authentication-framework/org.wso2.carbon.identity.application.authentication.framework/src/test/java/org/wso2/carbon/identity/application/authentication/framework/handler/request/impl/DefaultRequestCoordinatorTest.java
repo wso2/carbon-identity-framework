@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Ses
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceData;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedOrgData;
@@ -74,6 +75,7 @@ import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -93,6 +95,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -102,6 +105,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
@@ -129,6 +133,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     private static final String CUSTOM_TENANT_DOMAIN = "xyz.com";
     private static final String SUPER_TENANT_PATH = "/t/carbon.super/";
     private static final String ORGANIZATION_ID = "179fa754-dcff-48f3-bd1c-a8ea84c8bbf4";
+    private static final String ORGANIZATION_TENANT_DOMAIN = "sub-org-tenant";
     private static final String ORG_CALLER_PATH = "/o/179fa754-dcff-48f3-bd1c-a8ea84c8bbf4/";
     private static final String ABSOLUTE_CALLER_PATH = "https://wso2.is.com";
 
@@ -1407,9 +1412,21 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
-    private HttpServletRequest mockRequestWithDeviceToken() {
+    private Optional<ResolvedDeviceData> toResolvedDeviceData(Map<String, Object> payload) {
+
+        return Optional.of(new ResolvedDeviceData("device-id", "owner-id", ORGANIZATION_TENANT_DOMAIN, payload));
+    }
+
+    private HttpServletRequest mockAppNativeRequest() {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW)).thenReturn(true);
+        return request;
+    }
+
+    private HttpServletRequest mockRequestWithDeviceToken() {
+
+        HttpServletRequest request = mockAppNativeRequest();
         when(request.getParameter(FrameworkConstants.DEVICE_TOKEN_PARAM)).thenReturn("device-token");
         return request;
     }
@@ -1421,8 +1438,37 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
 
-        // No device token is presented, hence there is nothing to resolve and the flow must continue.
-        invokeResolveAndStoreDeviceData(mock(HttpServletRequest.class), context);
+        invokeResolveAndStoreDeviceData(mockAppNativeRequest(), context);
+
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataSkippedForNonAppNativeRequest() throws Exception {
+
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter(FrameworkConstants.DEVICE_TOKEN_PARAM)).thenReturn("device-token");
+        when(request.getHeader(FrameworkConstants.DEVICE_TOKEN_HEADER)).thenReturn("device-token");
+        invokeResolveAndStoreDeviceData(request, context);
+
+        verify(deviceDataResolver, never()).resolve(any());
+        assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
+    }
+
+    @Test
+    public void testResolveAndStoreDeviceDataSkippedForNonAppNativeRequestWithoutResolver() throws Exception {
+
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
+        AuthenticationContext context = new AuthenticationContext();
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter(FrameworkConstants.DEVICE_TOKEN_PARAM)).thenReturn("device-token");
+        invokeResolveAndStoreDeviceData(request, context);
 
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
     }
@@ -1435,8 +1481,6 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
 
         HttpServletRequest request = mockRequestWithDeviceToken();
-        // An unavailable resolver is a server error, hence it must not be reported as an absent
-        // device token at device policy evaluation.
         assertThrows(FrameworkException.class, () -> invokeResolveAndStoreDeviceData(request, context));
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
     }
@@ -1444,50 +1488,54 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     @Test
     public void testResolveAndStoreDeviceDataResolvesTokenFromHeader() throws Exception {
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("platform", "ANDROID");
+        Optional<ResolvedDeviceData> resolved = toResolvedDeviceData(Collections.singletonMap("platform", "ANDROID"));
         DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
-        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.of(payload));
+        when(deviceDataResolver.resolve(any())).thenReturn(resolved);
         FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletRequest request = mockAppNativeRequest();
         when(request.getHeader(FrameworkConstants.DEVICE_TOKEN_HEADER)).thenReturn("device-token");
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
 
         invokeResolveAndStoreDeviceData(request, context);
 
-        assertEquals(context.getProperty(FrameworkConstants.DEVICE_DATA), payload);
+        assertSame(context.getProperty(FrameworkConstants.DEVICE_DATA), resolved.get());
     }
 
     @Test
-    public void testResolveAndStoreDeviceDataStoresResolvedPayload() throws Exception {
+    public void testResolveAndStoreDeviceDataIgnoresContextTenantAndAccessingOrganization() throws Exception {
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("platform", "IOS");
+        // The device is resolved in its own tenant, not in the tenant or organization being accessed.
+        Optional<ResolvedDeviceData> resolved = toResolvedDeviceData(Collections.singletonMap("platform", "IOS"));
         DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
-        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.of(payload));
+        when(deviceDataResolver.resolve(any())).thenReturn(resolved);
         FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
 
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+        HttpServletRequest request = mockRequestWithDeviceToken();
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setAccessingOrganizationId(ORGANIZATION_ID);
+            invokeResolveAndStoreDeviceData(request, context);
+        } finally {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setAccessingOrganizationId(null);
+        }
 
-        invokeResolveAndStoreDeviceData(mockRequestWithDeviceToken(), context);
-
-        assertEquals(context.getProperty(FrameworkConstants.DEVICE_DATA), payload);
+        verify(deviceDataResolver).resolve(request);
+        assertSame(context.getProperty(FrameworkConstants.DEVICE_DATA), resolved.get());
     }
 
     @Test
     public void testResolveAndStoreDeviceDataWhenResolverReturnsEmpty() throws Exception {
 
         DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
-        when(deviceDataResolver.resolveDeviceData(any(), anyString())).thenReturn(Optional.empty());
+        when(deviceDataResolver.resolve(any())).thenReturn(Optional.empty());
         FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
 
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
 
-        // An unresolvable device token is a client error, hence the flow must continue without device data.
         invokeResolveAndStoreDeviceData(mockRequestWithDeviceToken(), context);
 
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
@@ -1497,7 +1545,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     public void testResolveAndStoreDeviceDataFailsOnResolverFailure() throws Exception {
 
         DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
-        when(deviceDataResolver.resolveDeviceData(any(), anyString()))
+        when(deviceDataResolver.resolve(any()))
                 .thenThrow(new IllegalStateException("Device token verification blew up."));
         FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
 
@@ -1507,7 +1555,6 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         HttpServletRequest request = mockRequestWithDeviceToken();
         FrameworkException exception =
                 assertThrows(FrameworkException.class, () -> invokeResolveAndStoreDeviceData(request, context));
-
         assertTrue(exception.getCause() instanceof IllegalStateException);
         assertNull(context.getProperty(FrameworkConstants.DEVICE_DATA));
     }

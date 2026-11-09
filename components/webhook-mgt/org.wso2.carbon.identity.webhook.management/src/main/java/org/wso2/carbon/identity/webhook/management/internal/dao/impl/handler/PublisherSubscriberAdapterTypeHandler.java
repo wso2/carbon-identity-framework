@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -37,7 +38,9 @@ import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessag
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -370,12 +373,28 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         return dao.getWebhooksCount(tenantId);
     }
 
+    /**
+     * Accepts an update that changes only the organization subscriptions, and rejects any other.
+     * Nothing is written here: the service layer writes those separately, and rewriting the row would
+     * put a stale status over an activation or deactivation committed since.
+     *
+     * @param webhook  Webhook as the update requests it.
+     * @param tenantId Tenant the webhook belongs to.
+     * @throws WebhookMgtException If the update reaches any other property, or the webhook is unknown.
+     */
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        throw WebhookManagementExceptionHandler.handleClientException(
-                ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
-                "updateWebhook not supported for PublisherSubscriber");
+        Webhook existingWebhook = dao.getWebhook(webhook.getId(), tenantId);
+        if (existingWebhook == null) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhook.getId());
+        }
+        if (!isOrganizationSubscriptionOnlyUpdate(webhook, existingWebhook)) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
+                    "updateWebhook not supported for PublisherSubscriber");
+        }
     }
 
     @Override
@@ -452,6 +471,49 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                 .eventsSubscribed(updatedSubs)
                 .ownerTenantDomain(base.getOwnerTenantDomain())
                 .build();
+    }
+
+    /**
+     * Whether an update carries nothing but the organization subscriptions of its channels.
+     *
+     * @param webhook         Webhook as the update requests it.
+     * @param existingWebhook Webhook as it is stored.
+     * @return True when every property this adapter has never accepted stays as it is.
+     * @throws WebhookMgtException If the stored channels cannot be read.
+     */
+    private boolean isOrganizationSubscriptionOnlyUpdate(Webhook webhook, Webhook existingWebhook)
+            throws WebhookMgtException {
+
+        // v1 never carries organization subscriptions, so without them there is nothing here to accept.
+        if (webhook.getOrganizationSubscriptions() == null || webhook.getOrganizationSubscriptions().isEmpty()) {
+            return false;
+        }
+        // An absent secret keeps the stored one; a value present is a rotation the hub has to be told about.
+        if (StringUtils.isNotEmpty(webhook.getSecret())) {
+            return false;
+        }
+        // Absent is unchanged; v1 takes the status from the request, so a value present can differ.
+        if (webhook.getStatus() != null && webhook.getStatus() != existingWebhook.getStatus()) {
+            return false;
+        }
+        // The event profile is checked because the replace operation takes it from the request.
+        if (!StringUtils.equals(webhook.getEndpoint(), existingWebhook.getEndpoint())
+                || !StringUtils.equals(webhook.getName(), existingWebhook.getName())
+                || !StringUtils.equals(webhook.getEventProfileName(), existingWebhook.getEventProfileName())
+                || !StringUtils.equals(webhook.getEventProfileUri(), existingWebhook.getEventProfileUri())) {
+            return false;
+        }
+        return channelUrisOf(webhook).equals(channelUrisOf(existingWebhook));
+    }
+
+    private Set<String> channelUrisOf(Webhook webhook) throws WebhookMgtException {
+
+        if (webhook.getEventsSubscribed() == null) {
+            return Collections.emptySet();
+        }
+        return webhook.getEventsSubscribed().stream()
+                .map(Subscription::getChannelUri)
+                .collect(Collectors.toSet());
     }
 
     private List<Subscription> mergeSubscriptions(List<Subscription> original, List<Subscription> updates) {

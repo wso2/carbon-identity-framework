@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.device.mgt.internal.dao;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 
 import java.util.List;
 
@@ -51,6 +52,15 @@ public interface DeviceManagementDAO {
      */
     Device getDeviceById(String deviceId, int tenantId)
             throws DeviceMgtException;
+
+    /**
+     * Finds a device by its identifier in any tenant, with the tenant it is registered in.
+     *
+     * @param deviceId Device identifier.
+     * @return Device with its tenant, or {@code null} if not found.
+     * @throws DeviceMgtException If retrieval fails.
+     */
+    TenantDevice getTenantDeviceById(String deviceId) throws DeviceMgtException;
 
     /**
      * Finds a page of devices registered in the tenant, ordered by registration time (newest first).

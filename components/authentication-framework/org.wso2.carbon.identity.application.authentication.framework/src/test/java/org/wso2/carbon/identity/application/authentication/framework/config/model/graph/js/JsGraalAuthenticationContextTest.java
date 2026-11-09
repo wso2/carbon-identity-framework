@@ -36,6 +36,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceData;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -43,18 +46,24 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE;
@@ -67,6 +76,10 @@ public class JsGraalAuthenticationContextTest {
     private static final String LAST_ATTEMPTED_USER_TENANT_DOMAIN = "lastAttemptedTenantDomain";
     private static final String LAST_ATTEMPTED_USER_USERSTORE_DOMAIN = "lastAttemptedUserstoreDomain";
     private static final String SERVICE_PROVIDER_NAME = "service_provider_js_test";
+    private static final String DEVICE_ID = "device-1";
+    private static final String DEVICE_OWNER_ID = "user-1";
+    private static final String SUB_ORG_ID = "sub-org-id";
+    private static final String SUB_ORG_TENANT_DOMAIN = "sub-org-tenant";
     private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
     private static final String TEST_CLAIM_VALUE = "TestClaimVal1";
     private static final String TEST_REMOTE_CLAIM_URI = "Test.Remote.Claim.Uri";
@@ -296,26 +309,165 @@ public class JsGraalAuthenticationContextTest {
     }
 
     @Test
-    public void testGetDeviceDataFromWrappedContext() throws Exception {
+    public void testGetDeviceDataBoundToAuthenticatedUser() throws Exception {
 
-        AuthenticationContext authenticationContext = new AuthenticationContext();
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "ANDROID");
         deviceData.put("rooted", false);
-        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA, deviceData);
+        AuthenticationContext authenticationContext = contextWithDeviceData(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, deviceData,
+                user(DEVICE_OWNER_ID, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME));
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.isValidDevice(DEVICE_ID, DEVICE_OWNER_ID,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).thenReturn(true);
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+        try {
+            Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+            bindings.putMember("context", new JsGraalAuthenticationContext(authenticationContext));
+
+            Value platform = context.eval(
+                    Source.newBuilder(POLYGLOT_LANGUAGE, "context.deviceData.platform", POLYGLOT_SOURCE).build());
+            assertFalse(platform.isNull());
+            assertEquals(platform.asString(), "ANDROID");
+
+            Value rooted = context.eval(
+                    Source.newBuilder(POLYGLOT_LANGUAGE, "context.deviceData.rooted", POLYGLOT_SOURCE).build());
+            assertFalse(rooted.asBoolean());
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
+        }
+    }
+
+    @Test
+    public void testGetDeviceDataOfFederatedOrganizationUser() throws Exception {
+
+        AuthenticatedUser user = user(DEVICE_OWNER_ID, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        user.setFederatedUser(true);
+        user.setUserResidentOrganization(SUB_ORG_ID);
+        AuthenticationContext authenticationContext = contextWithDeviceData(SUB_ORG_TENANT_DOMAIN,
+                Collections.singletonMap("platform", "IOS"), user);
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.isValidDevice(DEVICE_ID, DEVICE_OWNER_ID, SUB_ORG_TENANT_DOMAIN)).thenReturn(true);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        when(organizationManager.resolveTenantDomain(SUB_ORG_ID)).thenReturn(SUB_ORG_TENANT_DOMAIN);
+        OrganizationManager previousOrganizationManager = FrameworkServiceDataHolder.getInstance()
+                .getOrganizationManager();
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+        FrameworkServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        try {
+            JsGraalAuthenticationContext jsAuthenticationContext =
+                    new JsGraalAuthenticationContext(authenticationContext);
+            assertNotNull(jsAuthenticationContext.getMember(FrameworkConstants.JSAttributes.JS_DEVICE_DATA));
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
+            FrameworkServiceDataHolder.getInstance().setOrganizationManager(previousOrganizationManager);
+        }
+    }
+
+    @Test
+    public void testGetDeviceDataOfSharedUserInSharedAppLogin() throws Exception {
+
+        // Shared app logins set the accessing org as the resident org of the local shared user.
+        AuthenticatedUser user = user(DEVICE_OWNER_ID, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        user.setUserResidentOrganization(SUB_ORG_ID);
+        AuthenticationContext authenticationContext = contextWithDeviceData(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, Collections.singletonMap("platform", "IOS"), user);
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.isValidDevice(DEVICE_ID, DEVICE_OWNER_ID,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).thenReturn(true);
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+        try {
+            JsGraalAuthenticationContext jsAuthenticationContext =
+                    new JsGraalAuthenticationContext(authenticationContext);
+            assertNotNull(jsAuthenticationContext.getMember(FrameworkConstants.JSAttributes.JS_DEVICE_DATA));
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
+        }
+    }
+
+    @DataProvider(name = "unboundDeviceDataProvider")
+    public Object[][] unboundDeviceDataProvider() {
+
+        return new Object[][]{
+                // Another user of the same tenant.
+                {"user-2", MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, true},
+                // The same user ID in another tenant.
+                {DEVICE_OWNER_ID, SUB_ORG_TENANT_DOMAIN, true},
+                // The owner, but the device is no longer valid.
+                {DEVICE_OWNER_ID, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, false},
+        };
+    }
+
+    @Test(dataProvider = "unboundDeviceDataProvider")
+    public void testDeviceDataHiddenWhenNotBoundToAuthenticatedUser(String userId, String userTenantDomain,
+                                                                     boolean validDevice) throws Exception {
+
+        AuthenticationContext authenticationContext = contextWithDeviceData(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, Collections.singletonMap("platform",
+                        "ANDROID"), user(userId, userTenantDomain));
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.isValidDevice(any(), any(), any())).thenReturn(validDevice);
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+        try {
+            Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+            bindings.putMember("context", new JsGraalAuthenticationContext(authenticationContext));
+
+            Value result = context.eval(
+                    Source.newBuilder(POLYGLOT_LANGUAGE, "context.deviceData", POLYGLOT_SOURCE).build());
+            assertTrue(result.isNull());
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
+        }
+    }
+
+    @Test
+    public void testDeviceDataHiddenBeforeUserIsAuthenticated() {
+
+        AuthenticationContext authenticationContext = contextWithDeviceData(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, new HashMap<>(), null);
+        DeviceDataResolver deviceDataResolver = mock(DeviceDataResolver.class);
+        when(deviceDataResolver.isValidDevice(any(), any(), any())).thenReturn(true);
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
+        try {
+            JsGraalAuthenticationContext jsAuthenticationContext =
+                    new JsGraalAuthenticationContext(authenticationContext);
+            assertNull(jsAuthenticationContext.getMember(FrameworkConstants.JSAttributes.JS_DEVICE_DATA));
+            verify(deviceDataResolver, never()).isValidDevice(any(), any(), any());
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
+        }
+    }
+
+    @Test
+    public void testDeviceDataHiddenWithoutResolver() {
+
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
+        AuthenticationContext authenticationContext = contextWithDeviceData(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, new HashMap<>(),
+                user(DEVICE_OWNER_ID, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME));
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
-        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
-        bindings.putMember("context", jsAuthenticationContext);
 
-        Value platform = context.eval(
-                Source.newBuilder(POLYGLOT_LANGUAGE, "context.deviceData.platform", POLYGLOT_SOURCE).build());
-        assertFalse(platform.isNull());
-        assertEquals(platform.asString(), "ANDROID");
+        assertNull(jsAuthenticationContext.getMember(FrameworkConstants.JSAttributes.JS_DEVICE_DATA));
+    }
 
-        Value rooted = context.eval(
-                Source.newBuilder(POLYGLOT_LANGUAGE, "context.deviceData.rooted", POLYGLOT_SOURCE).build());
-        assertFalse(rooted.asBoolean());
+    private AuthenticationContext contextWithDeviceData(String deviceTenantDomain, Map<String, Object> deviceData,
+                                                        AuthenticatedUser user) {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA,
+                new ResolvedDeviceData(DEVICE_ID, DEVICE_OWNER_ID, deviceTenantDomain, deviceData));
+        authenticationContext.setSubject(user);
+        return authenticationContext;
+    }
+
+    private AuthenticatedUser user(String userId, String tenantDomain) {
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserId(userId);
+        user.setUserName(userId);
+        user.setTenantDomain(tenantDomain);
+        return user;
     }
 
     @Test
@@ -333,10 +485,14 @@ public class JsGraalAuthenticationContextTest {
     }
 
     @Test
-    public void testDeviceDataMemberIgnoresNonMapValue() {
+    public void testDeviceDataMemberIgnoresUnresolvedValue() {
 
         AuthenticationContext authenticationContext = new AuthenticationContext();
-        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA, "not-a-map");
+        Map<String, Object> deviceData = new HashMap<>();
+        deviceData.put("platform", "ANDROID");
+        // A plain map is not resolved device data, so it is not exposed.
+        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA, deviceData);
+        authenticationContext.setSubject(new AuthenticatedUser());
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
 

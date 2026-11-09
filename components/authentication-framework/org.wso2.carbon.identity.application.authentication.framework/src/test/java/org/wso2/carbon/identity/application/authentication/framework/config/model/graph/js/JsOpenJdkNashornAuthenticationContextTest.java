@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.HashMap;
@@ -43,7 +44,8 @@ public class JsOpenJdkNashornAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "ANDROID");
-        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA, deviceData);
+        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA,
+                new ResolvedDeviceData("device-1", "user-1", "carbon.super", deviceData));
 
         JsOpenJdkNashornAuthenticationContext jsAuthenticationContext =
                 new JsOpenJdkNashornAuthenticationContext(authenticationContext);
@@ -63,10 +65,10 @@ public class JsOpenJdkNashornAuthenticationContextTest {
     }
 
     @Test
-    public void testHasDeviceDataMemberWhenValueIsNotAMap() {
+    public void testHasDeviceDataMemberWhenValueIsNotResolvedDeviceData() {
 
         AuthenticationContext authenticationContext = new AuthenticationContext();
-        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA, "not-a-map");
+        authenticationContext.setProperty(FrameworkConstants.DEVICE_DATA, new HashMap<>());
 
         JsOpenJdkNashornAuthenticationContext jsAuthenticationContext =
                 new JsOpenJdkNashornAuthenticationContext(authenticationContext);

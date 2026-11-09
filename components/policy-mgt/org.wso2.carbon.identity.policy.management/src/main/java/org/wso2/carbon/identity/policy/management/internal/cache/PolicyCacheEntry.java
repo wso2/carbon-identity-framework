@@ -34,7 +34,7 @@ public class PolicyCacheEntry extends CacheEntry {
     /**
      * Constructor to create PolicyCacheEntry.
      *
-     * @param policy Policy to be added to the cache.
+     * @param policy Policy, or null if no policy has the ID.
      */
     public PolicyCacheEntry(Policy policy) {
 

@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.device.mgt.internal.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCache;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheEntry;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheKey;
@@ -106,7 +108,24 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
         return device;
     }
 
+    /**
+     * Finds a device by its identifier in any tenant and adds it to the tenant scoped cache, so that the later
+     * lookups of the device in its tenant are served from the cache.
+     *
+     * @param deviceId Device identifier.
+     * @return Device with its tenant, or {@code null} if not found.
+     * @throws DeviceMgtException If retrieval fails.
+     */
+    @Override
+    public TenantDevice getTenantDeviceById(String deviceId) throws DeviceMgtException {
 
+        TenantDevice tenantDevice = deviceManagementDAO.getTenantDeviceById(deviceId);
+        if (tenantDevice != null) {
+            deviceCache.addToCacheOnRead(new DeviceCacheKey(deviceId), new DeviceCacheEntry(tenantDevice.getDevice()),
+                    IdentityTenantUtil.getTenantId(tenantDevice.getTenantDomain()));
+        }
+        return tenantDevice;
+    }
 
     /**
      * Finds a page of devices registered in the tenant, ordered by registration time (newest first).

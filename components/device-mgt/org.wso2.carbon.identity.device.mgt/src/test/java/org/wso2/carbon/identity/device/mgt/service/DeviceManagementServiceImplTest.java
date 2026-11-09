@@ -30,9 +30,11 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 import org.wso2.carbon.identity.device.mgt.api.model.UserDeviceAssociation;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.service.impl.DeviceManagementServiceImpl;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
@@ -61,6 +63,7 @@ public class DeviceManagementServiceImplTest {
     private DeviceManagementServiceImpl service;
     private DeviceManagementDAO dao;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMocked;
+    private MockedStatic<OrganizationManagementUtil> organizationManagementUtilMocked;
     private Field daoField;
     private DeviceManagementDAO originalDao;
 
@@ -70,6 +73,9 @@ public class DeviceManagementServiceImplTest {
         service = DeviceManagementServiceImpl.getInstance();
         identityTenantUtilMocked = mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        organizationManagementUtilMocked = mockStatic(OrganizationManagementUtil.class);
+        organizationManagementUtilMocked.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(false);
 
         daoField = DeviceManagementServiceImpl.class.getDeclaredField("deviceManagementDAO");
         daoField.setAccessible(true);
@@ -81,6 +87,7 @@ public class DeviceManagementServiceImplTest {
 
         daoField.set(service, originalDao);
         identityTenantUtilMocked.close();
+        organizationManagementUtilMocked.close();
     }
 
     @BeforeMethod
@@ -192,6 +199,34 @@ public class DeviceManagementServiceImplTest {
         Device result = service.getDeviceById("d1", TENANT_DOMAIN);
 
         Assert.assertEquals(result, device);
+    }
+
+    @Test
+    public void testGetTenantDeviceByIdDelegatesToDao() throws Exception {
+
+        TenantDevice tenantDevice = new TenantDevice(mock(Device.class), TENANT_DOMAIN);
+        when(dao.getTenantDeviceById("d1")).thenReturn(tenantDevice);
+
+        Assert.assertSame(service.getTenantDeviceById("d1"), tenantDevice);
+    }
+
+    @Test
+    public void testGetTenantDeviceByIdWhenDeviceMissing() throws Exception {
+
+        when(dao.getTenantDeviceById("d1")).thenReturn(null);
+
+        Assert.assertNull(service.getTenantDeviceById("d1"));
+    }
+
+    @Test
+    public void testGetTenantDeviceByIdWithBlankIdThrows() {
+
+        try {
+            service.getTenantDeviceById(" ");
+            Assert.fail("Expected DeviceMgtClientException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
+        }
     }
 
     @Test

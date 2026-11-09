@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.flow.mgt.rule;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
@@ -45,8 +46,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -129,8 +132,13 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
         fields.put(FlowType.INVITED_USER_REGISTRATION, Collections.unmodifiableList(Arrays.asList(
                 USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES, RUNTIME_VALUES,
                 REQUEST_HEADERS)));
+        fields.put(FlowType.PROFILE_UPDATE, Collections.unmodifiableList(Arrays.asList(
+                APPLICATION, USER_ATTRIBUTES, USER_COLLECTED_ATTRIBUTES, USER_DOMAIN, USER_GROUPS, USER_ROLES,
+                RUNTIME_VALUES, REQUEST_HEADERS)));
         FIELDS_BY_FLOW_TYPE = Collections.unmodifiableMap(fields);
     }
+
+    private static final String EXCLUDED_USERSTORES = "FlowExecution.ExcludedUserstores.Userstore";
 
     private static final String GET = "GET";
     private static final String VALUES = "values";
@@ -287,7 +295,8 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
 
     /**
      * The user stores of the tenant, offered as the values a domain condition may name. The agent user store is left
-     * out: it holds agent identities, which no flow registers or recovers.
+     * out, since it holds agent identities, which no flow registers or recovers, and so are the user stores the server
+     * excludes from flows.
      *
      * @param tenantDomain Tenant domain.
      * @return The user store domains.
@@ -301,7 +310,6 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
                     "The user stores of tenant " + tenantDomain + " cannot be read to offer as values.");
         }
 
-        String agentDomain = IdentityUtil.getAgentIdentityUserstoreName();
         Set<String> domains = new LinkedHashSet<>();
         try {
             UserStoreManager primary = (UserStoreManager) realmService
@@ -309,15 +317,15 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
             String primaryDomain = primary.getRealmConfiguration()
                     .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
             domains.add(StringUtils.isNotBlank(primaryDomain)
-                    ? primaryDomain.toUpperCase() : UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                    ? primaryDomain.toUpperCase(Locale.ROOT) : UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
             for (UserStoreManager store = primary.getSecondaryUserStoreManager(); store != null;
                  store = store.getSecondaryUserStoreManager()) {
                 String domain = store.getRealmConfiguration()
                         .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
                 boolean disabled = Boolean.parseBoolean(store.getRealmConfiguration()
                         .getUserStoreProperty(UserCoreConstants.RealmConfig.USER_STORE_DISABLED));
-                if (StringUtils.isNotBlank(domain) && !disabled && !domain.equalsIgnoreCase(agentDomain)) {
-                    domains.add(domain.toUpperCase());
+                if (StringUtils.isNotBlank(domain) && !disabled) {
+                    domains.add(domain.toUpperCase(Locale.ROOT));
                 }
             }
         } catch (UserStoreException e) {
@@ -325,6 +333,25 @@ public class FlowRuleMetadataProvider implements RuleMetadataProvider {
                     "The user stores of tenant " + tenantDomain + " could not be read.", e);
         }
 
+        domains.removeAll(excludedUserStoreDomains());
         return domains.stream().map(domain -> new OptionsValue(domain, domain)).toList();
+    }
+
+    /**
+     * The user store domains left out of flows: the agent user store, always, and those listed in the server
+     * configuration.
+     *
+     * @return The excluded domains, in upper case.
+     */
+    private static Set<String> excludedUserStoreDomains() {
+
+        Set<String> excluded = new HashSet<>();
+        excluded.add(IdentityCoreConstants.DEFAULT_AGENT_IDENTITY_USERSTORE_NAME);
+        for (String domain : IdentityUtil.getPropertyAsList(EXCLUDED_USERSTORES)) {
+            if (StringUtils.isNotBlank(domain)) {
+                excluded.add(domain.trim().toUpperCase(Locale.ROOT));
+            }
+        }
+        return excluded;
     }
 }

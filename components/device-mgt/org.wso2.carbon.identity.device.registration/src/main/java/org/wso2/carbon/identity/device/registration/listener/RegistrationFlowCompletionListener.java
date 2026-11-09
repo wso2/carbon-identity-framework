@@ -35,6 +35,9 @@ import org.wso2.carbon.identity.flow.execution.engine.listener.AbstractFlowExecu
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 
+import java.sql.Timestamp;
+import java.util.Map;
+
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 
 /**
@@ -80,7 +83,12 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
             return true;
         }
 
-        VerifiedDevice pending = (VerifiedDevice) deviceObj;
+        VerifiedDevice pending = toVerifiedDevice(deviceObj);
+        if (pending == null) {
+            LOG.error("Cannot register device: the verified device in the flow context is invalid. contextId: "
+                    + context.getContextIdentifier());
+            return true;
+        }
         String userId = context.getFlowUser().getUserId();
 
         if (StringUtils.isBlank(userId)) {
@@ -121,5 +129,43 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
                     + " deviceId: " + pending.getId(), e);
         }
         return true;
+    }
+
+    /**
+     * Read the verified device from the flow context, which holds a map instead once the context is stored.
+     *
+     * @param deviceObj Value of the verified device in the flow context.
+     * @return The verified device, or null if invalid.
+     */
+    private VerifiedDevice toVerifiedDevice(Object deviceObj) {
+
+        if (deviceObj instanceof VerifiedDevice) {
+            return (VerifiedDevice) deviceObj;
+        }
+        if (!(deviceObj instanceof Map)) {
+            return null;
+        }
+        Map<?, ?> fields = (Map<?, ?>) deviceObj;
+        Object registeredAt = fields.get("registeredAt");
+        try {
+            return new VerifiedDevice.Builder()
+                    .id(asString(fields.get("id")))
+                    .deviceName(asString(fields.get("deviceName")))
+                    .deviceModel(asString(fields.get("deviceModel")))
+                    .publicKey(asString(fields.get("publicKey")))
+                    .registeredAt(registeredAt instanceof Number ?
+                            new Timestamp(((Number) registeredAt).longValue()) : null)
+                    .build();
+        } catch (IllegalArgumentException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("The verified device in the flow context is missing a required field.", e);
+            }
+            return null;
+        }
+    }
+
+    private String asString(Object value) {
+
+        return value == null ? null : String.valueOf(value);
     }
 }

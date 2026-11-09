@@ -22,10 +22,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.client.attestation.mgt.utils.Constants;
+import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
+import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyClientException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
+import org.wso2.carbon.identity.device.policy.internal.component.DevicePolicyComponentServiceHolder;
 import org.wso2.carbon.identity.device.policy.internal.constant.DeviceTokenConstants;
 import org.wso2.carbon.identity.device.policy.internal.util.DeviceTokenExtractor;
 
@@ -35,29 +39,17 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Resolves verified device data from the initiation request.
- * The device token is read from the {@code X-Device-Token} header first (app native / headless
- * flows), then from the {@code device_token} query parameter (redirect flows). The token is verified
- * via {@link DeviceTokenExtractor} and the resulting claims are returned as the device payload.
- *
- * <p>If the request carries the {@code x-client-attestation} header (the same header already
- * required elsewhere in the login path for client attestation), its value is copied into the
- * resolved device data under the attestation token key so {@code IntegrityDataEnricher} can use
- * it — the caller does not need to also embed the attestation token a second time inside the
- * device-data JWT payload.
- *
- * <p>The token's {@code jti} is single-use and consumed here at initiation (see
- * {@link DeviceTokenExtractor}'s replay protection). A caller that re-submits the same
- * {@code device_token} on a retry or page refresh will have it rejected as a replay and this
- * method silently returns {@link Optional#empty()} — callers MUST mint a fresh device token on
- * every initiation attempt, including retries and refreshes; the same token cannot be reused.
+ * Resolves verified device data from the device token of the initiation request.
+ * The token is read from the {@code X-Device-Token} header, then the {@code device_token} parameter, and its
+ * single use {@code jti} is consumed here, so callers must mint a fresh token on every initiation attempt.
+ * The {@code x-client-attestation} header, if present, is added to the device data for {@code IntegrityDataEnricher}.
  */
 public class DeviceDataResolverImpl implements DeviceDataResolver {
 
     private static final Log LOG = LogFactory.getLog(DeviceDataResolverImpl.class);
 
     @Override
-    public Optional<Map<String, Object>> resolveDeviceData(HttpServletRequest request, String tenantDomain) {
+    public Optional<ResolvedDeviceData> resolve(HttpServletRequest request) {
 
         if (request == null) {
             return Optional.empty();
@@ -73,19 +65,44 @@ public class DeviceDataResolverImpl implements DeviceDataResolver {
         }
 
         try {
-            Map<String, Object> deviceData = new DeviceTokenExtractor().extractFromToken(deviceToken, tenantDomain);
+            DeviceTokenExtractor.VerifiedDeviceToken verifiedToken = new DeviceTokenExtractor().extract(deviceToken);
+            Map<String, Object> deviceData = verifiedToken.getDeviceData();
 
             String attestationHeader = request.getHeader(Constants.ATTESTATION_HEADER);
             if (StringUtils.isNotBlank(attestationHeader)) {
                 deviceData.put(DeviceTokenConstants.ATTESTATION_TOKEN_KEY, attestationHeader);
             }
 
-            return Optional.of(deviceData);
+            return Optional.of(new ResolvedDeviceData(verifiedToken.getDeviceId(), verifiedToken.getOwnerUserId(),
+                    verifiedToken.getTenantDomain(), deviceData));
         } catch (DevicePolicyClientException e) {
             return Optional.empty();
         } catch (DevicePolicyException e) {
             LOG.error("Error while verifying device token at initiation.");
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public boolean isValidDevice(String deviceId, String userId, String tenantDomain) {
+
+        if (StringUtils.isBlank(deviceId) || StringUtils.isBlank(userId) || StringUtils.isBlank(tenantDomain)) {
+            return false;
+        }
+        try {
+            // Cache backed lookup, so activation changes made at any time are honoured.
+            Device device = DevicePolicyComponentServiceHolder.getInstance().getDeviceManagementService()
+                    .getDeviceById(deviceId, tenantDomain);
+            boolean valid = device != null && userId.equals(device.getUserId())
+                    && device.getStatus() == Device.Status.ACTIVE;
+            if (!valid && LOG.isDebugEnabled()) {
+                LOG.debug("Device: " + deviceId + " is not active or not owned by the user in the tenant: "
+                        + tenantDomain);
+            }
+            return valid;
+        } catch (DeviceMgtException e) {
+            LOG.error("Error while validating the device: " + deviceId, e);
+            return false;
         }
     }
 }

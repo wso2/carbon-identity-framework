@@ -58,8 +58,7 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     }
 
     /**
-     * Add a new Policy.
-     * This method directly invokes the data layer operation without caching the result.
+     * Add a new Policy and clear any cached not found entries for its ID and name.
      *
      * @param policy   Policy object.
      * @param tenantId Tenant ID.
@@ -69,7 +68,10 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public Policy addPolicy(Policy policy, int tenantId) throws PolicyManagementException {
 
-        return policyManagementDAO.addPolicy(policy, tenantId);
+        Policy createdPolicy = policyManagementDAO.addPolicy(policy, tenantId);
+        policyCache.clearCacheEntry(new PolicyCacheKey(policy.getId()), tenantId);
+        policyIdByNameCache.clearCacheEntry(new PolicyNameCacheKey(policy.getType(), policy.getName()), tenantId);
+        return createdPolicy;
     }
 
     /**
@@ -152,9 +154,17 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
             }
             return cacheEntry.getPolicy();
         }
+        PolicyCacheKey cacheKey = new PolicyCacheKey(policyId);
         Policy policy = policyManagementDAO.getPolicyById(policyId, tenantId);
         if (policy != null) {
-            policyCache.addToCacheOnRead(new PolicyCacheKey(policyId), new PolicyCacheEntry(policy), tenantId);
+            policyCache.addToCacheOnRead(cacheKey, new PolicyCacheEntry(policy), tenantId);
+            return policy;
+        }
+        // Cache not found, then read again so that a policy added in between is not hidden.
+        policyCache.addToCacheOnRead(cacheKey, new PolicyCacheEntry(null), tenantId);
+        policy = policyManagementDAO.getPolicyById(policyId, tenantId);
+        if (policy != null) {
+            policyCache.clearCacheEntry(cacheKey, tenantId);
         }
         return policy;
     }
@@ -182,13 +192,20 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Policy name index cache hit for name: " + policyName);
             }
-            return getPolicyById(idCacheEntry.getPolicyId(), tenantId);
+            return idCacheEntry.getPolicyId() != null ? getPolicyById(idCacheEntry.getPolicyId(), tenantId) : null;
         }
+        PolicyNameCacheKey nameCacheKey = new PolicyNameCacheKey(policyType, policyName);
         Policy policy = policyManagementDAO.getPolicyByName(policyType, policyName, tenantId);
         if (policy != null) {
             policyCache.addToCacheOnRead(new PolicyCacheKey(policy.getId()), new PolicyCacheEntry(policy), tenantId);
-            policyIdByNameCache.addToCacheOnRead(
-                    new PolicyNameCacheKey(policyType, policyName), new PolicyIdCacheEntry(policy.getId()), tenantId);
+            policyIdByNameCache.addToCacheOnRead(nameCacheKey, new PolicyIdCacheEntry(policy.getId()), tenantId);
+            return policy;
+        }
+        // Cache not found, then read again so that a policy added in between is not hidden.
+        policyIdByNameCache.addToCacheOnRead(nameCacheKey, new PolicyIdCacheEntry(null), tenantId);
+        policy = policyManagementDAO.getPolicyByName(policyType, policyName, tenantId);
+        if (policy != null) {
+            policyIdByNameCache.clearCacheEntry(nameCacheKey, tenantId);
         }
         return policy;
     }
@@ -230,8 +247,8 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     /**
      * Get the ID of a Policy of the given type by Policy name.
      * Checks the index cache first and returns the cached ID on a hit, avoiding the DB.
-     * On a miss, delegates to the underlying data layer's lightweight ID lookup and warms
-     * the index cache with the result.
+     * On a miss, delegates to the underlying data layer's lightweight ID lookup and caches
+     * the result, including a not found result.
      *
      * @param policyType Policy type.
      * @param policyName Policy name.
@@ -251,10 +268,17 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
             }
             return idCacheEntry.getPolicyId();
         }
+        PolicyNameCacheKey nameCacheKey = new PolicyNameCacheKey(policyType, policyName);
         String policyId = policyManagementDAO.getPolicyIdByName(policyType, policyName, tenantId);
         if (policyId != null) {
-            policyIdByNameCache.addToCacheOnRead(
-                    new PolicyNameCacheKey(policyType, policyName), new PolicyIdCacheEntry(policyId), tenantId);
+            policyIdByNameCache.addToCacheOnRead(nameCacheKey, new PolicyIdCacheEntry(policyId), tenantId);
+            return policyId;
+        }
+        // Cache not found, then read again so that a policy added in between is not hidden.
+        policyIdByNameCache.addToCacheOnRead(nameCacheKey, new PolicyIdCacheEntry(null), tenantId);
+        policyId = policyManagementDAO.getPolicyIdByName(policyType, policyName, tenantId);
+        if (policyId != null) {
+            policyIdByNameCache.clearCacheEntry(nameCacheKey, tenantId);
         }
         return policyId;
     }

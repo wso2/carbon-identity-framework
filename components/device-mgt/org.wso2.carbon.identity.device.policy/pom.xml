@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>device-mgt</artifactId>
-        <version>7.11.257-SNAPSHOT</version>
+        <version>7.11.263-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -126,6 +126,12 @@
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
         </dependency>
 
+        <!-- Organization management - resolve the root organization of sub-organizations -->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
+
         <!-- Nimbus JOSE+JWT - JWT parsing and signature verification -->
         <dependency>
             <groupId>org.wso2.orbit.com.nimbusds</groupId>
@@ -194,6 +200,8 @@
                             version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.core.util;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.cache;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
@@ -246,6 +254,12 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.client.attestation.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.util;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             javax.servlet.http,
                             com.fasterxml.jackson.core.type,
                             com.fasterxml.jackson.databind

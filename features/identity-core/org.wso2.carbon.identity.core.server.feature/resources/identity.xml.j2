@@ -1535,6 +1535,12 @@
             Default value : false
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
+        <!--
+            When this configuration is enabled, an authorization details type schema is rejected when it is
+            registered if it uses "$dynamicRef", has a "$ref" that cannot be resolved, or has a "$ref" loop.
+            Default value : true
+        -->
+        <ValidateAuthorizationDetailsSchemaReferences>{{oauth.validate_authorization_details_schema_references}}</ValidateAuthorizationDetailsSchemaReferences>
         <ReturnSpIdToApplication>{{oauth.return_sp_id_to_apps}}</ReturnSpIdToApplication>
         <ReturnOnlyAppAssociatedRolesInJWTToken>{{oauth.jwt.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInJWTToken>
         <Callback>
@@ -3243,6 +3249,11 @@
                    timeout="{{cache.push_device_registration_request_cache.timeout}}"
                    capacity="{{cache.push_device_registration_request_cache.capacity}}"
                    isDistributed="false"/>
+            <Cache id="flow_polling_cache" name="FlowPollingCache"
+                   enable="{{cache.flow_polling_cache.enable}}"
+                   timeout="{{cache.flow_polling_cache.timeout}}"
+                   capacity="{{cache.flow_polling_cache.capacity}}"
+                   isDistributed="false"/>
             <Cache id="saml_cert_cache" name="SAMLCertCache"
                    enable="{{cache.saml_cert_cache.enable}}"
                    timeout="{{cache.saml_cert_cache.timeout}}"
@@ -4489,6 +4500,7 @@
                     <Path>/api/identity/oauth2/dcr/</Path>
                     <Path>/api/identity/auth/v1.1/data</Path>
                     <Path>/api/server/v1/flow/execute</Path>
+                    <Path>/api/server/v1/flow/poll</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -4569,6 +4581,7 @@
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/me/push/devices</Path>
                     <Path>/api/server/v1/flow/execute</Path>
+                    <Path>/api/server/v1/flow/poll</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -5640,6 +5653,16 @@
             <MaxRulesCombinedWithOr>{{rules.invited_user_registration.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
             {% endif %}
         </InvitedUserRegistration>
+        {% endif %}
+        {% if rules.profile_update.max_expressions_combined_with_and is defined or rules.profile_update.max_rules_combined_with_or is defined %}
+        <ProfileUpdate>
+            {% if rules.profile_update.max_expressions_combined_with_and is defined %}
+            <MaxExpressionsCombinedWithAnd>{{rules.profile_update.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% endif %}
+            {% if rules.profile_update.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.profile_update.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
+        </ProfileUpdate>
         {% endif %}
     </Rules>
 

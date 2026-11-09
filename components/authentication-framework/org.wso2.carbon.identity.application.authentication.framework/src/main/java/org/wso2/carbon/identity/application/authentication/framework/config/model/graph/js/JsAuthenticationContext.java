@@ -18,15 +18,22 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -46,6 +53,8 @@ import java.util.Optional;
  */
 public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<AuthenticationContext>
         implements JsBaseAuthenticationContext {
+
+    private static final Log LOG = LogFactory.getLog(JsAuthenticationContext.class);
 
     public JsAuthenticationContext(AuthenticationContext wrapped) {
 
@@ -81,7 +90,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
             case FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE:
                 return getWrapped().isPasswordResetComplete();
             case FrameworkConstants.JSAttributes.JS_DEVICE_DATA:
-                return getWrapped().getProperty(FrameworkConstants.DEVICE_DATA) instanceof Map;
+                return getWrapped().getProperty(FrameworkConstants.DEVICE_DATA) instanceof ResolvedDeviceData;
             default:
                 return super.hasMember(name);
         }
@@ -128,12 +137,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
             case FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE:
                 return getWrapped().isPasswordResetComplete();
             case FrameworkConstants.JSAttributes.JS_DEVICE_DATA:
-                Object deviceData = getWrapped().getProperty(FrameworkConstants.DEVICE_DATA);
-                if (deviceData instanceof Map) {
-                    return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                            .createJsWritableParameters((Map) deviceData);
-                }
-                return null;
+                return getBoundDeviceData();
             default:
                 return super.getMember(name);
         }
@@ -174,6 +178,38 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
             return true;
         }
         return false;
+    }
+
+    /**
+     * Returns the device data only if the device belongs to the last authenticated user.
+     *
+     * @return Read only device data, or null if not bound to the user.
+     */
+    private Object getBoundDeviceData() {
+
+        Object deviceData = getWrapped().getProperty(FrameworkConstants.DEVICE_DATA);
+        AuthenticatedUser user = getWrapped().getLastAuthenticatedUser();
+        if (!(deviceData instanceof ResolvedDeviceData) || user == null) {
+            return null;
+        }
+        Map<String, Object> boundDeviceData;
+        try {
+            boundDeviceData = ((ResolvedDeviceData) deviceData).getDeviceData(user.getUserId(),
+                    FrameworkUtils.resolveUserResidentTenantDomain(user));
+        } catch (UserIdNotFoundException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("User ID is not available to bind the device data.", e);
+            }
+            return null;
+        } catch (FrameworkException e) {
+            LOG.error("Error while resolving the resident tenant of the user to bind the device data.", e);
+            return null;
+        }
+        if (boundDeviceData == null) {
+            return null;
+        }
+        return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                .createJsParameters(new HashMap<>(boundDeviceData));
     }
 
     private boolean hasTransientValueInParameters(String key) {

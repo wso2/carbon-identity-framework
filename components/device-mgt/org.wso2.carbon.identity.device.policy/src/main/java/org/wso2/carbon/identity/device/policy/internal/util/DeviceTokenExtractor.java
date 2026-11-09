@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyException;
 import org.wso2.carbon.identity.device.policy.api.exception.DevicePolicyServerException;
@@ -62,16 +63,13 @@ public class DeviceTokenExtractor {
     private final DeviceTokenReplayProtectionService replayService = DeviceTokenReplayProtectionService.getInstance();
 
     /**
-     * Extracts verified device attributes from a raw JWT string.
-     * Use this when the token has already been extracted from a query param or header.
+     * Verifies a device token against the registered device, looked up by the device ID in the token header.
      *
-     * @param token        Raw JWT string to parse and verify.
-     * @param tenantDomain Tenant domain used for device lookup.
-     * @return Map of device field names to their values from verified JWT claims.
+     * @param token Raw JWT string.
+     * @return Verified device token with the device, owner and tenant of the device.
      * @throws DevicePolicyException If the token is invalid or signature verification fails.
      */
-    public Map<String, Object> extractFromToken(String token, String tenantDomain)
-            throws DevicePolicyException {
+    public VerifiedDeviceToken extract(String token) throws DevicePolicyException {
 
         try {
             SignedJWT signedJWT = parseSignedJWT(token);
@@ -86,19 +84,21 @@ public class DeviceTokenExtractor {
             // Strip any stray leading/trailing quotes or backslashes introduced by JWT serialisation bugs.
             deviceId = StringUtils.strip(deviceId.trim(), "\"\\");
 
-            Device device = DevicePolicyComponentServiceHolder.getInstance()
-                    .getDeviceManagementService()
-                    .getDeviceById(deviceId, tenantDomain);
-
-            if (device == null || device.getStatus() != Device.Status.ACTIVE) {
+            TenantDevice tenantDevice = DevicePolicyComponentServiceHolder.getInstance().getDeviceManagementService()
+                    .getTenantDeviceById(deviceId);
+            if (tenantDevice == null || tenantDevice.getDevice().getStatus() != Device.Status.ACTIVE) {
                 diagnosticLogger.logTokenValidationFailure(deviceId,
                         "Device is not registered or is not active.");
                 throw DevicePolicyExceptionHandler.handleClientException(
                         DevicePolicyErrorMessage.ERROR_DEVICE_NOT_ACTIVE, deviceId);
             }
 
+            Device device = tenantDevice.getDevice();
+            String tenantDomain = tenantDevice.getTenantDomain();
             ECPublicKey publicKey = decodePublicKey(device.getPublicKey());
-            return verifyAndExtract(signedJWT, publicKey, deviceId, tenantDomain);
+            // The jti is recorded in the tenant of the device.
+            return new VerifiedDeviceToken(deviceId, device.getUserId(), tenantDomain,
+                    verifyAndExtract(signedJWT, publicKey, deviceId, tenantDomain));
 
         } catch (ParseException e) {
             diagnosticLogger.logTokenValidationFailure(null, "Device token could not be parsed.");
@@ -117,7 +117,7 @@ public class DeviceTokenExtractor {
 
     /**
      * Extracts verified device attributes from a JWT signed with a caller-supplied public key.
-     * Unlike {@link #extractFromToken(String, String)}, this does not look the device up in the registry;
+     * Unlike {@link #extract(String)}, this does not look the device up in the registry;
      * the key is supplied by the caller (e.g. the registration executor, which has just established trust
      * in the key via the challenge signature). Signature, {@code iat} freshness and {@code jti} single-use
      * are still enforced before the claims are trusted.
@@ -235,6 +235,54 @@ public class DeviceTokenExtractor {
         } catch (IllegalArgumentException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw DevicePolicyExceptionHandler.handleServerException(
                     DevicePolicyErrorMessage.ERROR_DEVICE_PUBLIC_KEY_DECODE_FAILED, e);
+        }
+    }
+
+    /**
+     * Verified device data with the device ID, owner and tenant of the device.
+     */
+    public static final class VerifiedDeviceToken {
+
+        private final String deviceId;
+        private final String ownerUserId;
+        private final String tenantDomain;
+        private final Map<String, Object> deviceData;
+
+        /**
+         * Creates a verified device token.
+         *
+         * @param deviceId     Device ID.
+         * @param ownerUserId  Owner user ID in the tenant of the device.
+         * @param tenantDomain Tenant domain of the device.
+         * @param deviceData   Verified token claims.
+         */
+        public VerifiedDeviceToken(String deviceId, String ownerUserId, String tenantDomain,
+                                   Map<String, Object> deviceData) {
+
+            this.deviceId = deviceId;
+            this.ownerUserId = ownerUserId;
+            this.tenantDomain = tenantDomain;
+            this.deviceData = deviceData;
+        }
+
+        public String getDeviceId() {
+
+            return deviceId;
+        }
+
+        public String getOwnerUserId() {
+
+            return ownerUserId;
+        }
+
+        public String getTenantDomain() {
+
+            return tenantDomain;
+        }
+
+        public Map<String, Object> getDeviceData() {
+
+            return deviceData;
         }
     }
 }

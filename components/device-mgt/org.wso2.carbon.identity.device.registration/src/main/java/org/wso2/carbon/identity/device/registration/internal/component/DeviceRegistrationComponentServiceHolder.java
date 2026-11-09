@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.device.registration.internal.component;
 
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 
 /**
  * Holds OSGi service references for the device registration executor bundle.
@@ -31,6 +32,7 @@ public class DeviceRegistrationComponentServiceHolder {
 
     private DeviceManagementService deviceManagementService;
     private DevicePolicyEvaluator devicePolicyEvaluator;
+    private OrganizationManager organizationManager;
 
     private DeviceRegistrationComponentServiceHolder() {
 
@@ -61,5 +63,13 @@ public class DeviceRegistrationComponentServiceHolder {
         this.devicePolicyEvaluator = devicePolicyEvaluator;
     }
 
+    public OrganizationManager getOrganizationManager() {
 
+        return organizationManager;
+    }
+
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2025-2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -256,6 +256,8 @@ public class Constants {
                 FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
         INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", "defaultEnableInvitedUserRegistration",
                 FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+                FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
+        PROFILE_UPDATE("PROFILE_UPDATE", "defaultEnableProfileUpdate",
                 FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED);
 
         private final String type;
@@ -345,6 +347,7 @@ public class Constants {
         public static final String USER_ONBOARD = "USER_ONBOARD";
         public static final String END = "END";
         public static final String RULE_EVALUATION = "RULE_EVALUATION";
+        public static final String POLL = "POLL";
 
         private StepTypes() {
 

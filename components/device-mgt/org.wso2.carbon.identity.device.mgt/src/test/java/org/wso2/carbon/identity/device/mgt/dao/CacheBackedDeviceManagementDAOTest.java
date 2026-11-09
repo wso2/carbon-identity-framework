@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.model.DeviceAssociation;
+import org.wso2.carbon.identity.device.mgt.api.model.TenantDevice;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCache;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheEntry;
 import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheKey;
@@ -151,6 +152,33 @@ public class CacheBackedDeviceManagementDAOTest {
 
         assertNull(result);
         assertNull(deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), TENANT_ID));
+    }
+
+    @Test
+    public void testGetTenantDeviceByIdCachesDeviceInItsTenant() throws DeviceMgtException {
+
+        Device device = mock(Device.class);
+        when(IdentityTenantUtil.getTenantId(OTHER_TENANT_DOMAIN)).thenReturn(OTHER_TENANT_ID);
+        when(deviceManagementDAO.getTenantDeviceById(DEVICE_ID)).thenReturn(new TenantDevice(device,
+                OTHER_TENANT_DOMAIN));
+
+        TenantDevice result = cacheBackedDeviceManagementDAO.getTenantDeviceById(DEVICE_ID);
+
+        assertEquals(result.getTenantDomain(), OTHER_TENANT_DOMAIN);
+        assertEquals(deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), OTHER_TENANT_ID).getDevice(),
+                device);
+        // The later lookup in the device's tenant is served from the cache.
+        assertEquals(cacheBackedDeviceManagementDAO.getDeviceById(DEVICE_ID, OTHER_TENANT_ID), device);
+        verify(deviceManagementDAO, never()).getDeviceById(DEVICE_ID, OTHER_TENANT_ID);
+    }
+
+    @Test
+    public void testGetTenantDeviceByIdWhenDeviceMissing() throws DeviceMgtException {
+
+        when(deviceManagementDAO.getTenantDeviceById(DEVICE_ID)).thenReturn(null);
+
+        assertNull(cacheBackedDeviceManagementDAO.getTenantDeviceById(DEVICE_ID));
+        assertNull(deviceCache.getValueFromCache(new DeviceCacheKey(DEVICE_ID), OTHER_TENANT_ID));
     }
 
     @Test

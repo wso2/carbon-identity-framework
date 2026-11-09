@@ -30,10 +30,14 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DiscoverableGroup;
 import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
@@ -820,6 +824,58 @@ public class DefaultApplicationValidatorTest {
             Assert.assertFalse(hasArrayFillError,
                     "Should not have Array().fill() validation error for valid scripts. Errors: " +
                     String.join("|", validationErrors));
+        }
+    }
+
+    @DataProvider(name = "orgIdentifierHandlerOnlyStepDataProvider")
+    public Object[][] orgIdentifierHandlerOnlyStepDataProvider() {
+
+        return new Object[][]{
+                // Enhanced org auth enabled: the organization identifier handler alone is a valid step.
+                {"OrganizationIdentifierHandler", true, false},
+                // Enhanced org auth disabled: the organization identifier handler alone is not an authenticator.
+                {"OrganizationIdentifierHandler", false, true},
+                // Other handlers alone are still rejected even with enhanced org auth enabled.
+                {"IdentifierExecutor", true, true}
+        };
+    }
+
+    @Test(dataProvider = "orgIdentifierHandlerOnlyStepDataProvider")
+    public void testValidateLocalAndOutBoundAuthenticationConfigWithHandlerOnlyStep(
+            String handlerName, boolean isEnhancedOrgAuthEnabled, boolean isValidationFailScenario) throws Exception {
+
+        Property handlerProperty = new Property();
+        handlerProperty.setName(DefaultApplicationValidator.IS_HANDLER);
+        handlerProperty.setValue("true");
+        LocalAuthenticatorConfig handlerConfig = new LocalAuthenticatorConfig();
+        handlerConfig.setName(handlerName);
+        handlerConfig.setProperties(new Property[]{handlerProperty});
+
+        AuthenticationStep step = new AuthenticationStep();
+        step.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{handlerConfig});
+        LocalAndOutboundAuthenticationConfig authConfig = new LocalAndOutboundAuthenticationConfig();
+        authConfig.setAuthenticationSteps(new AuthenticationStep[]{step});
+
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        when(applicationManagementService.getAllLocalAuthenticators(eq(SUPER_TENANT_DOMAIN_NAME)))
+                .thenReturn(new LocalAuthenticatorConfig[]{handlerConfig});
+
+        try (MockedStatic<ApplicationManagementService> staticApplicationManagementService =
+                     mockStatic(ApplicationManagementService.class)) {
+            staticApplicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(applicationManagementService);
+
+            Method validateLocalAndOutBoundAuthenticationConfig = DefaultApplicationValidator.class
+                    .getDeclaredMethod("validateLocalAndOutBoundAuthenticationConfig", List.class,
+                            LocalAndOutboundAuthenticationConfig.class, String.class, boolean.class);
+            validateLocalAndOutBoundAuthenticationConfig.setAccessible(true);
+            List<String> validationErrors = new ArrayList<>();
+            validateLocalAndOutBoundAuthenticationConfig.invoke(new DefaultApplicationValidator(), validationErrors,
+                    authConfig, SUPER_TENANT_DOMAIN_NAME, isEnhancedOrgAuthEnabled);
+
+            Assert.assertEquals(validationErrors.contains(
+                    "No authenticator have been registered in the authentication flow."), isValidationFailScenario,
+                    "Unexpected validation result. Errors: " + String.join("|", validationErrors));
         }
     }
 

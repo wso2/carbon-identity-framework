@@ -1686,6 +1686,7 @@
             <Cache name="IdPCacheByHRI"              enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="IdPCacheByName"             enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="PrivateKeyJWT"              enable="true"  timeout="10" capacity="5000" isDistributed="false"/>
+            <Cache id="flow_polling_cache" name="FlowPollingCache" enable="true" timeout="180" capacity="5000" isDistributed="false"/>
             <Cache id="saml_cert_cache" name="SAMLCertCache" enable="true" timeout="900" capacity="5000" isDistributed="false"/>
             <Cache id="push_auth_context_cache" name="PushAuthContextCache" enable="true" timeout="300" capacity="5000" isDistributed="false" isTemporary="true"/>
             <Cache id="push_auth_status_cache" name="PushAuthStatusCache" enable="true" timeout="300" capacity="5000" isDistributed="false" isTemporary="true"/>
@@ -2722,6 +2723,7 @@
                     <Path>/api/identity/oauth2/dcr/</Path>
                     <Path>/api/identity/auth/v1.1/data</Path>
                     <Path>/api/server/v1/flow/execute</Path>
+                    <Path>/api/server/v1/flow/poll</Path>
                 </SubPaths>
             </Context>
             <Context>

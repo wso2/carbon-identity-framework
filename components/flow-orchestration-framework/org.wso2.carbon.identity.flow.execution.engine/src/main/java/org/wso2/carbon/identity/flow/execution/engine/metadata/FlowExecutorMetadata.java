@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.metadata;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Display metadata declared by an executor. Describes how flow composer presents it as a selectable step.
  */
@@ -29,6 +33,7 @@ public class FlowExecutorMetadata {
     private final String associatedAuthenticator;
     private final boolean connectionRequired;
     private final boolean externalClaimResolutionEnabled;
+    private final List<FlowExecutorPhase> phases;
 
     private FlowExecutorMetadata(Builder builder) {
 
@@ -38,6 +43,7 @@ public class FlowExecutorMetadata {
         this.associatedAuthenticator = builder.associatedAuthenticator;
         this.connectionRequired = builder.connectionRequired;
         this.externalClaimResolutionEnabled = builder.externalClaimResolutionEnabled;
+        this.phases = Collections.unmodifiableList(new ArrayList<>(builder.phases));
     }
 
     /**
@@ -100,6 +106,16 @@ public class FlowExecutorMetadata {
         return externalClaimResolutionEnabled;
     }
 
+    /**
+     * Phases of the executor. Each node runs the one named in its executor metadata.
+     *
+     * @return Phases, or an empty list.
+     */
+    public List<FlowExecutorPhase> getPhases() {
+
+        return phases;
+    }
+
     public static Builder builder() {
 
         return new Builder();
@@ -116,6 +132,7 @@ public class FlowExecutorMetadata {
         private String associatedAuthenticator;
         private boolean connectionRequired;
         private boolean externalClaimResolutionEnabled;
+        private final List<FlowExecutorPhase> phases = new ArrayList<>();
 
         private Builder() {
 
@@ -154,6 +171,12 @@ public class FlowExecutorMetadata {
         public Builder externalClaimResolutionEnabled(boolean externalClaimResolutionEnabled) {
 
             this.externalClaimResolutionEnabled = externalClaimResolutionEnabled;
+            return this;
+        }
+
+        public Builder phase(FlowExecutorPhase phase) {
+
+            this.phases.add(phase);
             return this;
         }
 

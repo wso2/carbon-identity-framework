@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.device.policy.internal.rule.DevicePolicyEvaluati
 import org.wso2.carbon.identity.device.policy.internal.service.IntegrityDataEnricher;
 import org.wso2.carbon.identity.device.policy.internal.service.impl.DevicePolicyEvaluatorImpl;
 import org.wso2.carbon.identity.device.policy.internal.type.DevicePolicyTypeDefinition;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 import org.wso2.carbon.identity.policy.management.api.type.PolicyTypeDefinition;
@@ -211,5 +212,24 @@ public class DevicePolicyServiceComponent {
 
         DevicePolicyComponentServiceHolder.getInstance().setClientAttestationService(null);
         LOG.debug("ClientAttestationService unset in Device Policy component.");
+    }
+
+    @Reference(
+            name = "organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        DevicePolicyComponentServiceHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("OrganizationManager set in Device Policy component.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        DevicePolicyComponentServiceHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("OrganizationManager unset in Device Policy component.");
     }
 }

@@ -32,7 +32,7 @@ public class PolicyIdCacheEntry extends CacheEntry {
     /**
      * Constructor to create PolicyIdCacheEntry.
      *
-     * @param policyId Policy Id of the policy to be added to the cache.
+     * @param policyId Policy ID, or null if no policy has the name.
      */
     public PolicyIdCacheEntry(String policyId) {
 

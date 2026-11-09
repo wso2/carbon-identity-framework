@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -407,6 +407,27 @@ public class TaskExecutionNodeTest {
             assertNotNull(nodeResponse.getRequiredData());
             assertEquals(nodeResponse.getRequiredData().size(), 2);
             assertEquals(nodeResponse.getAdditionalInfo().get("clientKey"), "clientValue");
+        }
+    }
+
+    @Test
+    public void testExecutorPollStatus() throws Exception {
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(Constants.ExecutorStatus.STATUS_POLL);
+        executorResponse.setRequiredData(new ArrayList<>(Collections.singletonList("publicKey")));
+        executorResponse.setOptionalData(new ArrayList<>(Collections.singletonList("deviceModel")));
+        Map<String, String> additionalInfo = new HashMap<>();
+        additionalInfo.put("pollToken", "token");
+        executorResponse.setAdditionalInfo(additionalInfo);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+            NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
+            assertEquals(nodeResponse.getStatus(), STATUS_INCOMPLETE);
+            assertEquals(nodeResponse.getType(), "POLL");
+            assertEquals(nodeResponse.getRequiredData(), Collections.singletonList("publicKey"));
+            assertEquals(nodeResponse.getOptionalData(), Collections.singletonList("deviceModel"));
+            assertEquals(nodeResponse.getAdditionalInfo().get("pollToken"), "token");
         }
     }
 

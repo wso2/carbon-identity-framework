@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestatio
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.policy.internal.service.IntegrityDataEnricher;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 
@@ -39,6 +40,7 @@ public class DevicePolicyComponentServiceHolder {
     private ClientAttestationService clientAttestationService;
     private DevicePolicyEvaluator devicePolicyEvaluator;
     private IntegrityDataEnricher integrityDataEnricher;
+    private OrganizationManager organizationManager;
 
     private DevicePolicyComponentServiceHolder() {
 
@@ -118,5 +120,15 @@ public class DevicePolicyComponentServiceHolder {
     public void setIntegrityDataEnricher(IntegrityDataEnricher integrityDataEnricher) {
 
         this.integrityDataEnricher = integrityDataEnricher;
+    }
+
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
     }
 }

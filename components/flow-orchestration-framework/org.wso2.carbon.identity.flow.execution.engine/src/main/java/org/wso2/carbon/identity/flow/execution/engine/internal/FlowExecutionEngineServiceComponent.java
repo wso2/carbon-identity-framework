@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.flow.execution.engine.rule.InvitedUserRegistrationFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.flow.execution.engine.rule.PasswordRecoveryFlowRuleEvaluationDataProvider;
+import org.wso2.carbon.identity.flow.execution.engine.rule.ProfileUpdateFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.flow.execution.engine.rule.RegistrationFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
@@ -92,6 +93,8 @@ public class FlowExecutionEngineServiceComponent {
                     new PasswordRecoveryFlowRuleEvaluationDataProvider(), null);
             bundleContext.registerService(RuleEvaluationDataProvider.class.getName(),
                     new InvitedUserRegistrationFlowRuleEvaluationDataProvider(), null);
+            bundleContext.registerService(RuleEvaluationDataProvider.class.getName(),
+                    new ProfileUpdateFlowRuleEvaluationDataProvider(), null);
             LOG.debug("Flow Engine service successfully activated.");
         } catch (Throwable e) {
             LOG.error("Error while initiating Flow Engine service", e);

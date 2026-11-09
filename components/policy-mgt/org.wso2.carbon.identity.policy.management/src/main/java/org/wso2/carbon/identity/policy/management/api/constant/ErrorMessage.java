@@ -44,6 +44,9 @@ public enum ErrorMessage {
             "Policy type is immutable and cannot be changed during an update operation."),
     ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_POLICY_TYPE("PM-60010", "Unsupported resource type for policy type.",
             "Resource type '%s' is not supported for policy type '%s'."),
+    ERROR_POLICY_MANAGEMENT_NOT_ALLOWED_FOR_ORGANIZATION("PM-60011", "Policy management not allowed.",
+            "Policies cannot be created, updated or deleted in organization: %s. Organizations inherit " +
+                    "policies from their parent organizations."),
 
     // Server errors.
     ERROR_WHILE_ADDING_POLICY("PM-65001", "Error while adding Policy.",
@@ -67,7 +70,9 @@ public enum ErrorMessage {
     ERROR_RULE_FLOW_NOT_DEFINED("PM-65010", "Rule flow not defined.",
             "No rule flow is defined for policy type: %s."),
     ERROR_WHILE_RETRIEVING_RULE_METADATA("PM-65011", "Error while retrieving rule metadata.",
-            "Error while retrieving rule metadata for policy type: %s.");
+            "Error while retrieving rule metadata for policy type: %s."),
+    ERROR_WHILE_RESOLVING_ORGANIZATION("PM-65012", "Error while resolving organization.",
+            "Error while checking whether tenant: %s is an organization.");
 
     private final String code;
     private final String message;

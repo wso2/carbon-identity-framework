@@ -15,6 +15,7 @@
     <test name="Device_Management_Service_Tests">
         <classes>
             <class name="org.wso2.carbon.identity.device.mgt.service.DeviceManagementServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.device.mgt.service.DeviceManagementServiceImplInheritanceTest"/>
         </classes>
     </test>
     <test name="Device_Management_Util_Tests">

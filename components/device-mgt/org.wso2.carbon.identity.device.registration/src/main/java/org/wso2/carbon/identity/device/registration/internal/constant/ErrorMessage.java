@@ -36,11 +36,25 @@ public enum ErrorMessage {
                     "Send device attributes as a JSON object under the 'deviceData' key."),
     ERROR_USER_NOT_AUTHENTICATED("DR-60006", "User not authenticated.",
             "The user must be authenticated earlier in the flow before a device can be registered."),
+    ERROR_INVALID_QR_CODE("DR-60007", "Invalid or expired QR code.",
+            "The QR code to register the device is invalid, has expired or has already been used."),
+    ERROR_QR_CODE_LIMIT_REACHED("DR-60008", "Too many QR codes.",
+            "The maximum number of QR codes to register a device in this step has been reached."),
+    ERROR_INVALID_PAIRING_CODE("DR-60009", "Invalid pairing code.",
+            "The pairing code entered does not match the code shown on the device too many times."),
+    ERROR_INVALID_DEVICE_MODEL("DR-60010", "Invalid device model.",
+            "The device model must not be longer than %s characters."),
 
     ERROR_WHILE_VERIFYING_SIGNATURE("DR-65001", "Error while verifying device signature.",
             "An unexpected error occurred during signature verification for registration ID: %s."),
     ERROR_WHILE_EVALUATING_POLICY("DR-65002", "Error while evaluating device policy.",
-            "An error occurred while evaluating policy '%s'.");
+            "An error occurred while evaluating policy '%s'."),
+    ERROR_WHILE_BUILDING_QR_CODE_DATA("DR-65003", "Error while building the QR code data.",
+            "An error occurred while building the QR code data to register another device."),
+    ERROR_INVALID_PHASE("DR-65004", "Invalid device registration phase.",
+            "The device registration step cannot run the phase: %s."),
+    ERROR_INVALID_PHASE_ORDER("DR-65005", "Invalid order of the device registration phases.",
+            "The %s phase ran before the preceding device registration phases completed.");
 
     private final String code;
     private final String message;

@@ -107,13 +107,8 @@ public class DeviceRegistrationHandler {
             String deviceName,
             String deviceModel) throws DeviceRegistrationException {
 
-        validateRequiredField(registrationId, DeviceRegistrationConstants.PROP_REGISTRATION_ID);
-        validateRequiredField(challenge, DeviceRegistrationConstants.PROP_CHALLENGE);
-        validateRequiredField(publicKey, DeviceRegistrationConstants.FIELD_PUBLIC_KEY);
-        validateRequiredField(signature, DeviceRegistrationConstants.FIELD_SIGNATURE);
         validateRequiredField(deviceName, DeviceRegistrationConstants.FIELD_DEVICE_NAME);
-
-        DeviceSignatureVerifier.verify(registrationId, challenge, publicKey, signature);
+        verifySignature(registrationId, challenge, publicKey, signature);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Device registration verified (not yet persisted) for registrationId: " + registrationId);
@@ -125,6 +120,26 @@ public class DeviceRegistrationHandler {
                 .publicKey(publicKey)
                 .registeredAt(Timestamp.from(Instant.now()))
                 .build();
+    }
+
+    /**
+     * Verifies the device's signature over a challenge.
+     *
+     * @param registrationId Id of the device to register.
+     * @param challenge      Base64url encoded challenge that the device signed.
+     * @param publicKey      Base64-encoded EC public key (X.509/SubjectPublicKeyInfo DER).
+     * @param signature      Base64-encoded ECDSA signature over the challenge bytes.
+     * @throws DeviceRegistrationException If a field is missing or the signature is invalid.
+     */
+    public static void verifySignature(String registrationId, String challenge, String publicKey, String signature)
+            throws DeviceRegistrationException {
+
+        validateRequiredField(registrationId, DeviceRegistrationConstants.PROP_REGISTRATION_ID);
+        validateRequiredField(challenge, DeviceRegistrationConstants.PROP_CHALLENGE);
+        validateRequiredField(publicKey, DeviceRegistrationConstants.FIELD_PUBLIC_KEY);
+        validateRequiredField(signature, DeviceRegistrationConstants.FIELD_SIGNATURE);
+
+        DeviceSignatureVerifier.verify(registrationId, challenge, publicKey, signature);
     }
 
     private static void validateRequiredField(String value, String fieldName)

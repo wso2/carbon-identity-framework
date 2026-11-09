@@ -29,6 +29,9 @@ public enum ErrorMessage {
             "%s is empty or invalid."),
     ERROR_ASSOCIATION_FIELD_REQUIRED("DM-60003", "Invalid device association.",
             "%s field in device association is empty or invalid."),
+    ERROR_DEVICE_REGISTRATION_FOR_SHARED_USER("DM-60005", "Device cannot be registered for a shared user.",
+            "A device cannot be registered for a user shared into the organization: %s. Register the device in the " +
+                    "resident organization of the user."),
 
     ERROR_WHILE_REGISTERING_DEVICE("DM-65001", "Error while registering device.",
             "Error while registering device with ID: %s in the system."),
@@ -39,7 +42,9 @@ public enum ErrorMessage {
     ERROR_WHILE_DELETING_DEVICE("DM-65004", "Error while deleting device.",
             "Error while deleting device with ID: %s from the system."),
     ERROR_INVALID_DEVICE_ASSOCIATION("DM-65007", "Invalid device association.",
-            "Device association must be a valid UserDeviceAssociation with matching device ID and non-blank user ID.");
+            "Device association must be a valid UserDeviceAssociation with matching device ID and non-blank user ID."),
+    ERROR_WHILE_RESOLVING_INHERITED_DEVICES("DM-65008", "Error while resolving inherited devices.",
+            "Error while resolving the devices inherited from the resident organization of the user in tenant: %s.");
 
     private final String code;
     private final String message;

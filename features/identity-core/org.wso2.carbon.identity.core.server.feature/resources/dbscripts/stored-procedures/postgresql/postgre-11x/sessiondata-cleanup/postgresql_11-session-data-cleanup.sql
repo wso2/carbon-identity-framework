@@ -24,6 +24,10 @@ deleteMappingCount INT := 0;
 deleteAppInfoCount INT := 0;
 deleteMetadataCount INT := 0;
 deleteFederatedSessionMappingCount INT := 0;
+deleteOrphanedFederatedSessionMappingCount INT := 0;
+fedMappingCleanupTimeInMinutes int;
+sessionDataInIdentityDatabase boolean;
+fedMappingCleanupTime timestamp;
 chunkCount INT := 0;
 batchCount INT := 0;
 
@@ -57,6 +61,8 @@ backupTables := FALSE;   -- SET IF TOKEN TABLE NEEDS TO BACKUP BEFORE DELETE  [D
 sleepTime := 2; -- SET SLEEP TIME FOR AVOID TABLE LOCKS     [DEFAULT : 2]
 enableLog := TRUE; -- ENABLE LOGGING [DEFAULT : TRUE]
 logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE , DEBUG
+fedMappingCleanupTimeInMinutes := 1440; -- FEDERATED SESSION MAPPINGS WITHOUT A SESSION, CREATED BEFORE THIS MANY MINUTES, WILL BE REMOVED [DEFAULT : 1440]
+sessionDataInIdentityDatabase := FALSE; -- SET TO TRUE ONLY IF SESSION DATA PERSISTENCE IS ENABLED AND THE SERVER STORES ITS SESSION DATA IN THIS DATABASE (NO SEPARATE SESSION DATASOURCE). THE ORPHANED FEDERATED SESSION MAPPINGS ARE REMOVED ONLY WHEN THIS IS TRUE [DEFAULT : FALSE]
 
 -- ------------------------------------------
 -- CONSTANT VARIABLES
@@ -550,6 +556,43 @@ LOOP
 
     END LOOP;
 END LOOP;
+
+-- --------------------------------------------
+-- REMOVE ORPHANED FEDERATED SESSION MAPPINGS
+-- --------------------------------------------
+-- The deletes above remove only the federated session mappings of the sessions they remove. Mappings whose session
+-- was removed earlier, for example by the session data cleanup task of the server, are removed here.
+-- Runs only when sessionDataInIdentityDatabase is TRUE: the check below needs the session tables in this database.
+
+EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingFederatedAuthSessionMappingTable;
+IF (sessionDataInIdentityDatabase AND rowcount = 1)
+THEN
+    IF (enableLog) THEN
+    RAISE NOTICE '';
+    RAISE NOTICE 'ORPHANED FEDERATED SESSION MAPPING PURGING STARTED .... !';
+    RAISE NOTICE '';
+    END IF;
+
+    fedMappingCleanupTime := LOCALTIMESTAMP - (fedMappingCleanupTimeInMinutes * INTERVAL '1 minute');
+
+    LOOP
+        EXECUTE 'DELETE from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' where id in (select m.id from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' m where m.time_created < $1 and not exists (select 1 from '||quote_ident(purgingTable)||' s where s.session_id = m.session_id) limit '||batchSize||')' USING fedMappingCleanupTime;
+        GET diagnostics deleteOrphanedFederatedSessionMappingCount := ROW_COUNT;
+        COMMIT;
+
+        IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+        notice := 'BATCH DELETE FINISHED ON TABLE '||purgingFederatedAuthSessionMappingTable||' FOR ORPHANED MAPPINGS WITH :'||deleteOrphanedFederatedSessionMappingCount;
+        RAISE NOTICE '%',notice;
+        END IF;
+
+        EXIT WHEN deleteOrphanedFederatedSessionMappingCount = 0;
+
+        IF (enableLog AND logLevel IN ('TRACE')) THEN
+        RAISE NOTICE 'SLEEPING ...';
+        END IF;
+        perform pg_sleep(sleepTime);
+    END LOOP;
+END IF;
 
 END;
 $$
