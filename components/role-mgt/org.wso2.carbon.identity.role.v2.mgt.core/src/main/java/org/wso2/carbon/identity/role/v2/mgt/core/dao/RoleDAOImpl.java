@@ -1556,7 +1556,8 @@ public class RoleDAOImpl implements RoleDAO {
 
         List<RoleBasicInfo> roles = new ArrayList<>();
         for (RoleDTO hybridRole : getHybridRolesByApplication(applicationId, tenantDomain)) {
-            RoleBasicInfo roleBasicInfo = new RoleBasicInfo(hybridRole.getId(), hybridRole.getName());
+            RoleBasicInfo roleBasicInfo = new RoleBasicInfo(hybridRole.getId(),
+                    RoleManagementUtils.removeInternalDomain(hybridRole.getName()));
             roleBasicInfo.setAudience(APPLICATION);
             roleBasicInfo.setAudienceId(applicationId);
             roles.add(roleBasicInfo);
