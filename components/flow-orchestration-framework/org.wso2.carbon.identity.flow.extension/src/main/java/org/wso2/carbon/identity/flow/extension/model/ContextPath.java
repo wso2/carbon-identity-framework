@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.flow.extension.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -29,18 +30,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * for expose paths, outbound values are encrypted with the external service's certificate;
  * for modify paths, inbound values from the external service are encrypted with IS's key.
  * </p>
+ * <p>
+ * A runtime value or request header entry names the flow type it applies to, as each flow defines its own. An entry
+ * of the organization a flow onboards names the {@code REGISTRATION} flow type, as only that flow onboards one.
+ * Every other entry has no flow type and applies to all flows.
+ * </p>
  */
 public class ContextPath {
 
     private final String path;
     private final boolean encrypted;
+    private final String flowType;
+
+    public ContextPath(String path, boolean encrypted) {
+
+        this(path, encrypted, null);
+    }
 
     @JsonCreator
     public ContextPath(@JsonProperty("path") String path,
-                       @JsonProperty("encrypted") boolean encrypted) {
+                       @JsonProperty("encrypted") boolean encrypted,
+                       @JsonProperty("flowType") String flowType) {
 
         this.path = path;
         this.encrypted = encrypted;
+        this.flowType = flowType;
     }
 
     /**
@@ -62,5 +76,16 @@ public class ContextPath {
     public boolean isEncrypted() {
 
         return encrypted;
+    }
+
+    /**
+     * Returns the flow type this entry applies to.
+     *
+     * @return The flow type, or {@code null} when the entry applies to all flows.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getFlowType() {
+
+        return flowType;
     }
 }

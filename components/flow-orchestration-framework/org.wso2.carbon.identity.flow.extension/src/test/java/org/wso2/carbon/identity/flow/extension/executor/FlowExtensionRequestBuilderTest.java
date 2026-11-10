@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.flow.extension.executor;
 
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionHeader;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -26,6 +30,7 @@ import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRe
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
+import org.wso2.carbon.identity.action.execution.api.model.Header;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.management.api.model.Action;
@@ -34,13 +39,22 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionRuntimeValue;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionSubjectOrganization;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionUser;
+import org.wso2.carbon.identity.flow.mgt.model.FlowRuntimeValueDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariableDataType;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,6 +62,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -68,6 +84,12 @@ public class FlowExtensionRequestBuilderTest {
     private static final String CREDENTIAL_PATH = "/user/credentials/password";
     private static final String USERNAME_PATH = "/user/username";
     private static final String USER_ID_CLAIM_PATH = "/user/claims[uri=http://wso2.org/claims/userid]";
+    private static final String PLAN_PATH = "/runtimeValues[name=plan]";
+    private static final String ATTEMPTS_PATH = "/runtimeValues[name=attempts]";
+    private static final String UNDEFINED_RUNTIME_VALUE_PATH = "/runtimeValues[name=undefined]";
+    private static final String DEVICE_HEADER_PATH = "/request/additionalHeaders[name=x-device]";
+    private static final String UNDEFINED_HEADER_PATH = "/request/additionalHeaders[name=x-undefined]";
+    private static final String PASSWORD_RECOVERY = "PASSWORD_RECOVERY";
 
     // A self-signed RSA X.509 certificate (base64-encoded DER, CN=flow-ext-test), valid until 2300.
     // Used only to exercise the outbound credential encryption path.
@@ -502,5 +524,308 @@ public class FlowExtensionRequestBuilderTest {
 
         builder.buildActionExecutionRequest(
                 flowContextWith(execContext()), ActionExecutionRequestContext.create(plainAction));
+    }
+
+    // ------------------------------------------------------------------ runtime values and request headers
+
+    private FlowExecutionContext execContextWithFlowVariables() {
+
+        FlowVariablesDTO variables = new FlowVariablesDTO();
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
+        variables.getRuntimeValues().add(new FlowRuntimeValueDTO("attempts", FlowVariableDataType.INTEGER));
+        variables.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.setFlowVariables(variables);
+
+        FlowExecutionContext execCtx = execContext();
+        execCtx.setGraphConfig(graphConfig);
+        execCtx.getRuntimeValues().put("plan", "gold");
+        execCtx.getRuntimeValues().put("attempts", 3L);
+        execCtx.getRequest().getHeaders().put("x-device", Arrays.asList("mobile", "tablet"));
+        return execCtx;
+    }
+
+    /**
+     * Only the entries for the running flow type, and those the flow defines, reach the extension.
+     */
+    @Test
+    public void testRuntimeValuesAndHeadersAreScopedToTheRunningFlow() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(
+                        new ContextPath("/user/id", false),
+                        new ContextPath(PLAN_PATH, false, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION),
+                        new ContextPath(ATTEMPTS_PATH, false, PASSWORD_RECOVERY),
+                        new ContextPath(UNDEFINED_RUNTIME_VALUE_PATH, false,
+                                FlowExtensionConstants.ContextTree.FLOW_REGISTRATION),
+                        new ContextPath(DEVICE_HEADER_PATH, false, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION),
+                        new ContextPath(UNDEFINED_HEADER_PATH, false,
+                                FlowExtensionConstants.ContextTree.FLOW_REGISTRATION)),
+                Arrays.asList(
+                        new ContextPath(PLAN_PATH, false, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION),
+                        new ContextPath(ATTEMPTS_PATH, false, PASSWORD_RECOVERY),
+                        new ContextPath(UNDEFINED_RUNTIME_VALUE_PATH, false,
+                                FlowExtensionConstants.ContextTree.FLOW_REGISTRATION)));
+
+        org.wso2.carbon.identity.action.execution.api.model.FlowContext actionFlowContext =
+                flowContextWith(execContextWithFlowVariables());
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(actionFlowContext, actionContext(accessConfig));
+
+        List<AllowedOperation> allowedOps = request.getAllowedOperations();
+        assertEquals(allowedOps.size(), 2);
+        assertEquals(allowedOps.get(0).getOp(), Operation.REPLACE);
+        assertEquals(allowedOps.get(0).getPaths(), Collections.singletonList(PLAN_PATH));
+        List<?> modifyPaths = (List<?>) actionFlowContext.getContextData().get(FlowExtensionConstants.MODIFY_PATHS_KEY);
+        assertEquals(modifyPaths.size(), 1);
+        assertEquals(((ContextPath) modifyPaths.get(0)).getPath(), PLAN_PATH);
+
+        FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
+        assertEquals(event.getFlow().getUser().getId(), "uid");
+
+        List<FlowExtensionRuntimeValue> runtimeValues = event.getRuntimeValues();
+        assertEquals(runtimeValues.size(), 1);
+        assertEquals(runtimeValues.get(0).getName(), "plan");
+        assertEquals(runtimeValues.get(0).getDataType(), "STRING");
+        assertEquals(runtimeValues.get(0).getValue(), "gold");
+
+        List<Header> headers = event.getRequest().getAdditionalHeaders();
+        assertEquals(headers.size(), 1);
+        assertEquals(headers.get(0).getName(), "x-device");
+        assertEquals(headers.get(0).getValue(), new String[]{"mobile", "tablet"});
+    }
+
+    @Test
+    public void testRuntimeValuesForAnotherFlowTypeAreNotSent() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(new ContextPath(PLAN_PATH, false, PASSWORD_RECOVERY),
+                        new ContextPath(DEVICE_HEADER_PATH, false, PASSWORD_RECOVERY)),
+                Collections.singletonList(new ContextPath(PLAN_PATH, false, PASSWORD_RECOVERY)));
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContextWithFlowVariables()), actionContext(accessConfig));
+
+        List<AllowedOperation> allowedOps = request.getAllowedOperations();
+        assertEquals(allowedOps.size(), 1);
+        assertEquals(allowedOps.get(0).getOp(), Operation.REDIRECT);
+        FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
+        assertTrue(event.getRuntimeValues().isEmpty());
+        assertNull(event.getRequest());
+    }
+
+    /**
+     * A runtime value without a value, or a header not received, is left out of the event.
+     */
+    @Test
+    public void testRuntimeValueWithoutAValueIsNotSent() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        execCtx.getRuntimeValues().remove("plan");
+        execCtx.getRequest().getHeaders().remove("x-device");
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(
+                        new ContextPath(PLAN_PATH, false, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION),
+                        new ContextPath(ATTEMPTS_PATH, false, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION),
+                        new ContextPath(DEVICE_HEADER_PATH, false,
+                                FlowExtensionConstants.ContextTree.FLOW_REGISTRATION)), null);
+
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(flowContextWith(execCtx), actionContext(accessConfig));
+
+        FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
+        assertEquals(event.getRuntimeValues().size(), 1);
+        assertEquals(event.getRuntimeValues().get(0).getName(), "attempts");
+        assertEquals(event.getRuntimeValues().get(0).getDataType(), "INTEGER");
+        assertEquals(event.getRuntimeValues().get(0).getValue(), 3L);
+        assertNull(event.getRequest());
+    }
+
+    @Test
+    public void testEncryptedRuntimeValueAndHeaderAreSentAsJwe() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(
+                        new ContextPath(PLAN_PATH, true, FlowExtensionConstants.ContextTree.FLOW_REGISTRATION),
+                        new ContextPath(DEVICE_HEADER_PATH, true,
+                                FlowExtensionConstants.ContextTree.FLOW_REGISTRATION)), null);
+        Certificate certificate = new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build();
+
+        ActionExecutionRequest request;
+        try (MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            tenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT)).thenReturn(1);
+            request = builder.buildActionExecutionRequest(
+                    flowContextWith(execContextWithFlowVariables()), actionContext(accessConfig, certificate));
+        }
+
+        FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
+        Object plan = event.getRuntimeValues().get(0).getValue();
+        assertTrue(plan instanceof String && JWEEncryptionUtil.isJWEEncrypted((String) plan), String.valueOf(plan));
+        Object device = ((FlowExtensionHeader) event.getRequest().getAdditionalHeaders().get(0)).getSentValue();
+        assertTrue(device instanceof String && JWEEncryptionUtil.isJWEEncrypted((String) device),
+                String.valueOf(device));
+    }
+
+    /**
+     * A primitive value is encrypted as its text and an array as its whole JSON array, with numbers written as they
+     * are when not encrypted. A header is encrypted as the same array of text it is sent as when not encrypted.
+     */
+    @Test
+    public void testEncryptedValuesAreTheirTextOrJsonArray() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithFlowVariables();
+        execCtx.getGraphConfig().getFlowVariables().getRuntimeValues()
+                .add(new FlowRuntimeValueDTO("scores", FlowVariableDataType.NUMBER_ARRAY));
+        execCtx.getRuntimeValues().put("scores", Arrays.asList(10.0, 2.5, 1.0E-7));
+        String registration = FlowExtensionConstants.ContextTree.FLOW_REGISTRATION;
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath(PLAN_PATH, true, registration),
+                new ContextPath(ATTEMPTS_PATH, true, registration),
+                new ContextPath("/runtimeValues[name=scores]", true, registration),
+                new ContextPath(DEVICE_HEADER_PATH, true, registration)), null);
+        Certificate certificate = new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build();
+
+        ActionExecutionRequest request;
+        try (MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<JWEEncryptionUtil> jwe = mockStatic(JWEEncryptionUtil.class)) {
+            tenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT)).thenReturn(1);
+            jwe.when(() -> JWEEncryptionUtil.encrypt(anyString(), eq(TEST_CERTIFICATE)))
+                    .thenAnswer(invocation -> "jwe(" + invocation.getArgument(0) + ")");
+            request = builder.buildActionExecutionRequest(flowContextWith(execCtx),
+                    actionContext(accessConfig, certificate));
+        }
+
+        FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
+        Map<String, Object> runtimeValues = new HashMap<>();
+        event.getRuntimeValues().forEach(value -> runtimeValues.put(value.getName(), value.getValue()));
+        assertEquals(runtimeValues.get("plan"), "jwe(gold)");
+        assertEquals(runtimeValues.get("attempts"), "jwe(3)");
+        assertEquals(runtimeValues.get("scores"), "jwe([10.0,2.5,0.0000001])");
+        Map<String, Object> headers = new HashMap<>();
+        event.getRequest().getAdditionalHeaders().forEach(header ->
+                headers.put(header.getName(), ((FlowExtensionHeader) header).getSentValue()));
+        assertEquals(headers.get("x-device"), "jwe([\"mobile\",\"tablet\"])");
+    }
+
+    /**
+     * In the request JSON, a header's value is its array of values, or the encrypted string when it is encrypted.
+     */
+    @Test
+    public void testHeaderValueInTheRequestJson() throws Exception {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        FlowExtensionRequest request = new FlowExtensionRequest(Arrays.asList(
+                new FlowExtensionHeader("x-device", new String[]{"mobile", "tablet"}),
+                new FlowExtensionHeader("x-tenant", "jwe")));
+
+        assertEquals(objectMapper.writeValueAsString(request),
+                "{\"additionalHeaders\":[{\"name\":\"x-device\",\"value\":[\"mobile\",\"tablet\"]},"
+                        + "{\"name\":\"x-tenant\",\"value\":\"jwe\"}]}");
+    }
+
+    // ------------------------------------------------------------------ subject organization
+
+    private static final String REGISTRATION_FLOW = FlowExtensionConstants.ContextTree.FLOW_REGISTRATION;
+
+    private FlowExecutionContext execContextWithOrganization() {
+
+        FlowExecutionContext execCtx = execContext();
+        FlowOrganization organization = execCtx.getFlowOrganization();
+        organization.setOrganizationName("Acme");
+        organization.setOrganizationHandle("acme");
+        organization.setOrganizationDescription("Acme Corp");
+        organization.setAttribute("industry", "Retail");
+        return execCtx;
+    }
+
+    /**
+     * Only the exposed fields of the organization the flow onboards are sent. An attribute the flow has not collected
+     * is left out.
+     */
+    @Test
+    public void testSubjectOrganizationExposedFieldsAreSent() throws Exception {
+
+        FlowExecutionContext execCtx = execContextWithOrganization();
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH, false, REGISTRATION_FLOW),
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, false, REGISTRATION_FLOW),
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_DESCRIPTION_PATH, false, REGISTRATION_FLOW),
+                new ContextPath("/subjectOrganization/attributes[name=industry]", false, REGISTRATION_FLOW),
+                new ContextPath("/subjectOrganization/attributes[name=size]", false, REGISTRATION_FLOW)), null);
+
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(flowContextWith(execCtx), actionContext(accessConfig));
+
+        FlowExtensionSubjectOrganization organization =
+                ((FlowExtensionEvent) request.getEvent()).getSubjectOrganization();
+        assertNotNull(organization);
+        assertEquals(organization.getId(), execCtx.getFlowOrganization().getOrganizationId());
+        assertEquals(organization.getName(), "Acme");
+        assertNull(organization.getHandle());
+        assertEquals(organization.getDescription(), "Acme Corp");
+        assertEquals(organization.getAttributes().size(), 1);
+        assertEquals(organization.getAttributes().get(0).getName(), "industry");
+        assertEquals(organization.getAttributes().get(0).getValue(), "Retail");
+    }
+
+    @Test
+    public void testSubjectOrganizationIsNotSentWhenNotExposed() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(
+                Collections.singletonList(new ContextPath(FlowContextPaths.USER_ID_PATH, false)), null);
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContextWithOrganization()), actionContext(accessConfig));
+
+        assertNull(((FlowExtensionEvent) request.getEvent()).getSubjectOrganization());
+    }
+
+    /**
+     * A flow that has collected no organization details onboards no organization, so none is sent, not even its ID.
+     */
+    @Test
+    public void testSubjectOrganizationIsNotSentWhenTheFlowOnboardsNone() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_ID_PATH, false, REGISTRATION_FLOW),
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, false, REGISTRATION_FLOW)), null);
+
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(flowContextWith(execContext()), actionContext(accessConfig));
+
+        assertNull(((FlowExtensionEvent) request.getEvent()).getSubjectOrganization());
+    }
+
+    @Test
+    public void testSubjectOrganizationIsNotSentInAnotherFlow() throws Exception {
+
+        FlowExecutionContext execCtx = execContext(PASSWORD_RECOVERY);
+        execCtx.getFlowOrganization().setOrganizationName("Acme");
+        AccessConfig accessConfig = new AccessConfig(Collections.singletonList(
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_NAME_PATH, false, REGISTRATION_FLOW)), null);
+
+        ActionExecutionRequest request =
+                builder.buildActionExecutionRequest(flowContextWith(execCtx), actionContext(accessConfig));
+
+        assertNull(((FlowExtensionEvent) request.getEvent()).getSubjectOrganization());
+    }
+
+    @Test
+    public void testEncryptedSubjectOrganizationFieldsAreSentAsJwe() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath(FlowContextPaths.SUBJECT_ORGANIZATION_HANDLE_PATH, true, REGISTRATION_FLOW),
+                new ContextPath("/subjectOrganization/attributes[name=industry]", true, REGISTRATION_FLOW)), null);
+        Certificate certificate = new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build();
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContextWithOrganization()), actionContext(accessConfig, certificate));
+
+        FlowExtensionSubjectOrganization organization =
+                ((FlowExtensionEvent) request.getEvent()).getSubjectOrganization();
+        assertTrue(JWEEncryptionUtil.isJWEEncrypted(organization.getHandle()), organization.getHandle());
+        String industry = (String) organization.getAttributes().get(0).getValue();
+        assertTrue(JWEEncryptionUtil.isJWEEncrypted(industry), industry);
     }
 }

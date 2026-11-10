@@ -142,7 +142,7 @@ public class ActionDTO {
         private final String actionVersion;
         private final Timestamp createdAt;
         private final Timestamp updatedAt;
-        private final EndpointConfig endpoint;
+        private EndpointConfig endpoint;
         private final ActionRule rule;
         private List<String> attributes;
         private Map<String, ActionProperty> properties;
@@ -181,6 +181,20 @@ public class ActionDTO {
         public Builder properties(Map<String, ActionProperty> properties) {
 
             this.properties = properties;
+            return this;
+        }
+
+        public Builder allowedHeaders(List<String> allowedHeaders) {
+
+            if (this.endpoint != null) {
+                endpoint = new EndpointConfig.EndpointConfigBuilder(endpoint)
+                        .allowedHeaders(allowedHeaders)
+                        .build();
+            } else if (allowedHeaders != null) {
+                endpoint = new EndpointConfig.EndpointConfigBuilder()
+                        .allowedHeaders(allowedHeaders)
+                        .build();
+            }
             return this;
         }
 

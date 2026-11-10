@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.flow.extension.management;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
@@ -27,10 +29,15 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY;
@@ -44,6 +51,8 @@ import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.Act
  * to/from action properties.
  */
 public class FlowExtensionActionConverter implements ActionConverter {
+
+    private static final Log LOG = LogFactory.getLog(FlowExtensionActionConverter.class);
 
     @Override
     public Action.ActionTypes getSupportedActionType() {
@@ -73,9 +82,46 @@ public class FlowExtensionActionConverter implements ActionConverter {
                     new ActionProperty.BuilderForService(flowExtensionAction.getIconUrl()).build());
         }
 
+        logIgnoredAllowedHeaders(flowExtensionAction);
         return new ActionDTO.Builder(flowExtensionAction)
                 .properties(properties)
+                .allowedHeaders(getAllowedHeaders(flowExtensionAction))
                 .build();
+    }
+
+    /**
+     * The allowed headers of a flow extension's endpoint are the headers its access config exposes, so any given on
+     * the endpoint are not kept.
+     */
+    private void logIgnoredAllowedHeaders(FlowExtensionAction flowExtensionAction) {
+
+        if (!LOG.isDebugEnabled() || flowExtensionAction.getEndpoint() == null) {
+            return;
+        }
+        List<String> allowedHeaders = flowExtensionAction.getEndpoint().getAllowedHeaders();
+        if (allowedHeaders != null && !allowedHeaders.isEmpty()) {
+            LOG.debug("Ignoring the allowed headers given on the endpoint of the flow extension action: "
+                    + allowedHeaders + ". A flow extension is sent the request headers its access config exposes.");
+        }
+    }
+
+    private List<String> getAllowedHeaders(FlowExtensionAction flowExtensionAction) {
+
+        AccessConfig accessConfig = flowExtensionAction.getAccessConfig();
+        if (accessConfig == null || accessConfig.getExpose() == null) {
+            // Null keeps the allowed headers as they are, as the expose list is not being updated.
+            return null;
+        }
+
+        Set<String> exposedHeaders = new LinkedHashSet<>();
+        for (ContextPath contextPath : accessConfig.getExpose()) {
+            String name = contextPath == null ? null : FlowExtensionUtil.getRequestHeaderName(contextPath.getPath());
+            if (name != null) {
+                exposedHeaders.add(FlowVariableUtils.normalizeHeaderName(name));
+            }
+        }
+
+        return new ArrayList<>(exposedHeaders);
     }
 
     private void putDefaultAccessConfigProperties(Map<String, ActionProperty> properties, AccessConfig accessConfig) {

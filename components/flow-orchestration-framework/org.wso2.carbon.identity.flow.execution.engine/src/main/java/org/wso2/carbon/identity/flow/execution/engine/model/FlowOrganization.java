@@ -43,8 +43,28 @@ public class FlowOrganization implements Serializable {
     private String organizationHandle;
     private String organizationDescription;
     private String organizationStatus;
-    private final String organizationId = Utils.generateUniqueID();
+    private final String organizationId;
     private Map<String, String> attributes = new HashMap<>();
+
+    public FlowOrganization() {
+
+        this.organizationId = Utils.generateUniqueID();
+    }
+
+    /**
+     * Creates a copy of the given organization details, with the same organization ID.
+     *
+     * @param organization The organization details to copy.
+     */
+    public FlowOrganization(FlowOrganization organization) {
+
+        this.organizationName = organization.organizationName;
+        this.organizationHandle = organization.organizationHandle;
+        this.organizationDescription = organization.organizationDescription;
+        this.organizationStatus = organization.organizationStatus;
+        this.organizationId = organization.organizationId;
+        this.attributes = new HashMap<>(organization.attributes);
+    }
 
     public String getOrganizationName() {
 

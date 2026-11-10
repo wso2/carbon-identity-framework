@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 public class RequestFilterTest {
@@ -77,7 +78,7 @@ public class RequestFilterTest {
     public void testGetFilteredHeadersWhenAllowedHeadersAreConfigured() {
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(Collections.emptySet());
 
         List<String> allowedHeadersInAction = new ArrayList<>();
@@ -108,7 +109,7 @@ public class RequestFilterTest {
         allowedHeadersInServer.add("x-header-3");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(allowedHeadersInServer);
 
         List<String> allowedHeadersInAction = new ArrayList<>();
@@ -136,7 +137,7 @@ public class RequestFilterTest {
         allowedHeadersInServer.add("x-header-3");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(allowedHeadersInServer);
 
         List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders, Collections.emptyList(),
@@ -159,7 +160,7 @@ public class RequestFilterTest {
         excludedHeaders.add("x-header-2");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(excludedHeaders);
 
         List<String> allowedHeadersInAction = new ArrayList<>();
@@ -188,8 +189,8 @@ public class RequestFilterTest {
         excludedHeaders.add("X-HEADER-2");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.isCaseInsensitiveHeaderFilteringEnabled()).thenReturn(false);
-        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.isCaseInsensitiveHeaderFilteringEnabled()).thenReturn(false);
+        when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(excludedHeaders);
 
         List<String> allowedHeadersInAction = new ArrayList<>();
@@ -219,8 +220,8 @@ public class RequestFilterTest {
         excludedHeaders.add("X-HEADER-2");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.isCaseInsensitiveHeaderFilteringEnabled()).thenReturn(true);
-        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.isCaseInsensitiveHeaderFilteringEnabled()).thenReturn(true);
+        when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(excludedHeaders);
 
         List<String> allowedHeadersInAction = new ArrayList<>();
@@ -243,12 +244,60 @@ public class RequestFilterTest {
         });
     }
 
+    @Test(description = "Ensures a flow extension sends only the headers in the allowed headers of its endpoint.")
+    public void testGetFilteredHeadersForFlowExtension() {
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        when(config.getExcludedHeadersInActionRequestForActionType(ActionType.FLOW_EXTENSION))
+                .thenReturn(Collections.emptySet());
+
+        List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders,
+                Collections.singletonList("x-header-1"), ActionType.FLOW_EXTENSION);
+
+        assertEquals(filteredHeaders.size(), 1);
+        assertEquals(filteredHeaders.get(0).getName(), "x-header-1");
+    }
+
+    @Test(description = "Ensures a header whose name is already in lower case is returned as it is, so that a "
+            + "subclass of Header keeps its form.")
+    public void testGetFilteredHeadersKeepsLowerCaseHeader() {
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        when(config.getExcludedHeadersInActionRequestForActionType(ActionType.FLOW_EXTENSION))
+                .thenReturn(Collections.emptySet());
+
+        Header header = new Header("x-device", new String[]{"mobile"}) { };
+        List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(Collections.singletonList(header),
+                Collections.singletonList("X-Device"), ActionType.FLOW_EXTENSION);
+
+        assertEquals(filteredHeaders.size(), 1);
+        Assert.assertSame(filteredHeaders.get(0), header);
+    }
+
+    @Test(description = "Ensures each header is returned with its name in lower case and its value unchanged.")
+    public void testGetFilteredHeadersNormalizesHeaderNames() {
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+
+        List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders, Collections.emptyList(),
+                ActionType.PRE_ISSUE_ACCESS_TOKEN);
+
+        assertEquals(filteredHeaders.size(), 4);
+        Header header = filteredHeaders.stream()
+                .filter(filteredHeader -> "x-header-1".equals(filteredHeader.getName()))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        assertEquals(header.getValue(), new String[]{"X-header-1-value"});
+    }
+
     @Test(description = "Ensures the default behaviour when allowed parameters are defined only at action level." +
             "Case-sensitivity is considered.")
     public void testGetFilteredParamsWhenAllowedParamsAreConfigured() {
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(Collections.emptySet());
 
         List<String> allowedParamsInAction = new ArrayList<>();
@@ -279,7 +328,7 @@ public class RequestFilterTest {
         allowedParamsInServer.add("X-Param-2");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(allowedParamsInServer);
 
         List<String> allowedParamsInAction = new ArrayList<>();
@@ -308,7 +357,7 @@ public class RequestFilterTest {
         allowedParamsInServer.add("x-param-3");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(allowedParamsInServer);
 
         List<Param> filteredParams = RequestFilter.getFilteredParams(requestParams, Collections.emptyList(),
@@ -332,7 +381,7 @@ public class RequestFilterTest {
         excludedParams.add("x-param-3");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(excludedParams);
 
         List<String> allowedParamsInAction = new ArrayList<>();
@@ -355,9 +404,9 @@ public class RequestFilterTest {
     public void testGetFilteredHeadersWhenNeitherAllowedOrExcludedHeadersAreConfigured() {
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedHeadersForActionType(ActionType.PRE_UPDATE_PASSWORD))
+        when(config.getAllowedHeadersForActionType(ActionType.PRE_UPDATE_PASSWORD))
                 .thenReturn(Collections.emptySet());
-        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_UPDATE_PASSWORD))
+        when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_UPDATE_PASSWORD))
                 .thenReturn(Collections.emptySet());
 
         List<Header> requestHeaders = new ArrayList<>();
@@ -374,9 +423,9 @@ public class RequestFilterTest {
     public void testGetFilteredHeadersWhenNeitherAllowedOrExcludedParamsAreConfigured() {
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_UPDATE_PASSWORD))
+        when(config.getAllowedParamsForActionType(ActionType.PRE_UPDATE_PASSWORD))
                 .thenReturn(Collections.emptySet());
-        Mockito.when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_UPDATE_PASSWORD))
+        when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_UPDATE_PASSWORD))
                 .thenReturn(Collections.emptySet());
 
         List<Header> requestParams = new ArrayList<>();

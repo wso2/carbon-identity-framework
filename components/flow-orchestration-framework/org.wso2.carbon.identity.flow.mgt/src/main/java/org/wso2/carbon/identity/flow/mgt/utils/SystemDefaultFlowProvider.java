@@ -130,14 +130,7 @@ public class SystemDefaultFlowProvider {
 
     private FlowDTO loadFlowFromResource(String flowType) throws FlowMgtServerException {
 
-        boolean isKnownFlowType = false;
-        for (Constants.FlowTypes knownType : Constants.FlowTypes.values()) {
-            if (knownType.getType().equals(flowType)) {
-                isKnownFlowType = true;
-                break;
-            }
-        }
-        if (!isKnownFlowType) {
+        if (!Constants.FlowTypes.isValid(flowType)) {
             LOG.warn("Rejected unknown flow type for system default flow lookup: " + flowType);
             return null;
         }

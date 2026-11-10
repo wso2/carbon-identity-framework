@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.flow.extension.metadata;
 
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ContextTree;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -38,6 +40,7 @@ public class FlowExtensionContextTreeNode {
     private final boolean replaceable;
     private final boolean dynamicEntryAllowed;
     private final String dynamicEntryType;
+    private final List<String> applicableFlowTypes;
     private final List<FlowExtensionContextTreeNode> children;
 
     private FlowExtensionContextTreeNode(Builder b) {
@@ -53,6 +56,9 @@ public class FlowExtensionContextTreeNode {
         this.replaceable = b.replaceable;
         this.dynamicEntryAllowed = b.dynamicEntryAllowed;
         this.dynamicEntryType = b.dynamicEntryType;
+        this.applicableFlowTypes = b.applicableFlowTypes != null
+                ? Collections.unmodifiableList(b.applicableFlowTypes)
+                : Collections.singletonList(ContextTree.ALL_FLOW_TYPES);
         this.children = b.children != null
                 ? Collections.unmodifiableList(b.children) : Collections.emptyList();
     }
@@ -107,6 +113,16 @@ public class FlowExtensionContextTreeNode {
         return dynamicEntryType;
     }
 
+    /**
+     * The flow types the node applies to. {@link ContextTree#ALL_FLOW_TYPES} means every flow type.
+     *
+     * @return The flow types.
+     */
+    public List<String> getApplicableFlowTypes() {
+
+        return applicableFlowTypes;
+    }
+
     public List<FlowExtensionContextTreeNode> getChildren() {
 
         return children;
@@ -129,6 +145,7 @@ public class FlowExtensionContextTreeNode {
         private boolean replaceable;
         private boolean dynamicEntryAllowed;
         private String dynamicEntryType;
+        private List<String> applicableFlowTypes;
         private List<FlowExtensionContextTreeNode> children;
 
         public Builder key(String v) {
@@ -188,6 +205,12 @@ public class FlowExtensionContextTreeNode {
         public Builder dynamicEntryType(String v) {
 
             this.dynamicEntryType = v;
+            return this;
+        }
+
+        public Builder applicableFlowTypes(List<String> v) {
+
+            this.applicableFlowTypes = v;
             return this;
         }
 

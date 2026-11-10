@@ -24,10 +24,15 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelRe
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.extension.executor.PathTypeAnnotationUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowRequest;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.HandoverPolicy;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -98,6 +103,75 @@ public final class FlowExtensionUtil {
     }
 
     /**
+     * Whether the path addresses a runtime value of the flow, as {@code /runtimeValues[name=<name>]}.
+     *
+     * @param path The context path.
+     * @return {@code true} if the path starts with the runtime value selector.
+     */
+    public static boolean isRuntimeValuePath(String path) {
+
+        return path != null && path.startsWith(FlowContextPaths.RUNTIME_VALUES_SELECTOR_PREFIX);
+    }
+
+    /**
+     * Whether the path addresses a request header of the flow, as {@code /request/additionalHeaders[name=<name>]}.
+     *
+     * @param path The context path.
+     * @return {@code true} if the path starts with the request header selector.
+     */
+    public static boolean isRequestHeaderPath(String path) {
+
+        return path != null && path.startsWith(FlowContextPaths.REQUEST_HEADERS_SELECTOR_PREFIX);
+    }
+
+    /**
+     * The attribute name a {@code /subjectOrganization/attributes[name=<name>]} path addresses.
+     *
+     * @param path The context path.
+     * @return The name, or {@code null} when the path is not a well-formed organization attribute path.
+     */
+    public static String getSubjectOrganizationAttributeName(String path) {
+
+        return getSelectedName(path, FlowContextPaths.SUBJECT_ORGANIZATION_ATTRIBUTES_SELECTOR_PREFIX);
+    }
+
+    /**
+     * The runtime value name a {@code /runtimeValues[name=<name>]} path addresses.
+     *
+     * @param path The context path.
+     * @return The name, or {@code null} when the path is not a well-formed runtime value path.
+     */
+    public static String getRuntimeValueName(String path) {
+
+        return getSelectedName(path, FlowContextPaths.RUNTIME_VALUES_SELECTOR_PREFIX);
+    }
+
+    /**
+     * The header name a {@code /request/additionalHeaders[name=<name>]} path addresses.
+     *
+     * @param path The context path.
+     * @return The name, or {@code null} when the path is not a well-formed request header path.
+     */
+    public static String getRequestHeaderName(String path) {
+
+        return getSelectedName(path, FlowContextPaths.REQUEST_HEADERS_SELECTOR_PREFIX);
+    }
+
+    private static String getSelectedName(String path, String selectorPrefix) {
+
+        if (path == null || !path.startsWith(selectorPrefix)
+                || !path.endsWith(FlowContextPaths.NAME_SELECTOR_SUFFIX)) {
+            return null;
+        }
+        String name = path.substring(selectorPrefix.length(),
+                path.length() - FlowContextPaths.NAME_SELECTOR_SUFFIX.length());
+        if (name.isEmpty() || name.contains(FlowContextPaths.NAME_SELECTOR_SUFFIX)) {
+            return null;
+        }
+        return name;
+    }
+
+    /**
      * Build a filtered copy of {@code original} using the code-level handover whitelist
      * declared in {@link HandoverPolicy}.
      *
@@ -159,6 +233,28 @@ public final class FlowExtensionUtil {
                     break;
                 case "portalUrl":
                     dst.setPortalUrl(src.getPortalUrl());
+                    break;
+                case "flowVariables":
+                    // Only the definitions of the flow's headers and runtime values, not its steps.
+                    if (src.getGraphConfig() != null) {
+                        GraphConfig graphConfig = new GraphConfig();
+                        graphConfig.setFlowVariables(src.getGraphConfig().getFlowVariables());
+                        dst.setGraphConfig(graphConfig);
+                    }
+                    break;
+                case "runtimeValues":
+                    Map<String, Object> runtimeValues = new HashMap<>();
+                    src.getRuntimeValues().forEach((valueName, value) -> runtimeValues.put(valueName,
+                            value instanceof List<?> list ? new ArrayList<>(list) : value));
+                    dst.setRuntimeValues(runtimeValues);
+                    break;
+                case "request":
+                    dst.setRequest(new FlowRequest(src.getRequest()));
+                    break;
+                case "flowOrganization":
+                    if (src.getFlowOrganization() != null) {
+                        dst.setFlowOrganization(new FlowOrganization(src.getFlowOrganization()));
+                    }
                     break;
                 default:
                     LOG.warn("Skipping unmapped handover context attribute: " + name

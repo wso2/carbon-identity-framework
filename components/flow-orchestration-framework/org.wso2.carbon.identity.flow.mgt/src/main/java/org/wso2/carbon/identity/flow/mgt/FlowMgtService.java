@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.mgt;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
@@ -25,6 +26,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
+import org.wso2.carbon.identity.flow.mgt.Constants.OrganizationInputs;
 import org.wso2.carbon.identity.flow.mgt.cache.FlowResolveCache;
 import org.wso2.carbon.identity.flow.mgt.cache.FlowResolveCacheEntry;
 import org.wso2.carbon.identity.flow.mgt.cache.FlowResolveCacheKey;
@@ -36,11 +38,14 @@ import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowTypeVariablesDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.rule.FlowRuleValidator;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowVariableValidator;
 import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
 import org.wso2.carbon.identity.flow.mgt.utils.SystemDefaultFlowProvider;
@@ -52,7 +57,9 @@ import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service
 import org.wso2.carbon.utils.AuditLog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,6 +142,101 @@ public class FlowMgtService {
             return SystemDefaultFlowProvider.getInstance().getSystemDefaultFlow(flowType);
         }
         return FLOW_DAO.getFlow(flowType, tenantIdWithResource);
+    }
+
+    /**
+     * Get the headers and runtime values each flow type defines, reading each flow from the first organization in
+     * the hierarchy that has it, or from the system default flow when none has it. Every flow type also has the
+     * system runtime values.
+     *
+     * @param tenantID The tenant ID.
+     * @param flowType The flow type, or null for every flow type.
+     * @return One entry per flow type, or an empty list when the flow type is not valid.
+     * @throws FlowMgtFrameworkException If an error occurs while retrieving the variables.
+     */
+    public List<FlowTypeVariablesDTO> getFlowVariables(int tenantID, String flowType)
+            throws FlowMgtFrameworkException {
+
+        Constants.FlowTypes requestedType = Constants.FlowTypes.fromType(flowType);
+        if (flowType != null && requestedType == null) {
+            return Collections.emptyList();
+        }
+        List<Constants.FlowTypes> flowTypes = requestedType == null ? Arrays.asList(Constants.FlowTypes.values())
+                : Collections.singletonList(requestedType);
+        Map<Integer, Map<String, FlowVariablesDTO>> variablesByTenant = new HashMap<>();
+        List<FlowTypeVariablesDTO> flowTypeVariables = new ArrayList<>();
+
+        for (Constants.FlowTypes type : flowTypes) {
+            FlowVariablesDTO defined = resolveFlowVariables(type.getType(), tenantID, variablesByTenant);
+            FlowTypeVariablesDTO variables = new FlowTypeVariablesDTO(type.getType());
+            if (defined != null) {
+                variables.setHeaders(defined.getHeaders());
+                variables.setRuntimeValues(defined.getRuntimeValues());
+            }
+            FlowVariableUtils.withSystemRuntimeValues(variables);
+            flowTypeVariables.add(variables);
+        }
+        return flowTypeVariables;
+    }
+
+    /**
+     * Get the headers and runtime values a flow type defines: those of the flow of the first organization in the
+     * hierarchy that has it, or those of the system default flow when none has it, as the flow then runs as that one.
+     *
+     * @param flowType          The flow type.
+     * @param tenantID          The tenant ID.
+     * @param variablesByTenant The variables of each tenant read so far, by flow type, so that each is read once.
+     * @return The variables, or null when the flow defines none.
+     * @throws FlowMgtFrameworkException If an error occurs while retrieving the variables.
+     */
+    private FlowVariablesDTO resolveFlowVariables(String flowType, int tenantID,
+                                                  Map<Integer, Map<String, FlowVariablesDTO>> variablesByTenant)
+            throws FlowMgtFrameworkException {
+
+        Integer tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
+        if (tenantIdWithResource != null) {
+            Map<String, FlowVariablesDTO> storedVariables = variablesByTenant.get(tenantIdWithResource);
+            if (storedVariables == null) {
+                storedVariables = FLOW_DAO.getFlowVariables(tenantIdWithResource);
+                variablesByTenant.put(tenantIdWithResource, storedVariables);
+            }
+            return storedVariables.get(flowType);
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("No flow found for type: " + flowType + " in tenant hierarchy. Listing the variables of the "
+                    + "system default flow.");
+        }
+        FlowDTO defaultFlow = SystemDefaultFlowProvider.getInstance().getSystemDefaultFlow(flowType);
+        return defaultFlow != null ? defaultFlow.getFlowVariables() : null;
+    }
+
+    /**
+     * Get the attributes the registration flow collects for the organization it onboards, as the flow extension
+     * metadata lists them. The flow is read from the first tenant in the organization hierarchy that has it, and the
+     * attributes are the identifiers of its inputs marked as organization inputs. The organization name, handle and
+     * description are left out, as they are standard organization inputs rather than attributes.
+     *
+     * @param tenantID The tenant ID.
+     * @return The attribute names, in the order the flow has them.
+     * @throws FlowMgtFrameworkException If an error occurs while retrieving the registration flow.
+     */
+    public List<String> getOrganizationAttributes(int tenantID) throws FlowMgtFrameworkException {
+
+        FlowDTO flow = getFlow(Constants.FlowTypes.REGISTRATION.getType(), tenantID);
+        List<String> attributes = new ArrayList<>();
+        if (flow == null) {
+            return attributes;
+        }
+        FlowMgtUtils.getIdentifierTypes(flow.getSteps()).forEach((identifier, identifierType) -> {
+            if (OrganizationInputs.ORGANIZATION_IDENTIFIER_TYPE.equals(identifierType)
+                    && StringUtils.isNotBlank(identifier)
+                    && !OrganizationInputs.ORGANIZATION_NAME.equals(identifier)
+                    && !OrganizationInputs.ORGANIZATION_HANDLE.equals(identifier)
+                    && !OrganizationInputs.ORGANIZATION_DESCRIPTION.equals(identifier)) {
+                attributes.add(identifier);
+            }
+        });
+        return attributes;
     }
 
     /**

@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
@@ -60,7 +61,7 @@ import java.util.Map;
 public class FlowExtensionExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(FlowExtensionExecutor.class);
-    private static final String EXECUTOR_NAME = "FlowExtensionExecutor";
+    private static final String EXECUTOR_NAME = ExecutorTypes.FLOW_EXTENSION;
     private static final String CONFIG_PARAM_ACTION_TYPE = "actionType";
     private static final String CONFIG_PARAM_ACTION_ID = "actionId";
 
@@ -276,10 +277,17 @@ public class FlowExtensionExecutor implements Executor {
             response.setUserCredentials(pendingCredentials);
         }
 
+        Map<String, Object> pendingRuntimeValues =
+                actionFlowContext.getValue(FlowExtensionConstants.PENDING_RUNTIME_VALUES_KEY, Map.class);
+        if (pendingRuntimeValues != null && !pendingRuntimeValues.isEmpty()) {
+            response.setUpdatedRuntimeValues(pendingRuntimeValues);
+        }
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow Extension action succeeded. actionId: " + actionId
                     + ", pendingClaims: " + (pendingClaims != null ? pendingClaims.size() : 0)
-                    + ", pendingCredentials: " + (pendingCredentials != null ? pendingCredentials.size() : 0));
+                    + ", pendingCredentials: " + (pendingCredentials != null ? pendingCredentials.size() : 0)
+                    + ", pendingRuntimeValues: " + (pendingRuntimeValues != null ? pendingRuntimeValues.size() : 0));
         }
     }
 

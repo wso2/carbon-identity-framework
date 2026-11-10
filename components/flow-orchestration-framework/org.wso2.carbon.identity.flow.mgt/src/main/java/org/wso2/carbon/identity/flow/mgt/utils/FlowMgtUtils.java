@@ -33,13 +33,18 @@ import org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtClientException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
+import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -179,6 +184,48 @@ public class FlowMgtUtils {
     public static boolean isFlowVariablesEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(Constants.FlowVariableConfigs.ENABLE));
+    }
+
+    /**
+     * The identifier type of each input of the given steps, by the input's identifier, including the inputs nested
+     * in other components. An input without an identifier type is left out.
+     *
+     * @param steps The steps of a flow.
+     * @return Identifier to identifier type, in the order the steps have the inputs.
+     */
+    public static Map<String, String> getIdentifierTypes(Collection<StepDTO> steps) {
+
+        Map<String, String> identifierTypes = new LinkedHashMap<>();
+        if (steps == null) {
+            return identifierTypes;
+        }
+        for (StepDTO step : steps) {
+            if (step != null && step.getData() != null) {
+                collectIdentifierTypes(step.getData().getComponents(), identifierTypes);
+            }
+        }
+        return identifierTypes;
+    }
+
+    private static void collectIdentifierTypes(List<ComponentDTO> components, Map<String, String> identifierTypes) {
+
+        if (components == null) {
+            return;
+        }
+        for (ComponentDTO component : components) {
+            if (component == null) {
+                continue;
+            }
+            Map<String, Object> configs = component.getConfigs();
+            if (configs != null) {
+                Object identifier = configs.get(Constants.OrganizationInputs.IDENTIFIER);
+                Object identifierType = configs.get(Constants.OrganizationInputs.IDENTIFIER_TYPE);
+                if (identifier != null && identifierType != null) {
+                    identifierTypes.put(String.valueOf(identifier), String.valueOf(identifierType));
+                }
+            }
+            collectIdentifierTypes(component.getComponents(), identifierTypes);
+        }
     }
 
     /**

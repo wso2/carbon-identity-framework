@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * This class models the Flow Extension Event.
  * It represents the event sent to the Flow Extension action over the Action Execution Request.
@@ -32,14 +35,20 @@ public class FlowExtensionEvent extends Event {
 
     private final FlowExtensionFlow flow;
     private final String callbackUrl;
+    private final List<FlowExtensionRuntimeValue> runtimeValues;
+    private final FlowExtensionSubjectOrganization subjectOrganization;
 
     private FlowExtensionEvent(Builder builder) {
 
         this.tenant = builder.tenant;
         this.organization = builder.organization;
         this.application = builder.application;
+        this.request = builder.request;
         this.flow = builder.flow;
         this.callbackUrl = builder.callbackUrl;
+        this.runtimeValues = builder.runtimeValues != null
+                ? Collections.unmodifiableList(builder.runtimeValues) : Collections.emptyList();
+        this.subjectOrganization = builder.subjectOrganization;
     }
 
     /**
@@ -67,6 +76,28 @@ public class FlowExtensionEvent extends Event {
     }
 
     /**
+     * Get the runtime values of the flow that are exposed to the extension.
+     *
+     * @return The runtime values, or an empty list when none are exposed.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<FlowExtensionRuntimeValue> getRuntimeValues() {
+
+        return runtimeValues;
+    }
+
+    /**
+     * Get the organization the flow onboards, with the fields exposed to the extension.
+     *
+     * @return The organization, or {@code null} when none of its fields are exposed or the flow onboards none.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public FlowExtensionSubjectOrganization getSubjectOrganization() {
+
+        return subjectOrganization;
+    }
+
+    /**
      * Builder for the InFlowExtensionEvent.
      */
     public static class Builder {
@@ -76,6 +107,9 @@ public class FlowExtensionEvent extends Event {
         private Organization organization;
         private Application application;
         private String callbackUrl;
+        private FlowExtensionRequest request;
+        private List<FlowExtensionRuntimeValue> runtimeValues;
+        private FlowExtensionSubjectOrganization subjectOrganization;
 
         public Builder flow(FlowExtensionFlow flow) {
 
@@ -104,6 +138,24 @@ public class FlowExtensionEvent extends Event {
         public Builder callbackUrl(String callbackUrl) {
 
             this.callbackUrl = callbackUrl;
+            return this;
+        }
+
+        public Builder request(FlowExtensionRequest request) {
+
+            this.request = request;
+            return this;
+        }
+
+        public Builder runtimeValues(List<FlowExtensionRuntimeValue> runtimeValues) {
+
+            this.runtimeValues = runtimeValues;
+            return this;
+        }
+
+        public Builder subjectOrganization(FlowExtensionSubjectOrganization subjectOrganization) {
+
+            this.subjectOrganization = subjectOrganization;
             return this;
         }
 
