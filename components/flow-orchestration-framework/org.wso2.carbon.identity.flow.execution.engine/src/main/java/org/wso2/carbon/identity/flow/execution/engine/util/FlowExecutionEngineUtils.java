@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.Constants.SystemRuntimeValues;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
@@ -83,6 +84,7 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.EventPropert
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.ERROR_CODE;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.EXECUTOR_NAME;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.FLOW_TYPE;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.RUNTIME_VALUES;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.STEP_TYPE;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.USER_ID;
@@ -683,7 +685,20 @@ public class FlowExecutionEngineUtils {
         if (context.getFlowUser() != null && StringUtils.isNotBlank(context.getFlowUser().getUserId())) {
             properties.put(USER_ID, context.getFlowUser().getUserId());
         }
+        properties.put(RUNTIME_VALUES, getEventRuntimeValues(context));
         return properties;
+    }
+
+    private static Map<String, Object> getEventRuntimeValues(FlowExecutionContext context) {
+
+        Map<String, Object> eventRuntimeValues = new HashMap<>();
+        Map<String, Object> contextRuntimeValues = context.getRuntimeValues();
+        Object abTestingKey = contextRuntimeValues != null ?
+                contextRuntimeValues.get(SystemRuntimeValues.AB_TESTING_KEY) : null;
+        if (abTestingKey != null) {
+            eventRuntimeValues.put(SystemRuntimeValues.AB_TESTING_KEY, abTestingKey);
+        }
+        return eventRuntimeValues;
     }
 
     /**
