@@ -557,6 +557,7 @@ public class IdentityEventConstants {
         public static final String CURRENT_NODE_RESPONSE_STATUS = "CURRENT_NODE_RESPONSE_STATUS";
         public static final String CURRENT_NODE_RESPONSE_TYPE = "CURRENT_NODE_RESPONSE_TYPE";
         public static final String EXECUTOR_NAME = "EXECUTOR_NAME";
+        public static final String RUNTIME_VALUES = "RUNTIME_VALUES";
     }
 
     public class ErrorMessage {
