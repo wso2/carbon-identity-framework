@@ -88,10 +88,13 @@ public final class FlowVariableValidator {
                 throw handleFlowVariableException("Excluded header.",
                         "The header %s cannot be read by flows on this server.", header.getName());
             }
-            if (header.getDataType() == null || !header.getDataType().isArray()) {
+            if (header.getDataType() == FlowVariableDataType.NUMBER_ARRAY) {
+                header.setDataType(FlowVariableDataType.STRING_ARRAY);
+            }
+            if (!FlowVariableUtils.isSupportedHeaderType(header.getDataType())) {
                 throw handleFlowVariableException("Invalid data type.",
-                        "The header %s must be of type %s or %s, as a request may repeat it.",
-                        header.getName(), FlowVariableDataType.STRING_ARRAY, FlowVariableDataType.NUMBER_ARRAY);
+                        "The header %s must be of type %s, as a request may repeat it.",
+                        header.getName(), FlowVariableDataType.STRING_ARRAY);
             }
         }
     }

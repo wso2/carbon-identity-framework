@@ -90,6 +90,21 @@ public class FlowVariableValidatorTest {
     }
 
     @Test
+    public void testNumberArrayHeaderIsSavedAsStringArray() throws Exception {
+
+        FlowVariablesDTO inputs = new FlowVariablesDTO();
+        inputs.getHeaders().add(input("x-age", FlowVariableDataType.NUMBER_ARRAY));
+        inputs.getHeaders().add(input("x-ab-variant", FlowVariableDataType.STRING_ARRAY));
+
+        validate(inputs);
+
+        assertEquals(inputs.getHeaders().size(), 2);
+        assertEquals(inputs.getHeaders().get(0).getName(), "x-age");
+        assertEquals(inputs.getHeaders().get(0).getDataType(), FlowVariableDataType.STRING_ARRAY);
+        assertEquals(inputs.getHeaders().get(1).getDataType(), FlowVariableDataType.STRING_ARRAY);
+    }
+
+    @Test
     public void testHeaderMustHoldAnArray() {
 
         FlowVariablesDTO inputs = new FlowVariablesDTO();

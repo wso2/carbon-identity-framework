@@ -633,7 +633,7 @@ public class FlowDAOImpl implements FlowDAO {
                     }
                     String variableType = resultSet.getString(DB_SCHEMA_COLUMN_NAME_VARIABLE_TYPE);
                     if (HEADER.equals(variableType)) {
-                        variables.getHeaders().add(new FlowVariableDTO(name, dataType));
+                        variables.getHeaders().add(new FlowVariableDTO(name, FlowVariableDataType.STRING_ARRAY));
                     } else if (RUNTIME_VALUE.equals(variableType)) {
                         FlowRuntimeValueDTO runtimeValue = new FlowRuntimeValueDTO(name, dataType);
                         runtimeValue.setValue(deserializeRuntimeValue(runtimeValue,
