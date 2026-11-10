@@ -99,32 +99,40 @@ public class FlowVariableUtilsTest {
      * Each header line is one entry: a comma inside it does not split it.
      */
     @Test
-    public void testParseEachKeepsEachTextAsOneEntry() {
+    public void testParseHeaderValuesKeepsEachTextAsOneEntry() {
 
-        assertEquals(FlowVariableUtils.parseEach(FlowVariableDataType.STRING_ARRAY,
-                Collections.singletonList("kusal,kamindu,jeewan")), Collections.singletonList("kusal,kamindu,jeewan"));
-        assertEquals(FlowVariableUtils.parseEach(FlowVariableDataType.STRING_ARRAY, Arrays.asList("ashley", "hezzer")),
+        assertEquals(FlowVariableUtils.parseHeaderValues(Collections.singletonList("kusal,kamindu,jeewan")),
+                Collections.singletonList("kusal,kamindu,jeewan"));
+        assertEquals(FlowVariableUtils.parseHeaderValues(Arrays.asList("ashley", "hezzer")),
                 Arrays.asList("ashley", "hezzer"));
-        assertEquals(FlowVariableUtils.parseEach(FlowVariableDataType.NUMBER_ARRAY, Collections.singletonList("18")),
-                Collections.singletonList(18.0));
+        assertEquals(FlowVariableUtils.parseHeaderValues(Collections.singletonList("18")),
+                Collections.singletonList("18"));
     }
 
     @Test
-    public void testParseEachRejectsTheWholeValueWhenAnEntryIsInvalid() {
+    public void testParseHeaderValuesRejectsTheWholeValueWhenAnEntryIsInvalid() {
 
-        assertNull(FlowVariableUtils.parseEach(FlowVariableDataType.NUMBER_ARRAY, Arrays.asList("18", "eighteen")));
-        assertNull(FlowVariableUtils.parseEach(FlowVariableDataType.STRING_ARRAY, Arrays.asList("a", "<b>")));
-        assertNull(FlowVariableUtils.parseEach(FlowVariableDataType.STRING, Collections.singletonList("a")));
+        assertNull(FlowVariableUtils.parseHeaderValues(Arrays.asList("a", "<b>")));
+        assertNull(FlowVariableUtils.parseHeaderValues(Collections.emptyList()));
     }
 
     @Test
-    public void testParseEachRejectsMoreEntriesThanAllowed() {
+    public void testOnlyStringArrayIsASupportedHeaderType() {
+
+        assertTrue(FlowVariableUtils.isSupportedHeaderType(FlowVariableDataType.STRING_ARRAY));
+        assertFalse(FlowVariableUtils.isSupportedHeaderType(FlowVariableDataType.NUMBER_ARRAY));
+        assertFalse(FlowVariableUtils.isSupportedHeaderType(FlowVariableDataType.STRING));
+        assertFalse(FlowVariableUtils.isSupportedHeaderType(null));
+    }
+
+    @Test
+    public void testParseHeaderValuesRejectsMoreEntriesThanAllowed() {
 
         List<String> texts = new ArrayList<>();
         for (int i = 0; i <= FlowVariableConfigs.DEFAULT_MAX_ARRAY_SIZE; i++) {
             texts.add("v" + i);
         }
-        assertNull(FlowVariableUtils.parseEach(FlowVariableDataType.STRING_ARRAY, texts));
+        assertNull(FlowVariableUtils.parseHeaderValues(texts));
     }
 
     /**

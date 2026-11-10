@@ -307,9 +307,8 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
     }
 
     /**
-     * The request header a path addresses, as sent to the extension. A header is sent as an array of text, as
-     * received. An encrypted header is that same array, encrypted as JSON, so that the extension reads the same values
-     * either way.
+     * The request header a path addresses, as sent to the extension. A header is an array of text, as received. An
+     * encrypted header is that same array, encrypted as JSON, so that the extension reads the same values either way.
      *
      * @return The header, or null when the flow does not define it or it was not received.
      */
@@ -321,7 +320,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         if (!(FlowVariableResolver.getHeader(context, name) instanceof List<?> entries) || entries.isEmpty()) {
             return null;
         }
-        List<String> texts = entries.stream().map(FlowExtensionRequestBuilder::toText).toList();
+        List<String> texts = entries.stream().map(String::valueOf).toList();
         Object value = encryptVariableIfConfigured(path, texts, accessConfig, certificatePEM);
         return value instanceof String encrypted ? new FlowExtensionHeader(name, encrypted)
                 : new FlowExtensionHeader(name, texts.toArray(String[]::new));

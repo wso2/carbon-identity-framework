@@ -92,7 +92,7 @@ public final class FlowVariableResolver {
                 logIgnored(context, FlowVariableTypes.HEADER, name, EXCLUDED);
                 continue;
             }
-            applyHeader(context, name, header.getDataType(), headers.get(name));
+            applyHeader(context, name, headers.get(name));
         }
     }
 
@@ -202,8 +202,7 @@ public final class FlowVariableResolver {
     public static Object getHeader(FlowExecutionContext context, String name) {
 
         String key = FlowVariableUtils.normalizeHeaderName(name);
-        FlowVariableDTO header = find(context, FlowVariablesDTO::getHeaders, key);
-        return FlowVariableUtils.toValue(typeOf(header), context.getRequest().getHeaders().get(key));
+        return FlowVariableUtils.toValue(headerType(context, key), context.getRequest().getHeaders().get(key));
     }
 
     /**
@@ -227,7 +226,7 @@ public final class FlowVariableResolver {
      */
     public static FlowVariableDataType getHeaderType(FlowExecutionContext context, String name) {
 
-        return typeOf(find(context, FlowVariablesDTO::getHeaders, FlowVariableUtils.normalizeHeaderName(name)));
+        return headerType(context, FlowVariableUtils.normalizeHeaderName(name));
     }
 
     /**
@@ -257,13 +256,12 @@ public final class FlowVariableResolver {
         userInputs.keySet().removeAll(names);
     }
 
-    private static void applyHeader(FlowExecutionContext context, String name, FlowVariableDataType dataType,
-                                    List<String> texts) {
+    private static void applyHeader(FlowExecutionContext context, String name, List<String> texts) {
 
         if (texts == null || texts.isEmpty()) {
             return;
         }
-        List<Object> value = FlowVariableUtils.parseEach(dataType, texts);
+        List<Object> value = FlowVariableUtils.parseHeaderValues(texts);
         if (value == null) {
             logIgnored(context, FlowVariableTypes.HEADER, name, NOT_VALID);
             return;
@@ -293,6 +291,11 @@ public final class FlowVariableResolver {
     private static FlowRuntimeValueDTO findRuntimeValue(FlowExecutionContext context, String name) {
 
         return find(context, FlowVariablesDTO::getRuntimeValues, name);
+    }
+
+    private static FlowVariableDataType headerType(FlowExecutionContext context, String name) {
+
+        return find(context, FlowVariablesDTO::getHeaders, name) == null ? null : FlowVariableDataType.STRING_ARRAY;
     }
 
     private static <T extends FlowVariableDTO> T find(FlowExecutionContext context,

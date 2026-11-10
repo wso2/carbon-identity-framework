@@ -160,6 +160,17 @@ public final class FlowVariableUtils {
     }
 
     /**
+     * Whether a header may be of a type. A header holds only a string array, as a request may repeat it.
+     *
+     * @param type Type of the header.
+     * @return True for {@link FlowVariableDataType#STRING_ARRAY}.
+     */
+    public static boolean isSupportedHeaderType(FlowVariableDataType type) {
+
+        return type == FlowVariableDataType.STRING_ARRAY;
+    }
+
+    /**
      * Whether a runtime value is one every flow defines, such as the A/B testing key.
      *
      * @param name Name of the runtime value.
@@ -282,22 +293,19 @@ public final class FlowVariableUtils {
     }
 
     /**
-     * Reads an array value from repeated texts, such as the lines of a header.
-     * Each text is one entry, as it is: a comma in it does not split it.
+     * Reads the value of a header from its lines. Each line is one entry, as it is: a comma in it does not split it.
      *
-     * @param type  An array type.
-     * @param texts The texts.
-     * @return The array value, or null when the type is not an array type or any text is not a valid entry.
+     * @param texts The lines of the header.
+     * @return The string array value, or null when any line is not a valid entry.
      */
-    public static List<Object> parseEach(FlowVariableDataType type, List<String> texts) {
+    public static List<Object> parseHeaderValues(List<String> texts) {
 
-        if (type == null || !type.isArray() || texts == null || texts.isEmpty()
-                || texts.size() > getMaxArraySize()) {
+        if (texts == null || texts.isEmpty() || texts.size() > getMaxArraySize()) {
             return null;
         }
         List<Object> entries = new ArrayList<>(texts.size());
         for (String text : texts) {
-            Object entry = parseEntry(type, text);
+            Object entry = parseEntry(FlowVariableDataType.STRING_ARRAY, text);
             if (entry == null) {
                 return null;
             }

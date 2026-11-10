@@ -146,9 +146,9 @@ public class FlowDAOImplVariableTest {
     public void testManyVariablesOfEachKindKeepTheirOrderAndTypes() throws Exception {
 
         FlowVariablesDTO inputs = new FlowVariablesDTO();
-        inputs.getHeaders().add(new FlowVariableDTO("x-region", FlowVariableDataType.STRING));
-        inputs.getHeaders().add(new FlowVariableDTO("x-tier", FlowVariableDataType.INTEGER));
-        inputs.getHeaders().add(new FlowVariableDTO("x-beta", FlowVariableDataType.BOOLEAN));
+        inputs.getHeaders().add(new FlowVariableDTO("x-region", FlowVariableDataType.STRING_ARRAY));
+        inputs.getHeaders().add(new FlowVariableDTO("x-tier", FlowVariableDataType.STRING_ARRAY));
+        inputs.getHeaders().add(new FlowVariableDTO("x-beta", FlowVariableDataType.STRING_ARRAY));
         FlowRuntimeValueDTO enabled = new FlowRuntimeValueDTO("enabled", FlowVariableDataType.BOOLEAN);
         enabled.setValue(true);
         FlowRuntimeValueDTO ratio = new FlowRuntimeValueDTO("ratio", FlowVariableDataType.DECIMAL);
@@ -163,11 +163,11 @@ public class FlowDAOImplVariableTest {
 
         assertEquals(stored.getHeaders().size(), 3);
         assertEquals(stored.getHeaders().get(0).getName(), "x-region");
-        assertEquals(stored.getHeaders().get(0).getDataType(), FlowVariableDataType.STRING);
+        assertEquals(stored.getHeaders().get(0).getDataType(), FlowVariableDataType.STRING_ARRAY);
         assertEquals(stored.getHeaders().get(1).getName(), "x-tier");
-        assertEquals(stored.getHeaders().get(1).getDataType(), FlowVariableDataType.INTEGER);
+        assertEquals(stored.getHeaders().get(1).getDataType(), FlowVariableDataType.STRING_ARRAY);
         assertEquals(stored.getHeaders().get(2).getName(), "x-beta");
-        assertEquals(stored.getHeaders().get(2).getDataType(), FlowVariableDataType.BOOLEAN);
+        assertEquals(stored.getHeaders().get(2).getDataType(), FlowVariableDataType.STRING_ARRAY);
         List<FlowRuntimeValueDTO> variables = stored.getRuntimeValues();
         // The A/B testing key comes first, followed by the runtime values in the order they were saved.
         assertEquals(variables.size(), 4);
@@ -204,6 +204,7 @@ public class FlowDAOImplVariableTest {
 
         FlowVariablesDTO registration = new FlowVariablesDTO();
         registration.getHeaders().add(new FlowVariableDTO("x-device", FlowVariableDataType.STRING_ARRAY));
+        registration.getHeaders().add(new FlowVariableDTO("x-age", FlowVariableDataType.NUMBER_ARRAY));
         registration.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.STRING));
         FlowVariablesDTO passwordRecovery = new FlowVariablesDTO();
         passwordRecovery.getRuntimeValues().add(new FlowRuntimeValueDTO("plan", FlowVariableDataType.INTEGER));
@@ -217,8 +218,11 @@ public class FlowDAOImplVariableTest {
         Map<String, FlowVariablesDTO> stored = flowDAO.getFlowVariables(TENANT_ID);
 
         assertEquals(stored.size(), 2);
-        assertEquals(stored.get(FLOW_TYPE).getHeaders().size(), 1);
+        assertEquals(stored.get(FLOW_TYPE).getHeaders().size(), 2);
         assertEquals(stored.get(FLOW_TYPE).getHeaders().get(0).getName(), "x-device");
+        // A header stored as an array of numbers is read as an array of strings.
+        assertEquals(stored.get(FLOW_TYPE).getHeaders().get(1).getName(), "x-age");
+        assertEquals(stored.get(FLOW_TYPE).getHeaders().get(1).getDataType(), FlowVariableDataType.STRING_ARRAY);
         assertEquals(stored.get(FLOW_TYPE).getRuntimeValues().size(), 1);
         assertEquals(stored.get(FLOW_TYPE).getRuntimeValues().get(0).getDataType(), FlowVariableDataType.STRING);
         List<FlowRuntimeValueDTO> recoveryValues = stored.get("PASSWORD_RECOVERY").getRuntimeValues();
@@ -228,6 +232,27 @@ public class FlowDAOImplVariableTest {
         assertEquals(recoveryValues.get(1).getName(), "risk");
         assertTrue(stored.get("PASSWORD_RECOVERY").getHeaders().isEmpty());
         assertTrue(flowDAO.getFlowVariables(TENANT_ID + 1).isEmpty());
+    }
+
+    @Test(dependsOnMethods = "testSavingWithNoVariablesClearsThem")
+    public void testNumberArrayHeaderIsReadAsStringArray() throws Exception {
+
+        FlowVariablesDTO inputs = new FlowVariablesDTO();
+        inputs.getHeaders().add(new FlowVariableDTO("x-age", FlowVariableDataType.NUMBER_ARRAY));
+        inputs.getHeaders().add(new FlowVariableDTO("x-ab-variant", FlowVariableDataType.STRING_ARRAY));
+
+        flowDAO.updateFlow(FLOW_TYPE, new GraphBuilder().withSteps(Collections.singletonList(endStep()))
+                .withFlowVariables(inputs).build(), TENANT_ID, "Registration");
+
+        List<FlowVariableDTO> headers = flowDAO.getFlow(FLOW_TYPE, TENANT_ID).getFlowVariables().getHeaders();
+        assertEquals(headers.size(), 2);
+        assertEquals(headers.get(0).getName(), "x-age");
+        assertEquals(headers.get(0).getDataType(), FlowVariableDataType.STRING_ARRAY);
+        List<FlowVariableDTO> graphHeaders =
+                flowDAO.getGraphConfig(FLOW_TYPE, TENANT_ID).getFlowVariables().getHeaders();
+        assertEquals(graphHeaders.size(), 2);
+        assertEquals(graphHeaders.get(0).getName(), "x-age");
+        assertEquals(graphHeaders.get(0).getDataType(), FlowVariableDataType.STRING_ARRAY);
     }
 
     private static StepDTO endStep() {

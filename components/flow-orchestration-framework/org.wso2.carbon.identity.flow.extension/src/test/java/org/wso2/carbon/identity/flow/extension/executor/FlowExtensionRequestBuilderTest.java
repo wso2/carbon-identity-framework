@@ -615,28 +615,6 @@ public class FlowExtensionRequestBuilderTest {
     }
 
     /**
-     * A number header is sent as the text of its number, without an exponent.
-     */
-    @Test
-    public void testNumberHeaderIsSentAsItsText() throws Exception {
-
-        FlowExecutionContext execCtx = execContextWithFlowVariables();
-        execCtx.getGraphConfig().getFlowVariables().getHeaders()
-                .add(new FlowVariableDTO("x-count", FlowVariableDataType.NUMBER_ARRAY));
-        execCtx.getRequest().getHeaders().put("x-count", Arrays.asList(10.0, 12345678.0, 2.5, 1.0E-7));
-        AccessConfig accessConfig = new AccessConfig(Collections.singletonList(
-                new ContextPath("/request/additionalHeaders[name=x-count]", false,
-                        FlowExtensionConstants.ContextTree.FLOW_REGISTRATION)), null);
-
-        ActionExecutionRequest request =
-                builder.buildActionExecutionRequest(flowContextWith(execCtx), actionContext(accessConfig));
-
-        List<Header> headers = ((FlowExtensionEvent) request.getEvent()).getRequest().getAdditionalHeaders();
-        assertEquals(headers.size(), 1);
-        assertEquals(headers.get(0).getValue(), new String[]{"10.0", "12345678.0", "2.5", "0.0000001"});
-    }
-
-    /**
      * A runtime value without a value, or a header not received, is left out of the event.
      */
     @Test
@@ -696,15 +674,15 @@ public class FlowExtensionRequestBuilderTest {
     public void testEncryptedValuesAreTheirTextOrJsonArray() throws Exception {
 
         FlowExecutionContext execCtx = execContextWithFlowVariables();
-        execCtx.getGraphConfig().getFlowVariables().getHeaders()
-                .add(new FlowVariableDTO("x-count", FlowVariableDataType.NUMBER_ARRAY));
-        execCtx.getRequest().getHeaders().put("x-count", Arrays.asList(10.0, 2.5, 1.0E-7));
+        execCtx.getGraphConfig().getFlowVariables().getRuntimeValues()
+                .add(new FlowRuntimeValueDTO("scores", FlowVariableDataType.NUMBER_ARRAY));
+        execCtx.getRuntimeValues().put("scores", Arrays.asList(10.0, 2.5, 1.0E-7));
         String registration = FlowExtensionConstants.ContextTree.FLOW_REGISTRATION;
         AccessConfig accessConfig = new AccessConfig(Arrays.asList(
                 new ContextPath(PLAN_PATH, true, registration),
                 new ContextPath(ATTEMPTS_PATH, true, registration),
-                new ContextPath(DEVICE_HEADER_PATH, true, registration),
-                new ContextPath("/request/additionalHeaders[name=x-count]", true, registration)), null);
+                new ContextPath("/runtimeValues[name=scores]", true, registration),
+                new ContextPath(DEVICE_HEADER_PATH, true, registration)), null);
         Certificate certificate = new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build();
 
         ActionExecutionRequest request;
@@ -722,11 +700,11 @@ public class FlowExtensionRequestBuilderTest {
         event.getRuntimeValues().forEach(value -> runtimeValues.put(value.getName(), value.getValue()));
         assertEquals(runtimeValues.get("plan"), "jwe(gold)");
         assertEquals(runtimeValues.get("attempts"), "jwe(3)");
+        assertEquals(runtimeValues.get("scores"), "jwe([10.0,2.5,0.0000001])");
         Map<String, Object> headers = new HashMap<>();
         event.getRequest().getAdditionalHeaders().forEach(header ->
                 headers.put(header.getName(), ((FlowExtensionHeader) header).getSentValue()));
         assertEquals(headers.get("x-device"), "jwe([\"mobile\",\"tablet\"])");
-        assertEquals(headers.get("x-count"), "jwe([\"10.0\",\"2.5\",\"0.0000001\"])");
     }
 
     /**
@@ -739,11 +717,11 @@ public class FlowExtensionRequestBuilderTest {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         FlowExtensionRequest request = new FlowExtensionRequest(Arrays.asList(
                 new FlowExtensionHeader("x-device", new String[]{"mobile", "tablet"}),
-                new FlowExtensionHeader("x-count", "jwe")));
+                new FlowExtensionHeader("x-tenant", "jwe")));
 
         assertEquals(objectMapper.writeValueAsString(request),
                 "{\"additionalHeaders\":[{\"name\":\"x-device\",\"value\":[\"mobile\",\"tablet\"]},"
-                        + "{\"name\":\"x-count\",\"value\":\"jwe\"}]}");
+                        + "{\"name\":\"x-tenant\",\"value\":\"jwe\"}]}");
     }
 
     // ------------------------------------------------------------------ subject organization
