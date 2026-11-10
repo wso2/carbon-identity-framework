@@ -133,6 +133,7 @@ public class FlowExtensionContextTreeBuilderTest {
 
         FlowExtensionContextTreeNode runtimeValues = node(tree, "runtimeValues");
         assertEquals(runtimeValues.getPath(), FlowContextPaths.RUNTIME_VALUES_PATH);
+        assertEquals(runtimeValues.getDataType(), "Map<String, Object>");
         assertEquals(runtimeValues.getNodeType(), ContextTree.NODE_MAP);
         assertEquals(runtimeValues.getAllowedOperations(), Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY));
         assertTrue(runtimeValues.isDynamicEntryAllowed());
@@ -181,6 +182,7 @@ public class FlowExtensionContextTreeBuilderTest {
 
         FlowExtensionContextTreeNode request = node(tree, "request");
         assertEquals(request.getPath(), FlowContextPaths.REQUEST_PREFIX);
+        assertEquals(request.getDataType(), "");
         assertEquals(request.getNodeType(), ContextTree.NODE_OBJECT);
         assertEquals(request.getAllowedOperations(), Collections.singletonList(ContextTree.OP_EXPOSE));
         assertTrue(request.isReadOnly());
@@ -190,6 +192,7 @@ public class FlowExtensionContextTreeBuilderTest {
         FlowExtensionContextTreeNode headers = request.getChildren().get(0);
         assertEquals(headers.getKey(), "additionalHeaders");
         assertEquals(headers.getPath(), FlowContextPaths.REQUEST_HEADERS_PATH);
+        assertEquals(headers.getDataType(), "Map<String, String[]>");
         assertEquals(headers.getNodeType(), ContextTree.NODE_MAP);
         assertEquals(headers.getAllowedOperations(), Collections.singletonList(ContextTree.OP_EXPOSE));
         assertTrue(headers.isReadOnly());

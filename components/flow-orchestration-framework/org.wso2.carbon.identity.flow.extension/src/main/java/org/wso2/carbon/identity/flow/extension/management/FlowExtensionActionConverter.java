@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.flow.extension.management;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
@@ -50,6 +52,8 @@ import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.Act
  */
 public class FlowExtensionActionConverter implements ActionConverter {
 
+    private static final Log LOG = LogFactory.getLog(FlowExtensionActionConverter.class);
+
     @Override
     public Action.ActionTypes getSupportedActionType() {
 
@@ -78,10 +82,27 @@ public class FlowExtensionActionConverter implements ActionConverter {
                     new ActionProperty.BuilderForService(flowExtensionAction.getIconUrl()).build());
         }
 
+        logIgnoredAllowedHeaders(flowExtensionAction);
         return new ActionDTO.Builder(flowExtensionAction)
                 .properties(properties)
                 .allowedHeaders(getAllowedHeaders(flowExtensionAction))
                 .build();
+    }
+
+    /**
+     * The allowed headers of a flow extension's endpoint are the headers its access config exposes, so any given on
+     * the endpoint are not kept.
+     */
+    private void logIgnoredAllowedHeaders(FlowExtensionAction flowExtensionAction) {
+
+        if (!LOG.isDebugEnabled() || flowExtensionAction.getEndpoint() == null) {
+            return;
+        }
+        List<String> allowedHeaders = flowExtensionAction.getEndpoint().getAllowedHeaders();
+        if (allowedHeaders != null && !allowedHeaders.isEmpty()) {
+            LOG.debug("Ignoring the allowed headers given on the endpoint of the flow extension action: "
+                    + allowedHeaders + ". A flow extension is sent the request headers its access config exposes.");
+        }
     }
 
     private List<String> getAllowedHeaders(FlowExtensionAction flowExtensionAction) {
