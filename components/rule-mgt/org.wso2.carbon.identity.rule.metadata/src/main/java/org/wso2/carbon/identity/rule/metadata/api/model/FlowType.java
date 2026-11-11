@@ -34,7 +34,8 @@ public enum FlowType {
     REGISTRATION("registration"),
     PASSWORD_RECOVERY("passwordRecovery"),
     INVITED_USER_REGISTRATION("invitedUserRegistration"),
-    PROFILE_UPDATE("profileUpdate");
+    PROFILE_UPDATE("profileUpdate"),
+    DEVICE_REGISTRATION("deviceRegistration");
 
     private final String flowAlias;
 

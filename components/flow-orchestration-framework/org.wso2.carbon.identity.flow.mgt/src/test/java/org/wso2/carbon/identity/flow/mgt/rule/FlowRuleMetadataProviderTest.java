@@ -116,6 +116,11 @@ public class FlowRuleMetadataProviderTest {
                 FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES, FlowRuleMetadataProvider.USER_DOMAIN,
                 FlowRuleMetadataProvider.USER_GROUPS, FlowRuleMetadataProvider.USER_ROLES,
                 FlowRuleMetadataProvider.RUNTIME_VALUES, FlowRuleMetadataProvider.REQUEST_HEADERS));
+        assertEquals(fieldNamesOf(FlowType.DEVICE_REGISTRATION), Arrays.asList(
+                FlowRuleMetadataProvider.APPLICATION, FlowRuleMetadataProvider.USER_ATTRIBUTES,
+                FlowRuleMetadataProvider.USER_COLLECTED_ATTRIBUTES, FlowRuleMetadataProvider.USER_DOMAIN,
+                FlowRuleMetadataProvider.USER_GROUPS, FlowRuleMetadataProvider.USER_ROLES,
+                FlowRuleMetadataProvider.RUNTIME_VALUES, FlowRuleMetadataProvider.REQUEST_HEADERS));
     }
 
     @Test

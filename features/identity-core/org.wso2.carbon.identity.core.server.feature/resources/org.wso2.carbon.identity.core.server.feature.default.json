@@ -1363,6 +1363,16 @@
       "description": "This email notifies the user that the profile update is successfully completed",
       "displayName": "Profile Update Success",
       "id": "cHJvZmlsZVVwZGF0ZVN1Y2Nlc3M"
+    },
+    {
+      "description": "This email OTP is sent to verify the user before registering a new device.",
+      "displayName": "Email OTP for Device Registration",
+      "id": "RGV2aWNlUmVnaXN0cmF0aW9uRW1haWxPVFA"
+    },
+    {
+      "description": "This email is sent to the user to verify them using a magic link before registering a new device.",
+      "displayName": "Magic Link Device Registration",
+      "id": "bWFnaWNMaW5rRGV2aWNlUmVnaXN0cmF0aW9u"
     }
   ],
   "console.extensions.mcpKnownClients": [
@@ -1445,6 +1455,11 @@
       "description": "This SMS OTP is sent to verify the user before the profile update.",
       "displayName": "SMS OTP for Profile Update",
       "id": "cHJvZmlsZVVwZGF0ZVNNU09UUA"
+    },
+    {
+      "description": "This SMS OTP is sent to verify the user before registering a new device.",
+      "displayName": "SMS OTP for Device Registration",
+      "id": "ZGV2aWNlUmVnaXN0cmF0aW9uU01TT1RQ"
     },
     {
       "description": "This SMS is sent to notify the user of a successful profile update.",
@@ -2459,7 +2474,8 @@
     "REGISTRATION": "30",
     "PASSWORD_RECOVERY": "30",
     "INVITED_USER_REGISTRATION": "30",
-    "PROFILE_UPDATE": "30"
+    "PROFILE_UPDATE": "30",
+    "DEVICE_REGISTRATION": "30"
   },
   "flow_execution.enable_legacy_flows": false,
   "flow_execution.enable_legacy_self_registration_flow": false,

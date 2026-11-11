@@ -190,7 +190,7 @@ public class RegistrationFlowCompletionListenerTest {
         context.setGraphConfig(new GraphConfig());
         context.setFlowUser(new FlowUser());
         context.getFlowUser().setUserId(PROVISIONED_USER_ID);
-        context.setFlowType(FlowTypes.PASSWORD_RECOVERY.getType());
+        context.setFlowType(FlowTypes.DEVICE_REGISTRATION.getType());
         context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
 
         boolean result = listener.doPostExecute(completeStep(), context);

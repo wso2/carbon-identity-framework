@@ -265,6 +265,12 @@ public class FlowExecutionService {
                         .initiatingPersona(Flow.InitiatingPersona.USER)
                         .build());
                 return true;
+            case DEVICE_REGISTRATION:
+                IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                        .name(Flow.Name.DEVICE_REGISTRATION)
+                        .initiatingPersona(Flow.InitiatingPersona.USER)
+                        .build());
+                return true;
             default:
                 return false;
         }
