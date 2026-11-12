@@ -29,6 +29,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
@@ -48,6 +49,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
@@ -302,6 +304,76 @@ public class RoleDAOTest {
         assertTrue(appIDs.isEmpty());
         // Assert the thread local properties to check whether the IS_FRAGMENT_APP is removed.
         assertFalse(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
+    }
+
+    @DataProvider(name = "subOrgAppRoleThreadLocalProvider")
+    public Object[][] subOrgAppRoleThreadLocalProvider() {
+
+        return new Object[][]{
+                // isFragmentApp, isOrganizationCustomRoleCreationFlow.
+                // A role created by the sub organization for a fragment application.
+                {true, true},
+                // A role created outside a fragment application.
+                {false, false}
+        };
+    }
+
+    @Test(dataProvider = "subOrgAppRoleThreadLocalProvider")
+    public void testAddSubOrgAppRoleToFragmentApp(boolean isFragmentApp, boolean isOrganizationCustomRoleCreationFlow)
+            throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+        if (isFragmentApp) {
+            IdentityUtil.threadLocalProperties.get().put(IS_FRAGMENT_APP, Boolean.TRUE.toString());
+        }
+        if (isOrganizationCustomRoleCreationFlow) {
+            IdentityUtil.threadLocalProperties.get().put(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW,
+                    Boolean.TRUE);
+        }
+        try {
+            // The role is associated with the application like any application audience role.
+            RoleBasicInfo subOrgRoleBasicInfo = addRole(SHARED_APP_ROLE_NAME, APPLICATION_AUD,
+                    SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
+            List<String> appIDs = roleDAO.getAssociatedApplicationIdsByRoleId(subOrgRoleBasicInfo.getId(),
+                    SAMPLE_TENANT_DOMAIN);
+            assertEquals(appIDs.size(), 1);
+            assertEquals(appIDs.get(0).trim(), SHARED_APP_ID_OF_SAMPLE_APP);
+            assertFalse(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
+        } finally {
+            IdentityUtil.threadLocalProperties.get().remove(IS_FRAGMENT_APP);
+            IdentityUtil.threadLocalProperties.get().remove(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW);
+        }
+    }
+
+    @Test
+    public void testGetRolesAssociatedWithApplication() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        RoleBasicInfo appRole1 = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo appRole2 = addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(2), APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
+        addRole(roleNamesList.get(0), ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+
+        List<RoleBasicInfo> roles = roleDAO.getRolesAssociatedWithApplication(SAMPLE_APP_ID, SAMPLE_TENANT_DOMAIN);
+
+        // Only the roles whose audience is the given application are returned.
+        assertEquals(roles.size(), 2);
+        Map<String, String> roleNamesById = roles.stream()
+                .collect(Collectors.toMap(RoleBasicInfo::getId, RoleBasicInfo::getName));
+        assertEquals(roleNamesById.get(appRole1.getId()), roleNamesList.get(0));
+        assertEquals(roleNamesById.get(appRole2.getId()), roleNamesList.get(1));
+        for (RoleBasicInfo role : roles) {
+            assertEquals(role.getAudience(), APPLICATION_AUD);
+            assertEquals(role.getAudienceId(), SAMPLE_APP_ID);
+        }
     }
 
     @Test
@@ -947,6 +1019,38 @@ public class RoleDAOTest {
 
         roleDAO.updateRoleName(roleBasicInfo.getId(), SUB_ORG_ROLE_NAME, SAMPLE_TENANT_DOMAIN);
         loggerUtils.close();
+    }
+
+    @Test
+    public void testUpdateRoleNameCauseForSharedApplicationRoleConflict() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+        // Main application role inherited into the shared application.
+        RoleBasicInfo mainRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_TENANT_DOMAIN);
+        // Role authored by the organization for the shared application.
+        addRole(SUB_ORG_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        RoleManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        lenient().when(organizationManager.resolveOrganizationId(anyString())).thenReturn(SAMPLE_ORG_ID);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(SAMPLE_TENANT_DOMAIN);
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(LoggerUtils::isEnableV2AuditLogs).thenReturn(true);
+            // Renaming the main role to the name of the organization authored role must not fail.
+            roleDAO.updateRoleName(mainRole.getId(), SUB_ORG_ROLE_NAME, SAMPLE_TENANT_DOMAIN);
+        }
+
+        assertTrue(roleDAO.isExistingRoleName(SUB_ORG_ROLE_NAME, APPLICATION_AUD, SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN));
+        // The conflicting shared role keeps its name, and the organization authored role is unchanged.
+        assertTrue(roleDAO.isExistingRoleName(SHARED_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP,
+                SAMPLE_TENANT_DOMAIN));
+        assertTrue(roleDAO.isExistingRoleName(SUB_ORG_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP,
+                SAMPLE_TENANT_DOMAIN));
     }
 
     @Test

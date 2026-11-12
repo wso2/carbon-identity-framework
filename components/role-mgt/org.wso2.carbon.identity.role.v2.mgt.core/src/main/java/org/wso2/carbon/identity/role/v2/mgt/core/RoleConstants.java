@@ -89,6 +89,9 @@ public class RoleConstants {
     // Role properties
     public static final String IS_SHARED_ROLE_PROP_NAME = "isSharedRole";
 
+    // Thread local property marking a role created by an organization for a shared application.
+    public static final String IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW = "isOrganizationCustomRoleCreationFlow";
+
     /**
      * Grouping of constants related to database table names.
      */
