@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
@@ -35,15 +36,20 @@ import org.wso2.carbon.ndatasource.core.DataSourceRepository;
 import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -58,6 +64,8 @@ public class UserStoreConfigServiceImplTest {
     private static final String SAMPLE_DOMAIN_ID = "PRIMARY";
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
+    private static final String DB_BASED_REPOSITORY_CLASS =
+            "org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory";
 
 
     @BeforeMethod
@@ -238,6 +246,150 @@ public class UserStoreConfigServiceImplTest {
             userStoreConfigService.updateUserStore(updatedDto, true);
         }
 
+    }
+
+    @Test
+    public void testGetUserStoresListsRealmServedStoresAlongsideDatabaseRows() throws Exception {
+
+        UserStoreDTO databaseStore = buildUserStoreDTOWithDomain("DBSTORE");
+        UserStoreDTO fileStore = buildUserStoreDTOWithDomain("AGENT");
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> util
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+            UserStoreDAO databaseDAO = mock(UserStoreDAO.class);
+            UserStoreDAO fileDAO = mock(UserStoreDAO.class);
+            // The file based DAO walks the realm chain, so it reports the database held store as well.
+            when(databaseDAO.getUserStores()).thenReturn(new UserStoreDTO[]{databaseStore});
+            when(fileDAO.getUserStores()).thenReturn(new UserStoreDTO[]{databaseStore, fileStore});
+            mockDatabasePersistence(util, databaseDAO, fileDAO, true);
+
+            UserStoreDTO[] userStores = userStoreConfigService.getUserStores();
+
+            assertEquals("The store without a row should be listed and the one with a row not duplicated.",
+                    2, userStores.length);
+            assertEquals("DBSTORE", userStores[0].getDomainId());
+            assertEquals("AGENT", userStores[1].getDomainId());
+        }
+    }
+
+    @Test
+    public void testGetUserStoresSkipsStoresTheRealmNoLongerServes() throws Exception {
+
+        UserStoreDTO databaseStore = buildUserStoreDTOWithDomain("DBSTORE");
+        UserStoreDTO staleStore = buildUserStoreDTOWithDomain("DELETED");
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> util
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+            UserStoreDAO databaseDAO = mock(UserStoreDAO.class);
+            UserStoreDAO fileDAO = mock(UserStoreDAO.class);
+            when(databaseDAO.getUserStores()).thenReturn(new UserStoreDTO[]{databaseStore});
+            /*
+             A deleted store stays on the realm configuration chain until the next restart, so the chain alone
+             is not evidence that the domain is still in use.
+            */
+            when(fileDAO.getUserStores()).thenReturn(new UserStoreDTO[]{staleStore});
+            mockDatabasePersistence(util, databaseDAO, fileDAO, false);
+
+            UserStoreDTO[] userStores = userStoreConfigService.getUserStores();
+
+            assertEquals("A domain the realm no longer serves should not be listed.", 1, userStores.length);
+            assertEquals("DBSTORE", userStores[0].getDomainId());
+        }
+    }
+
+    @Test
+    public void testUpdateUserStoreIsNotDroppedWhenItCarriesTheDatabaseRepositoryClass() throws Exception {
+
+        UserStoreDTO userStoreDTO = buildUserStoreDTOWithDomain("DBSTORE");
+        userStoreDTO.setRepositoryClass(DB_BASED_REPOSITORY_CLASS);
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> util
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+            UserStoreDAO databaseDAO = mock(UserStoreDAO.class);
+            mockDatabasePersistence(util, databaseDAO, mock(UserStoreDAO.class), true);
+
+            userStoreConfigService.updateUserStore(userStoreDTO, false);
+
+            // A store read back from the database carries its repository class; the update must still be applied.
+            verify(databaseDAO).updateUserStore(userStoreDTO, false);
+        }
+    }
+
+    @Test
+    public void testModifyUserStoreStateIsNotDroppedForTheDatabaseRepositoryClass() throws Exception {
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> util
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+            UserStoreDAO databaseDAO = mock(UserStoreDAO.class);
+            mockDatabasePersistence(util, databaseDAO, mock(UserStoreDAO.class), true);
+
+            userStoreConfigService.modifyUserStoreState("DBSTORE", true, DB_BASED_REPOSITORY_CLASS);
+
+            verify(databaseDAO).updateUserStore(any(UserStoreDTO.class), any(Boolean.class));
+        }
+    }
+
+    @Test
+    public void testAnExplicitFileRepositoryAddGoesToTheFileDao() throws Exception {
+
+        UserStoreDTO userStoreDTO = buildUserStoreDTOWithDomain("FILESTORE");
+        userStoreDTO.setRepositoryClass(FILE_BASED_REPOSITORY_CLASS);
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> util
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(anyString())).thenReturn(new ArrayList<>());
+            UserStoreDAO databaseDAO = mock(UserStoreDAO.class);
+            UserStoreDAO fileDAO = mock(UserStoreDAO.class);
+            mockDatabasePersistence(util, databaseDAO, fileDAO, true);
+
+            userStoreConfigService.addUserStore(userStoreDTO);
+
+            /*
+             A caller that names the file repository must be able to update what it added through the same
+             path, so the add has to land where the update will look for it.
+            */
+            verify(fileDAO).addUserStore(userStoreDTO);
+            verify(databaseDAO, never()).addUserStore(userStoreDTO);
+        }
+    }
+
+    private void mockDatabasePersistence(MockedStatic<SecondaryUserStoreConfigurationUtil> util,
+                                         UserStoreDAO databaseDAO, UserStoreDAO fileDAO, boolean servedByRealm) {
+
+        util.when(SecondaryUserStoreConfigurationUtil::isDatabaseBasedUserStorePersistenceEnabled).thenReturn(true);
+        util.when(SecondaryUserStoreConfigurationUtil::getUserStoreDAO).thenReturn(databaseDAO);
+        util.when(SecondaryUserStoreConfigurationUtil::getFileBasedUserStoreDAOFactory).thenReturn(fileDAO);
+        util.when(() -> SecondaryUserStoreConfigurationUtil.isUserStoreServedByRealm(anyString()))
+                .thenReturn(servedByRealm);
+    }
+
+    private UserStoreDTO buildUserStoreDTOWithDomain(String domain) {
+
+        UserStoreDTO dto = new UserStoreDTO();
+        dto.setDomainId(domain);
+        dto.setProperties(new PropertyDTO[]{});
+        return dto;
     }
 
     private void mockSecondaryUserStoreConfigUtil(UserStoreDAO mockUserStoreDAO,
