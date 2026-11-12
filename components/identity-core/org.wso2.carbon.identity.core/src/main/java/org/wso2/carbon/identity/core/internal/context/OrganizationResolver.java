@@ -137,8 +137,9 @@ public class OrganizationResolver {
                     ". Cannot initialize organization.");
             return;
         }
-        if (minimalOrganization.getDepth() <
-                org.wso2.carbon.identity.organization.management.service.util.Utils.getSubOrgStartLevel()) {
+        // The depth on the minimal organization is relative to the root organization, so the root organization is at
+        // depth zero and every organization below it is a sub organization.
+        if (minimalOrganization.getDepth() <= 0) {
             LOG.debug("Organization with id: " + organizationId + " is not a sub organization. " +
                     "Skipping initialization of organization.");
             return;
