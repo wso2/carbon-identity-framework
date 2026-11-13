@@ -1049,6 +1049,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
                 IdentityUtil.getAuthenticationContextValidityPeriod()));
 
+        // Preserve the user assertion sent by the caller so authenticators can complete the flow without prompting
+        // for credentials. This is required when the assertion is submitted with a new session data key, e.g. the
+        // organization login request created by the flow engine.
+        String userAssertion = request.getParameter(FrameworkConstants.USER_ASSERTION);
+        if (StringUtils.isNotBlank(userAssertion)) {
+            context.setProperty(FrameworkConstants.USER_ASSERTION, userAssertion);
+        }
+
         /*
          Enabling this improvement to cater the SSO in sub organization federation login flows. When proper fix
          for session deserialization compatibility is there, we can use this.

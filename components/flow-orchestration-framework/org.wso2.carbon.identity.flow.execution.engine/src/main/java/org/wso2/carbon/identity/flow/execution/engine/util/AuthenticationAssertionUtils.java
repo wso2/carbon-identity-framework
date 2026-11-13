@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -31,6 +32,7 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.graph.AuthenticationExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Date;
@@ -68,7 +70,10 @@ public class AuthenticationAssertionUtils {
 
         try {
             JWTClaimsSet claims = buildUserAssertionClaimSet(context);
-            return UserAssertionUtils.generateSignedUserAssertion(claims, context.getTenantDomain());
+            // Sign for the tenant where the user exists, which differs from the flow tenant when the flow
+            // provisioned the user inside a new organization.
+            return UserAssertionUtils.generateSignedUserAssertion(claims,
+                    FlowExecutionEngineUtils.resolveCompletedTenantDomain(context));
         } catch (FrameworkException e) {
             throw FlowExecutionEngineUtils.handleServerException(context.getFlowType(),
                     ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE, e, context.getContextIdentifier());
@@ -86,7 +91,7 @@ public class AuthenticationAssertionUtils {
             long now = System.currentTimeMillis();
             Date issueTime = new Date(now);
             Date expirationTime = calculateUserAssertionExpiryTime(now);
-            String serverURL = ServiceURLBuilder.create().build(IdentityUtil.getHostName()).getAbsolutePublicURL();
+            String serverURL = buildAssertionServerURL(context);
             String username = context.getFlowUser().getUsername();
             String userId = context.getFlowUser().getUserId();
 
@@ -117,9 +122,32 @@ public class AuthenticationAssertionUtils {
         }
     }
 
+    /**
+     * Build the issuer and audience of the user assertion. When the flow provisioned the user in an organization,
+     * the assertion is verified in the organization context, so the URL must be the organization-qualified one.
+     *
+     * @param context Flow execution context.
+     * @return Server URL used as the assertion issuer and audience.
+     * @throws URLBuilderException If the URL cannot be built.
+     */
+    private static String buildAssertionServerURL(FlowExecutionContext context) throws URLBuilderException {
+
+        String completedTenantDomain = FlowExecutionEngineUtils.resolveCompletedTenantDomain(context);
+        FlowOrganization organization = context.getFlowOrganization();
+        if (!completedTenantDomain.equals(context.getTenantDomain()) && organization != null
+                && StringUtils.isNotBlank(organization.getOrganizationId())) {
+            // The organization commonauth endpoint and the expected assertion issuer/audience are under
+            // /o/<orgId>, so build the URL in the same organization-qualified form.
+            return ServiceURLBuilder.create().setOrganization(organization.getOrganizationId())
+                    .build(IdentityUtil.getHostName()).getAbsolutePublicURL();
+        }
+        return ServiceURLBuilder.create().build(IdentityUtil.getHostName()).getAbsolutePublicURL();
+    }
+
     private static String getFullQualifiedUsername(FlowExecutionContext context, String username) {
 
-        String fullQualifiedUsername = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
+        String fullQualifiedUsername = UserCoreUtil.addTenantDomainToEntry(username,
+                FlowExecutionEngineUtils.resolveCompletedTenantDomain(context));
         fullQualifiedUsername = UserCoreUtil.addDomainToName(fullQualifiedUsername,
                 context.getFlowUser().getUserStoreDomain());
         return fullQualifiedUsername;

@@ -676,8 +676,22 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
         UserCoreUtil.setDomainInThreadLocal(userStoreDomain);
-        context.setSubject(
-                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username));
+        AuthenticatedUser authenticatedUser =
+                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username);
+        // The assertion already carries the user id resolved during provisioning. Use it when local resolution
+        // fails, which can happen for users in organizations that were just created.
+        try {
+            String userId = claimsSet.getStringClaim(FrameworkConstants.USER_ID_CLAIM);
+            if (StringUtils.isNotBlank(userId) && !authenticatedUser.isUserIdExists()) {
+                authenticatedUser.setUserId(userId);
+                if (log.isDebugEnabled()) {
+                    log.debug("Set the user id from the user assertion.");
+                }
+            }
+        } catch (java.text.ParseException e) {
+            log.debug("Failed to parse the user id claim from the user assertion.", e);
+        }
+        context.setSubject(authenticatedUser);
 
         context.setCurrentAuthenticator(this.getName());
         SequenceConfig sequenceConfig = context.getSequenceConfig();
