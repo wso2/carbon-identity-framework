@@ -111,5 +111,12 @@
         "targetValue" : {{compatibility_setting.token_exchange.default_restrict_scope_issuance_for_federated_tokens.target_value | default("false")}},
         "defaultValue" : {{compatibility_setting.token_exchange.default_restrict_scope_issuance_for_federated_tokens.default_value | default("false")}}
     }
+  },
+  "preIssueAccessTokenAction": {
+    "enableForTokenExchangeGrant" : {
+        "timestampReference" : "{{compatibility_setting.pre_issue_access_token_action.enable_for_token_exchange_grant.timestamp_reference | default('2026-12-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.pre_issue_access_token_action.enable_for_token_exchange_grant.target_value | default("false")}},
+        "defaultValue" : {{compatibility_setting.pre_issue_access_token_action.enable_for_token_exchange_grant.default_value | default("true")}}
+    }
   }
 }
