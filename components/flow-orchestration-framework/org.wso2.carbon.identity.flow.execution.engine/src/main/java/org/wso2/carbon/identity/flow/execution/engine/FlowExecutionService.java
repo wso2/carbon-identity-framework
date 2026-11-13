@@ -136,8 +136,6 @@ public class FlowExecutionService {
             // The graph is attached from here on, so what the flow defines is known.
             FlowVariableResolver.populateRequestHeaders(context);
 
-            isFlowEnteredInIdentityContext = enterFlowInIdentityContext(context.getFlowType());
-
             if (inputs != null) {
                 context.getUserInputData().putAll(inputs);
             }
@@ -150,6 +148,8 @@ public class FlowExecutionService {
                 context.setProperty(ANONYMOUS_PROFILE_TRACKER,
                         context.getUserInputData().remove(ANONYMOUS_PROFILE_TRACKER));
             }
+
+            isFlowEnteredInIdentityContext = enterFlowInIdentityContext(context);
 
             context.setCurrentActionId(actionId);
             FlowVariableResolver.applyRuntimeValues(context, inputs, isInitiation);
@@ -232,8 +232,9 @@ public class FlowExecutionService {
         }
     }
 
-    private boolean enterFlowInIdentityContext(String flowType) {
+    private boolean enterFlowInIdentityContext(FlowExecutionContext context) {
 
+        String flowType = context.getFlowType();
         if (!EnumUtils.isValidEnum(FlowTypes.class, flowType)) {
             LOG.warn("Invalid flow type: " + flowType + " provided. Hence not entering the flow in IdentityContext.");
             return false;
@@ -244,6 +245,7 @@ public class FlowExecutionService {
                 IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
                         .name(Flow.Name.REGISTER)
                         .initiatingPersona(Flow.InitiatingPersona.USER)
+                        .anonymousProfileTracker((String) context.getProperty(ANONYMOUS_PROFILE_TRACKER))
                         .build());
                 return true;
             case PASSWORD_RECOVERY:
