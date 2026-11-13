@@ -129,8 +129,6 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String NO_GROUP_WITH_GIVEN_ID = "No group found for the given group ID: '%s'.";
     private static final String ORGANIZATION_CUSTOM_ROLES_WITHOUT_ENHANCED_ORG_AUTH = "Organization custom roles can " +
             "only be enabled when enhanced organization authentication is enabled.";
-    private static final String ORGANIZATION_CUSTOM_ROLES_FOR_FRAGMENT_APP = "Organization custom roles enabling " +
-            "config can only be configured on the main application.";
     public static final String IS_HANDLER = "IS_HANDLER";
     private static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
     private static Pattern loopPattern;
@@ -183,8 +181,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     }
 
     /**
-     * Validate that organization custom roles are enabled only on a main application which has enhanced
-     * organization authentication enabled. This applies to both application and organization audience roles.
+     * Validate that organization custom roles are enabled only on an application which has enhanced organization
+     * authentication enabled. This applies to both application and organization audience roles.
      *
      * @param validationErrors List of validation errors.
      * @param serviceProvider  Application being created, updated or imported, with all the changes applied.
@@ -194,13 +192,13 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         if (!serviceProvider.isOrganizationCustomRolesEnabled()) {
             return;
         }
-        if (!serviceProvider.isEnhancedOrganizationAuthenticationEnabled()) {
-            validationErrors.add(ORGANIZATION_CUSTOM_ROLES_WITHOUT_ENHANCED_ORG_AUTH);
-        }
         if (serviceProvider.getSpProperties() != null && Arrays.stream(serviceProvider.getSpProperties())
                 .anyMatch(property -> ApplicationConstants.IS_FRAGMENT_APP.equals(property.getName()) &&
                         Boolean.parseBoolean(property.getValue()))) {
-            validationErrors.add(ORGANIZATION_CUSTOM_ROLES_FOR_FRAGMENT_APP);
+            return;
+        }
+        if (!serviceProvider.isEnhancedOrganizationAuthenticationEnabled()) {
+            validationErrors.add(ORGANIZATION_CUSTOM_ROLES_WITHOUT_ENHANCED_ORG_AUTH);
         }
     }
 

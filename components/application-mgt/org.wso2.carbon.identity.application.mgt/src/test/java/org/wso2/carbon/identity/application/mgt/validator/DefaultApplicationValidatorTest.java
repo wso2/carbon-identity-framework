@@ -407,8 +407,9 @@ public class DefaultApplicationValidatorTest {
                 {false, true, true, 0},
                 {true, true, false, 0},
                 {true, false, false, 1},
-                {true, true, true, 1},
-                {true, false, true, 2}
+                // Shared applications hold the configuration inherited from the main application, hence skipped.
+                {true, true, true, 0},
+                {true, false, true, 0}
         };
     }
 
