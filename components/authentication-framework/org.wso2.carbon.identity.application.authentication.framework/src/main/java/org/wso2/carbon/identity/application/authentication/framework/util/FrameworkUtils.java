@@ -40,6 +40,7 @@ import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
@@ -69,6 +70,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -187,6 +189,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -5335,5 +5338,89 @@ public class FrameworkUtils {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Get the AMR values of the successfully authenticated steps in the current login.
+     *
+     * @param context Authentication context.
+     * @return AMR values authenticated in the current login.
+     */
+    private static Set<String> getAuthenticatedAmrValues(AuthenticationContext context) {
+
+        Set<String> amrValues = new LinkedHashSet<>();
+        if (context == null || context.getAuthenticationStepHistory() == null) {
+            return amrValues;
+        }
+        AuthenticationMethodNameTranslator translator =
+                FrameworkServiceDataHolder.getInstance().getAuthenticationMethodNameTranslator();
+        for (AuthHistory authHistory : context.getAuthenticationStepHistory()) {
+            if (!authHistory.isSuccess() || StringUtils.isBlank(authHistory.getAuthenticatorName())) {
+                continue;
+            }
+            String authenticatorName = authHistory.getAuthenticatorName();
+            Set<String> mappedAmrValues = translator != null ?
+                    translator.translateToExternalAmr(authenticatorName, null) : null;
+            if (mappedAmrValues == null || mappedAmrValues.isEmpty()) {
+                amrValues.add(authenticatorName);
+            } else if (!mappedAmrValues.contains(String.valueOf(Character.MIN_VALUE))) {
+                amrValues.addAll(mappedAmrValues);
+            }
+        }
+        return amrValues;
+    }
+
+    /**
+     * Check whether at least one of the AMR values required for enrollment is authenticated in the current login.
+     *
+     * When the requirement is not satisfied, the authenticator is reported in the
+     * {@value FrameworkConstants#ENROLLMENT_PENDING_AUTHENTICATOR} endpoint parameter, so that the authentication
+     * script can prompt a required authenticator and run it again. If no AMR value can be read from the configured
+     * parameter, the requirement can never be satisfied, hence the failure is logged and the parameter is not set.
+     *
+     * @param context             Authentication context.
+     * @param authenticatorParams Runtime parameters of the authenticator.
+     * @param authenticatorName   Name of the authenticator.
+     * @return True if no AMR value is required or the requirement is satisfied, false otherwise.
+     */
+    public static boolean isRequiredAmrForEnrollmentSatisfied(AuthenticationContext context,
+                                                              Map<String, String> authenticatorParams,
+                                                              String authenticatorName) {
+
+        String configuredAmrValues = authenticatorParams == null ? null :
+                authenticatorParams.get(FrameworkConstants.REQUIRED_AMR_FOR_ENROLLMENT);
+        if (StringUtils.isBlank(configuredAmrValues)) {
+            // No AMR value is required for enrollment.
+            context.getEndpointParams().remove(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR);
+            return true;
+        }
+        List<String> requiredAmrValues = new ArrayList<>();
+        for (String amrValue : configuredAmrValues.split(",")) {
+            if (StringUtils.isNotBlank(amrValue)) {
+                requiredAmrValues.add(amrValue.trim());
+            }
+        }
+        if (requiredAmrValues.isEmpty()) {
+            // A value is configured, but no AMR value can be read from it. No authenticator can satisfy the
+            // requirement, hence enrollment is not allowed and no pending authenticator is reported.
+            context.getEndpointParams().remove(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR);
+            log.error(String.format("No AMR value is found in the %s parameter configured for %s in the " +
+                            "application %s. Enrollment is not allowed.",
+                    FrameworkConstants.REQUIRED_AMR_FOR_ENROLLMENT, authenticatorName,
+                    context.getServiceProviderName()));
+            return false;
+        }
+        Set<String> authenticatedAmrValues = getAuthenticatedAmrValues(context);
+        if (!Collections.disjoint(authenticatedAmrValues, requiredAmrValues)) {
+            context.getEndpointParams().remove(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR);
+            return true;
+        }
+
+        context.addEndpointParam(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR, authenticatorName);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Enrollment with %s requires one of the AMR values %s, but the authenticated " +
+                    "AMR values are %s.", authenticatorName, requiredAmrValues, authenticatedAmrValues));
+        }
+        return false;
     }
 }

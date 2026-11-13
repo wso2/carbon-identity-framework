@@ -34,6 +34,7 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
@@ -48,6 +49,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -111,6 +113,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -161,6 +164,8 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @Listeners(MockitoTestNGListener.class)
 public class FrameworkUtilsTest extends IdentityBaseTest {
 
+    private static final String EMAIL_OTP = "email-otp-authenticator";
+    private static final String SMS_OTP = "sms-otp-authenticator";
     private static final String ROOT_DOMAIN = "/";
     private static final String DUMMY_TENANT_DOMAIN = "ABC";
     private static final String DUMMY_SP_NAME = "wso2carbon-local-sp";
@@ -2235,5 +2240,123 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         } finally {
             FrameworkServiceDataHolder.getInstance().setOrganizationManager(previousOrganizationManager);
         }
+    }
+
+    @Test
+    public void testAuthenticatedAmrValuesIncludeOnlySuccessfulSteps() {
+
+        AuthenticationContext context = new AuthenticationContext();
+        addStepHistory(context, "BasicAuthenticator", true);
+        addStepHistory(context, EMAIL_OTP, false);
+
+        assertTrue(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context,
+                requiredAmrParams("BasicAuthenticator"), SMS_OTP));
+        assertFalse(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context, requiredAmrParams(EMAIL_OTP),
+                SMS_OTP));
+    }
+
+    @Test
+    public void testAuthenticatedAmrValuesAreTheSameAsInTheAmrClaim() {
+
+        AuthenticationMethodNameTranslator existingTranslator =
+                FrameworkServiceDataHolder.getInstance().getAuthenticationMethodNameTranslator();
+        AuthenticationMethodNameTranslator translator = mock(AuthenticationMethodNameTranslator.class);
+        Map<String, String> amrMappings = new HashMap<>();
+        // Mapped to a short AMR value.
+        amrMappings.put(EMAIL_OTP, "otp");
+        // Hidden from the amr claim.
+        amrMappings.put("HiddenAuthenticator", String.valueOf(Character.MIN_VALUE));
+        lenient().when(translator.translateToExternalAmr(anyString(), isNull())).thenAnswer(invocation -> {
+            String mappedAmrValue = amrMappings.get((String) invocation.getArgument(0));
+            return mappedAmrValue == null ? new HashSet<String>() :
+                    new HashSet<>(Collections.singletonList(mappedAmrValue));
+        });
+        FrameworkServiceDataHolder.getInstance().setAuthenticationMethodNameTranslator(translator);
+        try {
+            AuthenticationContext context = new AuthenticationContext();
+            // No AMR value is mapped, hence the authenticator name is the AMR value.
+            addStepHistory(context, "BasicAuthenticator", true);
+            addStepHistory(context, "HiddenAuthenticator", true);
+            addStepHistory(context, EMAIL_OTP, true);
+
+            assertTrue(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context,
+                    requiredAmrParams("BasicAuthenticator"), SMS_OTP));
+            assertTrue(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context, requiredAmrParams("otp"),
+                    SMS_OTP));
+
+            // The name of an authenticator is not an AMR value, when another value is mapped to it or it is hidden.
+            assertFalse(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context, requiredAmrParams(EMAIL_OTP),
+                    SMS_OTP));
+            AuthenticationContext hiddenOnlyContext = new AuthenticationContext();
+            addStepHistory(hiddenOnlyContext, "HiddenAuthenticator", true);
+            assertFalse(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(hiddenOnlyContext,
+                    requiredAmrParams("HiddenAuthenticator"), SMS_OTP));
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setAuthenticationMethodNameTranslator(existingTranslator);
+        }
+    }
+
+    @Test
+    public void testRequiredAmrForEnrollmentIsSatisfiedWhenParameterIsNotGiven() {
+
+        AuthenticationContext context = new AuthenticationContext();
+        addStepHistory(context, "BasicAuthenticator", true);
+
+        assertTrue(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context, null, SMS_OTP));
+        assertTrue(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context, new HashMap<>(), SMS_OTP));
+        assertFalse(context.getEndpointParams().containsKey(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR));
+    }
+
+    @Test
+    public void testPendingAuthenticatorIsReportedUntilRequiredAmrIsSatisfied() {
+
+        AuthenticationContext context = new AuthenticationContext();
+        addStepHistory(context, "BasicAuthenticator", true);
+
+        assertFalse(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context, requiredAmrParams(EMAIL_OTP),
+                SMS_OTP));
+        assertEquals(context.getEndpointParams().get(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR), SMS_OTP);
+
+        // The script prompts the required authenticator, then runs the pending authenticator again.
+        addStepHistory(context, EMAIL_OTP, true);
+        assertTrue(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context, requiredAmrParams(EMAIL_OTP),
+                SMS_OTP));
+        assertFalse(context.getEndpointParams().containsKey(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR));
+    }
+
+    @Test
+    public void testAnyOfTheRequiredAmrValuesSatisfiesTheRule() {
+
+        AuthenticationContext context = new AuthenticationContext();
+        addStepHistory(context, EMAIL_OTP, true);
+
+        assertTrue(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context,
+                requiredAmrParams("totp, " + EMAIL_OTP), SMS_OTP));
+    }
+
+    @Test
+    public void testEnrollmentIsNotAllowedWhenNoAmrValueIsConfigured() {
+
+        AuthenticationContext context = new AuthenticationContext();
+        addStepHistory(context, "BasicAuthenticator", true);
+
+        assertFalse(FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(context, requiredAmrParams(", , ,"),
+                SMS_OTP));
+        // No authenticator can satisfy the requirement, hence it is not prompted again.
+        assertFalse(context.getEndpointParams().containsKey(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR));
+    }
+
+    private void addStepHistory(AuthenticationContext context, String authenticatorName, boolean success) {
+
+        AuthHistory authHistory = new AuthHistory(authenticatorName, "LOCAL");
+        authHistory.setSuccess(success);
+        context.addAuthenticationStepHistory(authHistory);
+    }
+
+    private Map<String, String> requiredAmrParams(String value) {
+
+        Map<String, String> params = new HashMap<>();
+        params.put(FrameworkConstants.REQUIRED_AMR_FOR_ENROLLMENT, value);
+        return params;
     }
 }
