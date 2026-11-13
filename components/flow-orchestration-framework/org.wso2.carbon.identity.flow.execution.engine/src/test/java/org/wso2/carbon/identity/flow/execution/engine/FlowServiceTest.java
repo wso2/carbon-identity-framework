@@ -30,6 +30,8 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.core.ServiceURL;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
@@ -61,6 +63,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.expectThrows;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
@@ -170,6 +173,41 @@ public class FlowServiceTest {
                             .executeFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, null, null,
                                     FLOW_TYPE, null);
             assertEquals(returnedStep, expectedStep);
+        }
+    }
+
+    @Test
+    public void testDeviceRegistrationFlowEntersIdentityContextAsUser() throws Exception {
+
+        FlowExecutionContext context = initTestContext();
+        context.setFlowType("DEVICE_REGISTRATION");
+        FlowExecutionStep expectedStep = new FlowExecutionStep.Builder()
+                .flowId(context.getContextIdentifier())
+                .flowStatus("INCOMPLETE")
+                .stepType("VIEW")
+                .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
+                .build();
+        Flow[] flowDuringExecution = new Flow[1];
+
+        try (MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
+                FlowExecutionEngineUtils.class);
+             MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class)) {
+            utilsMockedStatic.when(
+                            () -> FlowExecutionEngineUtils.initiateContext(anyString(), anyString(), anyString()))
+                    .thenReturn(context);
+            engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
+            when(engineMock.execute(context)).thenAnswer(invocation -> {
+                flowDuringExecution[0] = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+                return expectedStep;
+            });
+
+            FlowExecutionStep returnedStep = FlowExecutionService.getInstance()
+                    .executeFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, null, null, "DEVICE_REGISTRATION", null);
+
+            assertEquals(returnedStep, expectedStep);
+            assertNotNull(flowDuringExecution[0]);
+            assertEquals(flowDuringExecution[0].getName(), Flow.Name.DEVICE_REGISTRATION);
+            assertEquals(flowDuringExecution[0].getInitiatingPersona(), Flow.InitiatingPersona.USER);
         }
     }
 

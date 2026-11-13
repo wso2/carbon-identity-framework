@@ -79,6 +79,10 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
 
+        // -------------------------- Device management flows -----------------------------------------
+        FLOW_DEFINITIONS.put(Name.DEVICE_REGISTRATION, EnumSet.of(InitiatingPersona.USER));
+        // -----------------------------------------------------------------------------------------------
+
         // -------------------------- Credential management flows -------------------------------------
         CREDENTIAL_FLOW_DEFINITIONS.put(Name.CREDENTIAL_ENROLL,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
@@ -198,6 +202,10 @@ public class Flow {
         USER_ACCOUNT_UNLOCK,
         USER_ACCOUNT_ENABLE,
         USER_ACCOUNT_DISABLE,
+        // --------------------------------------------------
+
+        // -------------Device management flows--------------
+        DEVICE_REGISTRATION,
         // --------------------------------------------------
 
         // -------------Credential management flows----------

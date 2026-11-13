@@ -5669,6 +5669,16 @@
             {% endif %}
         </ProfileUpdate>
         {% endif %}
+        {% if rules.device_registration.max_expressions_combined_with_and is defined or rules.device_registration.max_rules_combined_with_or is defined %}
+        <DeviceRegistration>
+            {% if rules.device_registration.max_expressions_combined_with_and is defined %}
+            <MaxExpressionsCombinedWithAnd>{{rules.device_registration.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
+            {% endif %}
+            {% if rules.device_registration.max_rules_combined_with_or is defined %}
+            <MaxRulesCombinedWithOr>{{rules.device_registration.max_rules_combined_with_or}}</MaxRulesCombinedWithOr>
+            {% endif %}
+        </DeviceRegistration>
+        {% endif %}
     </Rules>
 
     {% if openid4vp is defined %}

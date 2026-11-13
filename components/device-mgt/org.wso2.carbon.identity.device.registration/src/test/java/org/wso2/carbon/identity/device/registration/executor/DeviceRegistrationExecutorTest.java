@@ -94,6 +94,7 @@ public class DeviceRegistrationExecutorTest {
     private static final int TENANT_ID = 1;
     private static final String USER_ID = "user-123";
     private static final String AUTHENTICATION_EXECUTOR_NAME = "EmailOTPExecutor";
+    private static final String USER_VERIFICATION_EXECUTOR_NAME = "UserVerificationExecutor";
     private static final String USERNAME = "alice";
     private static final String REGISTRATION_ID = "reg-abc-123";
     private static final String CHALLENGE = "challenge-b64url";
@@ -198,7 +199,7 @@ public class DeviceRegistrationExecutorTest {
     public void testGetSupportedFlowTypes() {
 
         assertEquals(executor.getSupportedFlowTypes(), EnumSet.of(FlowTypes.REGISTRATION,
-                FlowTypes.INVITED_USER_REGISTRATION));
+                FlowTypes.INVITED_USER_REGISTRATION, FlowTypes.DEVICE_REGISTRATION));
     }
 
     @Test
@@ -665,6 +666,53 @@ public class DeviceRegistrationExecutorTest {
         ExecutorResponse response = executor.execute(context);
         assertEquals(response.getResult(), STATUS_USER_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
+    }
+
+    @Test
+    public void testUserVerificationDoesNotAuthenticateTheUser() throws Exception {
+
+        // User verification only identifies the signed-in user, so a step-up must still run before the device step.
+        Executor userVerificationExecutor = mock(Executor.class);
+        when(userVerificationExecutor.getName()).thenReturn(USER_VERIFICATION_EXECUTOR_NAME);
+        FlowExecutionEngineDataHolder.getInstance().addExecutor(userVerificationExecutor);
+        try {
+            FlowExecutionContext context = newContext();
+            context.getFlowUser().setUserId(USER_ID);
+            context.setFlowType(FlowTypes.DEVICE_REGISTRATION.getType());
+            context.setCompletedNodes(new ArrayList<>(Collections.singletonList(
+                    completedNode(USER_VERIFICATION_EXECUTOR_NAME))));
+
+            ExecutorResponse response = executor.execute(context);
+            assertEquals(response.getResult(), STATUS_USER_ERROR);
+            assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_AUTHENTICATED.getCode());
+        } finally {
+            FlowExecutionEngineDataHolder.getInstance().removeExecutor(userVerificationExecutor);
+        }
+    }
+
+    @Test
+    public void testDeviceRegistrationFlowProceedsAfterStepUp() throws Exception {
+
+        // User verification followed by a step-up, as in the device registration flow.
+        Executor userVerificationExecutor = mock(Executor.class);
+        when(userVerificationExecutor.getName()).thenReturn(USER_VERIFICATION_EXECUTOR_NAME);
+        FlowExecutionEngineDataHolder.getInstance().addExecutor(userVerificationExecutor);
+        try {
+            FlowExecutionContext context = newContext();
+            context.getFlowUser().setUserId(USER_ID);
+            context.setFlowType(FlowTypes.DEVICE_REGISTRATION.getType());
+            context.setCompletedNodes(new ArrayList<>(Arrays.asList(
+                    completedNode(USER_VERIFICATION_EXECUTOR_NAME), completedNode(AUTHENTICATION_EXECUTOR_NAME))));
+
+            ExecutorResponse response;
+            try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+                response = executor.execute(context);
+                mocked.verify(() -> DeviceRegistrationHandler.initiate(USERNAME, TENANT_DOMAIN));
+            }
+            assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+        } finally {
+            FlowExecutionEngineDataHolder.getInstance().removeExecutor(userVerificationExecutor);
+        }
     }
 
     private FlowExecutionContext newContext() {

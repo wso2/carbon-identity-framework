@@ -56,6 +56,7 @@ public class RuleManagementConfig {
         CONFIG_SECTIONS.put(FlowType.PASSWORD_RECOVERY, "Rules.PasswordRecovery");
         CONFIG_SECTIONS.put(FlowType.INVITED_USER_REGISTRATION, "Rules.InvitedUserRegistration");
         CONFIG_SECTIONS.put(FlowType.PROFILE_UPDATE, "Rules.ProfileUpdate");
+        CONFIG_SECTIONS.put(FlowType.DEVICE_REGISTRATION, "Rules.DeviceRegistration");
     }
 
     private RuleManagementConfig() {

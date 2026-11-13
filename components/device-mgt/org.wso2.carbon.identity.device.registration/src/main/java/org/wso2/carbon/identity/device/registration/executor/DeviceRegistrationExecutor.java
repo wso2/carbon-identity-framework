@@ -79,6 +79,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.PHASE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_VALIDITY_SECONDS;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.RETAIN_OTFI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.DEVICE_REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.INVITED_USER_REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
 
@@ -157,7 +158,7 @@ public class DeviceRegistrationExecutor implements Executor {
     @Override
     public Set<FlowTypes> getSupportedFlowTypes() {
 
-        return EnumSet.of(REGISTRATION, INVITED_USER_REGISTRATION);
+        return EnumSet.of(REGISTRATION, INVITED_USER_REGISTRATION, DEVICE_REGISTRATION);
     }
 
     @Override
