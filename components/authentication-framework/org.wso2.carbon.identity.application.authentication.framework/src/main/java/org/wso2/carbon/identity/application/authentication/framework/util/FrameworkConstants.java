@@ -314,6 +314,8 @@ public abstract class FrameworkConstants {
     public static final String FILER_BY_SESSION_ID_FOR_USER = "FilterByUniqueSessionIdForUser";
 
     public static final String AMR = "amr";
+    public static final String REQUIRED_AMR_FOR_ENROLLMENT = "requiredAmrForEnrollment";
+    public static final String ENROLLMENT_PENDING_AUTHENTICATOR = "enrollmentPendingAuthenticator";
     public static final String USER_ASSERTION = "userAssertion";
 
     public static final String RETURN_ROLES_IN_SAAS_APPS_IN_ID_TOKEN = "ReturnRolesInSaaSAppsInIDToken";
