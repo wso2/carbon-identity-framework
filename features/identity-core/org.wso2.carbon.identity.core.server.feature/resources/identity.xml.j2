@@ -1387,6 +1387,11 @@
         <JWTX5tEnabled>false</JWTX5tEnabled>
         {% endif %}
 
+        <!-- When set to true, the 'kid' in the JWT header is used to select the signature verification key from
+             the key entries of the signing tenant's keystore, so that JWTs signed before a key rotation stay valid
+             until they expire. Any private key entry kept in the keystore is accepted as a signing key. -->
+        <ResolveSigningKeyByKID>{{oauth.resolve_signing_key_by_kid}}</ResolveSigningKeyByKID>
+
         <!--
         By enabling this property, client id will be used as the sub claim for the access tokens issued for the
         authenticated applications.
