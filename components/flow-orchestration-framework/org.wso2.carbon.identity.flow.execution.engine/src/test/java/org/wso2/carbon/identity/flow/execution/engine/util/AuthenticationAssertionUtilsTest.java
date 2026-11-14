@@ -58,6 +58,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PROVISIONED_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USER_ASSERTION_EXPIRY_PROPERTY;
 
 /**
@@ -73,6 +74,7 @@ public class AuthenticationAssertionUtilsTest {
     private static final String TEST_SIGNED_ASSERTION = "signed.jwt.token";
     private static final String TEST_AMR_VALUE = "password";
     private static final String TEST_EXECUTOR_NAME = "password-executor";
+    private static final String TEST_ORGANIZATION_TENANT_DOMAIN = "team-a.com";
 
     @Mock
     private FlowExecutionContext mockContext;
@@ -135,6 +137,54 @@ public class AuthenticationAssertionUtilsTest {
             String result = AuthenticationAssertionUtils.getSignedUserAssertion(mockContext);
 
             Assert.assertEquals(result, TEST_SIGNED_ASSERTION);
+        }
+    }
+
+    @Test
+    public void testGetSignedUserAssertionSignsWithProvisionedTenant() throws Exception {
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
+             MockedStatic<UserAssertionUtils> userAssertionMock = mockStatic(UserAssertionUtils.class);
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class)) {
+
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
+            setupExecutorMocks();
+            when(mockContext.getProperty(PROVISIONED_TENANT_DOMAIN)).thenReturn(TEST_ORGANIZATION_TENANT_DOMAIN);
+
+            userAssertionMock.when(() -> UserAssertionUtils.generateSignedUserAssertion(
+                            any(JWTClaimsSet.class), eq(TEST_ORGANIZATION_TENANT_DOMAIN)))
+                    .thenReturn(TEST_SIGNED_ASSERTION);
+
+            String result = AuthenticationAssertionUtils.getSignedUserAssertion(mockContext);
+
+            Assert.assertEquals(result, TEST_SIGNED_ASSERTION);
+            userAssertionMock.verify(() -> UserAssertionUtils.generateSignedUserAssertion(
+                    any(JWTClaimsSet.class), eq(TEST_ORGANIZATION_TENANT_DOMAIN)));
+        }
+    }
+
+    @Test
+    public void testBuildUserAssertionClaimSetQualifiesSubjectWithProvisionedTenant() throws Exception {
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<UserCoreUtil> userCoreUtilMock = mockStatic(UserCoreUtil.class)) {
+
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
+            setupExecutorMocks();
+            when(mockContext.getProperty(PROVISIONED_TENANT_DOMAIN)).thenReturn(TEST_ORGANIZATION_TENANT_DOMAIN);
+            userCoreUtilMock.when(() -> UserCoreUtil.addTenantDomainToEntry(TEST_USERNAME,
+                            TEST_ORGANIZATION_TENANT_DOMAIN))
+                    .thenReturn(TEST_USERNAME + "@" + TEST_ORGANIZATION_TENANT_DOMAIN);
+            userCoreUtilMock.when(() -> UserCoreUtil.addDomainToName(
+                            TEST_USERNAME + "@" + TEST_ORGANIZATION_TENANT_DOMAIN, "PRIMARY"))
+                    .thenReturn(TEST_USERNAME + "@" + TEST_ORGANIZATION_TENANT_DOMAIN);
+
+            JWTClaimsSet claimsSet = invokePrivateMethod("buildUserAssertionClaimSet", mockContext);
+
+            Assert.assertEquals(claimsSet.getSubject(), TEST_USERNAME + "@" + TEST_ORGANIZATION_TENANT_DOMAIN);
         }
     }
 

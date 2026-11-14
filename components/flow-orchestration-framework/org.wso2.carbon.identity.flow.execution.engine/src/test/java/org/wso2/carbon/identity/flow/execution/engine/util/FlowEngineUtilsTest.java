@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
@@ -30,13 +31,20 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.ServiceURL;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -46,6 +54,7 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineExcept
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
@@ -56,7 +65,12 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowVariablesDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -65,7 +79,10 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORGANIZATION_AUTO_LOGIN_URL;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PROVISIONED_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
@@ -84,6 +101,11 @@ public class FlowEngineUtilsTest {
     private static final String TEST_CALLBACK_URL = "https://localhost:3000/myapp/callback";
     private static final String TEST_APP_URL = "https://localhost:3000/myapp";
     private static final String DEFAULT_MY_ACCOUNT_URL = "https://localhost:9443/myaccount";
+    private static final String MY_ACCOUNT_APP_NAME = "My Account";
+    private static final String ORGANIZATION_TENANT_DOMAIN = "team-a.com";
+    private static final String TEST_CLIENT_ID = "test-client-id";
+    private static final String ORGANIZATION_CLIENT_ID = "org-test-client-id";
+    private static final String TEST_APP_ID = "test-app-id";
     private static final String FLOW_TYPE = "REGISTRATION";
     private static final int TENANT_ID = -1234;
     private FlowExecutionContext testContext;
@@ -344,6 +366,242 @@ public class FlowEngineUtilsTest {
                 assertEquals(e.getErrorCode(), "FE-65016");
             }
         }
+    }
+
+    @Test
+    public void testResolveCompletionRedirectionUrlForProvisionedOrganization() throws Exception {
+
+        FlowExecutionContext context = createProvisionedOrganizationContext();
+        String organizationId = context.getFlowOrganization().getOrganizationId();
+        String organizationMyAccountUrl =
+                "https://localhost:9443/t/" + TENANT_DOMAIN + "/o/" + organizationId + "/myaccount";
+        ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class);
+             MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
+                    .thenReturn(createOrganizationMyAccountApplication());
+            identityUtilMockedStatic.when(() -> IdentityUtil.getServerURL("/myaccount", true, true))
+                    .thenReturn(DEFAULT_MY_ACCOUNT_URL);
+
+            String redirectUrl = FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context);
+
+            assertEquals(redirectUrl, organizationMyAccountUrl);
+        }
+    }
+
+    @Test
+    public void testCreateOrganizationAuthenticationRequest() throws Exception {
+
+        FlowExecutionContext context = createProvisionedOrganizationContext();
+        String organizationId = context.getFlowOrganization().getOrganizationId();
+        String organizationMyAccountUrl =
+                "https://localhost:9443/t/" + TENANT_DOMAIN + "/o/" + organizationId + "/myaccount";
+        String organizationCommonAuthUrl = "https://localhost:9443/o/" + organizationId + "/commonauth";
+        ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
+        ServiceURLBuilder urlBuilder = mock(ServiceURLBuilder.class);
+        ServiceURL commonAuthURL = mock(ServiceURL.class);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class);
+             MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class)) {
+
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
+                    .thenReturn(createOrganizationMyAccountApplication());
+            identityUtilMockedStatic.when(() -> IdentityUtil.getServerURL("/myaccount", true, true))
+                    .thenReturn(DEFAULT_MY_ACCOUNT_URL);
+            identityUtilMockedStatic.when(IdentityUtil::getOperationCleanUpTimeout).thenReturn(60L);
+
+            serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(urlBuilder);
+            when(urlBuilder.addPath(any(String[].class))).thenReturn(urlBuilder);
+            when(urlBuilder.setOrganization(organizationId)).thenReturn(urlBuilder);
+            when(urlBuilder.build()).thenReturn(commonAuthURL);
+            when(commonAuthURL.getAbsolutePublicURL()).thenReturn(organizationCommonAuthUrl);
+
+            Map<String, String> autoLoginData = FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context);
+
+            assertNotNull(autoLoginData.get(FrameworkConstants.SESSION_DATA_KEY));
+            assertEquals(autoLoginData.get(FrameworkConstants.RequestParams.TYPE),
+                    FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
+            assertEquals(autoLoginData.get(ORGANIZATION_AUTO_LOGIN_URL), organizationCommonAuthUrl);
+
+            ArgumentCaptor<AuthenticationRequestCacheEntry> cacheEntryCaptor =
+                    ArgumentCaptor.forClass(AuthenticationRequestCacheEntry.class);
+            frameworkUtilsMockedStatic.verify(() -> FrameworkUtils.addAuthenticationRequestToCache(
+                    anyString(), cacheEntryCaptor.capture()));
+            AuthenticationRequest cachedRequest = cacheEntryCaptor.getValue().getAuthenticationRequest();
+            assertEquals(cachedRequest.getTenantDomain(), ORGANIZATION_TENANT_DOMAIN);
+            assertEquals(cachedRequest.getRelyingParty(), ORGANIZATION_CLIENT_ID);
+            assertEquals(cachedRequest.getType(), FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
+            assertEquals(cachedRequest.getCommonAuthCallerPath(),
+                    URLEncoder.encode(organizationMyAccountUrl, StandardCharsets.UTF_8.name()));
+        }
+    }
+
+    @Test
+    public void testCreateOrganizationAuthenticationRequestWithOidcInbound() throws Exception {
+
+        FlowExecutionContext context = createProvisionedOrganizationContext();
+        String organizationId = context.getFlowOrganization().getOrganizationId();
+        String organizationMyAccountUrl =
+                "https://localhost:9443/t/" + TENANT_DOMAIN + "/o/" + organizationId + "/myaccount";
+        ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
+        ServiceURLBuilder urlBuilder = mock(ServiceURLBuilder.class);
+        ServiceURL commonAuthURL = mock(ServiceURL.class);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class);
+             MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class)) {
+
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
+                    .thenReturn(createOidcOrganizationMyAccountApplication());
+            identityUtilMockedStatic.when(() -> IdentityUtil.getServerURL("/myaccount", true, true))
+                    .thenReturn(DEFAULT_MY_ACCOUNT_URL);
+            identityUtilMockedStatic.when(IdentityUtil::getOperationCleanUpTimeout).thenReturn(60L);
+
+            serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(urlBuilder);
+            when(urlBuilder.addPath(any(String[].class))).thenReturn(urlBuilder);
+            when(urlBuilder.setOrganization(organizationId)).thenReturn(urlBuilder);
+            when(urlBuilder.build()).thenReturn(commonAuthURL);
+            when(commonAuthURL.getAbsolutePublicURL()).thenReturn(
+                    "https://localhost:9443/o/" + organizationId + "/commonauth");
+
+            Map<String, String> autoLoginData = FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context);
+
+            assertNotNull(autoLoginData.get(FrameworkConstants.SESSION_DATA_KEY));
+
+            ArgumentCaptor<AuthenticationRequestCacheEntry> cacheEntryCaptor =
+                    ArgumentCaptor.forClass(AuthenticationRequestCacheEntry.class);
+            frameworkUtilsMockedStatic.verify(() -> FrameworkUtils.addAuthenticationRequestToCache(
+                    anyString(), cacheEntryCaptor.capture()));
+            AuthenticationRequest cachedRequest = cacheEntryCaptor.getValue().getAuthenticationRequest();
+            assertEquals(cachedRequest.getRelyingParty(), ORGANIZATION_CLIENT_ID);
+        }
+    }
+
+    @Test
+    public void testCreateOrganizationAuthenticationRequestForFlowTenant() throws Exception {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setTenantDomain(TENANT_DOMAIN);
+        context.setApplicationId(TEST_APP_ID);
+
+        Map<String, String> autoLoginData = FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context);
+
+        assertTrue(autoLoginData.isEmpty());
+    }
+
+    @Test
+    public void testCreateOrganizationAuthenticationRequestWithoutOAuthInbound() throws Exception {
+
+        FlowExecutionContext context = createProvisionedOrganizationContext();
+        ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class)) {
+
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
+                    .thenReturn(new ServiceProvider());
+
+            Map<String, String> autoLoginData = FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context);
+
+            assertTrue(autoLoginData.isEmpty());
+        }
+    }
+
+    @Test
+    public void testCreateOrganizationAuthenticationRequestWhenPortalNotShared() throws Exception {
+
+        FlowExecutionContext context = createProvisionedOrganizationContext();
+        ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class)) {
+
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
+                    .thenThrow(IdentityApplicationManagementException.class);
+
+            Map<String, String> autoLoginData = FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context);
+
+            assertTrue(autoLoginData.isEmpty());
+        }
+    }
+
+    private FlowExecutionContext createProvisionedOrganizationContext() {
+
+        FlowOrganization organization = new FlowOrganization();
+        organization.setOrganizationHandle(ORGANIZATION_TENANT_DOMAIN);
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setTenantDomain(TENANT_DOMAIN);
+        context.setApplicationId(TEST_APP_ID);
+        context.setFlowOrganization(organization);
+        context.setProperty(PROVISIONED_TENANT_DOMAIN, ORGANIZATION_TENANT_DOMAIN);
+        return context;
+    }
+
+    private ServiceProvider createMyAccountApplication() {
+
+        InboundAuthenticationRequestConfig oauthInboundConfig = new InboundAuthenticationRequestConfig();
+        oauthInboundConfig.setInboundAuthType("oauth2");
+        oauthInboundConfig.setInboundAuthKey(TEST_CLIENT_ID);
+
+        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(
+                new InboundAuthenticationRequestConfig[]{oauthInboundConfig});
+
+        ServiceProvider application = new ServiceProvider();
+        application.setApplicationName(MY_ACCOUNT_APP_NAME);
+        application.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+        return application;
+    }
+
+    private ServiceProvider createOrganizationMyAccountApplication() {
+
+        InboundAuthenticationRequestConfig oauthInboundConfig = new InboundAuthenticationRequestConfig();
+        oauthInboundConfig.setInboundAuthType("oauth2");
+        oauthInboundConfig.setInboundAuthKey(ORGANIZATION_CLIENT_ID);
+
+        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(
+                new InboundAuthenticationRequestConfig[]{oauthInboundConfig});
+
+        ServiceProvider application = new ServiceProvider();
+        application.setApplicationName(MY_ACCOUNT_APP_NAME);
+        application.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+        return application;
+    }
+
+    private ServiceProvider createOidcOrganizationMyAccountApplication() {
+
+        InboundAuthenticationRequestConfig oidcInboundConfig = new InboundAuthenticationRequestConfig();
+        oidcInboundConfig.setInboundAuthType("oidc");
+        oidcInboundConfig.setInboundAuthKey(ORGANIZATION_CLIENT_ID);
+
+        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(
+                new InboundAuthenticationRequestConfig[]{oidcInboundConfig});
+
+        ServiceProvider application = new ServiceProvider();
+        application.setApplicationName(MY_ACCOUNT_APP_NAME);
+        application.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+        return application;
     }
 
     @Test

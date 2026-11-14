@@ -55,6 +55,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_INTE
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_INTERVAL_SECONDS;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_TOKEN;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.POLL_VALIDITY_SECONDS;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PROVISIONED_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.POLL;
@@ -180,6 +181,16 @@ public class FlowExecutionService {
                 if (context.isGenerateAuthenticationAssertion() && REDIRECTION.equals(step.getStepType())) {
                     step.getData().addAdditionalData(FrameworkConstants.USER_ASSERTION,
                             AuthenticationAssertionUtils.getSignedUserAssertion(context));
+                    // The assertion belongs to the tenant of the provisioned user, so when the flow created an
+                    // organization, the browser needs the endpoint of that organization to submit it.
+                    String provisionedTenantDomain = FlowExecutionEngineUtils.resolveCompletedTenantDomain(context);
+                    if (!provisionedTenantDomain.equals(context.getTenantDomain())) {
+                        // Let the client distinguish an organization-provisioned user from a normal tenant user,
+                        // even when the organization portal is not shared and auto login is skipped.
+                        step.getData().addAdditionalData(PROVISIONED_TENANT_DOMAIN, provisionedTenantDomain);
+                    }
+                    FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context)
+                            .forEach(step.getData()::addAdditionalData);
                 }
             } else {
                 updatePolling(context, step, previousPollingState);
