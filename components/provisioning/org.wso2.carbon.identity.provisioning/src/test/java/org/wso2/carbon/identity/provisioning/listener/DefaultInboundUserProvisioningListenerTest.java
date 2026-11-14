@@ -42,11 +42,13 @@ import org.wso2.carbon.identity.provisioning.OutboundProvisioningManager;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntityType;
 import org.wso2.carbon.identity.provisioning.ProvisioningOperation;
+import org.wso2.carbon.identity.provisioning.ProvisioningUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -348,6 +351,95 @@ public class DefaultInboundUserProvisioningListenerTest {
                     any(ProvisioningEntity.class), eq(IdentityProvisioningConstants.LOCAL_SP),
                     anyString(), anyString(), anyBoolean());
         }
+    }
+
+    @Test
+    public void testDoPostUpdateUserListOfRoleSkipsFullMemberListWhenConfigEnabled() throws UserStoreException {
+
+        String[] newUsers = new String[]{"newUser"};
+        String[] deletedUsers = new String[]{"deletedUser"};
+
+        try (MockedStatic<ProvisioningUtil> provisioningUtilMockedStatic = mockProvisioningUtil(true)) {
+
+            boolean result = listener.doPostUpdateUserListOfRole(OLD_ROLE_NAME, deletedUsers, newUsers,
+                    userStoreManager);
+
+            assertTrue(result, "Should return true after provisioning");
+
+            // The full member list of the group must not be loaded from the user store.
+            verify(userStoreManager, never()).getUserListOfRole(anyString());
+
+            Map<ClaimMapping, List<String>> attributes = captureGroupUpdateAttributes();
+            assertEquals(getAttributeValues(attributes, IdentityProvisioningConstants.USERNAME_CLAIM_URI),
+                    Arrays.asList(newUsers), "Only the newly added users should be passed as the user list");
+            assertEquals(getAttributeValues(attributes, IdentityProvisioningConstants.NEW_USER_CLAIM_URI),
+                    Arrays.asList(newUsers), "New users should match the newly added users");
+            assertEquals(getAttributeValues(attributes, IdentityProvisioningConstants.DELETED_USER_CLAIM_URI),
+                    Arrays.asList(deletedUsers), "Deleted users should match the removed users");
+        }
+    }
+
+    @Test
+    public void testDoPostUpdateUserListOfRoleLoadsFullMemberListWhenConfigDisabled() throws UserStoreException {
+
+        String[] newUsers = new String[]{"newUser"};
+        String[] deletedUsers = new String[]{"deletedUser"};
+        String[] allUsers = new String[]{"existingUser", "newUser"};
+        when(userStoreManager.getUserListOfRole(OLD_ROLE_NAME)).thenReturn(allUsers);
+
+        try (MockedStatic<ProvisioningUtil> provisioningUtilMockedStatic = mockProvisioningUtil(false)) {
+
+            boolean result = listener.doPostUpdateUserListOfRole(OLD_ROLE_NAME, deletedUsers, newUsers,
+                    userStoreManager);
+
+            assertTrue(result, "Should return true after provisioning");
+
+            // The full member list of the group must be loaded from the user store.
+            verify(userStoreManager).getUserListOfRole(OLD_ROLE_NAME);
+
+            Map<ClaimMapping, List<String>> attributes = captureGroupUpdateAttributes();
+            assertEquals(getAttributeValues(attributes, IdentityProvisioningConstants.USERNAME_CLAIM_URI),
+                    Arrays.asList(allUsers), "All members of the group should be passed as the user list");
+        }
+    }
+
+    private MockedStatic<ProvisioningUtil> mockProvisioningUtil(boolean skipFullMemberListOnGroupUpdate) {
+
+        MockedStatic<ProvisioningUtil> provisioningUtilMockedStatic = Mockito.mockStatic(ProvisioningUtil.class);
+        provisioningUtilMockedStatic.when(() -> ProvisioningUtil.isOutboundProvisioningEnabled(
+                IdentityProvisioningConstants.LOCAL_SP, TENANT_DOMAIN)).thenReturn(true);
+        provisioningUtilMockedStatic.when(ProvisioningUtil::isSkipFullMemberListOnGroupUpdateEnabled)
+                .thenReturn(skipFullMemberListOnGroupUpdate);
+        return provisioningUtilMockedStatic;
+    }
+
+    private Map<ClaimMapping, List<String>> captureGroupUpdateAttributes() throws IdentityProvisioningException {
+
+        ArgumentCaptor<ProvisioningEntity> entityCaptor = ArgumentCaptor.forClass(ProvisioningEntity.class);
+        verify(outboundProvisioningManager).provision(
+                entityCaptor.capture(),
+                eq(IdentityProvisioningConstants.LOCAL_SP),
+                eq(IdentityProvisioningConstants.WSO2_CARBON_DIALECT),
+                eq(TENANT_DOMAIN),
+                eq(false));
+
+        ProvisioningEntity capturedEntity = entityCaptor.getValue();
+        assertNotNull(capturedEntity, "ProvisioningEntity should not be null");
+        assertEquals(capturedEntity.getEntityType(), ProvisioningEntityType.GROUP, "Entity type should be GROUP");
+        assertEquals(capturedEntity.getEntityName(), DOMAIN_AWARE_NAME, "Entity name should be domain-aware");
+        assertEquals(capturedEntity.getOperation(), ProvisioningOperation.PUT, "Operation should be PUT");
+        return capturedEntity.getAttributes();
+    }
+
+    private List<String> getAttributeValues(Map<ClaimMapping, List<String>> attributes, String claimUri) {
+
+        for (Map.Entry<ClaimMapping, List<String>> entry : attributes.entrySet()) {
+            ClaimMapping mapping = entry.getKey();
+            if (mapping.getLocalClaim() != null && claimUri.equals(mapping.getLocalClaim().getClaimUri())) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     private ThreadLocalProvisioningServiceProvider mockThreadLocalServiceProvider() {
