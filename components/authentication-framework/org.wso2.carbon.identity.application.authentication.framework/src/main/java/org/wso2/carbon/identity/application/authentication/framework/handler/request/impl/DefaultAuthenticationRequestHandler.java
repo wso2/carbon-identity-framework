@@ -865,7 +865,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String retainCache = System.getProperty("retainCache");
 
         if (retainCache == null) {
-            FrameworkUtils.removeAuthenticationContextFromCache(context.getContextIdentifier());
+            FrameworkUtils.removeAuthenticationContextFromCache(context.getContextIdentifier(),
+                    FrameworkConstants.LogConstants.AuthContextInvalidationReasons.AUTH_FLOW_CONCLUDED, context);
         }
 
         sendResponse(request, response, context);
