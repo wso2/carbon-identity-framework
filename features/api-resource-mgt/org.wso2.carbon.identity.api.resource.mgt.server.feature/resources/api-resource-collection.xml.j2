@@ -2948,4 +2948,77 @@
         </Scopes>
     </APIResourceCollection>
     {% endif %}
+    {% if customer_data_service.enable is sameas true %}
+    <!-- Customer Data Service API resource collections. Added when [customer_data_service] enable = true. -->
+    <APIResourceCollection name="customerData" displayName="Customer Data Service" type="tenant">
+       <Scopes>
+            <Feature>
+                <Scope name="console:customerData"/>
+                <Scope name="console:customerData_view"/>
+                <Scope name="console:customerData_edit"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_cds_profile_create"/>
+                <Scope name="internal_cds_profile_schema_create"/>
+                <Scope name="internal_cds_unification_rule_create"/>
+                <Scope name="internal_cds_consent_category_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_cds_profile_update"/>
+                <Scope name="internal_cds_profile_schema_update"/>
+                <Scope name="internal_cds_unification_rule_update"/>
+                <Scope name="internal_cds_admin_config_update"/>
+                <Scope name="internal_cds_organization_update"/>
+                <Scope name="internal_cds_profile_schema_share_update"/>
+                <Scope name="internal_cds_unification_rule_share_update"/>
+                <Scope name="internal_cds_consent_category_update"/>
+                <Scope name="internal_cds_identity_resolution_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_cds_profile_view"/>
+                <Scope name="internal_cds_profile_schema_view"/>
+                <Scope name="internal_cds_unification_rule_view"/>
+                <Scope name="internal_cds_admin_config_view"/>
+                <Scope name="internal_cds_organization_view"/>
+                <Scope name="internal_cds_profile_schema_share_view"/>
+                <Scope name="internal_cds_unification_rule_share_view"/>
+                <Scope name="internal_cds_consent_category_view"/>
+                <Scope name="internal_cds_identity_resolution_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_cds_profile_delete"/>
+                <Scope name="internal_cds_profile_schema_delete"/>
+                <Scope name="internal_cds_unification_rule_delete"/>
+                <Scope name="internal_cds_consent_category_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_customerData" displayName="Customer Data Service" type="organization">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:customerData"/>
+                <Scope name="console:org:customerData_view"/>
+                <Scope name="console:org:customerData_edit"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_org_cds_profile_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_org_cds_profile_update"/>
+                <Scope name="internal_org_cds_identity_resolution_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_org_cds_profile_view"/>
+                <Scope name="internal_org_cds_profile_schema_view"/>
+                <Scope name="internal_org_cds_unification_rule_view"/>
+                <Scope name="internal_org_cds_admin_config_view"/>
+                <Scope name="internal_org_cds_consent_category_view"/>
+                <Scope name="internal_org_cds_identity_resolution_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_org_cds_profile_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    {% endif %}
 </APIResourceCollections>
