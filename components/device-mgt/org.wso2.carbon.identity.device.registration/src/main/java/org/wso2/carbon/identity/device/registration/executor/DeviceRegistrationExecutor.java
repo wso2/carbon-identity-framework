@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -702,7 +703,7 @@ public class DeviceRegistrationExecutor implements Executor {
     private String buildDeviceName(FlowExecutionContext context, String deviceModel) {
 
         String username = context.getFlowUser().getUsername();
-        String base = isNotBlank(username) ? username : "Unknown";
+        String base = isNotBlank(username) ? UserCoreUtil.removeDomainFromName(username) : "Unknown";
         return isNotBlank(deviceModel) ? base + "'s " + deviceModel : base + "'s Device";
     }
 
