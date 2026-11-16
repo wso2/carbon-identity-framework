@@ -1058,6 +1058,17 @@
 				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/passkeyManagedExternally</ClaimURI>
+				<DisplayName>Passkey Managed Externally</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>passkeyManagedExternally</AttributeID>
+				<Description>Whether the user has a passkey managed by an external provider</Description>
+				<ReadOnly />
+				<dataType>boolean</dataType>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+			</Claim>
             <!-- Begin Agent specific local claims -->
             <Claim>
                 <ClaimURI>http://wso2.org/claims/agent/Name</ClaimURI>
@@ -3015,6 +3026,15 @@
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedPushAuthAttempts</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:scim:wso2:schema:passkeyManagedExternally</ClaimURI>
+				<DisplayName>Passkey Managed Externally</DisplayName>
+				<AttributeID>passkeyManagedExternally</AttributeID>
+				<Description>Whether the user has a passkey managed by an external provider</Description>
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/passkeyManagedExternally</MappedLocalClaim>
 			</Claim>
 		</Dialect>
         <!-- begin agent specific scim dialect -->
