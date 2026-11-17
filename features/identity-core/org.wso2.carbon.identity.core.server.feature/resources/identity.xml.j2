@@ -4889,6 +4889,9 @@
             <Enable>{{fido.webauthn.enable}}</Enable>
             <RelyingParty>
                 <UseFullEffectiveDomain>{{fido.webauthn.relying_party.use_full_effective_domain}}</UseFullEffectiveDomain>
+                {% if fido.webauthn.relying_party.name is defined %}
+                <Name>{{fido.webauthn.relying_party.name}}</Name>
+                {% endif %}
             </RelyingParty>
         </WebAuthn>
         <EnablePasskeyProgressiveEnrollment>{{fido.enable_passkey_progressive_enrollment}}</EnablePasskeyProgressiveEnrollment>
