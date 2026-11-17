@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -138,7 +138,7 @@ public class AuthenticationAssertionUtils {
                 && StringUtils.isNotBlank(organization.getOrganizationId())) {
             // The organization commonauth endpoint and the expected assertion issuer/audience are under
             // /o/<orgId>, so build the URL in the same organization-qualified form.
-            return ServiceURLBuilder.create().setOrganization(organization.getOrganizationId())
+            return ServiceURLBuilder.create().addPath("o/" + organization.getOrganizationId())
                     .build(IdentityUtil.getHostName()).getAbsolutePublicURL();
         }
         return ServiceURLBuilder.create().build(IdentityUtil.getHostName()).getAbsolutePublicURL();

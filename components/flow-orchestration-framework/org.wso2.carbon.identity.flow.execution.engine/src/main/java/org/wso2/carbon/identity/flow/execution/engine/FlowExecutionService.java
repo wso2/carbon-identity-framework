@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
@@ -179,8 +180,6 @@ public class FlowExecutionService {
                 // Generate authentication assertion only if the last step is a redirection. This prevents
                 // unnecessary generation of assertions when the last step is a VIEW step.
                 if (context.isGenerateAuthenticationAssertion() && REDIRECTION.equals(step.getStepType())) {
-                    step.getData().addAdditionalData(FrameworkConstants.USER_ASSERTION,
-                            AuthenticationAssertionUtils.getSignedUserAssertion(context));
                     // The assertion belongs to the tenant of the provisioned user, so when the flow created an
                     // organization, the browser needs the endpoint of that organization to submit it.
                     String provisionedTenantDomain = FlowExecutionEngineUtils.resolveCompletedTenantDomain(context);
@@ -189,8 +188,21 @@ public class FlowExecutionService {
                         // even when the organization portal is not shared and auto login is skipped.
                         step.getData().addAdditionalData(PROVISIONED_TENANT_DOMAIN, provisionedTenantDomain);
                     }
-                    FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context)
-                            .forEach(step.getData()::addAdditionalData);
+                    try {
+                        // Auto login is optional. The user and organization are already provisioned, so a failure
+                        // here must not turn a completed registration into a registration failure.
+                        Map<String, String> autoLoginData =
+                                FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context);
+                        // The assertion has a short lifetime. Sign it after the organization request setup and
+                        // immediately before adding it to the response.
+                        String userAssertion = AuthenticationAssertionUtils.getSignedUserAssertion(context);
+                        step.getData().addAdditionalData(FrameworkConstants.USER_ASSERTION, userAssertion);
+                        autoLoginData.forEach(step.getData()::addAdditionalData);
+                    } catch (FlowEngineServerException e) {
+                        LOG.warn("Skipping the post-completion auto login because the user assertion or "
+                                + "organization authentication request could not be created. The flow is still "
+                                + "complete. Flow: " + context.getContextIdentifier(), e);
+                    }
                 }
             } else {
                 updatePolling(context, step, previousPollingState);
