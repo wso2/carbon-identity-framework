@@ -19,6 +19,7 @@
 
 package org.wso2.carbon.identity.application.mgt.listener;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -37,11 +38,13 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
 
@@ -61,6 +64,40 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { Changed-State " +
             ": { %s } } | Result : %s ";
     private static final String SUCCESS = "Success";
+
+    private static final String OAUTH_GRANT_TYPES_KEY = "grantTypes";
+
+    /*
+     * OAuth/OIDC inbound configuration attributes to be included in the audit log, as
+     * {display name in the audit log, key in the inbound auth request config data map} pairs.
+     * Keys come from OAuthAdminServiceImpl#buildSPData in identity-inbound-auth-oauth, which serialises OAuthAppDO with
+     * Jackson and parses it back with Gson, so they match the OAuthAppDO bean property names (derived from the getter
+     * names, e.g. isPkceMandatory() -> pkceMandatory). "allowedOrigins" is added to the same map by
+     * OAuthAdminServiceImpl, and OauthInboundAuthConfigHandler sets the map into
+     * InboundAuthenticationRequestConfig#setData. If an OAuthAppDO getter is renamed, the corresponding value here is
+     * logged as null.
+     * Only the attributes listed here are logged, to avoid logging sensitive or noisy information.
+     */
+    private static final String[][] OAUTH_INBOUND_AUDIT_ATTRIBUTES = {
+            {"Grant Types", OAUTH_GRANT_TYPES_KEY},
+            {"Callback URL", "callbackUrl"},
+            {"Allowed Origins", "allowedOrigins"},
+            {"Token Type", "tokenType"},
+            {"User Access Token Expiry", "userAccessTokenExpiryTime"},
+            {"Application Access Token Expiry", "applicationAccessTokenExpiryTime"},
+            {"Refresh Token Expiry", "refreshTokenExpiryTime"},
+            {"ID Token Expiry", "idTokenExpiryTime"},
+            {"Renew Refresh Token", "renewRefreshTokenEnabled"},
+            {"PKCE Mandatory", "pkceMandatory"},
+            {"PKCE Support Plain", "pkceSupportPlain"},
+            {"Public Client", "bypassClientCredentials"},
+            {"State", "state"},
+            {"Audiences", "audiences"},
+            {"Subject Type", "subjectType"},
+            {"Hybrid Flow Enabled", "hybridFlowEnabled"},
+            {"Request Object Signature Validation", "requestObjectSignatureValidationEnabled"},
+            {"Pushed Authorization Requests Required", "requirePushedAuthorizationRequests"}
+    };
 
     @Override
     public boolean isEnable() {
@@ -161,12 +198,17 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
                 data.append("Auth Key:").append(LoggerUtils.getMaskedContent(requestConfig.getInboundAuthKey())).
                         append(", ");
                 data.append("Auth Type:").append(requestConfig.getInboundAuthType()).append(", ");
-                data.append("Config Type:").append(requestConfig.getInboundConfigType()).append(", ");
-                data.append("Inbound configuration:").
-                        append(maskInboundConfigurations(requestConfig.getInboundConfiguration()));
+                data.append("Config Type:").append(requestConfig.getInboundConfigType());
+                /* The inbound configuration is not available when only the application metadata (e.g. name,
+                   description) is updated, since the inbound configuration is not loaded in that flow. Skip it
+                   instead of logging null. */
+                String inboundConfiguration = buildInboundConfiguration(requestConfig);
+                if (StringUtils.isNotBlank(inboundConfiguration)) {
+                    data.append(", Inbound configuration:").append(inboundConfiguration);
+                }
                 Property[] properties = requestConfig.getProperties();
                 if (ArrayUtils.isNotEmpty(properties)) {
-                    data.append("Properties:").append("[");
+                    data.append(", Properties:").append("[");
                     String joiner = "";
                     for (Property property : properties) {
                         data.append(joiner);
@@ -341,6 +383,57 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
         return data.toString();
     }
 
+
+    /**
+     * Build the inbound configuration string of the given inbound auth request config for the audit log.
+     * If the legacy inbound configuration string is not available and the OAuth/OIDC inbound configuration details
+     * are available in the data map of the request config, the selected OAuth/OIDC configurations are logged.
+     * Package-private for testing.
+     *
+     * @param requestConfig Inbound authentication request config.
+     * @return Inbound configuration string for the audit log.
+     */
+    String buildInboundConfiguration(InboundAuthenticationRequestConfig requestConfig) {
+
+        String inboundConfiguration = requestConfig.getInboundConfiguration();
+        Map<String, Object> inboundData = requestConfig.getData();
+        if (StringUtils.isBlank(inboundConfiguration) && MapUtils.isNotEmpty(inboundData) &&
+                IdentityApplicationConstants.OAuth2.NAME.equalsIgnoreCase(requestConfig.getInboundAuthType())) {
+            // maskInboundConfigurations is not needed here, since only the allow-listed, non-sensitive attributes
+            // in OAUTH_INBOUND_AUDIT_ATTRIBUTES are logged and secrets such as the client secret are never included.
+            StringBuilder config = new StringBuilder("{");
+            String joiner = "";
+            for (String[] attribute : OAUTH_INBOUND_AUDIT_ATTRIBUTES) {
+                Object value = inboundData.get(attribute[1]);
+                // Grant types are stored as a space separated string. Log them as [grant1, grant2].
+                if (OAUTH_GRANT_TYPES_KEY.equals(attribute[1]) && value instanceof String) {
+                    value = Arrays.asList(StringUtils.split((String) value));
+                }
+                config.append(joiner).append(attribute[0]).append(":").append(formatAuditValue(value));
+                joiner = ", ";
+            }
+            return config.append("}").toString();
+        }
+        // Fall back to the legacy behaviour for non-OAuth protocols (e.g. SAML, WS-Federation), OAuth apps that still
+        // carry the legacy inbound configuration string, and OAuth apps without a populated data map (returns null,
+        // which is skipped by the caller).
+        return maskInboundConfigurations(inboundConfiguration);
+    }
+
+    /**
+     * Format a value of the inbound configuration data map for the audit log.
+     *
+     * @param value Value to be formatted.
+     * @return Formatted value.
+     */
+    private String formatAuditValue(Object value) {
+
+        // Gson parses all JSON numbers as Double; print whole numbers without the trailing ".0".
+        if (value instanceof Double && (Double) value % 1 == 0) {
+            return String.valueOf(((Double) value).longValue());
+        }
+        return String.valueOf(value);
+    }
 
     /**
      * Mask inbound configurations with secrets,keys.
