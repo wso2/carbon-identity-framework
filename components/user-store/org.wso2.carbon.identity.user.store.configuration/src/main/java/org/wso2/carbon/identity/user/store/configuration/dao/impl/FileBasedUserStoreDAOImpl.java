@@ -406,7 +406,6 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         RealmConfiguration secondaryRealmConfiguration;
         List<UserStorePersistanceDTO> userStorePersistanceDAOList = new ArrayList<>();
-        UserStorePersistanceDTO userStorePersistanceDTO = new UserStorePersistanceDTO();
         try {
             secondaryRealmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
                     getRealmConfiguration().getSecondaryRealmConfig();
@@ -439,6 +438,11 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 for (MaskedProperty maskedProperty : maskedProperties) {
                     userStoreProperties.put(maskedProperty.getName(), maskedProperty.getValue());
                 }
+                /*
+                 One instance per entry. Sharing a single DTO across the chain leaves every element of the
+                 list pointing at the last user store.
+                */
+                UserStorePersistanceDTO userStorePersistanceDTO = new UserStorePersistanceDTO();
                 userStorePersistanceDTO.setUserStoreDTO(userStoreDTO);
                 userStorePersistanceDAOList.add(userStorePersistanceDTO);
                 secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
