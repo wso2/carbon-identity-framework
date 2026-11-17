@@ -504,5 +504,111 @@
       "saml.validate_assertion_consumer_url_for_signed_requests": false,
       "oauth.resolve_signing_key_by_kid": false
     }
+  },
+  "customer_data_service.enable": {
+    "true": {
+      "identity_mgt.events.schemes.'cds.identity.event.handler'.module_index": "79",
+      "identity_mgt.events.schemes.'cds.identity.event.handler'.subscriptions": [
+        "POST_ADD_USER",
+        "POST_SET_USER_CLAIM_VALUE_WITH_ID",
+        "POST_SET_USER_CLAIM_VALUES_WITH_ID",
+        "POST_DELETE_USER_WITH_ID"
+      ],
+      "identity_mgt.events.schemes.'cds.claim.event.handler'.module_index": "80",
+      "identity_mgt.events.schemes.'cds.claim.event.handler'.subscriptions": [
+        "POST_LOCAL_CLAIM_ADD",
+        "POST_UPDATE_LOCAL_CLAIM",
+        "POST_DELETE_LOCAL_CLAIM",
+        "POST_ADD_EXTERNAL_CLAIM",
+        "POST_UPDATE_EXTERNAL_CLAIM",
+        "POST_DELETE_EXTERNAL_CLAIM"
+      ],
+      "identity_mgt.events.schemes.'cds.authentication.listener'.module_index": "81",
+      "identity_mgt.events.schemes.'cds.authentication.listener'.subscriptions": [
+        "SESSION_TERMINATE",
+        "AUTHENTICATION_SUCCESS"
+      ],
+      "identity_mgt.events.schemes.'cds.organization.event.handler'.module_index": "82",
+      "identity_mgt.events.schemes.'cds.organization.event.handler'.subscriptions": [
+        "POST_ADD_ORGANIZATION",
+        "POST_UPDATE_ORGANIZATION",
+        "POST_PATCH_ORGANIZATION",
+        "POST_DELETE_ORGANIZATION"
+      ],
+      "console.extensions.cds_host": "$ref{customer_data_service.server_url}",
+      "console.extensions.cds_application_identifier_type": "app_id",
+      "console.extensions.cdsUnifiedProfileView": true,
+      "console.ui.routes.organizationEnabledRoutes.customerDataService": "v0.0.0",
+      "console.ui.routes.organizationEnabledRoutes.customerDataProfiles": "v0.0.0",
+      "console.ui.routes.organizationEnabledRoutes.customerDataProfileAttributes": "v0.0.0",
+      "console.ui.routes.organizationEnabledRoutes.customerDataUnificationRules": "v0.0.0",
+      "console.customer_data_service.enabled": true,
+      "console.customer_data_service.scopes.feature": [
+        "console:customerData"
+      ],
+      "console.customer_data_service.scopes.read": [
+        "internal_cds_admin_config_view"
+      ],
+      "console.customer_data_service.scopes.create": [],
+      "console.customer_data_service.scopes.update": [
+        "internal_cds_admin_config_update",
+        "internal_cds_profile_update"
+      ],
+      "console.customer_data_service.scopes.delete": [],
+      "console.customer_data_profiles.enabled": true,
+      "console.customer_data_profiles.scopes.feature": [
+        "console:customerData"
+      ],
+      "console.customer_data_profiles.scopes.read": [
+        "internal_cds_admin_config_view",
+        "internal_cds_profile_view"
+      ],
+      "console.customer_data_profiles.scopes.create": [
+        "internal_cds_profile_create"
+      ],
+      "console.customer_data_profiles.scopes.update": [
+        "internal_cds_admin_config_update",
+        "internal_cds_profile_update"
+      ],
+      "console.customer_data_profiles.scopes.delete": [
+        "internal_cds_profile_delete"
+      ],
+      "console.customer_data_profile_attributes.enabled": true,
+      "console.customer_data_profile_attributes.scopes.feature": [
+        "console:customerData"
+      ],
+      "console.customer_data_profile_attributes.scopes.read": [
+        "internal_cds_profile_schema_view",
+        "internal_cds_profile_view"
+      ],
+      "console.customer_data_profile_attributes.scopes.create": [
+        "internal_cds_profile_schema_create"
+      ],
+      "console.customer_data_profile_attributes.scopes.update": [
+        "internal_cds_profile_schema_update",
+        "internal_cds_profile_update"
+      ],
+      "console.customer_data_profile_attributes.scopes.delete": [
+        "internal_cds_profile_schema_delete"
+      ],
+      "console.customer_data_unification_rules.enabled": true,
+      "console.customer_data_unification_rules.scopes.feature": [
+        "console:customerData"
+      ],
+      "console.customer_data_unification_rules.scopes.read": [
+        "internal_cds_admin_config_view",
+        "internal_cds_unification_rule_view"
+      ],
+      "console.customer_data_unification_rules.scopes.create": [
+        "internal_cds_unification_rule_create"
+      ],
+      "console.customer_data_unification_rules.scopes.update": [
+        "internal_cds_admin_config_update",
+        "internal_cds_unification_rule_update"
+      ],
+      "console.customer_data_unification_rules.scopes.delete": [
+        "internal_cds_unification_rule_delete"
+      ]
+    }
   }
 }

@@ -3181,4 +3181,185 @@
         </Scopes>
     </APIResource>
     {% endif %}
+    {% if customer_data_service.enable is sameas true %}
+    <!-- Customer Data Service API resources. Added when [customer_data_service] enable = true. -->
+    <APIResource name="Customer Data Service Feature" identifier="console:customerData"
+                 requiresAuthorization="true"
+                 description="Resource representation of the CDS feature" type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Customer Data Service Feature" name="console:customerData"
+                   description="Manage Customer Data Service from the Console"/>
+            <Scope displayName="Customer Data Service View Feature" name="console:customerData_view"
+                   description="View Customer Data Service from the Console"/>
+            <Scope displayName="Customer Data Service Edit Feature" name="console:customerData_edit"
+                   description="Edit Customer Data Service from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service Organization Feature" identifier="console:org:customerData"
+                 requiresAuthorization="true"
+                 description="Resource representation of the CDS feature in an organization" type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Customer Data Service Feature" name="console:org:customerData"
+                   description="Manage Customer Data Service in the organization from the Console"/>
+            <Scope displayName="Customer Data Service View Feature" name="console:org:customerData_view"
+                   description="View Customer Data Service in the organization from the Console"/>
+            <Scope displayName="Customer Data Service Edit Feature" name="console:org:customerData_edit"
+                   description="Edit Customer Data Service in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service profile management API" identifier="/cds/api/v1/profiles"
+                 requiresAuthorization="true"
+                 description="API representation of the profile management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Profile view" name="internal_cds_profile_view"
+                   description="View profile(s)"/>
+            <Scope displayName="Profile create" name="internal_cds_profile_create"
+                   description="Add profile"/>
+            <Scope displayName="Profile update" name="internal_cds_profile_update"
+                   description="Update profile"/>
+            <Scope displayName="Profile delete" name="internal_cds_profile_delete"
+                   description="Delete profile"/>
+            <Scope displayName="Profile link" name="internal_cds_profile_link"
+                   description="Link profile"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service profile schema attribute management API" identifier="/cds/api/v1/profile-schema"
+                 requiresAuthorization="true"
+                 description="API representation of the profile schema attribute management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Profile schema attribute view" name="internal_cds_profile_schema_view"
+                   description="View profile schema attribute(s)"/>
+            <Scope displayName="Profile schema attribute create" name="internal_cds_profile_schema_create"
+                   description="Add profile schema attribute"/>
+            <Scope displayName="Profile schema attribute update" name="internal_cds_profile_schema_update"
+                   description="Update profile schema attribute"/>
+            <Scope displayName="Profile schema attribute delete" name="internal_cds_profile_schema_delete"
+                   description="Delete profile schema attribute(s)"/>
+            <Scope displayName="Profile schema attribute share view" name="internal_cds_profile_schema_share_view"
+                   description="View the sharing policies of profile schema attribute(s)"/>
+            <Scope displayName="Profile schema attribute share update" name="internal_cds_profile_schema_share_update"
+                   description="Update the sharing policies of profile schema attribute(s)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service profile unification rule management API" identifier="/cds/api/v1/unification-rules"
+                 requiresAuthorization="true"
+                 description="API representation of the profile unification rule management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Profile unification rule view" name="internal_cds_unification_rule_view"
+                   description="View unification rule"/>
+            <Scope displayName="Profile unification rule create" name="internal_cds_unification_rule_create"
+                   description="Add unification rule"/>
+            <Scope displayName="Profile unification rule update" name="internal_cds_unification_rule_update"
+                   description="Update unification rule"/>
+            <Scope displayName="Profile unification rule delete" name="internal_cds_unification_rule_delete"
+                   description="Delete unification rule"/>
+            <Scope displayName="Profile unification rule share view" name="internal_cds_unification_rule_share_view"
+                   description="View the sharing policies of unification rule(s)"/>
+            <Scope displayName="Profile unification rule share update" name="internal_cds_unification_rule_share_update"
+                   description="Update the sharing policies of unification rule(s)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service config management API" identifier="/cds/api/v1/config"
+                 requiresAuthorization="true"
+                 description="API representation of the configuration management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Customer data service configuration view" name="internal_cds_admin_config_view"
+                   description="View customer data service configurations"/>
+            <Scope displayName="Customer data service configuration update" name="internal_cds_admin_config_update"
+                   description="Update customer data service configurations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service organization management API" identifier="/cds/api/v1/organizations"
+                 requiresAuthorization="true"
+                 description="API representation of the CDS organization management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="CDS Organization view" name="internal_cds_organization_view"
+                   description="View CDS organization data"/>
+            <Scope displayName="CDS Organization update" name="internal_cds_organization_update"
+                   description="Update CDS organization data"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service consent category management API" identifier="/cds/api/v1/consent-categories"
+                 requiresAuthorization="true"
+                 description="API representation of the consent category management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Consent category view" name="internal_cds_consent_category_view"
+                   description="View consent category(s)"/>
+            <Scope displayName="Consent category create" name="internal_cds_consent_category_create"
+                   description="Add consent category"/>
+            <Scope displayName="Consent category update" name="internal_cds_consent_category_update"
+                   description="Update consent category"/>
+            <Scope displayName="Consent category delete" name="internal_cds_consent_category_delete"
+                   description="Delete consent category"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service identity resolution API" identifier="/cds/api/v1/identity-resolution"
+                 requiresAuthorization="true"
+                 description="API representation of the identity resolution review API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Identity resolution review view" name="internal_cds_identity_resolution_view"
+                   description="View identity resolution review tasks"/>
+            <Scope displayName="Identity resolution review resolve" name="internal_cds_identity_resolution_update"
+                   description="Approve or reject identity resolution review tasks, merging profiles"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service profile management API (organization)" identifier="/o/cds/api/v1/profiles"
+                 requiresAuthorization="true"
+                 description="API representation of the profile management API in the organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Profile view" name="internal_org_cds_profile_view"
+                   description="View profile in the organization"/>
+            <Scope displayName="Profile create" name="internal_org_cds_profile_create"
+                   description="Add profile in the organization"/>
+            <Scope displayName="Profile update" name="internal_org_cds_profile_update"
+                   description="Update profile in the organization"/>
+            <Scope displayName="Profile delete" name="internal_org_cds_profile_delete"
+                   description="Delete profile in the organization"/>
+            <Scope displayName="Profile link" name="internal_org_cds_profile_link"
+                   description="Link profile in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service profile schema attribute management API (organization)" identifier="/o/cds/api/v1/profile-schema"
+                 requiresAuthorization="true"
+                 description="API representation of the profile schema attribute management API in the organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Profile schema attribute view" name="internal_org_cds_profile_schema_view"
+                   description="View profile schema attribute in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service profile unification rule management API (organization)" identifier="/o/cds/api/v1/unification-rules"
+                 requiresAuthorization="true"
+                 description="API representation of the profile unification rule management API in the organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Profile unification rule view" name="internal_org_cds_unification_rule_view"
+                   description="View unification rule in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service config management API (organization)" identifier="/o/cds/api/v1/config"
+                 requiresAuthorization="true"
+                 description="API representation of the configuration management API in the organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Customer data service configuration view" name="internal_org_cds_admin_config_view"
+                   description="View customer data service configurations in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service consent category management API (organization)" identifier="/o/cds/api/v1/consent-categories"
+                 requiresAuthorization="true"
+                 description="API representation of the consent category management API in the organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Consent category view" name="internal_org_cds_consent_category_view"
+                   description="View consent category in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Customer Data Service identity resolution API (organization)" identifier="/o/cds/api/v1/identity-resolution"
+                 requiresAuthorization="true"
+                 description="API representation of the identity resolution review API in the organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Identity resolution review view" name="internal_org_cds_identity_resolution_view"
+                   description="View identity resolution review tasks in the organization"/>
+            <Scope displayName="Identity resolution review resolve" name="internal_org_cds_identity_resolution_update"
+                   description="Approve or reject identity resolution review tasks in the organization, merging profiles"/>
+        </Scopes>
+    </APIResource>
+    {% endif %}
 </APIResources>
