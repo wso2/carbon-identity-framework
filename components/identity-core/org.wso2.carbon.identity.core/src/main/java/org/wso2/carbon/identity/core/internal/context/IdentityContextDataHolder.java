@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.core.internal.context;
 
 import org.wso2.carbon.identity.core.context.model.Actor;
+import org.wso2.carbon.identity.core.context.model.AnonymousUser;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.context.model.Organization;
 import org.wso2.carbon.identity.core.context.model.Request;
@@ -39,6 +40,7 @@ public class IdentityContextDataHolder {
     private String accessTokenIssuedOrganization;
     private RootOrganization rootOrganization;
     private Organization organization;
+    private AnonymousUser anonymousUser;
 
     // Stack (FILO) to manage nested flows in the current thread context.
     private Deque<Flow> flowSequence = new ArrayDeque<>();
@@ -164,6 +166,17 @@ public class IdentityContextDataHolder {
 
         CarbonUtils.checkSecurity();
         this.organization = organization;
+    }
+
+    public AnonymousUser getAnonymousUser() {
+
+        return anonymousUser;
+    }
+
+    public void setAnonymousUser(AnonymousUser anonymousUser) {
+
+        CarbonUtils.checkSecurity();
+        this.anonymousUser = anonymousUser;
     }
 
     /**
