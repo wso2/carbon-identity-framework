@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -383,6 +383,8 @@ public class FlowEngineUtilsTest {
 
             dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getApplicationByResourceId(TEST_APP_ID, TENANT_DOMAIN))
+                    .thenReturn(createApplication(MY_ACCOUNT_APP_NAME));
             when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
                     .thenReturn(createOrganizationMyAccountApplication());
             identityUtilMockedStatic.when(() -> IdentityUtil.getServerURL("/myaccount", true, true))
@@ -391,6 +393,26 @@ public class FlowEngineUtilsTest {
             String redirectUrl = FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context);
 
             assertEquals(redirectUrl, organizationMyAccountUrl);
+        }
+    }
+
+    @Test
+    public void testResolveCompletionRedirectionUrlForUnsharedOrganizationApplication() throws Exception {
+
+        FlowExecutionContext context = createProvisionedOrganizationContext();
+        ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class)) {
+
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getApplicationByResourceId(TEST_APP_ID, TENANT_DOMAIN))
+                    .thenReturn(createApplication("my-react-app"));
+            when(appMgmtService.getServiceProvider("my-react-app", ORGANIZATION_TENANT_DOMAIN))
+                    .thenThrow(IdentityApplicationManagementException.class);
+
+            assertNull(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context));
         }
     }
 
@@ -414,6 +436,8 @@ public class FlowEngineUtilsTest {
 
             dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getApplicationByResourceId(TEST_APP_ID, TENANT_DOMAIN))
+                    .thenReturn(createApplication(MY_ACCOUNT_APP_NAME));
             when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
                     .thenReturn(createOrganizationMyAccountApplication());
             identityUtilMockedStatic.when(() -> IdentityUtil.getServerURL("/myaccount", true, true))
@@ -422,7 +446,6 @@ public class FlowEngineUtilsTest {
 
             serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(urlBuilder);
             when(urlBuilder.addPath(any(String[].class))).thenReturn(urlBuilder);
-            when(urlBuilder.setOrganization(organizationId)).thenReturn(urlBuilder);
             when(urlBuilder.build()).thenReturn(commonAuthURL);
             when(commonAuthURL.getAbsolutePublicURL()).thenReturn(organizationCommonAuthUrl);
 
@@ -465,6 +488,8 @@ public class FlowEngineUtilsTest {
 
             dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getApplicationByResourceId(TEST_APP_ID, TENANT_DOMAIN))
+                    .thenReturn(createApplication(MY_ACCOUNT_APP_NAME));
             when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
                     .thenReturn(createOidcOrganizationMyAccountApplication());
             identityUtilMockedStatic.when(() -> IdentityUtil.getServerURL("/myaccount", true, true))
@@ -473,7 +498,6 @@ public class FlowEngineUtilsTest {
 
             serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(urlBuilder);
             when(urlBuilder.addPath(any(String[].class))).thenReturn(urlBuilder);
-            when(urlBuilder.setOrganization(organizationId)).thenReturn(urlBuilder);
             when(urlBuilder.build()).thenReturn(commonAuthURL);
             when(commonAuthURL.getAbsolutePublicURL()).thenReturn(
                     "https://localhost:9443/o/" + organizationId + "/commonauth");
@@ -514,6 +538,8 @@ public class FlowEngineUtilsTest {
 
             dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getApplicationByResourceId(TEST_APP_ID, TENANT_DOMAIN))
+                    .thenReturn(createApplication(MY_ACCOUNT_APP_NAME));
             when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
                     .thenReturn(new ServiceProvider());
 
@@ -524,7 +550,7 @@ public class FlowEngineUtilsTest {
     }
 
     @Test
-    public void testCreateOrganizationAuthenticationRequestWhenPortalNotShared() throws Exception {
+    public void testCreateOrganizationAuthenticationRequestWhenApplicationNotShared() throws Exception {
 
         FlowExecutionContext context = createProvisionedOrganizationContext();
         ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
@@ -534,12 +560,59 @@ public class FlowEngineUtilsTest {
 
             dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getApplicationByResourceId(TEST_APP_ID, TENANT_DOMAIN))
+                    .thenReturn(createApplication(MY_ACCOUNT_APP_NAME));
             when(appMgmtService.getServiceProvider(MY_ACCOUNT_APP_NAME, ORGANIZATION_TENANT_DOMAIN))
                     .thenThrow(IdentityApplicationManagementException.class);
 
             Map<String, String> autoLoginData = FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context);
 
             assertTrue(autoLoginData.isEmpty());
+        }
+    }
+
+    @Test
+    public void testCreateOrganizationAuthenticationRequestForCustomApplication() throws Exception {
+
+        FlowExecutionContext context = createProvisionedOrganizationContext();
+        String organizationId = context.getFlowOrganization().getOrganizationId();
+        String customAccessUrl = "http://localhost:5173/home";
+        ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
+        ServiceURLBuilder urlBuilder = mock(ServiceURLBuilder.class);
+        ServiceURL commonAuthURL = mock(ServiceURL.class);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class);
+             MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class)) {
+
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
+            when(appMgmtService.getApplicationByResourceId(TEST_APP_ID, TENANT_DOMAIN))
+                    .thenReturn(createApplication("my-react-app"));
+            when(appMgmtService.getServiceProvider("my-react-app", ORGANIZATION_TENANT_DOMAIN))
+                    .thenReturn(createOrganizationApplication("my-react-app", "react-client-id", customAccessUrl));
+            identityUtilMockedStatic.when(IdentityUtil::getOperationCleanUpTimeout).thenReturn(60L);
+
+            serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(urlBuilder);
+            when(urlBuilder.addPath(any(String[].class))).thenReturn(urlBuilder);
+            when(urlBuilder.build()).thenReturn(commonAuthURL);
+            when(commonAuthURL.getAbsolutePublicURL()).thenReturn(
+                    "https://localhost:9443/o/" + organizationId + "/commonauth");
+
+            Map<String, String> autoLoginData = FlowExecutionEngineUtils.createOrganizationAuthenticationRequest(context);
+
+            assertNotNull(autoLoginData.get(FrameworkConstants.SESSION_DATA_KEY));
+
+            ArgumentCaptor<AuthenticationRequestCacheEntry> cacheEntryCaptor =
+                    ArgumentCaptor.forClass(AuthenticationRequestCacheEntry.class);
+            frameworkUtilsMockedStatic.verify(() -> FrameworkUtils.addAuthenticationRequestToCache(
+                    anyString(), cacheEntryCaptor.capture()));
+            AuthenticationRequest cachedRequest = cacheEntryCaptor.getValue().getAuthenticationRequest();
+            assertEquals(cachedRequest.getRelyingParty(), "react-client-id");
+            assertEquals(cachedRequest.getCommonAuthCallerPath(),
+                    URLEncoder.encode(customAccessUrl, StandardCharsets.UTF_8.name()));
         }
     }
 
@@ -554,6 +627,31 @@ public class FlowEngineUtilsTest {
         context.setFlowOrganization(organization);
         context.setProperty(PROVISIONED_TENANT_DOMAIN, ORGANIZATION_TENANT_DOMAIN);
         return context;
+    }
+
+    private ServiceProvider createApplication(String applicationName) {
+
+        ServiceProvider application = new ServiceProvider();
+        application.setApplicationName(applicationName);
+        return application;
+    }
+
+    private ServiceProvider createOrganizationApplication(String applicationName, String clientId,
+                                                          String accessUrl) {
+
+        InboundAuthenticationRequestConfig oauthInboundConfig = new InboundAuthenticationRequestConfig();
+        oauthInboundConfig.setInboundAuthType("oauth2");
+        oauthInboundConfig.setInboundAuthKey(clientId);
+
+        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(
+                new InboundAuthenticationRequestConfig[]{oauthInboundConfig});
+
+        ServiceProvider application = new ServiceProvider();
+        application.setApplicationName(applicationName);
+        application.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+        application.setAccessUrl(accessUrl);
+        return application;
     }
 
     private ServiceProvider createMyAccountApplication() {

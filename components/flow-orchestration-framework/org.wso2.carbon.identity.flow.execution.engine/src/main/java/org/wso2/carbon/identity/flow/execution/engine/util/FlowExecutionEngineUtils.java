@@ -509,7 +509,7 @@ public class FlowExecutionEngineUtils {
 
         String completedTenantDomain = resolveCompletedTenantDomain(context);
         if (!completedTenantDomain.equals(context.getTenantDomain())) {
-            return resolveOrganizationCompletionRedirectionUrl(context, completedTenantDomain);
+            return resolveOrganizationCompletionRedirectionUrl(context);
         }
 
         String redirectionUrl = getApplicationAccessUrlByAppId(context.getTenantDomain(), context.getApplicationId());
@@ -537,19 +537,17 @@ public class FlowExecutionEngineUtils {
         return context.getTenantDomain();
     }
 
-    private static String resolveOrganizationCompletionRedirectionUrl(FlowExecutionContext context,
-            String organizationTenantDomain) throws FlowEngineServerException {
+    private static String resolveOrganizationCompletionRedirectionUrl(FlowExecutionContext context)
+            throws FlowEngineServerException {
 
         FlowOrganization organization = context.getFlowOrganization();
         String organizationId = organization != null ? organization.getOrganizationId() : null;
-        String redirectionUrl = StringUtils.isBlank(organizationId) ? null
-                : buildOrganizationApplicationAccessUrl(context.getTenantDomain(), organizationId,
-                resolveOrganizationPortalApplication(context));
-        if (StringUtils.isBlank(redirectionUrl)) {
-            // The application is not a portal shared with the organization, so fall back to My Account.
-            redirectionUrl = buildMyAccountAccessURL(organizationTenantDomain);
+        if (StringUtils.isBlank(organizationId)) {
+            return null;
         }
-        return redirectionUrl;
+        return buildOrganizationApplicationAccessUrl(context.getTenantDomain(), organizationId,
+                resolveOrganizationApplication(context),
+                getApplicationAccessUrlByAppId(context.getTenantDomain(), context.getApplicationId()));
     }
 
     /**
@@ -573,12 +571,13 @@ public class FlowExecutionEngineUtils {
                     + context.getContextIdentifier());
             return Collections.emptyMap();
         }
-        ServiceProvider application = resolveOrganizationPortalApplication(context);
+        ServiceProvider application = resolveOrganizationApplication(context);
         String clientId = getOAuthClientId(application);
         String callerPath = buildOrganizationApplicationAccessUrl(context.getTenantDomain(),
-                organization.getOrganizationId(), application);
+                organization.getOrganizationId(), application,
+                getApplicationAccessUrlByAppId(context.getTenantDomain(), context.getApplicationId()));
         if (StringUtils.isBlank(clientId) || StringUtils.isBlank(callerPath)) {
-            LOG.warn("Skipping the organization auto login because the portal application is not shared with the "
+            LOG.warn("Skipping the organization auto login because the application is not shared with the "
                     + "organization: " + resolveCompletedTenantDomain(context) + ". Share the application with the "
                     + "organization to enable auto login. Flow: " + context.getContextIdentifier());
             return Collections.emptyMap();
@@ -588,12 +587,14 @@ public class FlowExecutionEngineUtils {
         authenticationRequest.setTenantDomain(resolveCompletedTenantDomain(context));
         authenticationRequest.setRelyingParty(clientId);
         authenticationRequest.setType(FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
+        authenticationRequest.setUserAssertionFlow(true);
         String commonAuthUrl;
         try {
             authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(callerPath,
                     StandardCharsets.UTF_8));
-            commonAuthUrl = ServiceURLBuilder.create().addPath(FrameworkConstants.COMMONAUTH)
-                    .setOrganization(organization.getOrganizationId()).build().getAbsolutePublicURL();
+            commonAuthUrl = ServiceURLBuilder.create()
+                    .addPath("o/" + organization.getOrganizationId(), FrameworkConstants.COMMONAUTH)
+                    .build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, context.getApplicationId(),
                     context.getTenantDomain());
@@ -603,6 +604,9 @@ public class FlowExecutionEngineUtils {
         String sessionDataKey = UUID.randomUUID().toString();
         cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout()));
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, cacheEntry);
+        LOG.info("Created organization authentication request for application: " + application.getApplicationName()
+                + " in organization: " + organization.getOrganizationId() + ". Flow: "
+                + context.getContextIdentifier());
 
         Map<String, String> autoLoginData = new HashMap<>();
         autoLoginData.put(FrameworkConstants.SESSION_DATA_KEY, sessionDataKey);
@@ -611,7 +615,7 @@ public class FlowExecutionEngineUtils {
         return autoLoginData;
     }
 
-    private static ServiceProvider resolveOrganizationPortalApplication(FlowExecutionContext context)
+    private static ServiceProvider resolveOrganizationApplication(FlowExecutionContext context)
             throws FlowEngineServerException {
 
         ApplicationManagementService applicationManagementService =
@@ -619,23 +623,25 @@ public class FlowExecutionEngineUtils {
         try {
             String provisionedTenantDomain = resolveCompletedTenantDomain(context);
             if (provisionedTenantDomain.equals(context.getTenantDomain())) {
-                // The application is owned by the tenant running the flow. Resolve it there to confirm it is a
-                // portal application.
-                ServiceProvider parentApplication = applicationManagementService
-                        .getApplicationByResourceId(context.getApplicationId(), context.getTenantDomain());
-                if (StringUtils.isBlank(getPortalApplicationPath(parentApplication))) {
-                    return null;
-                }
-                return parentApplication;
+                return applicationManagementService.getApplicationByResourceId(context.getApplicationId(),
+                        context.getTenantDomain());
             }
-            // The user was provisioned in a different organization. Use the resident My Account portal of the
-            // provisioned organization for auto login.
+            if (StringUtils.isBlank(context.getApplicationId())) {
+                return null;
+            }
+            ServiceProvider application = applicationManagementService.getApplicationByResourceId(
+                    context.getApplicationId(), context.getTenantDomain());
+            if (application == null) {
+                return null;
+            }
+            // The user was provisioned in a different organization. Resolve the application that started the flow
+            // in that organization. If it is not shared there, auto login is skipped.
             try {
-                return applicationManagementService.getServiceProvider(MY_ACCOUNT_APPLICATION_NAME,
+                return applicationManagementService.getServiceProvider(application.getApplicationName(),
                         provisionedTenantDomain);
             } catch (IdentityApplicationManagementException e) {
-                LOG.warn("My Account portal is not available in the provisioned organization. Flow: "
-                        + context.getContextIdentifier(), e);
+                LOG.warn("The application that started the flow is not available in the provisioned organization: "
+                        + provisionedTenantDomain + ". Flow: " + context.getContextIdentifier(), e);
                 return null;
             }
         } catch (IdentityApplicationManagementException e) {
@@ -661,28 +667,36 @@ public class FlowExecutionEngineUtils {
     }
 
     /**
-     * Build the access URL of a portal application inside an organization. The application is shared with the
+     * Build the access URL of an application inside an organization. The application is shared with the
      * organization from the tenant that owns it, so it is resolved from there.
      *
      * @param applicationOwnerTenantDomain Tenant domain of the application owner.
      * @param organizationId               Organization ID.
-     * @param application                  Portal application of the flow.
-     * @return Organization qualified access URL, or null when the application is not a portal.
+     * @param application                  Application that started the flow.
+     * @param fallbackAccessUrl            Access URL of the main application.
+     * @return Organization qualified access URL, or null when the application has no access URL.
      * @throws FlowEngineServerException Flow engine exception.
      */
     private static String buildOrganizationApplicationAccessUrl(String applicationOwnerTenantDomain,
-            String organizationId, ServiceProvider application) throws FlowEngineServerException {
+            String organizationId, ServiceProvider application, String fallbackAccessUrl)
+            throws FlowEngineServerException {
 
-        String appPath = getPortalApplicationPath(application);
-        if (StringUtils.isBlank(appPath) || StringUtils.isBlank(organizationId)) {
+        if (StringUtils.isBlank(organizationId) || application == null) {
             return null;
+        }
+        String appPath = getPortalApplicationPath(application);
+        if (StringUtils.isBlank(appPath)) {
+            // The application is not a portal, so use its shared access URL, falling back to the main application.
+            String accessUrl = application.getAccessUrl();
+            return StringUtils.isNotBlank(accessUrl) ? accessUrl : fallbackAccessUrl;
         }
         try {
             String serverUrl = IdentityUtil.getServerURL(appPath, true, true);
             return serverUrl.replace(appPath, FrameworkConstants.TENANT_CONTEXT_PREFIX + applicationOwnerTenantDomain
                     + FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + appPath);
         } catch (IdentityRuntimeException e) {
-            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, applicationOwnerTenantDomain);
+            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, applicationOwnerTenantDomain,
+                    organizationId);
         }
     }
 
