@@ -65,6 +65,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
     private static final String SETTING_KEY_2 = "testSetting2";
     private static final String TARGET_VALUE = "targetValue";
     private static final String DEFAULT_VALUE = "defaultValue";
+    private static final String UNKNOWN_CREATION_TIME_VALUE = "unknownCreationTimeValue";
 
     private OrganizationalCreationTimeBasedEvaluator evaluator;
     private MockedStatic<IdentityCompatibilitySettingsDataHolder> dataHolderMockedStatic;
@@ -539,6 +540,63 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
                     ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_ORGANIZATION_CREATION_TIME.getCode());
             assertEquals(e.getCause(), orgException);
         }
+    }
+
+    /**
+     * Data provider for an unknown organization creation time.
+     *
+     * @return Test data with the setting's unknown creation time value and the expected value.
+     */
+    @DataProvider(name = "unknownCreationTimeProvider")
+    public Object[][] unknownCreationTimeProvider() {
+
+        return new Object[][]{
+                {null, DEFAULT_VALUE},                       // Not defined: the default value applies.
+                {UNKNOWN_CREATION_TIME_VALUE, UNKNOWN_CREATION_TIME_VALUE}
+        };
+    }
+
+    /**
+     * Test evaluation when the organization creation time can't be determined.
+     *
+     * @param unknownCreationTimeValue Value the setting defines for an unknown creation time.
+     * @param expectedValue            Expected setting value.
+     */
+    @Test(dataProvider = "unknownCreationTimeProvider")
+    public void testEvaluateWithUnknownOrganizationCreationTime(String unknownCreationTimeValue, String expectedValue)
+            throws Exception {
+
+        Instant timestampReference = Instant.now();
+        CompatibilitySettingContext context = createContext(timestampReference);
+        context.getCompatibilitySettingMetaData().getSettingMetaDataEntry(SETTING_GROUP, SETTING_KEY)
+                .setUnknownCreationTimeValue(unknownCreationTimeValue);
+
+        utilMockedStatic.when(() -> IdentityCompatibilitySettingsUtil.getOrganizationCreationTime(
+                anyString(), anyBoolean())).thenReturn(null);
+
+        CompatibilitySetting result = evaluator.evaluate(context);
+        assertEquals(result.getCompatibilitySetting(SETTING_GROUP).getSettingValue(SETTING_KEY), expectedValue);
+
+        result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
+        assertEquals(result.getCompatibilitySetting(SETTING_GROUP).getSettingValue(SETTING_KEY), expectedValue);
+    }
+
+    /**
+     * Test that the unknown creation time value doesn't apply when the creation time is known.
+     */
+    @Test
+    public void testEvaluateIgnoresUnknownCreationTimeValueWhenCreationTimeIsKnown() throws Exception {
+
+        Instant timestampReference = Instant.now();
+        CompatibilitySettingContext context = createContext(timestampReference);
+        context.getCompatibilitySettingMetaData().getSettingMetaDataEntry(SETTING_GROUP, SETTING_KEY)
+                .setUnknownCreationTimeValue(UNKNOWN_CREATION_TIME_VALUE);
+
+        utilMockedStatic.when(() -> IdentityCompatibilitySettingsUtil.getOrganizationCreationTime(
+                anyString(), anyBoolean())).thenReturn(timestampReference.plus(1, ChronoUnit.DAYS));
+
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
+        assertEquals(result.getCompatibilitySetting(SETTING_GROUP).getSettingValue(SETTING_KEY), DEFAULT_VALUE);
     }
 
     /**

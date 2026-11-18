@@ -188,10 +188,14 @@ public class OrganizationalCreationTimeBasedEvaluator extends AbstractCompatibil
      *
      * @param orgCreationTime    Organization creation time.
      * @param metaDataEntry      Metadata entry for the setting.
-     * @return Evaluated value (target or default).
+     * @return Evaluated value (target or default, or the unknown creation time value if the creation time is null
+     *         and the setting defines one).
      */
     private String evaluateSetting(Instant orgCreationTime, CompatibilitySettingMetaDataEntry metaDataEntry) {
 
+        if (orgCreationTime == null && metaDataEntry.getUnknownCreationTimeValue() != null) {
+            return metaDataEntry.getUnknownCreationTimeValue();
+        }
         Instant timestampReference = metaDataEntry.getTimestampReference();
         if (timestampReference != null  && orgCreationTime != null && orgCreationTime.isBefore(timestampReference)) {
             return metaDataEntry.getTargetValue();
