@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.AnonymousUser;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
@@ -104,6 +105,7 @@ public class FlowExecutionService {
         FlowExecutionStep step;
         FlowExecutionContext context = null;
         boolean isFlowEnteredInIdentityContext = false;
+        boolean isAnonymousUserSetInIdentityContext = false;
         GraphConfig graphConfig = null;
         boolean isInitiation = StringUtils.isBlank(flowId);
         boolean isOTFIRetainingFlow = false;
@@ -142,14 +144,21 @@ public class FlowExecutionService {
                 context.getUserInputData().putAll(inputs);
             }
 
-            // On the initial request of the registration flow, move the anonymous_profile_tracker value (if
-            // provided) from the user inputs into the flow context properties so that it is retained throughout
-            // the flow and not treated as a user input during the subsequent input validations.
-            if (isInitiation && REGISTRATION.getType().equals(context.getFlowType())
-                    && context.getUserInputData().containsKey(ANONYMOUS_PROFILE_TRACKER)) {
-                context.setProperty(ANONYMOUS_PROFILE_TRACKER,
-                        context.getUserInputData().remove(ANONYMOUS_PROFILE_TRACKER));
+            // The anonymous_profile_tracker is not a user input. Remove it from the user inputs so that it is not
+            // treated as a user input during the input validations.
+            String anonymousProfileTracker = context.getUserInputData().remove(ANONYMOUS_PROFILE_TRACKER);
+            if (REGISTRATION.getType().equals(context.getFlowType())) {
+                if (isInitiation) {
+                    // Retain the value given in the initial request in the flow context properties.
+                    if (StringUtils.isNotBlank(anonymousProfileTracker)) {
+                        context.setProperty(ANONYMOUS_PROFILE_TRACKER, anonymousProfileTracker);
+                    }
+                } else {
+                    validateAnonymousProfileTracker(context, anonymousProfileTracker);
+                }
             }
+
+            isAnonymousUserSetInIdentityContext = setAnonymousUserInIdentityContext(context);
 
             context.setCurrentActionId(actionId);
             FlowVariableResolver.applyRuntimeValues(context, inputs, isInitiation);
@@ -226,10 +235,51 @@ public class FlowExecutionService {
             endPolling(context);
             throw e;
         } finally {
+            if (isAnonymousUserSetInIdentityContext) {
+                IdentityContext.getThreadLocalIdentityContext().removeAnonymousUser();
+            }
             if (isFlowEnteredInIdentityContext) {
                 IdentityContext.getThreadLocalIdentityContext().exitFlow();
             }
         }
+    }
+
+    /**
+     * Validate that the request sends the same anonymous profile tracker that the initial request of the flow sent.
+     * If the value is missing or different, remove the anonymous profile tracker from the flow. The flow continues
+     * without it.
+     *
+     * @param context                 Flow execution context.
+     * @param anonymousProfileTracker Anonymous profile tracker in the current request.
+     */
+    private void validateAnonymousProfileTracker(FlowExecutionContext context, String anonymousProfileTracker) {
+
+        Object initialAnonymousProfileTracker = context.getProperty(ANONYMOUS_PROFILE_TRACKER);
+        if (initialAnonymousProfileTracker == null) {
+            return;
+        }
+        if (!initialAnonymousProfileTracker.equals(anonymousProfileTracker)) {
+            context.getProperties().remove(ANONYMOUS_PROFILE_TRACKER);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("The anonymous profile tracker in the request does not match the value of the initial " +
+                        "request of the flow: " + context.getContextIdentifier() + ". Hence removed it from the flow.");
+            }
+        }
+    }
+
+    private boolean setAnonymousUserInIdentityContext(FlowExecutionContext context) {
+
+        if (!REGISTRATION.getType().equals(context.getFlowType())) {
+            return false;
+        }
+        Object anonymousProfileTracker = context.getProperty(ANONYMOUS_PROFILE_TRACKER);
+        if (anonymousProfileTracker == null) {
+            return false;
+        }
+        IdentityContext.getThreadLocalIdentityContext().setAnonymousUser(new AnonymousUser.Builder()
+                .anonymousProfileTracker(String.valueOf(anonymousProfileTracker))
+                .build());
+        return true;
     }
 
     private boolean enterFlowInIdentityContext(String flowType) {

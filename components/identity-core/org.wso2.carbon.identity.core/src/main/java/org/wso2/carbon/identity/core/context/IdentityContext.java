@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.context.model.Actor;
+import org.wso2.carbon.identity.core.context.model.AnonymousUser;
 import org.wso2.carbon.identity.core.context.model.ApplicationActor;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.context.model.Organization;
@@ -211,6 +212,39 @@ public class IdentityContext extends CarbonContext {
     public Organization getOrganization() {
 
         return identityContextDataHolder.getOrganization();
+    }
+
+    /**
+     * Set the anonymous user of the current flow. Replaces the anonymous user that is set, if any.
+     * The caller must remove it with {@link #removeAnonymousUser()} when the flow ends.
+     *
+     * @param anonymousUser Anonymous user of the current flow.
+     */
+    public void setAnonymousUser(AnonymousUser anonymousUser) {
+
+        identityContextDataHolder.setAnonymousUser(anonymousUser);
+    }
+
+    /**
+     * Get the anonymous user of the current flow.
+     *
+     * @return Anonymous user of the current flow, or null if none.
+     */
+    public AnonymousUser getAnonymousUser() {
+
+        return identityContextDataHolder.getAnonymousUser();
+    }
+
+    /**
+     * Remove the anonymous user of the current flow.
+     *
+     * @return The anonymous user that was removed, or null if none.
+     */
+    public AnonymousUser removeAnonymousUser() {
+
+        AnonymousUser anonymousUser = identityContextDataHolder.getAnonymousUser();
+        identityContextDataHolder.setAnonymousUser(null);
+        return anonymousUser;
     }
 
     /**

@@ -24,6 +24,7 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -31,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.AnonymousUser;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -52,6 +54,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -64,7 +67,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.expectThrows;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ANONYMOUS_PROFILE_TRACKER;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
@@ -349,6 +354,63 @@ public class FlowServiceTest {
             assertEquals(result, expectedStep);
             utilsMockedStatic.verify(() -> FlowExecutionEngineUtils.removeFlowContextFromCache(flowId));
         }
+    }
+
+    @DataProvider(name = "anonymousProfileTrackerInContinuedFlowData")
+    public Object[][] anonymousProfileTrackerInContinuedFlowData() {
+
+        return new Object[][]{
+                // Initial tracker, tracker in the request, expected tracker in the flow.
+                {"tracker-1", "tracker-1", "tracker-1"},
+                {"tracker-1", "tracker-2", null},
+                {"tracker-1", null, null},
+                {null, "tracker-2", null},
+        };
+    }
+
+    @Test(dataProvider = "anonymousProfileTrackerInContinuedFlowData")
+    public void testAnonymousProfileTrackerInContinuedFlow(String initialTracker, String requestTracker,
+                                                           String expectedTracker) throws Exception {
+
+        FlowExecutionContext context = initTestContext();
+        if (initialTracker != null) {
+            context.setProperty(ANONYMOUS_PROFILE_TRACKER, initialTracker);
+        }
+        String flowId = context.getContextIdentifier();
+        Map<String, String> inputs = new HashMap<>();
+        if (requestTracker != null) {
+            inputs.put(ANONYMOUS_PROFILE_TRACKER, requestTracker);
+        }
+        FlowExecutionStep step = new FlowExecutionStep.Builder()
+                .flowId(flowId)
+                .flowStatus("INCOMPLETE")
+                .stepType("VIEW")
+                .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
+                .build();
+        AtomicReference<AnonymousUser> anonymousUserInExecution = new AtomicReference<>();
+
+        try (
+                MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
+                        FlowExecutionEngineUtils.class);
+                MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class)
+        ) {
+            FlowExecutionEngine engine = mock(FlowExecutionEngine.class);
+            engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engine);
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId))
+                    .thenReturn(context);
+            when(engine.execute(context)).thenAnswer(invocation -> {
+                anonymousUserInExecution.set(IdentityContext.getThreadLocalIdentityContext().getAnonymousUser());
+                return step;
+            });
+
+            FlowExecutionService.getInstance().executeFlow(null, null, flowId, null, FLOW_TYPE, inputs);
+        }
+
+        assertEquals(context.getProperty(ANONYMOUS_PROFILE_TRACKER), expectedTracker);
+        assertNull(context.getUserInputData().get(ANONYMOUS_PROFILE_TRACKER));
+        assertEquals(anonymousUserInExecution.get() != null
+                ? anonymousUserInExecution.get().getAnonymousProfileTracker() : null, expectedTracker);
+        assertNull(IdentityContext.getThreadLocalIdentityContext().getAnonymousUser());
     }
 
     @Test(expectedExceptions = FlowEngineException.class)
