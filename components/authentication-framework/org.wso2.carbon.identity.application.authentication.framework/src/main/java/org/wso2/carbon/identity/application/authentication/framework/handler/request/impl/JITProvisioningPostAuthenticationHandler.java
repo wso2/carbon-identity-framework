@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
@@ -558,10 +559,24 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
             UserStoreManager userStoreManager = realm.getUserStoreManager();
             Map<String, String> claimValues = userStoreManager.getUserClaimValues(username, new String[]{
-                    FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI}, UserCoreConstants.DEFAULT_PROFILE);
-            if (claimValues != null && claimValues.size() > 0) {
-                String accountLockedClaim = claimValues.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI);
-                return Boolean.parseBoolean(accountLockedClaim);
+                    FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI,
+                    FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM},
+                    UserCoreConstants.DEFAULT_PROFILE);            if (claimValues != null && claimValues.size() > 0) {
+                boolean accountLocked = Boolean.parseBoolean(
+                        claimValues.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI));
+                if (accountLocked) {
+                    long unlockTime = 0;
+                    String accountUnlockTimeClaimValue =
+                            claimValues.get(FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM);
+                    if (NumberUtils.isNumber(accountUnlockTimeClaimValue)) {
+                        unlockTime = Long.parseLong(accountUnlockTimeClaimValue);
+                    }
+                    // The lock has expired, hence the account should be treated as unlocked.
+                    if (unlockTime != 0 && System.currentTimeMillis() >= unlockTime) {
+                        return false;
+                    }
+                }
+                return accountLocked;
             }
         } catch (UserStoreException e) {
             throw new PostAuthenticationFailedException(

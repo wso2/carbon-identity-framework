@@ -289,6 +289,77 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         }
     }
 
+       @DataProvider(name = "accountLockWithUnlockTimeDataProvider")
+    public Object[][] accountLockWithUnlockTimeDataProvider() {
+
+        long now = System.currentTimeMillis();
+        return new Object[][] {
+                // The lock has expired, hence the account should be treated as unlocked.
+                { String.valueOf(now - 60000), PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED },
+                // The lock is still active.
+                { String.valueOf(now + 3600000), PostAuthnHandlerFlowStatus.INCOMPLETE },
+                // Unlock time 0 means the account is not unlocked automatically.
+                { "0", PostAuthnHandlerFlowStatus.INCOMPLETE },
+                // No unlock time available for the locked account.
+                { null, PostAuthnHandlerFlowStatus.INCOMPLETE },
+        };
+    }
+
+    @Test(description = "This test case tests the Post JIT provisioning handling flow with an associated user "
+            + "whose account is locked, with different unlock times",
+            dataProvider = "accountLockWithUnlockTimeDataProvider")
+    public void testHandleWithAuthenticatedUserWithAccountLockUnlockTime(String unlockTime,
+            PostAuthnHandlerFlowStatus expectedResult) throws FrameworkException,
+            FederatedAssociationManagerException, UserStoreException, XMLStreamException,
+            IdentityProviderManagementException {
+
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            frameworkServiceDataHolder.when(
+                    FrameworkServiceDataHolder::getInstance).thenReturn(mockFrameworkServiceDataHolder);
+            AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
+            FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
+            frameworkUtils.when(FrameworkUtils::getFederatedAssociationManager)
+                    .thenReturn(federatedAssociationManager);
+            frameworkUtils.when(
+                            FrameworkUtils::getStepBasedSequenceHandler)
+                    .thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
+            doReturn("TestUser").when(federatedAssociationManager).getUserForFederatedAssociation(any(),
+                    any(), any());
+
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            RealmService mockRealmService = mock(RealmService.class);
+            UserRealm mockRealm = mock(UserRealm.class);
+            when(mockFrameworkServiceDataHolder.getRealmService()).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantUserRealm(1)).thenReturn(mockRealm);
+
+            Map<String, String> userClaimsMap = new HashMap<>();
+            userClaimsMap.put(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI, "true");
+            if (unlockTime != null) {
+                userClaimsMap.put(FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM, unlockTime);
+            }
+            UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
+            when(mockRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+            when(mockUserStoreManager.getUserClaimValues(eq("TestUser"), any(), anyString()))
+                    .thenReturn(userClaimsMap);
+            frameworkUtils.when(() -> FrameworkUtils.appendQueryParamsStringToUrl(anyString(), any()))
+                    .thenReturn("https://localhost:9443/test");
+
+            // Need to mock getIdPConfigByName with a null parameter.
+            ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
+            configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
+            IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
+            ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
+            doReturn(externalIdPConfig).when(mockConfigurationFacade).getIdPConfigByName(eq(null), anyString());
+
+            PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
+                    .handle(request, response, context);
+            Assert.assertEquals(postAuthnHandlerFlowStatus, expectedResult, "JIT provisioning handler executed "
+                    + "with a locked associated user and unlock time: " + unlockTime);
+        }
+    }
+
     @DataProvider(name = "usernameAutoFillDataProvider")
     public Object[][] usernameAutoFillDataProvider() {
 
