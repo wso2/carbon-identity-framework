@@ -44,6 +44,8 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_STATE_CLAIM_URI = "http://wso2.org/claims/identity/accountState";
     public static final String ACCOUNT_LOCKED_REASON_CLAIM_URI = "http://wso2.org/claims/identity/lockedReason";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
+    public static final String ADMIN_FORCED_PASSWORD_RESET_ACCOUNT_STATE = "PENDING_FUPR";
+    public static final String ADMIN_FORCED_PASSWORD_RESET_LOCKED_REASON = "PENDING_ADMIN_FORCED_USER_PASSWORD_RESET";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
     public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";

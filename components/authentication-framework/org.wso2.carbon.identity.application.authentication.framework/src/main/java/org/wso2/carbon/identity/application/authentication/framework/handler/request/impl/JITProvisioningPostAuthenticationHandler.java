@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
@@ -69,6 +70,9 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -120,6 +124,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     private static final Log log = LogFactory.getLog(JITProvisioningPostAuthenticationHandler.class);
     private static volatile JITProvisioningPostAuthenticationHandler instance
             = new JITProvisioningPostAuthenticationHandler();
+
+    private enum LinkedAccountLockState {
+        NOT_LOCKED, LOCKED, LOCK_EXPIRED
+    }
 
     /**
      * To avoid creation of multiple instances of this handler.
@@ -375,7 +383,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     }
                     if (StringUtils.isNotBlank(associatedLocalUser) && !isUserAllowsToLoginIdp) {
                         // Check if the associated local account is locked.
-                        if (isAccountLocked(associatedLocalUser, context.getTenantDomain())) {
+                        LinkedAccountLockState lockState =
+                                getLinkedAccountLockState(associatedLocalUser, context.getTenantDomain());
+                        if (lockState == LinkedAccountLockState.LOCKED) {
                             if (log.isDebugEnabled()) {
                                 log.debug(String.format("The account is locked for the user: %s in the " +
                                         "tenant domain: %s ", associatedLocalUser, context.getTenantDomain()));
@@ -405,6 +415,14 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             String retryParam =
                                     "&authFailure=true&authFailureMsg=error.user.account.disabled&errorCode=" +
                                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE;
+                            handleAccountLockLoginFailure(retryURL, context, response, retryParam);
+                            return PostAuthnHandlerFlowStatus.INCOMPLETE;
+                        }
+                        if (lockState == LinkedAccountLockState.LOCK_EXPIRED && !clearExpiredAccountLock(
+                                associatedLocalUser, context.getTenantDomain(), authenticator.getName())) {
+                            String retryParam =
+                                    "&authFailure=true&authFailureMsg=error.user.account.locked&errorCode=" +
+                                            UserCoreConstants.ErrorCode.USER_IS_LOCKED;
                             handleAccountLockLoginFailure(retryURL, context, response, retryParam);
                             return PostAuthnHandlerFlowStatus.INCOMPLETE;
                         }
@@ -551,25 +569,83 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return federatedUsername;
     }
 
-    private boolean isAccountLocked(String username, String tenantDomain) throws PostAuthenticationFailedException {
+    private LinkedAccountLockState getLinkedAccountLockState(String username, String tenantDomain)
+            throws PostAuthenticationFailedException {
 
         try {
             UserRealm realm = (UserRealm) FrameworkServiceDataHolder.getInstance().getRealmService()
                     .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
             UserStoreManager userStoreManager = realm.getUserStoreManager();
             Map<String, String> claimValues = userStoreManager.getUserClaimValues(username, new String[]{
-                    FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI}, UserCoreConstants.DEFAULT_PROFILE);
-            if (claimValues != null && claimValues.size() > 0) {
-                String accountLockedClaim = claimValues.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI);
-                return Boolean.parseBoolean(accountLockedClaim);
+                    FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI, FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM,
+                    FrameworkConstants.ACCOUNT_LOCKED_REASON_CLAIM_URI, FrameworkConstants.ACCOUNT_STATE_CLAIM_URI},
+                    UserCoreConstants.DEFAULT_PROFILE);
+            if (claimValues == null
+                    || !Boolean.parseBoolean(claimValues.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI))) {
+                return LinkedAccountLockState.NOT_LOCKED;
             }
+            String unlockTimeClaim = claimValues.get(FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM);
+            long unlockTime = NumberUtils.isNumber(unlockTimeClaim) ? NumberUtils.toLong(unlockTimeClaim) : 0;
+            if (unlockTime <= 0 || System.currentTimeMillis() < unlockTime
+                    || FrameworkConstants.ADMIN_FORCED_PASSWORD_RESET_ACCOUNT_STATE.equals(
+                            claimValues.get(FrameworkConstants.ACCOUNT_STATE_CLAIM_URI))
+                    || FrameworkConstants.ADMIN_FORCED_PASSWORD_RESET_LOCKED_REASON.equals(
+                            claimValues.get(FrameworkConstants.ACCOUNT_LOCKED_REASON_CLAIM_URI))
+                    || isPendingAccountVerification(username, tenantDomain)) {
+                return LinkedAccountLockState.LOCKED;
+            }
+            return LinkedAccountLockState.LOCK_EXPIRED;
         } catch (UserStoreException e) {
             throw new PostAuthenticationFailedException(
                     ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getCode(),
                     String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getMessage(),
                             (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username)), e);
         }
-        return false;
+    }
+
+    private boolean clearExpiredAccountLock(String username, String tenantDomain, String authenticatorName) {
+
+        Map<String, Object> threadLocalProperties = IdentityUtil.threadLocalProperties.get();
+        Object authenticationFrameworkFlow =
+                threadLocalProperties.get(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
+        try {
+            UserRealm realm = (UserRealm) FrameworkServiceDataHolder.getInstance().getRealmService()
+                    .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
+            UserStoreManager userStoreManager = realm.getUserStoreManager();
+            if (username.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+                String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
+                if (!IdentityUtil.getPrimaryDomainName().equalsIgnoreCase(userStoreDomain)) {
+                    userStoreManager = userStoreManager.getSecondaryUserStoreManager(userStoreDomain);
+                }
+            }
+            Map<String, Object> eventProperties = new HashMap<>();
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_NAME,
+                    UserCoreUtil.removeDomainFromName(username));
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userStoreManager);
+            eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+            eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, true);
+            eventProperties.put(IdentityEventConstants.EventProperty.AUTHENTICATOR_NAME, authenticatorName);
+            threadLocalProperties.put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW, false);
+            FrameworkServiceDataHolder.getInstance().getIdentityEventService().handleEvent(
+                    new Event(IdentityEventConstants.Event.POST_NON_BASIC_AUTHENTICATION, eventProperties));
+            return true;
+        } catch (IdentityEventException | UserStoreException | RuntimeException e) {
+            IdentityUtil.clearIdentityErrorMsg();
+            if (e instanceof IdentityEventException && StringUtils.startsWith(
+                    ((IdentityEventException) e).getErrorCode(), UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
+                return false;
+            }
+            log.warn("Error while clearing the expired account lock of the user: " + (LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(username) : username) + " in the tenant domain: " + tenantDomain, e);
+            return true;
+        } finally {
+            if (authenticationFrameworkFlow == null) {
+                threadLocalProperties.remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
+            } else {
+                threadLocalProperties.put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW,
+                        authenticationFrameworkFlow);
+            }
+        }
     }
 
     /**
