@@ -21,16 +21,12 @@ package org.wso2.carbon.identity.application.mgt;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
@@ -47,11 +43,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY;
 
 /**
  * Contains the unit tests for the default role management listener.
@@ -67,8 +60,6 @@ public class DefaultRoleManagementListenerTest {
     private static final String APPLICATION_AUD = "APPLICATION";
     private static final String ORGANIZATION_AUD = "ORGANIZATION";
     private static final String TENANT_DOMAIN = "wso2.com";
-    private static final String MAIN_APP_TENANT_DOMAIN = "carbon.super";
-    private static final int MAIN_APP_TENANT_ID = -1234;
 
     @BeforeClass
     public void setUp() {
@@ -103,57 +94,8 @@ public class DefaultRoleManagementListenerTest {
         }
     }
 
-    @DataProvider(name = "subOrgRoleAuthoringConfigProvider")
-    public Object[][] subOrgRoleAuthoringConfigProvider() {
-
-        return new Object[][]{
-                // isEnhancedOrganizationAuthenticationEnabled, isOrganizationCustomRolesEnabled, main app audience,
-                // isAllowed.
-                {true, true, APPLICATION_AUD, true},
-                {true, false, APPLICATION_AUD, false},
-                {false, true, APPLICATION_AUD, false},
-                {false, false, APPLICATION_AUD, false},
-                // Application roles cannot be created for the shared applications of organization audience apps.
-                {true, true, ORGANIZATION_AUD, false}
-        };
-    }
-
-    @Test(dataProvider = "subOrgRoleAuthoringConfigProvider")
-    public void testPreAddRoleForFragmentApp(boolean isEnhancedOrgAuthEnabled, boolean isOrganizationCustomRolesEnabled,
-                                             String mainAppAudience, boolean isAllowed) throws Exception {
-
-        try (MockedStatic<ApplicationManagementService> applicationManagementServiceMockedStatic =
-                     mockStatic(ApplicationManagementService.class);
-             MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
-             MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
-
-            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(
-                    ORGANIZATION_CUSTOM_ROLES_FEATURE_ENABLED_PROPERTY)).thenReturn("true");
-            ApplicationManagementService applicationManagementService =
-                    mockApplicationManagementService(applicationManagementServiceMockedStatic, APPLICATION_AUD);
-            mockMainApplication(applicationManagementService, identityTenantUtilMockedStatic,
-                    isEnhancedOrgAuthEnabled, isOrganizationCustomRolesEnabled, mainAppAudience);
-            IdentityUtil.threadLocalProperties.get().put(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW, true);
-
-            try {
-                defaultRoleManagementListener.preAddRole(ROLE_NAME, new ArrayList<>(), new ArrayList<>(),
-                        new ArrayList<>(), APPLICATION_AUD, APPLICATION_RES_ID, TENANT_DOMAIN);
-                if (!isAllowed) {
-                    fail("Role creation should be rejected for the shared application.");
-                }
-            } catch (IdentityRoleManagementClientException e) {
-                if (isAllowed) {
-                    fail("Role creation should be allowed for the shared application.", e);
-                }
-                assertEquals(e.getErrorCode(), RoleConstants.Error.OPERATION_FORBIDDEN.getCode());
-            }
-            // If the application is a fragment app, then we add the IS_FRAGMENT_APP property to the thread local.
-            assertTrue(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
-        }
-    }
-
     @Test
-    public void testPreAddRoleForFragmentAppWithoutOrganizationCustomRoleCreationFlow() throws Exception {
+    public void testPreAddRoleForFragmentApp() throws Exception {
 
         try (MockedStatic<ApplicationManagementService> applicationManagementServiceMockedStatic =
                      mockStatic(ApplicationManagementService.class)) {
@@ -162,7 +104,7 @@ public class DefaultRoleManagementListenerTest {
                     mockApplicationManagementService(applicationManagementServiceMockedStatic, APPLICATION_AUD);
             when(applicationManagementService.getMainAppId(APPLICATION_RES_ID)).thenReturn(MAIN_APPLICATION_RES_ID);
 
-            // Roles not created by an organization, such as the inherited roles, are not validated.
+            // Role creation for a shared application is not validated against the main application.
             defaultRoleManagementListener.preAddRole(ROLE_NAME, new ArrayList<>(), new ArrayList<>(),
                     new ArrayList<>(), APPLICATION_AUD, APPLICATION_RES_ID, TENANT_DOMAIN);
 
@@ -278,25 +220,5 @@ public class DefaultRoleManagementListenerTest {
         when(applicationManagementService.getAllowedAudienceForRoleAssociation(APPLICATION_RES_ID, TENANT_DOMAIN)).
                 thenReturn(allowedAudience);
         return applicationManagementService;
-    }
-
-    private static void mockMainApplication(ApplicationManagementService applicationManagementService,
-                                            MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic,
-                                            boolean isEnhancedOrgAuthEnabled, boolean isOrganizationCustomRolesEnabled,
-                                            String mainAppAudience) throws Exception {
-
-        ServiceProvider mainApplication = createServiceProvider();
-        mainApplication.setApplicationResourceId(MAIN_APPLICATION_RES_ID);
-        mainApplication.setEnhancedOrganizationAuthenticationEnabled(isEnhancedOrgAuthEnabled);
-        mainApplication.setOrganizationCustomRolesEnabled(isOrganizationCustomRolesEnabled);
-        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
-        associatedRolesConfig.setAllowedAudience(mainAppAudience);
-        mainApplication.setAssociatedRolesConfig(associatedRolesConfig);
-        when(applicationManagementService.getMainAppId(APPLICATION_RES_ID)).thenReturn(MAIN_APPLICATION_RES_ID);
-        when(applicationManagementService.getTenantIdByApp(MAIN_APPLICATION_RES_ID)).thenReturn(MAIN_APP_TENANT_ID);
-        identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantDomain(MAIN_APP_TENANT_ID))
-                .thenReturn(MAIN_APP_TENANT_DOMAIN);
-        when(applicationManagementService.getApplicationByResourceId(MAIN_APPLICATION_RES_ID,
-                MAIN_APP_TENANT_DOMAIN)).thenReturn(mainApplication);
     }
 }

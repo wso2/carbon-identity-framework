@@ -1737,11 +1737,7 @@ public class RoleDAOImpl implements RoleDAO {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
 
-                /*
-                 Shared roles provisioned into a fragment application by the role sharing flows are not associated
-                 with the application. Roles created by the organization for the fragment application are associated.
-                 */
-                if (APPLICATION.equals(audience) && (!isFragmentApp() || isOrganizationCustomRoleCreationFlow())) {
+                if (APPLICATION.equals(audience) && !isFragmentApp()) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -1772,18 +1768,6 @@ public class RoleDAOImpl implements RoleDAO {
             return isFragmentApp;
         }
         return false;
-    }
-
-    /**
-     * Check whether the role is being created by an organization for a shared application. The callers creating such
-     * roles set this thread local property.
-     *
-     * @return True if the role is being created by an organization for a shared application.
-     */
-    private boolean isOrganizationCustomRoleCreationFlow() {
-
-        return Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get()
-                .get(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW));
     }
 
     @Override

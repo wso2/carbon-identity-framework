@@ -29,7 +29,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
@@ -49,7 +48,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
@@ -274,9 +272,14 @@ public class RoleDAOTest {
         identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
         identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
-        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo roleBasicInfo = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
         assertTrue(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
                 SAMPLE_TENANT_DOMAIN));
+        // The role is associated with the application.
+        List<String> appIDs = roleDAO.getAssociatedApplicationIdsByRoleId(roleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN);
+        assertEquals(appIDs.size(), 1);
+        assertEquals(appIDs.get(0).trim(), SAMPLE_APP_ID);
     }
 
     @Test
@@ -304,45 +307,6 @@ public class RoleDAOTest {
         assertTrue(appIDs.isEmpty());
         // Assert the thread local properties to check whether the IS_FRAGMENT_APP is removed.
         assertFalse(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
-    }
-
-    @DataProvider(name = "subOrgAppRoleThreadLocalProvider")
-    public Object[][] subOrgAppRoleThreadLocalProvider() {
-
-        return new Object[][]{
-                // isFragmentApp, isOrganizationCustomRoleCreationFlow.
-                // A role created by the sub organization for a fragment application.
-                {true, true},
-                // A role created outside a fragment application.
-                {false, false}
-        };
-    }
-
-    @Test(dataProvider = "subOrgAppRoleThreadLocalProvider")
-    public void testAddSubOrgAppRoleToFragmentApp(boolean isFragmentApp, boolean isOrganizationCustomRoleCreationFlow)
-            throws Exception {
-
-        RoleDAOImpl roleDAO = setupRoleDaoImpl();
-        if (isFragmentApp) {
-            IdentityUtil.threadLocalProperties.get().put(IS_FRAGMENT_APP, Boolean.TRUE.toString());
-        }
-        if (isOrganizationCustomRoleCreationFlow) {
-            IdentityUtil.threadLocalProperties.get().put(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW,
-                    Boolean.TRUE);
-        }
-        try {
-            // The role is associated with the application like any application audience role.
-            RoleBasicInfo subOrgRoleBasicInfo = addRole(SHARED_APP_ROLE_NAME, APPLICATION_AUD,
-                    SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
-            List<String> appIDs = roleDAO.getAssociatedApplicationIdsByRoleId(subOrgRoleBasicInfo.getId(),
-                    SAMPLE_TENANT_DOMAIN);
-            assertEquals(appIDs.size(), 1);
-            assertEquals(appIDs.get(0).trim(), SHARED_APP_ID_OF_SAMPLE_APP);
-            assertFalse(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
-        } finally {
-            IdentityUtil.threadLocalProperties.get().remove(IS_FRAGMENT_APP);
-            IdentityUtil.threadLocalProperties.get().remove(RoleConstants.IS_ORGANIZATION_CUSTOM_ROLE_CREATION_FLOW);
-        }
     }
 
     @Test
