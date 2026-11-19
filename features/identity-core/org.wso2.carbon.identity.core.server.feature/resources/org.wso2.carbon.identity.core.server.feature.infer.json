@@ -559,6 +559,18 @@
         "internal_cds_profile_update"
       ],
       "console.customer_data_service.scopes.delete": [],
+      "console.customer_data_organization_settings.enabled": true,
+      "console.customer_data_organization_settings.scopes.feature": [
+        "console:customerData"
+      ],
+      "console.customer_data_organization_settings.scopes.read": [
+        "internal_cds_organization_view"
+      ],
+      "console.customer_data_organization_settings.scopes.create": [],
+      "console.customer_data_organization_settings.scopes.update": [
+        "internal_cds_organization_update"
+      ],
+      "console.customer_data_organization_settings.scopes.delete": [],
       "console.customer_data_profiles.enabled": true,
       "console.customer_data_profiles.scopes.feature": [
         "console:customerData"
