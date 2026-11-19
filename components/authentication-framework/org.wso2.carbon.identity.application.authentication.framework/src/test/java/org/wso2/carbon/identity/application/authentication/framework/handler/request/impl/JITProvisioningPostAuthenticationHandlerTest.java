@@ -62,6 +62,10 @@ import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceCompo
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -96,6 +100,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -286,6 +292,153 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
             Assert.assertEquals(postAuthnHandlerFlowStatus, expectedResult, "JIT provisioning handler executed with "
                     + "an associated user with account status: " + testAccountState + " and account locked status: "
                     + isAccountLocked);
+        }
+    }
+
+    @DataProvider(name = "linkedAccountLockDataProvider")
+    public Object[][] linkedAccountLockDataProvider() {
+
+        String expired = String.valueOf(System.currentTimeMillis() - 60000L);
+        String notExpired = String.valueOf(System.currentTimeMillis() + 60000L);
+        String locked = "error.user.account.locked";
+        return new Object[][]{
+                {"TestUser", "true", expired, null, null, null, null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED, 1, null},
+                {"TestUser", "true", expired, null, null, null, null, null,
+                        PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED, 1, null},
+                {"SECONDARY/TestUser", "true", expired, null, null, null, null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED, 1, null},
+                {"TestUser", "true", notExpired, null, null, null, null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.INCOMPLETE, 0, locked},
+                {"TestUser", "true", "0", null, null, null, null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.INCOMPLETE, 0, locked},
+                {"TestUser", "true", null, null, null, null, null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.INCOMPLETE, 0, locked},
+                {"TestUser", "true", "+" + expired, null, null, null, null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.INCOMPLETE, 0, locked},
+                {"TestUser", "true", " " + expired, null, null, null, null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.INCOMPLETE, 0, locked},
+                {"TestUser", "true", expired, FrameworkConstants.ADMIN_FORCED_PASSWORD_RESET_ACCOUNT_STATE, null,
+                        null, null, Boolean.TRUE, PostAuthnHandlerFlowStatus.INCOMPLETE, 0, locked},
+                {"TestUser", "true", expired, null, FrameworkConstants.ADMIN_FORCED_PASSWORD_RESET_LOCKED_REASON,
+                        null, null, Boolean.TRUE, PostAuthnHandlerFlowStatus.INCOMPLETE, 0, locked},
+                {"TestUser", "true", expired, FrameworkConstants.AccountStatus.PENDING_EV, null, null, null,
+                        Boolean.TRUE, PostAuthnHandlerFlowStatus.INCOMPLETE, 0, "account.confirmation.pending"},
+                {"TestUser", "true", expired, null, null, "true", null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.INCOMPLETE, 0, "error.user.account.disabled"},
+                {"TestUser", "false", expired, null, null, null, null, Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED, 0, null},
+                {"TestUser", "true", expired, null, null, null,
+                        new IdentityEventException("17003:MaxAttemptsExceeded", "Account is locked."), Boolean.TRUE,
+                        PostAuthnHandlerFlowStatus.INCOMPLETE, 1, locked},
+                {"TestUser", "true", expired, null, null, null, new IdentityEventException("Update failed."),
+                        Boolean.TRUE, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED, 3, null},
+                {"TestUser", "true", expired, null, null, null, new NumberFormatException("invalid"), null,
+                        PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED, 3, null},
+        };
+    }
+
+    @Test(dataProvider = "linkedAccountLockDataProvider")
+    public void testHandleWithAssociatedUserLockExpiry(String associatedUser, String accountLocked, String unlockTime,
+                                                       String accountState, String lockedReason,
+                                                       String accountDisabled, Exception eventFailure,
+                                                       Boolean frameworkFlowFlag,
+                                                       PostAuthnHandlerFlowStatus expectedStatus,
+                                                       int expectedEventCount, String expectedFailureMessage)
+            throws Exception {
+
+        Map<String, Object> threadLocalProperties = IdentityUtil.threadLocalProperties.get();
+        if (frameworkFlowFlag == null) {
+            threadLocalProperties.remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
+        } else {
+            threadLocalProperties.put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW, frameworkFlowFlag);
+        }
+        List<Object> flagsDuringEvent = new ArrayList<>();
+
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            frameworkServiceDataHolder.when(
+                    FrameworkServiceDataHolder::getInstance).thenReturn(mockFrameworkServiceDataHolder);
+            identityUtil.when(() -> IdentityUtil.getProperty(FrameworkConstants.Config.SHOW_FAILURE_REASON))
+                    .thenReturn("true");
+            identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn("PRIMARY");
+            AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
+            FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
+            frameworkUtils.when(FrameworkUtils::getFederatedAssociationManager).thenReturn(federatedAssociationManager);
+            frameworkUtils.when(FrameworkUtils::getStepBasedSequenceHandler)
+                    .thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
+            frameworkUtils.when(() -> FrameworkUtils.appendQueryParamsStringToUrl(any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0) + "?" + invocation.getArgument(1));
+            doReturn(associatedUser).when(federatedAssociationManager).getUserForFederatedAssociation(any(),
+                    any(), any());
+
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            RealmService mockRealmService = mock(RealmService.class);
+            UserRealm mockRealm = mock(UserRealm.class);
+            when(mockFrameworkServiceDataHolder.getRealmService()).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantUserRealm(1)).thenReturn(mockRealm);
+            UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
+            UserStoreManager mockSecondaryUserStoreManager = mock(UserStoreManager.class);
+            when(mockRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+            lenient().when(mockUserStoreManager.getSecondaryUserStoreManager("SECONDARY"))
+                    .thenReturn(mockSecondaryUserStoreManager);
+
+            Map<String, String> userClaims = new HashMap<>();
+            userClaims.put(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI, accountLocked);
+            userClaims.put(FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM, unlockTime);
+            userClaims.put(FrameworkConstants.ACCOUNT_STATE_CLAIM_URI, accountState);
+            userClaims.put(FrameworkConstants.ACCOUNT_LOCKED_REASON_CLAIM_URI, lockedReason);
+            userClaims.put(FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI, accountDisabled);
+            when(mockUserStoreManager.getUserClaimValues(eq(associatedUser), any(), anyString()))
+                    .thenReturn(userClaims);
+
+            IdentityEventService mockEventService = mock(IdentityEventService.class);
+            lenient().when(mockFrameworkServiceDataHolder.getIdentityEventService()).thenReturn(mockEventService);
+            lenient().doAnswer(invocation -> {
+                flagsDuringEvent.add(threadLocalProperties.get(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW));
+                if (eventFailure != null) {
+                    throw eventFailure;
+                }
+                userClaims.put(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI, "false");
+                return null;
+            }).when(mockEventService).handleEvent(any(Event.class));
+
+            ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
+            configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
+            ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(getTestIdentityProvider("default-tp-1.xml"));
+            doReturn(externalIdPConfig).when(mockConfigurationFacade).getIdPConfigByName(eq(null), anyString());
+
+            HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+            Assert.assertEquals(postJITProvisioningHandler.handle(request, mockResponse, context), expectedStatus);
+            if (expectedFailureMessage == null) {
+                verify(mockResponse, never()).sendRedirect(anyString());
+            } else {
+                ArgumentCaptor<String> redirectUrl = ArgumentCaptor.forClass(String.class);
+                verify(mockResponse).sendRedirect(redirectUrl.capture());
+                Assert.assertTrue(redirectUrl.getValue().contains("authFailureMsg=" + expectedFailureMessage));
+            }
+
+            ArgumentCaptor<Event> event = ArgumentCaptor.forClass(Event.class);
+            verify(mockEventService, times(expectedEventCount)).handleEvent(event.capture());
+            if (expectedEventCount > 0) {
+                Map<String, Object> eventProperties = event.getValue().getEventProperties();
+                Assert.assertEquals(event.getValue().getEventName(),
+                        IdentityEventConstants.Event.POST_NON_BASIC_AUTHENTICATION);
+                Assert.assertEquals(eventProperties.get(IdentityEventConstants.EventProperty.USER_NAME), "TestUser");
+                Assert.assertSame(eventProperties.get(IdentityEventConstants.EventProperty.USER_STORE_MANAGER),
+                        associatedUser.startsWith("SECONDARY/") ? mockSecondaryUserStoreManager :
+                                mockUserStoreManager);
+                Assert.assertEquals(eventProperties.get(IdentityEventConstants.EventProperty.OPERATION_STATUS), true);
+            }
+            for (Object flag : flagsDuringEvent) {
+                Assert.assertEquals(flag, Boolean.FALSE);
+            }
+            Assert.assertEquals(threadLocalProperties.get(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW),
+                    frameworkFlowFlag);
+        } finally {
+            threadLocalProperties.remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
         }
     }
 
