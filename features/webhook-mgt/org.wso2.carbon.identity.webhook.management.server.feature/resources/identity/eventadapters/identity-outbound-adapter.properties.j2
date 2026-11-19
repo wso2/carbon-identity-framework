@@ -54,3 +54,84 @@ adapter.httppublisher.executorMaxPoolSize={{outbound_adapters.httppublisher.exec
 adapter.httppublisher.executorQueueCapacity={{outbound_adapters.httppublisher.executorQueueCapacity}}
 adapter.httppublisher.type={{outbound_adapters.httppublisher.type}}
 {% endif %}
+
+{% if outbound_adapters.websubdirect.enabled is sameas true %}
+adapter.websubdirect.enabled=true
+adapter.websubdirect.type=PublisherSubscriber
+# The adapter verifies the endpoint before it accepts a subscription, so a fully accepted webhook is ACTIVE.
+adapter.websubdirect.verifiesSubscriptionSynchronously=true
+adapter.websubdirect.hubUrl={{outbound_adapters.websubdirect.hubUrl}}
+adapter.websubdirect.deliveryDataSource={{outbound_adapters.websubdirect.deliveryDataSource}}
+{% if outbound_adapters.websubdirect.connectTimeout is defined %}
+adapter.websubdirect.connectTimeout={{outbound_adapters.websubdirect.connectTimeout}}
+{% endif %}
+{% if outbound_adapters.websubdirect.readTimeout is defined %}
+adapter.websubdirect.readTimeout={{outbound_adapters.websubdirect.readTimeout}}
+{% endif %}
+{% if outbound_adapters.websubdirect.connectionRequestTimeout is defined %}
+adapter.websubdirect.connectionRequestTimeout={{outbound_adapters.websubdirect.connectionRequestTimeout}}
+{% endif %}
+{% if outbound_adapters.websubdirect.maxConnections is defined %}
+adapter.websubdirect.maxConnections={{outbound_adapters.websubdirect.maxConnections}}
+{% endif %}
+{% if outbound_adapters.websubdirect.maxConnectionsPerRoute is defined %}
+adapter.websubdirect.maxConnectionsPerRoute={{outbound_adapters.websubdirect.maxConnectionsPerRoute}}
+{% endif %}
+{% if outbound_adapters.websubdirect.ioThreadCount is defined %}
+adapter.websubdirect.ioThreadCount={{outbound_adapters.websubdirect.ioThreadCount}}
+{% endif %}
+{% if outbound_adapters.websubdirect.maxInFlight is defined %}
+adapter.websubdirect.maxInFlight={{outbound_adapters.websubdirect.maxInFlight}}
+{% endif %}
+{% if outbound_adapters.websubdirect.callbackThreads is defined %}
+adapter.websubdirect.callbackThreads={{outbound_adapters.websubdirect.callbackThreads}}
+{% endif %}
+{% if outbound_adapters.websubdirect.callbackQueueCapacity is defined %}
+adapter.websubdirect.callbackQueueCapacity={{outbound_adapters.websubdirect.callbackQueueCapacity}}
+{% endif %}
+{% if outbound_adapters.websubdirect.storeThreads is defined %}
+adapter.websubdirect.storeThreads={{outbound_adapters.websubdirect.storeThreads}}
+{% endif %}
+{% if outbound_adapters.websubdirect.storeBufferMaxEntries is defined %}
+adapter.websubdirect.storeBufferMaxEntries={{outbound_adapters.websubdirect.storeBufferMaxEntries}}
+{% endif %}
+{% if outbound_adapters.websubdirect.storeBufferMaxAgeSeconds is defined %}
+adapter.websubdirect.storeBufferMaxAgeSeconds={{outbound_adapters.websubdirect.storeBufferMaxAgeSeconds}}
+{% endif %}
+{% if outbound_adapters.websubdirect.firstRetryDelaySeconds is defined %}
+adapter.websubdirect.firstRetryDelaySeconds={{outbound_adapters.websubdirect.firstRetryDelaySeconds}}
+{% endif %}
+{% if outbound_adapters.websubdirect.retryWindowSeconds is defined %}
+adapter.websubdirect.retryWindowSeconds={{outbound_adapters.websubdirect.retryWindowSeconds}}
+{% endif %}
+{% if outbound_adapters.websubdirect.maxPendingPerWebhook is defined %}
+adapter.websubdirect.maxPendingPerWebhook={{outbound_adapters.websubdirect.maxPendingPerWebhook}}
+{% endif %}
+{% if outbound_adapters.websubdirect.circuitFailureThreshold is defined %}
+adapter.websubdirect.circuitFailureThreshold={{outbound_adapters.websubdirect.circuitFailureThreshold}}
+{% endif %}
+{% if outbound_adapters.websubdirect.circuitOpenSeconds is defined %}
+adapter.websubdirect.circuitOpenSeconds={{outbound_adapters.websubdirect.circuitOpenSeconds}}
+{% endif %}
+{% if outbound_adapters.websubdirect.verificationTimeout is defined %}
+adapter.websubdirect.verificationTimeout={{outbound_adapters.websubdirect.verificationTimeout}}
+{% endif %}
+{% if outbound_adapters.websubdirect.leaseSeconds is defined %}
+adapter.websubdirect.leaseSeconds={{outbound_adapters.websubdirect.leaseSeconds}}
+{% endif %}
+{% if outbound_adapters.websubdirect.shutdownGraceSeconds is defined %}
+adapter.websubdirect.shutdownGraceSeconds={{outbound_adapters.websubdirect.shutdownGraceSeconds}}
+{% endif %}
+{% if outbound_adapters.websubdirect.allowHttpEndpoints is defined %}
+adapter.websubdirect.allowHttpEndpoints={{outbound_adapters.websubdirect.allowHttpEndpoints}}
+{% endif %}
+{% if outbound_adapters.websubdirect.allowPrivateAddresses is defined %}
+adapter.websubdirect.allowPrivateAddresses={{outbound_adapters.websubdirect.allowPrivateAddresses}}
+{% endif %}
+{% if outbound_adapters.websubdirect.retryableStatusCodes is defined %}
+adapter.websubdirect.retryableStatusCodes={{outbound_adapters.websubdirect.retryableStatusCodes}}
+{% endif %}
+{% if outbound_adapters.websubdirect.permanentStatusCodes is defined %}
+adapter.websubdirect.permanentStatusCodes={{outbound_adapters.websubdirect.permanentStatusCodes}}
+{% endif %}
+{% endif %}

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.dao;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -73,6 +74,7 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
     private SecretResolveManager secretResolveManager;
     private SubscriptionManagementService subscriptionManagementService;
     private TopicManagementService topicManagementService;
+    private Adapter adapter;
 
     @BeforeClass
     public void setUpClass() throws SecretManagementException {
@@ -80,7 +82,8 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         dao = mock(WebhookManagementDAO.class);
         serviceHolderMock = Mockito.mockStatic(WebhookManagementComponentServiceHolder.class);
         WebhookManagementComponentServiceHolder holder = mock(WebhookManagementComponentServiceHolder.class);
-        when(holder.getWebhookAdapter()).thenReturn(mock(Adapter.class));
+        adapter = mock(Adapter.class);
+        when(holder.getWebhookAdapter()).thenReturn(adapter);
 
         // SecretManager and SecretResolveManager stubs
         secretManager = mock(SecretManager.class);
@@ -124,6 +127,7 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
     public void resetMocks() {
 
         Mockito.reset(dao);
+        when(adapter.getProperties()).thenReturn(Collections.<String, String>emptyMap());
     }
 
     @Test
@@ -461,5 +465,156 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
                 subscriberHandler.getActiveWebhooksForOrganization("profile", "v1", "channel", 1), expected);
         verify(localDao, never())
                 .getActiveWebhooksForOrganization(anyString(), anyString(), anyString(), anyInt());
+    }
+
+    private void verifiesSynchronously() {
+
+        when(adapter.getProperties()).thenReturn(Collections.singletonMap(
+                PublisherSubscriberAdapterTypeHandler.SYNCHRONOUS_VERIFICATION_PROPERTY, "true"));
+    }
+
+    private static Subscription channel(String uri, SubscriptionStatus status) {
+
+        return Subscription.builder().channelUri(uri).status(status).build();
+    }
+
+    private static Webhook webhookWith(WebhookStatus status, List<Subscription> channels) throws WebhookMgtException {
+
+        Webhook webhook = mock(Webhook.class);
+        when(webhook.getId()).thenReturn("id");
+        when(webhook.getName()).thenReturn(WEBHOOK_NAME);
+        when(webhook.getEndpoint()).thenReturn("https://hooks.example.com/hook");
+        when(webhook.getSecret()).thenReturn("secret");
+        when(webhook.getEventProfileName()).thenReturn(PROFILE_NAME);
+        when(webhook.getEventProfileUri()).thenReturn(PROFILE_URI);
+        when(webhook.getEventProfileVersion()).thenReturn("v1");
+        when(webhook.getStatus()).thenReturn(status);
+        when(webhook.getEventsSubscribed()).thenReturn(channels);
+        return webhook;
+    }
+
+    private static List<Subscription> channels(SubscriptionStatus first, SubscriptionStatus second) {
+
+        List<Subscription> channels = new ArrayList<>();
+        channels.add(channel("login", first));
+        channels.add(channel("session", second));
+        return channels;
+    }
+
+    @Test
+    public void testCreateIsActiveWhenAdapterVerifiesAndAllChannelsAccepted() throws Exception {
+
+        verifiesSynchronously();
+        when(subscriptionManagementService.subscribe(any(), anyString(), anyString())).thenReturn(
+                channels(SubscriptionStatus.SUBSCRIPTION_ACCEPTED, SubscriptionStatus.SUBSCRIPTION_ACCEPTED));
+
+        handler.createWebhook(webhookWith(WebhookStatus.ACTIVE, channels(null, null)), 1);
+
+        ArgumentCaptor<Webhook> stored = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao).createWebhook(stored.capture(), eq(1));
+        Assert.assertEquals(stored.getValue().getStatus(), WebhookStatus.ACTIVE);
+    }
+
+    @Test
+    public void testCreateIsPartiallyActiveWhenOneChannelFails() throws Exception {
+
+        verifiesSynchronously();
+        when(subscriptionManagementService.subscribe(any(), anyString(), anyString())).thenReturn(
+                channels(SubscriptionStatus.SUBSCRIPTION_ACCEPTED, SubscriptionStatus.SUBSCRIPTION_ERROR));
+
+        handler.createWebhook(webhookWith(WebhookStatus.ACTIVE, channels(null, null)), 1);
+
+        ArgumentCaptor<Webhook> stored = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao).createWebhook(stored.capture(), eq(1));
+        Assert.assertEquals(stored.getValue().getStatus(), WebhookStatus.PARTIALLY_ACTIVE);
+    }
+
+    @Test
+    public void testHubAdapterStaysPartiallyActive() throws Exception {
+
+        // Without the capability (the WebSubHub adapter), acceptance by the hub is not proof of verification.
+        when(subscriptionManagementService.subscribe(any(), anyString(), anyString())).thenReturn(
+                channels(SubscriptionStatus.SUBSCRIPTION_ACCEPTED, SubscriptionStatus.SUBSCRIPTION_ACCEPTED));
+
+        handler.createWebhook(webhookWith(WebhookStatus.ACTIVE, channels(null, null)), 1);
+
+        ArgumentCaptor<Webhook> stored = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao).createWebhook(stored.capture(), eq(1));
+        Assert.assertEquals(stored.getValue().getStatus(), WebhookStatus.PARTIALLY_ACTIVE);
+    }
+
+    @Test
+    public void testActivateIsActiveWhenAdapterVerifies() throws Exception {
+
+        verifiesSynchronously();
+        when(subscriptionManagementService.subscribe(any(), anyString(), anyString())).thenReturn(
+                channels(SubscriptionStatus.SUBSCRIPTION_ACCEPTED, SubscriptionStatus.SUBSCRIPTION_ACCEPTED));
+
+        handler.activateWebhook(webhookWith(WebhookStatus.INACTIVE,
+                channels(SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED, SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED)), 1);
+
+        ArgumentCaptor<Webhook> stored = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao).activateWebhook(stored.capture(), eq(1));
+        Assert.assertEquals(stored.getValue().getStatus(), WebhookStatus.ACTIVE);
+    }
+
+    @Test
+    public void testDeactivateIsInactiveWhenAllChannelsUnsubscribed() throws Exception {
+
+        verifiesSynchronously();
+        when(subscriptionManagementService.unsubscribe(any(), anyString(), anyString())).thenReturn(
+                channels(SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED, SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED));
+
+        handler.deactivateWebhook(webhookWith(WebhookStatus.ACTIVE,
+                channels(SubscriptionStatus.SUBSCRIPTION_ACCEPTED, SubscriptionStatus.SUBSCRIPTION_ACCEPTED)), 1);
+
+        ArgumentCaptor<Webhook> stored = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao).deactivateWebhook(stored.capture(), eq(1));
+        Assert.assertEquals(stored.getValue().getStatus(), WebhookStatus.INACTIVE);
+    }
+
+    @Test
+    public void testDeactivateIsPartiallyInactiveWhenOneChannelFails() throws Exception {
+
+        verifiesSynchronously();
+        when(subscriptionManagementService.unsubscribe(any(), anyString(), anyString())).thenReturn(
+                channels(SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED, SubscriptionStatus.UNSUBSCRIPTION_ERROR));
+
+        handler.deactivateWebhook(webhookWith(WebhookStatus.ACTIVE,
+                channels(SubscriptionStatus.SUBSCRIPTION_ACCEPTED, SubscriptionStatus.SUBSCRIPTION_ACCEPTED)), 1);
+
+        ArgumentCaptor<Webhook> stored = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao).deactivateWebhook(stored.capture(), eq(1));
+        Assert.assertEquals(stored.getValue().getStatus(), WebhookStatus.PARTIALLY_INACTIVE);
+    }
+
+    @Test
+    public void testRetryCompletesActivation() throws Exception {
+
+        verifiesSynchronously();
+        when(subscriptionManagementService.subscribe(any(), anyString(), anyString())).thenReturn(
+                channels(SubscriptionStatus.SUBSCRIPTION_ACCEPTED, SubscriptionStatus.SUBSCRIPTION_ACCEPTED));
+
+        handler.retryWebhook(webhookWith(WebhookStatus.PARTIALLY_ACTIVE,
+                channels(SubscriptionStatus.SUBSCRIPTION_ACCEPTED, SubscriptionStatus.SUBSCRIPTION_ERROR)), 1);
+
+        ArgumentCaptor<Webhook> stored = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao).retryWebhook(stored.capture(), eq(1));
+        Assert.assertEquals(stored.getValue().getStatus(), WebhookStatus.ACTIVE);
+    }
+
+    @Test
+    public void testRetryCompletesDeactivation() throws Exception {
+
+        verifiesSynchronously();
+        when(subscriptionManagementService.unsubscribe(any(), anyString(), anyString())).thenReturn(
+                channels(SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED, SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED));
+
+        handler.retryWebhook(webhookWith(WebhookStatus.PARTIALLY_INACTIVE,
+                channels(SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED, SubscriptionStatus.UNSUBSCRIPTION_ERROR)), 1);
+
+        ArgumentCaptor<Webhook> stored = ArgumentCaptor.forClass(Webhook.class);
+        verify(dao).retryWebhook(stored.capture(), eq(1));
+        Assert.assertEquals(stored.getValue().getStatus(), WebhookStatus.INACTIVE);
     }
 }
