@@ -76,6 +76,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -549,6 +550,9 @@ public class DefaultStepHandlerTest {
                     .thenReturn(Collections.singletonMap(FrameworkConstants.LOCAL_IDP_NAME, authConfig));
             frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorIdPMappingString(anyList()))
                     .thenReturn("BasicAuthenticator:LOCAL");
+            frameworkUtils.when(() -> FrameworkUtils.hideStaleMultiOptionURI(
+                    any(HttpServletRequest.class), nullable(String.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
             defaultStepHandler.handle(request, response, context);
 
@@ -749,6 +753,9 @@ public class DefaultStepHandlerTest {
                     .thenReturn(Optional.empty());
             frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorIdPMappingString(anyList()))
                     .thenReturn("");
+            frameworkUtils.when(() -> FrameworkUtils.hideStaleMultiOptionURI(
+                    any(HttpServletRequest.class), nullable(String.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
             frameworkUtils.when(() -> FrameworkUtils.getAuthenticatedStepIdPs(
                     any(StepConfig.class), any(Map.class))).thenReturn(new HashMap<>());
             frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(mockRequest))

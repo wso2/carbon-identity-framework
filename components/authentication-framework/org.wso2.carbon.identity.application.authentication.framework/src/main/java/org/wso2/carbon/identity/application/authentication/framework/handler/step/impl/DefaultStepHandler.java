@@ -163,6 +163,13 @@ public class DefaultStepHandler implements StepHandler {
 
         String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
 
+        /*
+         The browser carries the multi option URI of the option page it came from. When an authentication script has
+         changed the options of the step since that page was rendered, the URI offers options the step no longer has.
+         It is hidden here, before anything that builds a page out of the request reads it.
+         */
+        request = FrameworkUtils.hideStaleMultiOptionURI(request, authenticatorNames);
+
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 
         String fidp = request.getParameter(FrameworkConstants.RequestParams.FEDERATED_IDP);

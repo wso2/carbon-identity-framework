@@ -112,6 +112,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
+import org.wso2.carbon.identity.application.authentication.framework.model.ParameterHidingRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -191,6 +192,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -261,6 +263,13 @@ public class FrameworkUtils {
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
     private static int maxInactiveInterval;
     private static final String EMAIL = "email";
+    private static final String AUTHENTICATORS_PARAM_NAME = "authenticators=";
+    /*
+     Separators of the option list built by getAuthenticatorIdPMappingString(). The list carried in a multi option
+     URI is percent encoded, so both forms are read.
+     */
+    private static final Pattern AUTHENTICATOR_SEPARATOR = Pattern.compile("%3B|;", Pattern.CASE_INSENSITIVE);
+    private static final Pattern AUTHENTICATOR_IDP_SEPARATOR = Pattern.compile("%3A|:", Pattern.CASE_INSENSITIVE);
     private static List<String> cacheDisabledAuthenticators = Arrays
             .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
 
@@ -2085,6 +2094,95 @@ public class FrameworkUtils {
         }
 
         return authenticatorIdPStr.toString();
+    }
+
+    /**
+     * Hide the multi option URI of the request when the options it carries are not the options of the step that is
+     * being executed.
+     *
+     * The multi option URI is a snapshot of the option page of the step it was generated for, which the browser
+     * carries forward from page to page. An authentication script can change the options of a step after that page
+     * is rendered, for example by executing a step with a narrowed down option list from within {@code onFail}. The
+     * URI then offers options the current step no longer has, and picking one of them fails the login with
+     * {@code ERROR_INVALID_AUTHENTICATOR}. The parameter is hidden in that case, so that every authenticator reading
+     * it from the request leaves a stale option page out of the page it renders.
+     *
+     * The option list of the current step is the string this class writes into the {@code authenticators} query
+     * param of the option page, so the two sides are compared as the authenticator names they both carry.
+     *
+     * @param request                    Request of the step being executed.
+     * @param currentStepAuthenticators  Option list of the current step, as built by
+     *                                   {@link #getAuthenticatorIdPMappingString(List)}.
+     * @return The request as it was, or a wrapper that hides the multi option URI when it is not for the current step.
+     */
+    public static HttpServletRequest hideStaleMultiOptionURI(HttpServletRequest request,
+                                                             String currentStepAuthenticators) {
+
+        if (request == null) {
+            return null;
+        }
+        String multiOptionURI = request.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI);
+        if (StringUtils.isBlank(multiOptionURI)) {
+            return request;
+        }
+        Set<String> optionsInURI = getAuthenticatorNames(getAuthenticatorsParamOfMultiOptionURI(multiOptionURI));
+        if (optionsInURI.isEmpty()) {
+            // No option list is found in the URI, hence it cannot be compared with the current step.
+            return request;
+        }
+        Set<String> optionsInStep = getAuthenticatorNames(currentStepAuthenticators);
+        if (optionsInStep.isEmpty() || optionsInURI.equals(optionsInStep)) {
+            return request;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Hiding the multi option URI, since the options it carries, %s, are not the " +
+                    "options of the current step, %s. The authentication script may have changed the options of " +
+                    "the step after the option page was rendered.", optionsInURI, optionsInStep));
+        }
+        return new ParameterHidingRequestWrapper(request, FrameworkConstants.RequestParams.MULTI_OPTION_URI);
+    }
+
+    /**
+     * Read the value of the {@code authenticators} query param carried in the multi option URI.
+     *
+     * @param multiOptionURI Multi option URI taken from the request.
+     * @return Value of the param, or an empty string when the URI does not carry it.
+     */
+    private static String getAuthenticatorsParamOfMultiOptionURI(String multiOptionURI) {
+
+        int startIndex = multiOptionURI.indexOf(AUTHENTICATORS_PARAM_NAME);
+        if (startIndex == -1) {
+            return StringUtils.EMPTY;
+        }
+        String options = multiOptionURI.substring(startIndex + AUTHENTICATORS_PARAM_NAME.length());
+        int endIndex = options.indexOf('&');
+        return endIndex == -1 ? options : options.substring(0, endIndex);
+    }
+
+    /**
+     * Read the authenticator names from an option list.
+     *
+     * An entry of the list is the name of the authenticator, followed by the identity providers it is configured
+     * with, as built by {@link #getAuthenticatorIdPMappingString(List)}. The list carried in a multi option URI is
+     * percent encoded, so the separators are read in both forms, and the comparison does not depend on how many
+     * times the URI has been decoded.
+     *
+     * @param options Option list.
+     * @return Lower cased authenticator names, empty when the list carries none.
+     */
+    private static Set<String> getAuthenticatorNames(String options) {
+
+        if (StringUtils.isBlank(options)) {
+            return Collections.emptySet();
+        }
+        Set<String> authenticatorNames = new HashSet<>();
+        for (String option : AUTHENTICATOR_SEPARATOR.split(options)) {
+            String authenticatorName = AUTHENTICATOR_IDP_SEPARATOR.split(option, 2)[0];
+            if (StringUtils.isNotBlank(authenticatorName)) {
+                authenticatorNames.add(authenticatorName.trim().toLowerCase(Locale.ENGLISH));
+            }
+        }
+        return authenticatorNames;
     }
 
     /**
