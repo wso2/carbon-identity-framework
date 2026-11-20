@@ -76,7 +76,6 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -550,9 +549,6 @@ public class DefaultStepHandlerTest {
                     .thenReturn(Collections.singletonMap(FrameworkConstants.LOCAL_IDP_NAME, authConfig));
             frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorIdPMappingString(anyList()))
                     .thenReturn("BasicAuthenticator:LOCAL");
-            frameworkUtils.when(() -> FrameworkUtils.hideStaleMultiOptionURI(
-                    any(HttpServletRequest.class), nullable(String.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(0));
 
             defaultStepHandler.handle(request, response, context);
 
@@ -753,9 +749,6 @@ public class DefaultStepHandlerTest {
                     .thenReturn(Optional.empty());
             frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorIdPMappingString(anyList()))
                     .thenReturn("");
-            frameworkUtils.when(() -> FrameworkUtils.hideStaleMultiOptionURI(
-                    any(HttpServletRequest.class), nullable(String.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(0));
             frameworkUtils.when(() -> FrameworkUtils.getAuthenticatedStepIdPs(
                     any(StepConfig.class), any(Map.class))).thenReturn(new HashMap<>());
             frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(mockRequest))
@@ -838,5 +831,80 @@ public class DefaultStepHandlerTest {
             verify(context, never()).isSendToMultiOptionPage();
             verify(context, never()).setRetrying(anyBoolean());
         }
+    }
+
+    private static final String OPTION_PAGE =
+            "https://localhost:9443/authenticationendpoint/login.do?sessionDataKey=k";
+    private static final String THREE_OPTIONS =
+            "sms-otp-authenticator:LOCAL;totp:LOCAL;email-otp-authenticator:LOCAL";
+
+    private String optionPageWith(String encodedOptions, boolean withTrailingParam) {
+
+        return OPTION_PAGE + "&authenticators=" + encodedOptions + (withTrailingParam ? "&sp=app" : "");
+    }
+
+    @DataProvider(name = "staleMultiOptionURIData")
+    public Object[][] staleMultiOptionURIData() {
+
+        String encodedThree = "sms-otp-authenticator%3ALOCAL%3Btotp%3ALOCAL%3Bemail-otp-authenticator%3ALOCAL";
+
+        return new Object[][] {
+                {"Keeps the URI when its options are the options of the current step",
+                        optionPageWith(encodedThree, true), THREE_OPTIONS, true},
+                {"Keeps the URI when the option list is the last query param",
+                        optionPageWith(encodedThree, false), THREE_OPTIONS, true},
+                {"Keeps the URI when the options are the same in a different order",
+                        optionPageWith(encodedThree, true),
+                        "email-otp-authenticator:LOCAL;sms-otp-authenticator:LOCAL;totp:LOCAL", true},
+                {"Hides the URI when the script narrowed the current step to a single option",
+                        optionPageWith(encodedThree, true), "email-otp-authenticator:LOCAL", false},
+                {"Hides the URI when the current step dropped one of the options",
+                        optionPageWith(encodedThree, true), "sms-otp-authenticator:LOCAL;totp:LOCAL", false},
+                {"Hides the URI when the current step has an option the URI does not carry",
+                        optionPageWith(encodedThree, true), THREE_OPTIONS + ";backup-code-authenticator:LOCAL", false},
+                {"Keeps the URI when it carries no option list",
+                        OPTION_PAGE + "&sp=app", THREE_OPTIONS, true},
+                {"Keeps the URI when the step has no option list",
+                        optionPageWith(encodedThree, true), "", true},
+                {"Keeps the URI when the request carries none",
+                        null, THREE_OPTIONS, true},
+                {"Keeps the URI when its option list cannot be decoded",
+                        optionPageWith("sms-otp-authenticator%zz", true), THREE_OPTIONS, true},
+        };
+    }
+
+    @Test(dataProvider = "staleMultiOptionURIData",
+            description = "hideStaleMultiOptionURI hides the URI only when it is not for the current step")
+    public void testHideStaleMultiOptionURI(String scenario, String multiOptionURI, String authenticatorNames,
+                                            boolean expectVisible) {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI)).thenReturn(multiOptionURI);
+
+        HttpServletRequest result =
+                new DefaultStepHandler().hideStaleMultiOptionURI(request, authenticatorNames);
+
+        if (expectVisible) {
+            Assert.assertSame(result, request, scenario + " - the request should not be wrapped");
+            Assert.assertEquals(result.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI),
+                    multiOptionURI, scenario);
+        } else {
+            Assert.assertNull(result.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI), scenario);
+        }
+    }
+
+    @Test(description = "hideStaleMultiOptionURI leaves the other parameters of the request readable")
+    public void testHideStaleMultiOptionURIKeepsOtherParams() {
+
+        String multiOptionURI = OPTION_PAGE + "&authenticators=sms-otp-authenticator%3ALOCAL%3Btotp%3ALOCAL";
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI)).thenReturn(multiOptionURI);
+        when(request.getParameter("sessionDataKey")).thenReturn("k");
+
+        HttpServletRequest result =
+                new DefaultStepHandler().hideStaleMultiOptionURI(request, "email-otp-authenticator:LOCAL");
+
+        Assert.assertNull(result.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI));
+        Assert.assertEquals(result.getParameter("sessionDataKey"), "k");
     }
 }
