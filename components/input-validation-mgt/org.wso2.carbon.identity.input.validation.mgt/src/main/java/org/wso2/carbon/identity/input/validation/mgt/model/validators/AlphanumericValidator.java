@@ -66,7 +66,7 @@ public class AlphanumericValidator extends AbstractRulesValidator {
         Map<String, String> attributesMap = context.getProperties();
         String alphanumericRegEx = DEFAULT_ALPHANUMERIC_REGEX_PATTERN;
         // Check whether special characters are allowed.
-        if (attributesMap.containsKey(ENABLE_SPECIAL_CHARACTERS)) {
+        if (Boolean.parseBoolean(attributesMap.get(ENABLE_SPECIAL_CHARACTERS))) {
             alphanumericRegEx = ALPHANUMERIC_REGEX_PATTERN_WITH_SPECIAL_CHARACTERS;
         }
 
