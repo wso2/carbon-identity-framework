@@ -266,13 +266,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (authRequest != null) {
                     request = FrameworkUtils.getCommonAuthReqWithParams(request, authRequest);
                 }
-                String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                        .getAccessingOrganizationId();
-                if (StringUtils.isBlank(accessingOrgId)) {
-                    context = initializeFlow(request, responseWrapper);
-                } else {
-                    context = initializeFlow(request, responseWrapper, authRequest);
-                }
+                // Pass the cached authentication request even when there is no accessing organization. The request
+                // may have been created for assertion-based auto login, and initializeFlow uses it to decide
+                // whether the assertion is allowed.
+                context = initializeFlow(request, responseWrapper, authRequest);
 
                 // Set the authentication request before the context is cloned.
                 if (authRequest != null) {
@@ -1048,6 +1045,19 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setUserTenantDomainHint(userDomain);
         context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
                 IdentityUtil.getAuthenticationContextValidityPeriod()));
+
+        // Preserve the user assertion sent by the caller so authenticators can complete the flow without prompting
+        // for credentials. Only requests created for assertion-based auto login may carry an assertion; otherwise a
+        // caller could submit an assertion to a newly started flow, e.g. an OAuth2 authorization request.
+        context.setProperty(FrameworkConstants.USER_ASSERTION_FLOW, false);
+        if (authRequest != null && authRequest.getAuthenticationRequest() != null
+                && authRequest.getAuthenticationRequest().isUserAssertionFlow()) {
+            context.setProperty(FrameworkConstants.USER_ASSERTION_FLOW, true);
+            String userAssertion = request.getParameter(FrameworkConstants.USER_ASSERTION);
+            if (StringUtils.isNotBlank(userAssertion)) {
+                context.setProperty(FrameworkConstants.USER_ASSERTION, userAssertion);
+            }
+        }
 
         /*
          Enabling this improvement to cater the SSO in sub organization federation login flows. When proper fix

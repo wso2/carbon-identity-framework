@@ -64,6 +64,10 @@ public class Constants {
     public static final String PHASE = "phase";
 
     public static final String USER_ASSERTION_EXPIRY_PROPERTY = "FlowExecution.UserAssertion.ExpiryTime";
+    // Tenant where the flow provisioned the user, when it differs from the tenant running the flow.
+    public static final String PROVISIONED_TENANT_DOMAIN = "provisionedTenantDomain";
+    // CommonAuth URL of the organization the flow provisioned the user in, sent to the browser for auto login.
+    public static final String ORGANIZATION_AUTO_LOGIN_URL = "organizationLoginUrl";
 
     // Constants related for OTP field length handling.
     public static final String OTP_LENGTH = "otpLength";

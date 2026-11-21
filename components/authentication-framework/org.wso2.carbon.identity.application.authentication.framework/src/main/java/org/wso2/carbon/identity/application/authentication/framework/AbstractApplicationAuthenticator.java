@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -612,6 +612,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     public boolean canHandleWithUserAssertion(HttpServletRequest request,
                                                HttpServletResponse response, AuthenticationContext context) {
 
+        if (Boolean.FALSE.equals(context.getProperty(FrameworkConstants.USER_ASSERTION_FLOW))) {
+            return false;
+        }
         String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
         if (userAssertion == null) {
             userAssertion = request.getParameter(FrameworkConstants.USER_ASSERTION);
@@ -676,8 +679,38 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
         UserCoreUtil.setDomainInThreadLocal(userStoreDomain);
-        context.setSubject(
-                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username));
+        AuthenticatedUser authenticatedUser =
+                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username);
+        // The assertion already carries the user id resolved during provisioning. Use it when local resolution
+        // fails, which can happen for users in organizations that were just created. Verify that the user still
+        // exists before trusting the claim; otherwise a deleted user could complete the login with the assertion.
+        try {
+            String userId = claimsSet.getStringClaim(FrameworkConstants.USER_ID_CLAIM);
+            if (StringUtils.isNotBlank(userId) && !authenticatedUser.isUserIdExists()) {
+                try {
+                    org.wso2.carbon.user.core.common.User user = getUser(authenticatedUser, context);
+                    if (user == null) {
+                        log.debug("User in the user assertion does not exist in the tenant: "
+                                + authenticatedUser.getTenantDomain());
+                        return false;
+                    }
+                    if (!StringUtils.equals(userId, user.getUserID())) {
+                        log.debug("The user in the user assertion does not match the resolved user.");
+                        return false;
+                    }
+                    authenticatedUser.setUserId(user.getUserID());
+                } catch (AuthenticationFailedException e) {
+                    log.debug("Failed to verify the user in the user assertion.", e);
+                    return false;
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Set the user id from the user assertion.");
+                }
+            }
+        } catch (java.text.ParseException e) {
+            log.debug("Failed to parse the user id claim from the user assertion.", e);
+        }
+        context.setSubject(authenticatedUser);
 
         context.setCurrentAuthenticator(this.getName());
         SequenceConfig sequenceConfig = context.getSequenceConfig();
