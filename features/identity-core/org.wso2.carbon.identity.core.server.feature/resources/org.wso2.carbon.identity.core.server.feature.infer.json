@@ -612,6 +612,12 @@
       ],
       "console.customer_data_unification_rules.scopes.delete": [
         "internal_cds_unification_rule_delete"
+      ],
+      "console.customer_data_service.feature_flags": [
+        {
+          "feature": "customerDataFuzzyUnification",
+          "flag": "ENABLED"
+        }
       ]
     }
   }
