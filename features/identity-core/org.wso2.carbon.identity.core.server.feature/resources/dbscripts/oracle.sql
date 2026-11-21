@@ -1866,6 +1866,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('4478bfe9-0f1f-4b96-be54-206cd76d3bbc', 'AGENT_CONFIGURATION', 'A resource type to keep the tenant agent configurations.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('4fed2813-cfa8-40b1-83e6-4ab85d7fcb16', 'DEVICE_MANAGEMENT', 'A resource type to keep tenant level configurations for user device management.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('7790a803-0b61-4abb-b467-836312884e50', 'APPLICATION_CUSTOM_TEXT', 'A resource type to keep the application custom text preferences.')
 SELECT 1 FROM dual
 /
 
