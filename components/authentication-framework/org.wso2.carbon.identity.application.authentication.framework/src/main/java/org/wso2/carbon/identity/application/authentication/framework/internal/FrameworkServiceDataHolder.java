@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.compatibility.settings.core.service.CompatibilitySettingsService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -142,6 +143,7 @@ public class FrameworkServiceDataHolder {
     private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
     private OrganizationDiscoveryHandler organizationDiscoveryHandler;
     private OrganizationUserSharingService organizationUserSharingService;
+    private CompatibilitySettingsService compatibilitySettingsService;
 
     private FrameworkServiceDataHolder() {
 
@@ -1022,5 +1024,25 @@ public class FrameworkServiceDataHolder {
     public void setOrganizationUserSharingService(OrganizationUserSharingService organizationUserSharingService) {
 
         this.organizationUserSharingService = organizationUserSharingService;
+    }
+
+    /**
+     * Get {@link CompatibilitySettingsService}.
+     *
+     * @return Instance of {@link CompatibilitySettingsService}.
+     */
+    public CompatibilitySettingsService getCompatibilitySettingsService() {
+
+        return compatibilitySettingsService;
+    }
+
+    /**
+     * Set {@link CompatibilitySettingsService}.
+     *
+     * @param compatibilitySettingsService Instance of {@link CompatibilitySettingsService}.
+     */
+    public void setCompatibilitySettingsService(CompatibilitySettingsService compatibilitySettingsService) {
+
+        this.compatibilitySettingsService = compatibilitySettingsService;
     }
 }

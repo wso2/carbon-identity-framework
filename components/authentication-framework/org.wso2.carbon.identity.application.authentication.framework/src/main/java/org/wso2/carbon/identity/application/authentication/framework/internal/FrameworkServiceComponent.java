@@ -110,6 +110,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.compatibility.settings.core.service.CompatibilitySettingsService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
@@ -1218,5 +1219,23 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
         log.debug("OrganizationUserSharingService unset in FrameworkServiceComponent bundle.");
+    }
+
+    @Reference(
+            name = "compatibility.settings.service",
+            service = CompatibilitySettingsService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetCompatibilitySettingsService")
+    protected void setCompatibilitySettingsService(CompatibilitySettingsService compatibilitySettingsService) {
+
+        FrameworkServiceDataHolder.getInstance().setCompatibilitySettingsService(compatibilitySettingsService);
+        log.debug("CompatibilitySettingsService set in FrameworkServiceComponent bundle.");
+    }
+
+    protected void unsetCompatibilitySettingsService(CompatibilitySettingsService compatibilitySettingsService) {
+
+        FrameworkServiceDataHolder.getInstance().setCompatibilitySettingsService(null);
+        log.debug("CompatibilitySettingsService unset in FrameworkServiceComponent bundle.");
     }
 }
