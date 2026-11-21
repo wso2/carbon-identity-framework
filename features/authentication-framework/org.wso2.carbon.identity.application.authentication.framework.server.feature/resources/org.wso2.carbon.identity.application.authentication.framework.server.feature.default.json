@@ -106,6 +106,7 @@
   "authentication.authenticator.oidc.parameters.enableIatValidation": true,
   "authentication.authenticator.oidc.parameters.iatValidityPeriod": "300",
   "authentication.authenticator.oidc.parameters.Tags": "OIDC",
+  "authentication.authenticator.oidc.parameters.decodePreEncodedQueryParams": false,
 
   "authentication.authenticator.google.name": "GoogleOIDCAuthenticator",
   "authentication.authenticator.google.enable": true,
