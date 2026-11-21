@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.SKIP_FULL_MEMBER_LIST_ON_GROUP_UPDATE;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS;
 
 public class ProvisioningUtil {
@@ -618,6 +619,20 @@ public class ProvisioningUtil {
                     .parseBoolean(IdentityUtil.getProperty(APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED));
         }
         return applicationBasedOutboundProvisioningEnabled;
+    }
+
+    /**
+     * Check whether loading the full member list of a group is skipped on a group membership update.
+     *
+     * @return true if SkipFullMemberListOnGroupUpdate config is enabled or not configured.
+     */
+    public static boolean isSkipFullMemberListOnGroupUpdateEnabled() {
+
+        String skipFullMemberListOnGroupUpdate = IdentityUtil.getProperty(SKIP_FULL_MEMBER_LIST_ON_GROUP_UPDATE);
+        if (StringUtils.isBlank(skipFullMemberListOnGroupUpdate)) {
+            return true;
+        }
+        return Boolean.parseBoolean(skipFullMemberListOnGroupUpdate);
     }
 
     /**
