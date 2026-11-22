@@ -181,6 +181,14 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
             String claimURI = entry.getKey();
             if (checkEnableEncryption(claimURI, userStoreManager)) {
                 String claimValue = entry.getValue();
+                if (isAlreadyEncrypted(claimValue)) {
+                    // The value was encrypted earlier (e.g. by the component that set the claim). Encrypting it
+                    // again nests the ciphertext and grows it past the identity data store column width.
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Claim value of claim " + claimURI + " is already encrypted. Skipping encryption.");
+                    }
+                    continue;
+                }
                 try {
                     boolean isCustomKeyEnabled = CLAIMS_FOR_TOTP.contains(claimURI) &&
                             userStoreManager.getTenantId() == -1234;
@@ -191,6 +199,25 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
                 }
                 claims.put(claimURI, claimValue);
             }
+        }
+    }
+
+    /**
+     * Check whether the given claim value is already a Base64 encoded, self-contained cipher text.
+     *
+     * @param claimValue Claim value.
+     * @return true if the value is already encrypted by {@link CryptoUtil}.
+     */
+    private boolean isAlreadyEncrypted(String claimValue) {
+
+        if (StringUtils.isBlank(claimValue)) {
+            return false;
+        }
+        try {
+            return CryptoUtil.getDefaultCryptoUtil().base64DecodeAndIsSelfContainedCipherText(claimValue);
+        } catch (CryptoException | RuntimeException e) {
+            // Not a Base64 encoded cipher text, so it is a plain text value.
+            return false;
         }
     }
 
