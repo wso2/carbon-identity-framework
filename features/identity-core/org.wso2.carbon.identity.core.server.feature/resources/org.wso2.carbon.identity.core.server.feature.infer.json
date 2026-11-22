@@ -630,6 +630,15 @@
           "feature": "customerDataFuzzyUnification",
           "flag": "ENABLED"
         }
+      ],
+      "system_applications.read_only_apps": [
+        "Console",
+        "Customer Data Service"
+      ],
+      "system_applications.system_portals": [
+        "Console",
+        "My Account",
+        "Customer Data Service"
       ]
     }
   }
