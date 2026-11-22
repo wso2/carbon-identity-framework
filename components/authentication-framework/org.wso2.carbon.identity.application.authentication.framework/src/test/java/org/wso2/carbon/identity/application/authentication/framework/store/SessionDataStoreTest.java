@@ -27,7 +27,9 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionSerializerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -45,8 +47,10 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -55,6 +59,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Test class that includes unit tests of Session Data Store.
@@ -65,6 +71,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
     private static final String DB_NAME = "SESSION_DATA_STORE";
     private static final String OPERATION_STORE = "STORE";
     private static final String OPERATION_DELETE = "DELETE";
+    private static final String TEMP_SESSION_TYPE = "TempSessionType";
 
     @Mock
     FrameworkServiceDataHolder mockFrameworkServiceDataHolder;
@@ -441,6 +448,96 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
 
             assertEquals(result, TimeUnit.MINUTES.toNanos(expectedTimeout),
                     "Should return default cleanup timeout when tenant ID is invalid");
+        }
+    }
+
+    @Test(description = "A write after reading a row stamped by a node whose clock runs ahead must sort after it")
+    public void testStoreAfterReadingRecordFromNodeAheadIsReadBack() throws Exception {
+
+        runWithSyncTempStore((store, connection) -> {
+            long aheadOfThisNode = FrameworkUtils.getCurrentStandardNano() + TimeUnit.SECONDS.toNanos(10);
+            store.persistSessionData("skew-store-key", TEMP_SESSION_TYPE, "stale", aheadOfThisNode, 1);
+            assertEquals(store.getSessionData("skew-store-key", TEMP_SESSION_TYPE), "stale");
+
+            store.storeSessionData("skew-store-key", TEMP_SESSION_TYPE, "fresh", 1);
+
+            assertEquals(store.getSessionData("skew-store-key", TEMP_SESSION_TYPE), "fresh");
+            assertTrue(getLatestRecordTime(connection, "skew-store-key") > aheadOfThisNode);
+        });
+    }
+
+    @Test(description = "A delete after reading a row stamped by a node whose clock runs ahead must take effect")
+    public void testClearAfterReadingRecordFromNodeAheadTakesEffect() throws Exception {
+
+        runWithSyncTempStore((store, connection) -> {
+            long aheadOfThisNode = FrameworkUtils.getCurrentStandardNano() + TimeUnit.SECONDS.toNanos(10);
+            store.persistSessionData("skew-clear-key", TEMP_SESSION_TYPE, "stale", aheadOfThisNode, 1);
+            assertEquals(store.getSessionData("skew-clear-key", TEMP_SESSION_TYPE), "stale");
+
+            store.clearSessionData("skew-clear-key", TEMP_SESSION_TYPE);
+
+            assertNull(store.getSessionData("skew-clear-key", TEMP_SESSION_TYPE));
+        });
+    }
+
+    @Test(description = "Record times issued by one node are strictly increasing and follow observed record times")
+    public void testNextRecordTimeFollowsObservedRecordTimes() {
+
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class)) {
+            mockDataHolder(frameworkServiceDataHolder);
+            long first = JDBCSessionDataStore.nextRecordTime();
+            long second = JDBCSessionDataStore.nextRecordTime();
+            assertTrue(second > first);
+
+            long observed = second + TimeUnit.SECONDS.toNanos(5);
+            JDBCSessionDataStore.observeRecordTime(observed);
+            assertTrue(JDBCSessionDataStore.nextRecordTime() > observed);
+        }
+    }
+
+    private interface SessionDataStoreAction {
+
+        void run(JDBCSessionDataStore store, Connection connection) throws Exception;
+    }
+
+    private void runWithSyncTempStore(SessionDataStoreAction action) throws Exception {
+
+        try (Connection connection = getConnection(DB_NAME);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            // The connection is returned to the pool here, not by the store.
+            Connection storeConnection = spy(connection);
+            doNothing().when(storeConnection).close();
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getSessionDBConnection(anyBoolean()))
+                    .thenReturn(storeConnection);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            mockDataHolder(frameworkServiceDataHolder);
+            // Temporary types are persisted synchronously.
+            IdentityCacheConfig tempCacheConfig = mock(IdentityCacheConfig.class);
+            when(tempCacheConfig.isTemporary()).thenReturn(true);
+            identityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), eq(TEMP_SESSION_TYPE)))
+                    .thenReturn(tempCacheConfig);
+            action.run(JDBCSessionDataStore.getInstance(), connection);
+        }
+    }
+
+    private long getLatestRecordTime(Connection connection, String key) throws SQLException {
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT MAX(TIME_CREATED) FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID = ? AND SESSION_TYPE = ?")) {
+            statement.setString(1, key);
+            statement.setString(2, TEMP_SESSION_TYPE);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                assertTrue(resultSet.next());
+                return resultSet.getLong(1);
+            }
         }
     }
 }

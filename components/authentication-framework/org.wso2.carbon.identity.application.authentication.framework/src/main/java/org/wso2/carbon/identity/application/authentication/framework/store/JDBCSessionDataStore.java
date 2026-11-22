@@ -44,6 +44,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Relational database implementation of the session data store.
@@ -211,6 +212,8 @@ public class JDBCSessionDataStore extends SessionDataStore {
     private static int maxTempDataPoolSize = 50;
     private static BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
     private static BlockingDeque<SessionContextDO> tempAuthnContextDataDeleteQueue = new LinkedBlockingDeque();
+    // Highest TIME_CREATED this node has read or written; node clocks are not synchronised.
+    private static final AtomicLong lastRecordTime = new AtomicLong();
     private static volatile JDBCSessionDataStore instance;
     private boolean enablePersist;
     private String sqlInsertSTORE;
@@ -467,6 +470,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
             if (resultSet.next()) {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
+                observeRecordTime(nanoTime);
                 if (StringUtils.equalsIgnoreCase(OPERATION_STORE, operation)) {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
@@ -528,6 +532,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     if (resultSet.next()) {
                         long nanoTime = resultSet.getLong(3);
+                        observeRecordTime(nanoTime);
                         return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                     }
                 }
@@ -610,6 +615,28 @@ public class JDBCSessionDataStore extends SessionDataStore {
         return sqlGetLastOperationQuery;
     }
 
+    /**
+     * Returns the TIME_CREATED to stamp a new STORE or DELETE row with: this node's clock, but always later than
+     * any row this node has read or written, so the new row sorts after the row it was derived from.
+     *
+     * @return The record time in nanoseconds.
+     */
+    static long nextRecordTime() {
+
+        long now = FrameworkUtils.getCurrentStandardNano();
+        return lastRecordTime.updateAndGet(last -> Math.max(now, last + 1));
+    }
+
+    /**
+     * Records the TIME_CREATED of a row read from the store, so later writes from this node are stamped after it.
+     *
+     * @param recordTime TIME_CREATED of the row read.
+     */
+    static void observeRecordTime(long recordTime) {
+
+        lastRecordTime.accumulateAndGet(recordTime, Math::max);
+    }
+
     public void storeSessionData(String key, String type, Object entry) {
 
         storeSessionData(key, type, entry, MultitenantConstants.INVALID_TENANT_ID);
@@ -620,7 +647,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        long nanoTime = FrameworkUtils.getCurrentStandardNano();
+        long nanoTime = nextRecordTime();
         if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
             sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime, tenantId));
         } else {
@@ -633,7 +660,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        long nanoTime = FrameworkUtils.getCurrentStandardNano();
+        long nanoTime = nextRecordTime();
         if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
             sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
         } else {
@@ -655,7 +682,7 @@ public class JDBCSessionDataStore extends SessionDataStore {
         if (!enablePersist || keys == null || keys.isEmpty()) {
             return;
         }
-        long nanoTime = FrameworkUtils.getCurrentStandardNano();
+        long nanoTime = nextRecordTime();
         if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
             for (String key : keys) {
                 if (StringUtils.isNotBlank(key)) {
