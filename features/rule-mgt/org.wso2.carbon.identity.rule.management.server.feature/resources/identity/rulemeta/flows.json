@@ -23,6 +23,10 @@
             {
               "name": "client_credentials",
               "displayName": "client credentials"
+            },
+            {
+              "name": "urn:ietf:params:oauth:grant-type:token-exchange",
+              "displayName": "token exchange"
             }
           ]
         }

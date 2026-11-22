@@ -97,7 +97,7 @@ public class OrganizationalCreationTimeBasedEvaluator extends AbstractCompatibil
 
                 String settingKey = settingEntry.getKey();
                 CompatibilitySettingMetaDataEntry metaDataEntry = settingEntry.getValue();
-                String evaluatedValue = evaluateSetting(orgCreationTime, metaDataEntry);
+                String evaluatedValue = evaluateSetting(orgCreationTime, metaDataEntry, tenantDomain);
                 settingGroup.addSetting(settingKey, evaluatedValue);
             }
 
@@ -139,7 +139,7 @@ public class OrganizationalCreationTimeBasedEvaluator extends AbstractCompatibil
 
             String settingKey = settingEntry.getKey();
             CompatibilitySettingMetaDataEntry metaDataEntry = settingEntry.getValue();
-            String evaluatedValue = evaluateSetting(orgCreationTime, metaDataEntry);
+            String evaluatedValue = evaluateSetting(orgCreationTime, metaDataEntry, tenantDomain);
             resultGroup.addSetting(settingKey, evaluatedValue);
         }
 
@@ -173,7 +173,7 @@ public class OrganizationalCreationTimeBasedEvaluator extends AbstractCompatibil
                     IdentityCompatibilitySettingsConstants.ErrorMessages
                             .ERROR_CODE_ERROR_RETRIEVING_ORGANIZATION_CREATION_TIME, e, tenantDomain);
         }
-        String evaluatedValue = evaluateSetting(orgCreationTime, metaDataEntry);
+        String evaluatedValue = evaluateSetting(orgCreationTime, metaDataEntry, tenantDomain);
 
         CompatibilitySetting result = new CompatibilitySetting();
         CompatibilitySettingGroup resultGroup = new CompatibilitySettingGroup();
@@ -188,10 +188,20 @@ public class OrganizationalCreationTimeBasedEvaluator extends AbstractCompatibil
      *
      * @param orgCreationTime    Organization creation time.
      * @param metaDataEntry      Metadata entry for the setting.
-     * @return Evaluated value (target or default).
+     * @param tenantDomain       Tenant domain of the organization.
+     * @return Evaluated value (target or default, or the unknown creation time value if the creation time is null
+     *         and the setting defines one).
      */
-    private String evaluateSetting(Instant orgCreationTime, CompatibilitySettingMetaDataEntry metaDataEntry) {
+    private String evaluateSetting(Instant orgCreationTime, CompatibilitySettingMetaDataEntry metaDataEntry,
+                                   String tenantDomain) {
 
+        if (orgCreationTime == null && metaDataEntry.getUnknownCreationTimeValue() != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Creation time of the organization of tenant: " + tenantDomain + " is unknown. Applying " +
+                        "the unknown creation time value: " + metaDataEntry.getUnknownCreationTimeValue());
+            }
+            return metaDataEntry.getUnknownCreationTimeValue();
+        }
         Instant timestampReference = metaDataEntry.getTimestampReference();
         if (timestampReference != null  && orgCreationTime != null && orgCreationTime.isBefore(timestampReference)) {
             return metaDataEntry.getTargetValue();

@@ -28,6 +28,7 @@ public class CompatibilitySettingMetaDataEntry {
     private Instant timestampReference;
     private String targetValue;
     private String defaultValue;
+    private String unknownCreationTimeValue;
 
     /**
      * Get the timestamp reference for evaluation.
@@ -90,6 +91,27 @@ public class CompatibilitySettingMetaDataEntry {
     }
 
     /**
+     * Get the value for tenants whose creation time can't be determined. Optional: when it is not set, such tenants
+     * get the default value.
+     *
+     * @return Value for tenants with an unknown creation time, or null if not set.
+     */
+    public String getUnknownCreationTimeValue() {
+
+        return unknownCreationTimeValue;
+    }
+
+    /**
+     * Set the value for tenants whose creation time can't be determined.
+     *
+     * @param unknownCreationTimeValue Value for tenants with an unknown creation time.
+     */
+    public void setUnknownCreationTimeValue(String unknownCreationTimeValue) {
+
+        this.unknownCreationTimeValue = unknownCreationTimeValue;
+    }
+
+    /**
      * Override the current metadata entry with another entry's non-null values.
      *
      * @param metaDataEntry The metaDataEntry to override from.
@@ -104,6 +126,9 @@ public class CompatibilitySettingMetaDataEntry {
         }
         if (metaDataEntry.getDefaultValue() != null) {
             this.defaultValue = metaDataEntry.getDefaultValue();
+        }
+        if (metaDataEntry.getUnknownCreationTimeValue() != null) {
+            this.unknownCreationTimeValue = metaDataEntry.getUnknownCreationTimeValue();
         }
     }
 }
