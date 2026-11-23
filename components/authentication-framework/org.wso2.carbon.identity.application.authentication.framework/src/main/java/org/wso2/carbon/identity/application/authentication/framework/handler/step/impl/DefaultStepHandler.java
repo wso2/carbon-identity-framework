@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
+import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -162,6 +163,8 @@ public class DefaultStepHandler implements StepHandler {
         List<AuthenticatorConfig> authConfigList = stepConfig.getAuthenticatorList();
 
         String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
+
+        request = hideMultiOptionURIOfPendingEnrollment(request, context);
 
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 
@@ -1989,5 +1992,24 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
         return retryParam;
+    }
+
+    /**
+     * Hide the multi option URI of the request while an enrollment is pending.
+     *
+     * @param request Request of the step being executed.
+     * @param context Authentication context.
+     * @return The request as it was, or one that hides the multi option URI while an enrollment is pending.
+     */
+    protected HttpServletRequest hideMultiOptionURIOfPendingEnrollment(HttpServletRequest request,
+                                                                       AuthenticationContext context) {
+
+        if (!context.getEndpointParams().containsKey(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR)
+                || StringUtils.isBlank(request.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI))) {
+            return request;
+        }
+        CommonAuthRequestWrapper requestWithoutMultiOptionURI = new CommonAuthRequestWrapper(request);
+        requestWithoutMultiOptionURI.setParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI, null);
+        return requestWithoutMultiOptionURI;
     }
 }
