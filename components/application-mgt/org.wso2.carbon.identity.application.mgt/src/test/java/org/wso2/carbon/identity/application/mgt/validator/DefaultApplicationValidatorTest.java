@@ -872,9 +872,10 @@ public class DefaultApplicationValidatorTest {
     public Object[][] orgIdentifierHandlerOnlyStepDataProvider() {
 
         return new Object[][]{
-                // Enhanced org auth enabled: the organization identifier handler alone is a valid step.
+                // Login option (enhanced org auth enabled, or app shared): the handler alone is a valid step.
                 {"OrganizationIdentifierHandler", true, false},
-                // Enhanced org auth disabled: the organization identifier handler alone is not an authenticator.
+                // Not a login option (enhanced org auth disabled, app not shared): the handler alone is not an
+                // authenticator.
                 {"OrganizationIdentifierHandler", false, true},
                 // Other handlers alone are still rejected even with enhanced org auth enabled.
                 {"IdentifierExecutor", true, true}
@@ -883,7 +884,8 @@ public class DefaultApplicationValidatorTest {
 
     @Test(dataProvider = "orgIdentifierHandlerOnlyStepDataProvider")
     public void testValidateLocalAndOutBoundAuthenticationConfigWithHandlerOnlyStep(
-            String handlerName, boolean isEnhancedOrgAuthEnabled, boolean isValidationFailScenario) throws Exception {
+            String handlerName, boolean isOrgIdentifierHandlerALoginOption, boolean isValidationFailScenario)
+            throws Exception {
 
         Property handlerProperty = new Property();
         handlerProperty.setName(DefaultApplicationValidator.IS_HANDLER);
@@ -912,12 +914,46 @@ public class DefaultApplicationValidatorTest {
             validateLocalAndOutBoundAuthenticationConfig.setAccessible(true);
             List<String> validationErrors = new ArrayList<>();
             validateLocalAndOutBoundAuthenticationConfig.invoke(new DefaultApplicationValidator(), validationErrors,
-                    authConfig, SUPER_TENANT_DOMAIN_NAME, isEnhancedOrgAuthEnabled);
+                    authConfig, SUPER_TENANT_DOMAIN_NAME, isOrgIdentifierHandlerALoginOption);
 
             Assert.assertEquals(validationErrors.contains(
                     "No authenticator have been registered in the authentication flow."), isValidationFailScenario,
                     "Unexpected validation result. Errors: " + String.join("|", validationErrors));
         }
+    }
+
+    @DataProvider(name = "orgIdentifierHandlerLoginOptionDataProvider")
+    public Object[][] orgIdentifierHandlerLoginOptionDataProvider() {
+
+        return new Object[][]{
+                // isEnhancedOrgAuthEnabled, isAppShared property value (null = absent), expected.
+                {true, null, true},
+                {true, "false", true},
+                // Disabling enhanced org auth on a shared app: the handler is replaced by organization SSO on save.
+                {false, "true", true},
+                {false, "false", false},
+                {false, null, false}
+        };
+    }
+
+    @Test(dataProvider = "orgIdentifierHandlerLoginOptionDataProvider")
+    public void testIsOrganizationIdentifierHandlerALoginOption(boolean isEnhancedOrgAuthEnabled, String isAppShared,
+                                                                boolean expected) throws Exception {
+
+        ServiceProvider sp = new ServiceProvider();
+        sp.setEnhancedOrganizationAuthenticationEnabled(isEnhancedOrgAuthEnabled);
+        if (isAppShared != null) {
+            ServiceProviderProperty appSharedProperty = new ServiceProviderProperty();
+            appSharedProperty.setName("isAppShared");
+            appSharedProperty.setValue(isAppShared);
+            sp.setSpProperties(new ServiceProviderProperty[]{appSharedProperty});
+        }
+
+        Method isOrganizationIdentifierHandlerALoginOption = DefaultApplicationValidator.class
+                .getDeclaredMethod("isOrganizationIdentifierHandlerALoginOption", ServiceProvider.class);
+        isOrganizationIdentifierHandlerALoginOption.setAccessible(true);
+        Assert.assertEquals(isOrganizationIdentifierHandlerALoginOption.invoke(new DefaultApplicationValidator(), sp),
+                expected);
     }
 
     /**
