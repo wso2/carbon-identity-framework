@@ -355,7 +355,8 @@
       "legacy_claims.return_legacy_role_claim_in_application_response": true,
       "webappscommon.inherit_app_level_custom_layout": false,
       "saml.validate_assertion_consumer_url_for_signed_requests": false,
-      "oauth.resolve_signing_key_by_kid": false
+      "oauth.resolve_signing_key_by_kid": false,
+      "console.fapi.enabled": false
     },
     "IS_7.1.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -439,7 +440,8 @@
       "legacy_claims.return_legacy_role_claim_in_application_response": true,
       "webappscommon.inherit_app_level_custom_layout": false,
       "saml.validate_assertion_consumer_url_for_signed_requests": false,
-      "oauth.resolve_signing_key_by_kid": false
+      "oauth.resolve_signing_key_by_kid": false,
+      "console.fapi.enabled": false
     },
     "IS_7.2.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -480,7 +482,8 @@
       "legacy_claims.return_legacy_role_claim_in_application_response": true,
       "webappscommon.inherit_app_level_custom_layout": false,
       "saml.validate_assertion_consumer_url_for_signed_requests": false,
-      "oauth.resolve_signing_key_by_kid": false
+      "oauth.resolve_signing_key_by_kid": false,
+      "console.fapi.enabled": false
     },
     "IS_7.3.0": {
       "legacy_claims.allow_userstore_domain_removal_from_legacy_role_claim": false,
@@ -506,7 +509,8 @@
       "legacy_claims.return_legacy_role_claim_in_application_response": true,
       "webappscommon.inherit_app_level_custom_layout": false,
       "saml.validate_assertion_consumer_url_for_signed_requests": false,
-      "oauth.resolve_signing_key_by_kid": false
+      "oauth.resolve_signing_key_by_kid": false,
+      "console.fapi.enabled": false
     }
   },
   "customer_data_service.enable": {
