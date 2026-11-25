@@ -48,6 +48,7 @@ public class ExecutorResponse {
 
     public ExecutorResponse(String result) {
 
+        this();
         this.result = result;
     }
 
