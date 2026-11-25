@@ -228,6 +228,15 @@
             <ServerURL>{{ customer_data_service.server_url | default("") }}</ServerURL>
             <AdminUsername>{{ customer_data_service.admin_username | default("") }}</AdminUsername>
             <AdminPassword>{{ customer_data_service.admin_password | default("") }}</AdminPassword>
+            {% if customer_data_service.client_certificate is defined %}
+            <ClientCertificate>
+                <Location>${carbon.home}/repository/resources/security/{{ customer_data_service.client_certificate.file_name }}</Location>
+                <Type>{{ customer_data_service.client_certificate.type | default("PKCS12") }}</Type>
+                <Password>{{ customer_data_service.client_certificate.password }}</Password>
+                <KeyAlias>{{ customer_data_service.client_certificate.alias }}</KeyAlias>
+                <KeyPassword>{{ customer_data_service.client_certificate.key_password | default(customer_data_service.client_certificate.password) }}</KeyPassword>
+            </ClientCertificate>
+            {% endif %}
         </CustomerDataService>
     {% endif %}
 
