@@ -2428,6 +2428,7 @@
 
   "customer_data_service.http_client.connection_timeout": "2000",
   "customer_data_service.http_client.read_timeout": "3000",
+  "customer_data_service.http_client.admin_read_timeout": "10000",
   "customer_data_service.http_client.connection_request_timeout": "1000",
   "customer_data_service.http_client.connection_pool_size": "20",
 
