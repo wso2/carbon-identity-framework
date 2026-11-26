@@ -2426,6 +2426,11 @@
   "external_api_client.retry_count": "0",
   "external_api_client.response_limit": "1048576",
 
+  "customer_data_service.http_client.connection_timeout": "2000",
+  "customer_data_service.http_client.read_timeout": "3000",
+  "customer_data_service.http_client.connection_request_timeout": "1000",
+  "customer_data_service.http_client.connection_pool_size": "20",
+
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
   "outbound_adapters.httppublisher.httpReadTimeout": "5000",
