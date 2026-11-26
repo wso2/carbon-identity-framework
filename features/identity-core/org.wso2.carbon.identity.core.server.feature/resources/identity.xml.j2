@@ -226,6 +226,9 @@
             <Enable>{{ customer_data_service.enable | default("false") }}</Enable>
             <TenantConfigEnable>{{ customer_data_service.tenant_config_enable | default("false") }}</TenantConfigEnable>
             <ServerURL>{{ customer_data_service.server_url | default("") }}</ServerURL>
+            {% if customer_data_service.sync_url is defined %}
+            <SyncURL>{{ customer_data_service.sync_url }}</SyncURL>
+            {% endif %}
             <AdminUsername>{{ customer_data_service.admin_username | default("") }}</AdminUsername>
             <AdminPassword>{{ customer_data_service.admin_password | default("") }}</AdminPassword>
             {% if customer_data_service.client_certificate is defined %}
