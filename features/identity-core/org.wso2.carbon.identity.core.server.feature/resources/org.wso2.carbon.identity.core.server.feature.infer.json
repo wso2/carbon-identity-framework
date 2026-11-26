@@ -534,6 +534,7 @@
       "identity_mgt.events.schemes.'cds.authentication.listener'.module_index": "81",
       "identity_mgt.events.schemes.'cds.authentication.listener'.subscriptions": [
         "SESSION_TERMINATE",
+        "SESSION_EXPIRE",
         "AUTHENTICATION_SUCCESS"
       ],
       "identity_mgt.events.schemes.'cds.organization.event.handler'.module_index": "82",
