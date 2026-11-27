@@ -226,6 +226,9 @@
             <Enable>{{ customer_data_service.enable | default("false") }}</Enable>
             <TenantConfigEnable>{{ customer_data_service.tenant_config_enable | default("false") }}</TenantConfigEnable>
             <ServerURL>{{ customer_data_service.server_url | default("") }}</ServerURL>
+            {% if customer_data_service.sync_url is defined %}
+            <SyncURL>{{ customer_data_service.sync_url }}</SyncURL>
+            {% endif %}
             <AdminUsername>{{ customer_data_service.admin_username | default("") }}</AdminUsername>
             <AdminPassword>{{ customer_data_service.admin_password | default("") }}</AdminPassword>
             <HTTPClient>
@@ -235,6 +238,15 @@
                 <ConnectionRequestTimeout>{{ customer_data_service.http_client.connection_request_timeout }}</ConnectionRequestTimeout>
                 <ConnectionPoolSize>{{ customer_data_service.http_client.connection_pool_size }}</ConnectionPoolSize>
             </HTTPClient>
+            {% if customer_data_service.client_certificate is defined %}
+            <ClientCertificate>
+                <Location>${carbon.home}/repository/resources/security/{{ customer_data_service.client_certificate.file_name }}</Location>
+                <Type>{{ customer_data_service.client_certificate.type | default("PKCS12") }}</Type>
+                <Password>{{ customer_data_service.client_certificate.password }}</Password>
+                <KeyAlias>{{ customer_data_service.client_certificate.alias }}</KeyAlias>
+                <KeyPassword>{{ customer_data_service.client_certificate.key_password | default(customer_data_service.client_certificate.password) }}</KeyPassword>
+            </ClientCertificate>
+            {% endif %}
         </CustomerDataService>
     {% endif %}
 
@@ -5238,6 +5250,15 @@
     </UserProfileExport>
 
     <EnableBasicAuthHandler>{{authentication.enable_basic_auth_handler}}</EnableBasicAuthHandler>
+
+    <!-- When set to true and tenant qualified URLs are enabled, a Basic Authentication username whose part after the
+     last '@' is not the tenant of the request (e.g. an email username when email as username is disabled) is resolved
+     in the tenant of the request. Enabled by default. -->
+    <BasicAuth>
+        <FallbackToRequestTenant>
+            <Enabled>{{authentication.basic_auth.fallback_to_request_tenant}}</Enabled>
+        </FallbackToRequestTenant>
+    </BasicAuth>
     {% if input_validation.username is defined %}
     <InputValidation>
         <Username>
