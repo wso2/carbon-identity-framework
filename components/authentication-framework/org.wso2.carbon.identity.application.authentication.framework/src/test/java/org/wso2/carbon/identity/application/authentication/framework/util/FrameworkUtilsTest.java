@@ -1509,6 +1509,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         AuthenticationContext context = mock(AuthenticationContext.class);
 
+        when(context.getProperty(FrameworkConstants.USER_ASSERTION_FLOW)).thenReturn(true);
         when(context.getProperty(FrameworkConstants.USER_ASSERTION)).thenReturn(contextProp);
         if (contextProp == null) {
             when(request.getParameter(FrameworkConstants.USER_ASSERTION)).thenReturn(requestParam);
@@ -1516,6 +1517,29 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
         boolean actual = FrameworkUtils.contextHasUserAssertion(request, context);
         assertEquals(actual, expected, note);
+    }
+
+    @Test(description = "A user assertion is ignored unless the context was explicitly created for assertion " +
+            "based auto login.")
+    public void testContextHasUserAssertionRequiresAssertionFlow() {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        AuthenticationContext context = mock(AuthenticationContext.class);
+
+        when(context.getProperty(FrameworkConstants.USER_ASSERTION_FLOW)).thenReturn(false);
+
+        assertFalse(FrameworkUtils.contextHasUserAssertion(request, context),
+                "Assertion must be rejected when the request was not created for assertion based auto login.");
+    }
+
+    @Test(description = "A context without the assertion flow marker must not accept an assertion.")
+    public void testContextHasUserAssertionFailsClosedWithoutMarker() {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        AuthenticationContext context = mock(AuthenticationContext.class);
+
+        assertFalse(FrameworkUtils.contextHasUserAssertion(request, context),
+                "Assertion must be rejected by default, including for contexts created before the marker existed.");
     }
 
     /**

@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -612,7 +613,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     public boolean canHandleWithUserAssertion(HttpServletRequest request,
                                                HttpServletResponse response, AuthenticationContext context) {
 
-        if (Boolean.FALSE.equals(context.getProperty(FrameworkConstants.USER_ASSERTION_FLOW))) {
+        if (!Boolean.TRUE.equals(context.getProperty(FrameworkConstants.USER_ASSERTION_FLOW))) {
             return false;
         }
         String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
@@ -681,34 +682,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         UserCoreUtil.setDomainInThreadLocal(userStoreDomain);
         AuthenticatedUser authenticatedUser =
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username);
-        // The assertion already carries the user id resolved during provisioning. Use it when local resolution
-        // fails, which can happen for users in organizations that were just created. Verify that the user still
-        // exists before trusting the claim; otherwise a deleted user could complete the login with the assertion.
-        try {
-            String userId = claimsSet.getStringClaim(FrameworkConstants.USER_ID_CLAIM);
-            if (StringUtils.isNotBlank(userId) && !authenticatedUser.isUserIdExists()) {
-                try {
-                    org.wso2.carbon.user.core.common.User user = getUser(authenticatedUser, context);
-                    if (user == null) {
-                        log.debug("User in the user assertion does not exist in the tenant: "
-                                + authenticatedUser.getTenantDomain());
-                        return false;
-                    }
-                    if (!StringUtils.equals(userId, user.getUserID())) {
-                        log.debug("The user in the user assertion does not match the resolved user.");
-                        return false;
-                    }
-                    authenticatedUser.setUserId(user.getUserID());
-                } catch (AuthenticationFailedException e) {
-                    log.debug("Failed to verify the user in the user assertion.", e);
-                    return false;
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Set the user id from the user assertion.");
-                }
-            }
-        } catch (java.text.ParseException e) {
-            log.debug("Failed to parse the user id claim from the user assertion.", e);
+        // The assertion carries the user id resolved during provisioning. Verify it against the user the subject
+        // resolves to, so a deleted user cannot complete the login with an assertion issued for the old account.
+        if (!verifyAssertionUserId(claimsSet, authenticatedUser, context)) {
+            return false;
         }
         context.setSubject(authenticatedUser);
 
@@ -747,6 +724,66 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 }
             }
         });
+        return true;
+    }
+
+    /**
+     * Verify the user id claim of the assertion against the user resolved from the subject. A resolved user must
+     * have the same id as the claim. When the id cannot be resolved locally, which can happen for a user in an
+     * organization that was just created, the claim is used only after the user is found and the ids match.
+     *
+     * @param claimsSet         Claims of the user assertion.
+     * @param authenticatedUser User resolved from the assertion subject.
+     * @param context           Authentication context.
+     * @return True if the assertion can be used for the resolved user.
+     */
+    private boolean verifyAssertionUserId(JWTClaimsSet claimsSet, AuthenticatedUser authenticatedUser,
+                                          AuthenticationContext context) {
+
+        String userId;
+        try {
+            userId = claimsSet.getStringClaim(FrameworkConstants.USER_ID_CLAIM);
+        } catch (ParseException e) {
+            log.debug("Failed to parse the user id claim from the user assertion.", e);
+            return true;
+        }
+        if (StringUtils.isBlank(userId)) {
+            return true;
+        }
+        if (authenticatedUser.isUserIdExists()) {
+            // The subject resolved to a local user. The signed user id must still match it, otherwise an assertion
+            // issued for a deleted user could complete the login as another user with the same username.
+            try {
+                if (!StringUtils.equals(userId, authenticatedUser.getUserId())) {
+                    log.debug("The user in the user assertion does not match the resolved user.");
+                    return false;
+                }
+                return true;
+            } catch (UserIdNotFoundException e) {
+                log.debug("Failed to resolve the user id of the user in the user assertion.");
+                return false;
+            }
+        }
+        try {
+            org.wso2.carbon.user.core.common.User user = getUser(authenticatedUser, context);
+            if (user == null) {
+                log.debug("User in the user assertion does not exist in the tenant: "
+                        + authenticatedUser.getTenantDomain());
+                return false;
+            }
+            if (!StringUtils.equals(userId, user.getUserID())) {
+                log.debug("The user in the user assertion does not match the resolved user.");
+                return false;
+            }
+            authenticatedUser.setUserId(user.getUserID());
+        } catch (AuthenticationFailedException e) {
+            // The exception can carry the username used for the lookup, so do not log it.
+            log.debug("Failed to verify the user in the user assertion.");
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Set the user id from the user assertion.");
+        }
         return true;
     }
 

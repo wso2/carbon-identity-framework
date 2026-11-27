@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
@@ -23,30 +24,40 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 public class AbstractApplicationAuthenticatorTest {
@@ -307,5 +318,72 @@ public class AbstractApplicationAuthenticatorTest {
 
             assertEquals(username, expectedUserName);
         }
+    }
+
+    @Test
+    public void testUserAssertionRejectsMismatchedUserId() throws Exception {
+
+        JWTClaimsSet claimsSet = buildUserAssertionClaims("signed-user-id");
+        when(context.getProperty(FrameworkConstants.USER_ASSERTION)).thenReturn("assertion");
+        when(testApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
+        doCallRealMethod().when(testApplicationAuthenticator)
+                .isAuthenticationRequired(request, response, context);
+
+        try (MockedStatic<UserAssertionUtils> userAssertionUtils = mockStatic(UserAssertionUtils.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            mockUserAssertionLookup(userAssertionUtils, claimsSet);
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            frameworkUtils.when(() -> FrameworkUtils.resolveUserIdFromUsername(anyInt(), anyString(), anyString()))
+                    .thenReturn("local-user-id");
+
+            assertTrue(testApplicationAuthenticator.isAuthenticationRequired(request, response, context),
+                    "Authentication must run when the signed user id does not match the resolved user.");
+        }
+    }
+
+    @Test
+    public void testUserAssertionAcceptsMatchingUserId() throws Exception {
+
+        JWTClaimsSet claimsSet = buildUserAssertionClaims("local-user-id");
+        StepConfig stepConfig = mock(StepConfig.class);
+        AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
+        when(stepConfig.getAuthenticatorList()).thenReturn(Collections.singletonList(authenticatorConfig));
+        when(authenticatorConfig.getName()).thenReturn(AUTHENTICATOR);
+        when(authenticatorConfig.getIdps()).thenReturn(Collections.emptyMap());
+        when(sequenceConfig.getStepMap()).thenReturn(Collections.singletonMap(0, stepConfig));
+        when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+        when(context.getProperty(FrameworkConstants.USER_ASSERTION)).thenReturn("assertion");
+        when(testApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
+        doCallRealMethod().when(testApplicationAuthenticator)
+                .isAuthenticationRequired(request, response, context);
+
+        try (MockedStatic<UserAssertionUtils> userAssertionUtils = mockStatic(UserAssertionUtils.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            mockUserAssertionLookup(userAssertionUtils, claimsSet);
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            frameworkUtils.when(() -> FrameworkUtils.resolveUserIdFromUsername(anyInt(), anyString(), anyString()))
+                    .thenReturn("local-user-id");
+
+            assertFalse(testApplicationAuthenticator.isAuthenticationRequired(request, response, context),
+                    "The assertion must complete authentication when the signed user id matches the resolved user.");
+        }
+    }
+
+    private JWTClaimsSet buildUserAssertionClaims(String userId) {
+
+        return new JWTClaimsSet.Builder()
+                .subject(USER_STORE_NAME + UserCoreConstants.DOMAIN_SEPARATOR + USER_NAME + "@" + TENANT_DOMAIN)
+                .claim(FrameworkConstants.AMR, Collections.singletonList(AUTHENTICATOR))
+                .claim(FrameworkConstants.USER_ID_CLAIM, userId)
+                .build();
+    }
+
+    private void mockUserAssertionLookup(MockedStatic<UserAssertionUtils> userAssertionUtils,
+                                         JWTClaimsSet claimsSet) {
+
+        userAssertionUtils.when(() -> UserAssertionUtils.retrieveClaimsFromUserAssertion(anyString(), anyString()))
+                .thenReturn(Optional.of(claimsSet));
     }
 }

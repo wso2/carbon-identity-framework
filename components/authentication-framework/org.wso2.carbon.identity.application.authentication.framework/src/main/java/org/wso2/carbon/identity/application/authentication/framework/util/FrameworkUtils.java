@@ -5245,7 +5245,7 @@ public class FrameworkUtils {
      */
     public static boolean contextHasUserAssertion(HttpServletRequest request, AuthenticationContext context) {
 
-        if (Boolean.FALSE.equals(context.getProperty(FrameworkConstants.USER_ASSERTION_FLOW))) {
+        if (!Boolean.TRUE.equals(context.getProperty(FrameworkConstants.USER_ASSERTION_FLOW))) {
             return false;
         }
         Object contextUserAssertion = context.getProperty(FrameworkConstants.USER_ASSERTION);
