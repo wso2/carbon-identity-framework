@@ -832,4 +832,46 @@ public class DefaultStepHandlerTest {
             verify(context, never()).setRetrying(anyBoolean());
         }
     }
+
+    private static final String MULTI_OPTION_URI_VALUE =
+            "/authenticationendpoint/oauth2_login.do?authenticators=totp%3ALOCAL%3Bemail-otp-authenticator%3ALOCAL";
+
+    @DataProvider
+    public Object[][] multiOptionURIOfPendingEnrollmentData() {
+
+        return new Object[][] {
+                {"sms-otp-authenticator", MULTI_OPTION_URI_VALUE, true},
+                {null, MULTI_OPTION_URI_VALUE, false},
+                {"sms-otp-authenticator", null, false},
+                {"sms-otp-authenticator", "", false},
+        };
+    }
+
+    @Test(dataProvider = "multiOptionURIOfPendingEnrollmentData")
+    public void testHideMultiOptionURIOfPendingEnrollment(String pendingAuthenticator, String multiOptionURI,
+                                                          boolean shouldHide) {
+
+        AuthenticationContext context = new AuthenticationContext();
+        if (pendingAuthenticator != null) {
+            context.addEndpointParam(FrameworkConstants.ENROLLMENT_PENDING_AUTHENTICATOR, pendingAuthenticator);
+        }
+        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+        when(mockRequest.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI)).thenReturn(multiOptionURI);
+        when(mockRequest.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR))
+                .thenReturn("email-otp-authenticator");
+
+        HttpServletRequest result = defaultStepHandler.hideMultiOptionURIOfPendingEnrollment(mockRequest, context);
+
+        if (shouldHide) {
+            Assert.assertNotSame(result, mockRequest, "The request should be wrapped to hide the multi option URI.");
+            Assert.assertNull(result.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI),
+                    "The multi option URI should not be readable from the returned request.");
+            Assert.assertEquals(result.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR),
+                    "email-otp-authenticator", "Other parameters of the request should be left as they are.");
+        } else {
+            Assert.assertSame(result, mockRequest, "The request should be returned as it is.");
+            Assert.assertEquals(result.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI), multiOptionURI,
+                    "The multi option URI should still be readable from the returned request.");
+        }
+    }
 }
