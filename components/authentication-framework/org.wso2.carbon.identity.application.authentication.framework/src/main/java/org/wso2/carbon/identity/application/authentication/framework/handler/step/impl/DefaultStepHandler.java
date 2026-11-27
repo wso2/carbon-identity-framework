@@ -256,6 +256,8 @@ public class DefaultStepHandler implements StepHandler {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
                     .USER_ABORT);
             stepConfig.setCompleted(true);
+            // The step is completed without the authenticator succeeding, hence the request is not authenticated.
+            context.setRequestAuthenticated(false);
             return;
         }
 

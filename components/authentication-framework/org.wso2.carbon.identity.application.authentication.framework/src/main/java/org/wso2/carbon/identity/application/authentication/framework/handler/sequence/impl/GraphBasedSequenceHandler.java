@@ -77,6 +77,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.FAIL_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.INCOMPLETE;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.USER_ABORT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
@@ -554,7 +555,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (!context.isReturning()) {
             if (stepNumber <= 0) {
                 stepNumber = 1;
-            } else if (flowStatus != FAIL_COMPLETED) {
+            } else if (flowStatus != FAIL_COMPLETED && flowStatus != USER_ABORT) {
                 stepNumber++;
             }
             context.setCurrentStep(stepNumber);
@@ -574,15 +575,19 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         flowStatus = (AuthenticatorFlowStatus) request
                 .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
 
-        if (flowStatus != SUCCESS_COMPLETED && flowStatus != INCOMPLETE && !(FAIL_COMPLETED.equals(flowStatus) &&
-                (context.isRetrying() || stepConfigGraphNode.getNext() instanceof DynamicDecisionNode))) {
+        // A step aborted by the user is handled the same way as a failed step.
+        boolean isFailedStep = flowStatus == FAIL_COMPLETED || flowStatus == USER_ABORT;
+        boolean isRetryAllowed = context.isRetrying() && !isAbortedThroughRequestParam(request, flowStatus);
+
+        if (flowStatus != SUCCESS_COMPLETED && flowStatus != INCOMPLETE && !(isFailedStep &&
+                (isRetryAllowed || stepConfigGraphNode.getNext() instanceof DynamicDecisionNode))) {
             stepConfig.setSubjectAttributeStep(false);
             stepConfig.setSubjectIdentifierStep(false);
         }
 
-        if (flowStatus == FAIL_COMPLETED) {
+        if (isFailedStep) {
             if (!(stepConfigGraphNode.getNext() instanceof DynamicDecisionNode)) {
-                if (context.isRetrying()) {
+                if (isRetryAllowed) {
                     StepConfigGraphNode newNextNode = new StepConfigGraphNode(stepConfigGraphNode.getStepConfig());
                     newNextNode.setNext(stepConfigGraphNode.getNext());
 
@@ -791,7 +796,19 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     executeFunction("onFallback", dynamicDecisionNode, context);
                     break;
                 case USER_ABORT:
-                    executeFunction("onUserAbort", dynamicDecisionNode, context);
+                    if (dynamicDecisionNode.getGenericFunctionMap().get("onUserAbort") != null) {
+                        // Let the script decide the next node.
+                        executeFunction("onUserAbort", dynamicDecisionNode, context);
+                    } else if (context.isRetrying() && !isAbortedThroughRequestParam(request, flowStatus)) {
+                        // Retry the aborted step. Skipped for userAbort request param aborts, since the same
+                        // request would abort the step again.
+                        AuthGraphNode nextNode = dynamicDecisionNode.getParent();
+                        context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
+                        return;
+                    } else {
+                        // A user abort which is not handled by the script fails the authentication.
+                        dynamicDecisionNode.setDefaultEdge(new FailNode());
+                    }
                     break;
             }
         }
@@ -814,6 +831,20 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
+    }
+
+    /**
+     * Checks whether the step is aborted through the userAbort request parameter. Such a step should not be retried,
+     * since the step handler aborts the step again for the same request.
+     *
+     * @param request    HTTP servlet request.
+     * @param flowStatus Flow status of the step.
+     * @return True if the step is aborted through the userAbort request parameter.
+     */
+    private boolean isAbortedThroughRequestParam(HttpServletRequest request, AuthenticatorFlowStatus flowStatus) {
+
+        return flowStatus == USER_ABORT &&
+                Boolean.parseBoolean(request.getParameter(FrameworkConstants.RequestParams.USER_ABORT));
     }
 
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,

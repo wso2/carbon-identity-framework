@@ -29,6 +29,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -99,6 +100,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -918,6 +920,137 @@ public class DefaultStepBasedSequenceHandlerTest {
 
             stepBasedSequenceHandler.handle(request, response, context);
             assertTrue(context.getSequenceConfig().isCompleted());
+            assertTrue(context.isRequestAuthenticated());
+        }
+    }
+
+    @DataProvider(name = "userAbortStepData")
+    public Object[][] provideUserAbortStepData() {
+
+        return new Object[][]{
+                {false},
+                {true}
+        };
+    }
+
+    /*
+        A step aborted by the user must fail the sequence, without moving to the remaining steps or retrying the
+        step, even when the step has multiple options.
+     */
+    @Test(dataProvider = "userAbortStepData")
+    public void testHandleUserAbortedStepFailsSequence(boolean isMultiOption) throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            final int[] invocationCount = {0};
+            StepHandler stepHandler = mock(StepHandler.class);
+            doAnswer(invocationOnMock -> {
+                if (++invocationCount[0] > 3) {
+                    throw new IllegalStateException("Aborted step is processed repeatedly.");
+                }
+                AuthenticationContext context = invocationOnMock.getArgument(2);
+                context.getSequenceConfig().getStepMap().get(context.getCurrentStep()).setCompleted(true);
+                context.setRequestAuthenticated(false);
+                return null;
+            }).when(stepHandler).handle(any(HttpServletRequest.class), any(HttpServletResponse.class),
+                    any(AuthenticationContext.class));
+            frameworkUtils.when(FrameworkUtils::getStepHandler).thenReturn(stepHandler);
+            when(request.getParameter(FrameworkConstants.RequestParams.USER_ABORT)).thenReturn("true");
+            when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                    .thenReturn(AuthenticatorFlowStatus.USER_ABORT);
+
+            // First step is already completed successfully.
+            StepConfig firstStep = new StepConfig();
+            firstStep.setOrder(1);
+            firstStep.setCompleted(true);
+
+            StepConfig secondStep = new StepConfig();
+            secondStep.setOrder(2);
+            secondStep.setMultiOption(isMultiOption);
+
+            StepConfig thirdStep = new StepConfig();
+            thirdStep.setOrder(3);
+
+            SequenceConfig sequenceConfig = new SequenceConfig();
+            sequenceConfig.getStepMap().put(1, firstStep);
+            sequenceConfig.getStepMap().put(2, secondStep);
+            sequenceConfig.getStepMap().put(3, thirdStep);
+
+            context.setCurrentStep(1);
+            context.setSequenceConfig(sequenceConfig);
+            context.setRequestAuthenticated(true);
+
+            stepBasedSequenceHandler.handle(request, response, context);
+
+            assertEquals(invocationCount[0], 1, "Only the aborted step should be processed.");
+            assertEquals(context.getCurrentStep(), 2, "Remaining steps should not be processed.");
+            assertTrue(context.getSequenceConfig().isCompleted());
+            assertFalse(context.isRequestAuthenticated());
+            assertFalse(secondStep.isRetrying());
+            verify(stepBasedSequenceHandler, never()).handlePostAuthentication(any(HttpServletRequest.class),
+                    any(HttpServletResponse.class), any(AuthenticationContext.class));
+        }
+    }
+
+    @DataProvider(name = "multiOptionStepFailureStatusData")
+    public Object[][] provideMultiOptionStepFailureStatusData() {
+
+        return new Object[][]{
+                {AuthenticatorFlowStatus.FAIL_COMPLETED},
+                // USER_ABORT returned by an authenticator, without the userAbort request parameter.
+                {AuthenticatorFlowStatus.USER_ABORT}
+        };
+    }
+
+    /*
+        A multi option step failed by the authenticator must still be retried when the request does not carry the
+        userAbort parameter.
+     */
+    @Test(dataProvider = "multiOptionStepFailureStatusData")
+    public void testHandleFailedMultiOptionStepIsRetried(AuthenticatorFlowStatus flowStatus) throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            final int[] invocationCount = {0};
+            StepHandler stepHandler = mock(StepHandler.class);
+            doAnswer(invocationOnMock -> {
+                invocationCount[0]++;
+                AuthenticationContext context = invocationOnMock.getArgument(2);
+                StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+                if (invocationCount[0] == 1) {
+                    // The authenticator fails the step.
+                    stepConfig.setCompleted(true);
+                    context.setRequestAuthenticated(false);
+                } else {
+                    // On retry the step redirects to the multi option page.
+                    stepConfig.setCompleted(false);
+                }
+                return null;
+            }).when(stepHandler).handle(any(HttpServletRequest.class), any(HttpServletResponse.class),
+                    any(AuthenticationContext.class));
+            frameworkUtils.when(FrameworkUtils::getStepHandler).thenReturn(stepHandler);
+            when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)).thenReturn(flowStatus);
+
+            StepConfig firstStep = new StepConfig();
+            firstStep.setOrder(1);
+            firstStep.setCompleted(true);
+
+            StepConfig secondStep = new StepConfig();
+            secondStep.setOrder(2);
+            secondStep.setMultiOption(true);
+
+            SequenceConfig sequenceConfig = new SequenceConfig();
+            sequenceConfig.getStepMap().put(1, firstStep);
+            sequenceConfig.getStepMap().put(2, secondStep);
+
+            context.setCurrentStep(1);
+            context.setSequenceConfig(sequenceConfig);
+            context.setRequestAuthenticated(true);
+
+            stepBasedSequenceHandler.handle(request, response, context);
+
+            assertEquals(invocationCount[0], 2, "Failed step should be retried once.");
+            assertEquals(context.getCurrentStep(), 2);
+            assertTrue(secondStep.isRetrying());
+            assertFalse(context.getSequenceConfig().isCompleted());
             assertTrue(context.isRequestAuthenticated());
         }
     }

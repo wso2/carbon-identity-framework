@@ -561,6 +561,53 @@ public class DefaultStepHandlerTest {
         }
     }
 
+    /**
+     * Test that a step completed through the userAbort request parameter does not leave the request authenticated.
+     */
+    @Test
+    public void testUserAbortMarksRequestAsNotAuthenticated() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            AuthenticationContext context = new AuthenticationContext();
+            context.initializeAnalyticsData();
+            context.setTenantDomain("carbon.super");
+            context.setCurrentStep(2);
+
+            AuthenticatorConfig authConfig = new AuthenticatorConfig();
+            authConfig.setName("EmailOTP");
+            authConfig.setIdPNames(Collections.singletonList(FrameworkConstants.LOCAL_IDP_NAME));
+            LocalApplicationAuthenticator authenticator = mock(LocalApplicationAuthenticator.class);
+            when(authenticator.getName()).thenReturn("EmailOTP");
+            authConfig.setApplicationAuthenticator(authenticator);
+
+            StepConfig stepConfig = new StepConfig();
+            stepConfig.setOrder(2);
+            stepConfig.setAuthenticatorList(Collections.singletonList(authConfig));
+            SequenceConfig sequenceConfig = new SequenceConfig();
+            sequenceConfig.setStepMap(Collections.singletonMap(2, stepConfig));
+            context.setSequenceConfig(sequenceConfig);
+            context.setCurrentAuthenticatedIdPs(new HashMap<>());
+
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatedStepIdPs(any(StepConfig.class), any(Map.class)))
+                    .thenReturn(Collections.emptyMap());
+            when(request.getParameter(FrameworkConstants.RequestParams.USER_ABORT)).thenReturn("true");
+
+            defaultStepHandler.handle(request, response, context);
+
+            Assert.assertTrue(stepConfig.isCompleted(), "Step should be marked as completed on user abort.");
+            Assert.assertFalse(context.isRequestAuthenticated(),
+                    "Request should not be authenticated when the step is completed through user abort.");
+            verify(request).setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS,
+                    AuthenticatorFlowStatus.USER_ABORT);
+            verify(authenticator, never()).process(any(HttpServletRequest.class), any(HttpServletResponse.class),
+                    any(AuthenticationContext.class));
+        }
+    }
+
     @Test
     public void testAPIBasedFlowWithUnsupportedAuthenticatorSetsErrorProperties() throws Exception {
 
