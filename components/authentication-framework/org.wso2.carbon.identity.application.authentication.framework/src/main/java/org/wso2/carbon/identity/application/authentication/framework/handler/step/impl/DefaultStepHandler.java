@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.step.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -53,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
+import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -86,8 +88,11 @@ import org.wso2.carbon.utils.DiagnosticLog;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -118,6 +123,8 @@ public class DefaultStepHandler implements StepHandler {
     private static final Log LOG = LogFactory.getLog(DefaultStepHandler.class);
     private static volatile DefaultStepHandler instance;
     private static final String RE_CAPTCHA_USER_DOMAIN = "user-domain-recaptcha";
+    private static final String AUTHENTICATORS_QUERY_PARAM = "authenticators=";
+    private static final String OPTION_SEPARATOR = ";";
     Log audit = CarbonConstants.AUDIT_LOG;
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result "
             + ": %s ";
@@ -162,6 +169,13 @@ public class DefaultStepHandler implements StepHandler {
         List<AuthenticatorConfig> authConfigList = stepConfig.getAuthenticatorList();
 
         String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
+
+        /*
+         The browser carries the multi option URI of the option page it came from. When an authentication script has
+         changed the options of the step since that page was rendered, the URI offers options the step no longer has.
+         It is hidden here, before anything that builds a page out of the request reads it.
+         */
+        request = hideStaleMultiOptionURI(request, authenticatorNames);
 
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 
@@ -661,6 +675,71 @@ public class DefaultStepHandler implements StepHandler {
                     + "&authFailureMsg=" + errorMsg + "&hrd=true");
         } catch (IOException e) {
             throw new FrameworkException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Hide the multi option URI of the request when the options it carries are not the options of the step that is
+     * being executed.
+     *
+     * The multi option URI is a snapshot of the option page of the step it was generated for, which the browser
+     * carries forward from page to page. An authentication script can change the options of a step after that page
+     * is rendered, for example by executing a step with a narrowed down option list from within onFail. The URI then
+     * offers options the current step no longer has, and picking one of them fails the login with
+     * {@code ERROR_INVALID_AUTHENTICATOR}. Every authenticator appends the URI to the page it renders, so hiding it
+     * here keeps a stale option page out of all of them.
+     *
+     * @param request            Request of the step being executed.
+     * @param authenticatorNames Option list of the current step, as it is written to the option page.
+     * @return The request as it was, or one that hides the multi option URI when it is not for the current step.
+     */
+    protected HttpServletRequest hideStaleMultiOptionURI(HttpServletRequest request, String authenticatorNames) {
+
+        String multiOptionURI = request.getParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI);
+        if (StringUtils.isBlank(multiOptionURI) || StringUtils.isBlank(authenticatorNames)) {
+            return request;
+        }
+        String optionsInURI = getAuthenticatorsOfMultiOptionURI(multiOptionURI);
+        if (StringUtils.isBlank(optionsInURI) || CollectionUtils.isEqualCollection(
+                Arrays.asList(optionsInURI.split(OPTION_SEPARATOR)),
+                Arrays.asList(authenticatorNames.split(OPTION_SEPARATOR)))) {
+            return request;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Hiding the multi option URI, since the options it carries, %s, are not the " +
+                    "options of the current step, %s.", optionsInURI, authenticatorNames));
+        }
+        CommonAuthRequestWrapper requestWithoutMultiOptionURI = new CommonAuthRequestWrapper(request);
+        requestWithoutMultiOptionURI.setParameter(FrameworkConstants.RequestParams.MULTI_OPTION_URI, null);
+        return requestWithoutMultiOptionURI;
+    }
+
+    /**
+     * Read the option list carried in the multi option URI, in the form it is written to the option page by this
+     * class. The value is decoded, since the URI carries it encoded within the query param of the page.
+     *
+     * @param multiOptionURI Multi option URI taken from the request.
+     * @return The option list, empty when the URI does not carry one.
+     */
+    private String getAuthenticatorsOfMultiOptionURI(String multiOptionURI) {
+
+        int startIndex = multiOptionURI.indexOf(AUTHENTICATORS_QUERY_PARAM);
+        if (startIndex == -1) {
+            return StringUtils.EMPTY;
+        }
+        String options = multiOptionURI.substring(startIndex + AUTHENTICATORS_QUERY_PARAM.length());
+        int endIndex = options.indexOf('&');
+        if (endIndex != -1) {
+            options = options.substring(0, endIndex);
+        }
+        try {
+            return URLDecoder.decode(options, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            // The option list is not decodable, hence it is not compared with the options of the current step.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Could not decode the option list carried in the multi option URI.", e);
+            }
+            return StringUtils.EMPTY;
         }
     }
 
