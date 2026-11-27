@@ -38,6 +38,7 @@
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ClaimRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ApplicationDataRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.FlowDataRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.OrganizationDataRetrievalClientTest"/>
         </classes>
     </test>
 </suite>
