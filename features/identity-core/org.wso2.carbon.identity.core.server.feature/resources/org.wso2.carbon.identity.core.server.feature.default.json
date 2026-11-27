@@ -2374,6 +2374,7 @@
   "email_templates.branding.fallbacks.dark_border_color": "#333333",
   "email_templates.branding.fallbacks.support_mail": "",
   "authentication.enable_basic_auth_handler": true,
+  "authentication.basic_auth.fallback_to_request_tenant": true,
 
   "organization_management.self_service.system_user_name": "B2B-SS-System-User",
   "organization_management.self_service.default_system_app_name": "B2B-Self-Service-Mgt-Application",
