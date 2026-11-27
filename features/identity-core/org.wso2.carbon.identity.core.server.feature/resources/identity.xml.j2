@@ -231,6 +231,13 @@
             {% endif %}
             <AdminUsername>{{ customer_data_service.admin_username | default("") }}</AdminUsername>
             <AdminPassword>{{ customer_data_service.admin_password | default("") }}</AdminPassword>
+            <HTTPClient>
+                <ConnectionTimeout>{{ customer_data_service.http_client.connection_timeout }}</ConnectionTimeout>
+                <ReadTimeout>{{ customer_data_service.http_client.read_timeout }}</ReadTimeout>
+                <AdminReadTimeout>{{ customer_data_service.http_client.admin_read_timeout }}</AdminReadTimeout>
+                <ConnectionRequestTimeout>{{ customer_data_service.http_client.connection_request_timeout }}</ConnectionRequestTimeout>
+                <ConnectionPoolSize>{{ customer_data_service.http_client.connection_pool_size }}</ConnectionPoolSize>
+            </HTTPClient>
             {% if customer_data_service.client_certificate is defined %}
             <ClientCertificate>
                 <Location>${carbon.home}/repository/resources/security/{{ customer_data_service.client_certificate.file_name }}</Location>
