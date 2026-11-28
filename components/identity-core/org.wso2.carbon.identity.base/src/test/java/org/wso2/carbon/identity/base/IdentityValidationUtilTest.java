@@ -205,4 +205,44 @@ public class IdentityValidationUtilTest {
         //This may not have been deleted if testPatternExists(), or testRemovePattern() is failed
         IdentityValidationUtil.removePattern(SIMPLE_LETTERS_KEY);
     }
+    /**
+     * Test whether patternExists returns false when provided a non-existent pattern key.
+     */
+    @Test
+    public void testPatternExistsWithNonExistentKey() {
+        assertFalse(IdentityValidationUtil.patternExists("NON_EXISTENT_PATTERN_KEY_12345"));
+    }
+
+    /**
+     * Test whether patternExists returns false when provided a null key.
+     */
+    @Test
+    public void testPatternExistsWithNullKey() {
+        assertFalse(IdentityValidationUtil.patternExists(null));
+    }
+
+    /**
+     * Test whether addPattern throws IllegalArgumentException when key is null.
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAddPatternWithNullKey() {
+        IdentityValidationUtil.addPattern(null, "^[0-9]+$");
+    }
+
+    /**
+     * Test whether addPattern throws IllegalArgumentException when regex is null.
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAddPatternWithNullRegex() {
+        IdentityValidationUtil.addPattern("SOME_KEY", null);
+    }
+
+    /**
+     * Test whether removePattern handles non-existent keys gracefully without error.
+     */
+    @Test
+    public void testRemovePatternWithNonExistentKey() {
+        IdentityValidationUtil.removePattern("NON_EXISTENT_KEY_XYZ");
+        assertFalse(IdentityValidationUtil.patternExists("NON_EXISTENT_KEY_XYZ"));
+    }
 }
