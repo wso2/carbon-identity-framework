@@ -21,6 +21,7 @@
 <suite name="org.wso2.carbon.identity.central.log.mgt.suite">
     <test name="org.wso2.carbon.identity.central.log.mgt.tests" preserve-order="true" parallel="false">
         <classes>
+            <class name="org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtilsTest"/>
         </classes>
     </test>
 </suite>

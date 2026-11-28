@@ -29,6 +29,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionEndpointException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
@@ -719,6 +720,37 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createActionInvocationResponseWithoutAPIResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+
+        actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
+    }
+
+    @Test(expectedExceptions = ActionExecutionEndpointException.class,
+            expectedExceptionsMessageRegExp = "Received an invalid or unexpected response for action type: " +
+                    "PRE_ISSUE_ACCESS_TOKEN action ID: actionId. Unexpected response received with status code: 403.")
+    public void testActionExecuteFailureForUnsupportedAPIResponseStatus() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createAction();
+
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(any(), any())).thenReturn(
+                mock(ActionExecutionRequest.class));
+
+        ActionInvocationResponse actionInvocationResponse = createActionInvocationResponseWithoutAPIResponse();
+        when(actionInvocationResponse.getErrorLog())
+                .thenReturn("Unexpected response received with status code: 403.");
         when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
