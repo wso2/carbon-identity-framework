@@ -131,6 +131,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             "only be enabled when enhanced organization authentication is enabled.";
     public static final String IS_HANDLER = "IS_HANDLER";
     private static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
+    private static final String IS_APP_SHARED = "isAppShared";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
     private static final int MODE_ESCAPE = 2;
@@ -161,7 +162,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 serviceProvider.getApplicationID());
         validateLocalAndOutBoundAuthenticationConfig(validationErrors,
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
-                tenantDomain, serviceProvider.isEnhancedOrganizationAuthenticationEnabled());
+                tenantDomain, isOrganizationIdentifierHandlerALoginOption(serviceProvider));
         validateRequestPathAuthenticationConfig(validationErrors, serviceProvider.getRequestPathAuthenticatorConfigs(),
                 tenantDomain);
         validateTrustedAppMetadata(validationErrors, serviceProvider);
@@ -178,6 +179,27 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
 
         return validationErrors;
+    }
+
+    /**
+     * Whether the organization identifier handler counts as a login option of the application. It does when
+     * enhanced organization authentication is enabled, since the handler itself drives the organization login. It
+     * also does when the application is shared with organizations: on save, the organization application management
+     * listener replaces the handler with the organization SSO authenticator when enhanced organization
+     * authentication is disabled. Validation runs before that listener, so without this the handler-only flow of a
+     * shared application cannot be switched from enhanced organization authentication to organization SSO.
+     *
+     * @param serviceProvider Application being created, updated or imported, with all the changes applied.
+     * @return True if the organization identifier handler alone satisfies the authenticator check.
+     */
+    private boolean isOrganizationIdentifierHandlerALoginOption(ServiceProvider serviceProvider) {
+
+        if (serviceProvider.isEnhancedOrganizationAuthenticationEnabled()) {
+            return true;
+        }
+        return serviceProvider.getSpProperties() != null && Arrays.stream(serviceProvider.getSpProperties())
+                .anyMatch(property -> IS_APP_SHARED.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 
     /**
@@ -382,13 +404,14 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      * @param validationMsg                        validation error messages
      * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
      * @param tenantDomain                         tenant domain
-     * @param isEnhancedOrgAuthenticationEnabled   whether enhanced organization authentication is enabled for the app
+     * @param isOrgIdentifierHandlerALoginOption   whether the organization identifier handler counts as a login
+     *                                             option of the application
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
      *                                                authenticator params
      */
     private void validateLocalAndOutBoundAuthenticationConfig(List<String> validationMsg,
               LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig,
-              String tenantDomain, boolean isEnhancedOrgAuthenticationEnabled)
+              String tenantDomain, boolean isOrgIdentifierHandlerALoginOption)
             throws IdentityApplicationManagementException {
 
         if (localAndOutBoundAuthenticationConfig == null) {
@@ -415,7 +438,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, localAuth.getName()));
                 } else if (!isAuthenticatorIncluded.get()) {
                     Property[] properties = allLocalAuthenticators.get(localAuth.getName());
-                    if (properties.length == 0 || (isEnhancedOrgAuthenticationEnabled &&
+                    if (properties.length == 0 || (isOrgIdentifierHandlerALoginOption &&
                             ORGANIZATION_IDENTIFIER_HANDLER.equals(localAuth.getName()))) {
                         isAuthenticatorIncluded.set(true);
                     } else {
