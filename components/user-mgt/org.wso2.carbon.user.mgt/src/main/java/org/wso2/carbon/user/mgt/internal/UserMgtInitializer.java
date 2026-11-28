@@ -23,17 +23,15 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.registry.core.Collection;
-import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.core.AuthorizationManager;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
+import org.wso2.carbon.user.mgt.permission.UIPermissionProvisioner;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -55,7 +53,8 @@ public class UserMgtInitializer {
 
         try {
             UserRegistry registry = registryService.getGovernanceSystemRegistry();
-            Map<String, String> map = new HashMap<String, String>();
+            // Insertion ordered so that parent collections precede their children when written.
+            Map<String, String> map = new LinkedHashMap<String, String>();
             map.put(CarbonConstants.UI_PERMISSION_COLLECTION, "All Permissions");
             map.put(CarbonConstants.UI_ADMIN_PERMISSION_COLLECTION, "Admin Permissions");
             map.put(UserMgtConstants.UI_PROTECTED_PERMISSION_ROOT, "Super Admin Permissions");
@@ -73,25 +72,10 @@ public class UserMgtInitializer {
                     "Profile Management");
             map.put(UserMgtConstants.UI_ADMIN_PERMISSION_ROOT + "login", "Login");
 
-            for (Iterator<Map.Entry<String, String>> ite = map.entrySet().iterator(); ite.hasNext(); ) {
-                Map.Entry<String, String> entry = ite.next();
-                String resourcePath = entry.getKey();
-                String displayName = entry.getValue();
-
-                if (registry.resourceExists(resourcePath)) {
-                    Resource resource = registry.get(resourcePath);
-                    if (resource.getProperty(UserMgtConstants.DISPLAY_NAME) == null) {
-                        resource.setProperty(UserMgtConstants.DISPLAY_NAME, displayName);
-                        registry.put(resourcePath, resource);
-                    }
-                    continue;
-                }
-
-                Collection resource = registry.newCollection();
-                resource.setProperty(UserMgtConstants.DISPLAY_NAME, displayName);
-                registry.put(resourcePath, resource);
-
-            }
+            // Only the management console reads these collections back, so the declarations are buffered
+            // and written to the registry on first use. The admin role authorization below is unrelated -
+            // it lives in the user store tables and is still granted eagerly.
+            UIPermissionProvisioner.declare(map);
 
             // realm is taken from the registry rather than realm service to fix
             // chrooted issues
