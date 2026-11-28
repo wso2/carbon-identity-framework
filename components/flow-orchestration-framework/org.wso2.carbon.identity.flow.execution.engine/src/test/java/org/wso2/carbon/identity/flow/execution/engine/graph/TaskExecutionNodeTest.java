@@ -68,6 +68,9 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_IDP_CONFIG_FAILURE;
@@ -544,6 +547,32 @@ public class TaskExecutionNodeTest {
             assertEquals(e.getMessage(), "Server error occurred");
             assertEquals(e.getDescription(), "This is a server-side error");
             assertNotNull(e.getCause());
+        }
+    }
+
+    @Test
+    public void testExecutorErrorStatusWithResultOnlyConstructor() throws Exception {
+
+        ExecutorResponse executorResponse = new ExecutorResponse(STATUS_ERROR);
+        executorResponse.setErrorMessage("Server error occurred");
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+            taskExecutionNode.execute(context, nodeConfig);
+            fail("Expected a FlowEngineServerException.");
+        } catch (FlowEngineServerException e) {
+            assertEquals(e.getErrorCode(), ERROR_CODE_EXECUTOR_FAILURE.getCode());
+        }
+    }
+
+    @Test
+    public void testExecutorRetryStatusWithResultOnlyConstructor() throws Exception {
+
+        ExecutorResponse executorResponse = new ExecutorResponse(STATUS_RETRY);
+
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+            NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
+            assertEquals(nodeResponse.getStatus(), STATUS_INCOMPLETE);
+            assertNull(nodeResponse.getError());
         }
     }
 
