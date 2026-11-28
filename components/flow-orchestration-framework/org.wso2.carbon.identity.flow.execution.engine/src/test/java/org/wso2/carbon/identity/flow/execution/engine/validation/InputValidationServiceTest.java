@@ -29,7 +29,9 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimValidationUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.execution.engine.Constants.FlowExecutionConfigs;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
@@ -55,6 +57,13 @@ import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -69,6 +78,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -93,6 +103,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_REGEX_VIOLATION_ERROR_MSG;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
@@ -123,6 +134,7 @@ public class InputValidationServiceTest {
     @AfterMethod
     public void tearDown() {
 
+        FlowExecutionEngineDataHolder.getInstance().setRealmService(null);
     }
 
     @Test(expectedExceptions = FlowEngineClientException.class)
@@ -2245,6 +2257,243 @@ public class InputValidationServiceTest {
         return new StepDTO.Builder()
                 .data(new DataDTO.Builder().components(components).build())
                 .build();
+    }
+
+    @DataProvider(name = "usernameRegexViolationData")
+    public Object[][] usernameRegexViolationData() {
+
+        return new Object[][]{
+                {"Username must be 5 to 10 letters or digits.", "Username must be 5 to 10 letters or digits."},
+                {null, ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED.getMessage()},
+                {" ", ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED.getMessage()}
+        };
+    }
+
+    @Test(dataProvider = "usernameRegexViolationData")
+    public void testRegistrationUsernameViolatingUserStoreRegex(String configuredMessage, String expectedMessage)
+            throws Exception {
+
+        RealmConfiguration realmConfig = mockRealmConfig("^[a-zA-Z0-9]{5,10}$", null, null);
+        when(realmConfig.getUserStoreProperty(USERNAME_REGEX_VIOLATION_ERROR_MSG)).thenReturn(configuredMessage);
+        UserStoreManager userStoreManager = mockUserStoreManager(realmConfig);
+        RealmService realmService = mockRealmService(userStoreManager);
+        FlowExecutionContext = registrationContext("abcdefghijkl");
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockUsernameRegexStatics();
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtils = mockStatic(MultitenantUtils.class)) {
+            ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+
+            Assert.assertEquals(response.getResult(), STATUS_RETRY);
+            Assert.assertEquals(response.getErrorCode(), ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED.getCode());
+            Assert.assertEquals(response.getErrorMessage(), expectedMessage);
+            Assert.assertEquals(FlowExecutionContext.getUserInputData().get(USERNAME_CLAIM_URI), "abcdefghijkl");
+            verify(realmService).getTenantUserRealm(anyInt());
+        }
+    }
+
+    @Test
+    public void testRegistrationUsernameMatchingUserStoreRegex() throws Exception {
+
+        mockRealmService(mockUserStoreManager(mockRealmConfig("^[a-zA-Z0-9]{5,10}$", null, null)));
+        FlowExecutionContext = registrationContext("user1");
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockUsernameRegexStatics();
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtils = mockStatic(MultitenantUtils.class)) {
+            ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+
+            Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+        }
+    }
+
+    @Test
+    public void testUserStoreRegexNotCheckedOutsideRegistration() throws Exception {
+
+        RealmService realmService = mockRealmService(mockUserStoreManager(
+                mockRealmConfig("^[a-zA-Z0-9]{5,10}$", null, null)));
+        FlowExecutionContext = registrationContext("abcdefghijkl");
+        FlowExecutionContext.setFlowType(Constants.FlowTypes.PASSWORD_RECOVERY.getType());
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockUsernameRegexStatics();
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtils = mockStatic(MultitenantUtils.class)) {
+            ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+
+            Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+            verify(realmService, never()).getTenantUserRealm(anyInt());
+        }
+    }
+
+    @Test
+    public void testUserStoreRegexNotCheckedWhenUsernameValidationEnabled() throws Exception {
+
+        RealmService realmService = mockRealmService(mockUserStoreManager(
+                mockRealmConfig("^[a-zA-Z0-9]{5,10}$", null, null)));
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockUsernameRegexStatics();
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtils = mockStatic(MultitenantUtils.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED)).thenReturn("true");
+
+            invokeValidateUsernameWithUserStoreRegex("test.com", "abcdefghijkl");
+            verify(realmService, never()).getTenantUserRealm(anyInt());
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineClientException.class)
+    public void testDomainQualifiedUsernameUsesThatUserStoreRegex() throws Exception {
+
+        RealmConfiguration primaryConfig = mockRealmConfig("^[a-zA-Z0-9]{5,10}$", null, null);
+        UserStoreManager primaryStore = mockUserStoreManager(primaryConfig);
+        UserStoreManager secondaryStore = mockUserStoreManager(mockRealmConfig("^[a-z]{3,4}$", null, null));
+        when(primaryStore.getSecondaryUserStoreManager("SECONDARY")).thenReturn(secondaryStore);
+        mockRealmService(primaryStore);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockUsernameRegexStatics();
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtils = mockStatic(MultitenantUtils.class)) {
+            // Valid for the primary user store, but not for the secondary user store it is created in.
+            invokeValidateUsernameWithUserStoreRegex("test.com", "secondary/user1");
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineClientException.class)
+    public void testDefaultRegistrationUserStoreRegexIsUsed() throws Exception {
+
+        UserStoreManager primaryStore = mockUserStoreManager(mockRealmConfig("^[a-zA-Z0-9]{5,10}$", null, null));
+        UserStoreManager secondaryStore = mockUserStoreManager(mockRealmConfig("^[a-z]{3,4}$", null, null));
+        when(primaryStore.getSecondaryUserStoreManager("SECONDARY")).thenReturn(secondaryStore);
+        mockRealmService(primaryStore);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockUsernameRegexStatics();
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtils = mockStatic(MultitenantUtils.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FlowExecutionConfigs.REGISTRATION_DEFAULT_USER_STORE_PROPERTY)).thenReturn("secondary");
+
+            invokeValidateUsernameWithUserStoreRegex("test.com", "user1");
+        }
+    }
+
+    @DataProvider(name = "usernameRegexSelectionData")
+    public Object[][] usernameRegexSelectionData() {
+
+        return new Object[][]{
+                // UsernameJavaRegEx, UserNameJavaRegEx, UsernameWithEmailJavaScriptRegEx, email username, username,
+                // expected to pass.
+                {null, "^[a-z]{3,4}$", null, false, "user", true},
+                {null, "^[a-z]{3,4}$", null, false, "user1", false},
+                {"  ", null, null, false, "any value", true},
+                {"^[a-z]{3,4}$ ", null, null, false, "user", true},
+                {"^[a-z]{3,4}$", null, "^[^@]+@example\\.com$", true, "user1@example.com", true},
+                {"^[a-z]{3,4}$", null, "^[^@]+@example\\.com$", true, "user", false},
+                {"^[a-z]{3,4}$", null, null, true, "user", true},
+                {null, null, null, true, "user1@example.com", true},
+                {null, null, null, true, "user1", false},
+                {"[", null, null, false, "user1", true}
+        };
+    }
+
+    @Test(dataProvider = "usernameRegexSelectionData")
+    public void testUsernameRegexSelection(String javaRegEx, String legacyJavaRegEx, String emailRegEx,
+                                           boolean isEmailUsername, String username, boolean expectedValid)
+            throws Exception {
+
+        mockRealmService(mockUserStoreManager(mockRealmConfig(javaRegEx, legacyJavaRegEx, emailRegEx)));
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockUsernameRegexStatics();
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtils = mockStatic(MultitenantUtils.class)) {
+            multitenantUtils.when(MultitenantUtils::isEmailUserName).thenReturn(isEmailUsername);
+
+            boolean valid = true;
+            try {
+                invokeValidateUsernameWithUserStoreRegex("test.com", username);
+            } catch (FlowEngineClientException e) {
+                valid = false;
+            }
+            Assert.assertEquals(valid, expectedValid);
+        }
+    }
+
+    @Test
+    public void testUserStoreLookupFailureSkipsUsernameRegexValidation() throws Exception {
+
+        RealmService realmService = mock(RealmService.class);
+        when(realmService.getTenantUserRealm(anyInt())).thenThrow(new UserStoreException("Realm not found."));
+        FlowExecutionEngineDataHolder.getInstance().setRealmService(realmService);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockUsernameRegexStatics();
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtils = mockStatic(MultitenantUtils.class)) {
+            invokeValidateUsernameWithUserStoreRegex("test.com", "abcdefghijkl");
+        }
+    }
+
+    private FlowExecutionContext registrationContext(String username) {
+
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
+        FlowExecutionContext context = initiateFlowContext();
+        context.setFlowType(Constants.FlowTypes.REGISTRATION.getType());
+        context.getUserInputData().put(USERNAME_CLAIM_URI, username);
+        return context;
+    }
+
+    private MockedStatic<IdentityUtil> mockUsernameRegexStatics() {
+
+        MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn("PRIMARY");
+        identityUtil.when(() -> IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED)).thenReturn("false");
+        return identityUtil;
+    }
+
+    private RealmConfiguration mockRealmConfig(String javaRegEx, String legacyJavaRegEx, String emailRegEx) {
+
+        RealmConfiguration realmConfig = mock(RealmConfiguration.class);
+        when(realmConfig.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG_EX))
+                .thenReturn(javaRegEx);
+        when(realmConfig.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG))
+                .thenReturn(legacyJavaRegEx);
+        when(realmConfig.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX))
+                .thenReturn(emailRegEx);
+        return realmConfig;
+    }
+
+    private UserStoreManager mockUserStoreManager(RealmConfiguration realmConfig) {
+
+        UserStoreManager userStoreManager = mock(UserStoreManager.class);
+        when(userStoreManager.getRealmConfiguration()).thenReturn(realmConfig);
+        return userStoreManager;
+    }
+
+    private RealmService mockRealmService(UserStoreManager userStoreManager) throws UserStoreException {
+
+        UserRealm userRealm = mock(UserRealm.class);
+        when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+        RealmService realmService = mock(RealmService.class);
+        when(realmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
+        FlowExecutionEngineDataHolder.getInstance().setRealmService(realmService);
+        return realmService;
+    }
+
+    private void invokeValidateUsernameWithUserStoreRegex(String tenantDomain, String username)
+            throws FlowEngineException {
+
+        try {
+            Method method = InputValidationService.class.getDeclaredMethod(
+                    "validateUsernameWithUserStoreRegex", String.class, String.class);
+            method.setAccessible(true);
+            method.invoke(inputValidationService, tenantDomain, username);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof FlowEngineException) {
+                throw (FlowEngineException) cause;
+            }
+            throw new RuntimeException(cause);
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private FlowExecutionContext initiateFlowContext() {
