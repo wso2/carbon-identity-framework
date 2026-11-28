@@ -168,6 +168,14 @@
             </Resource>
         {% endif %}
 
+        <!-- CDS Configuration API. Needs the CDS admin scopes; kept above the Me APIs and configs resources. -->
+        <Resource context="(.*)/api/server/v1/configs/cds(.*)" secured="true" http-method="GET">
+            <Scopes>internal_cds_admin_config_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs/cds(.*)" secured="true" http-method="PATCH">
+            <Scopes>internal_cds_admin_config_update</Scopes>
+        </Resource>
+
         <!-- [Organization] User Code Management API -->
         <Resource context="(.*)/o/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_user_code_mgt_create</Scopes>
