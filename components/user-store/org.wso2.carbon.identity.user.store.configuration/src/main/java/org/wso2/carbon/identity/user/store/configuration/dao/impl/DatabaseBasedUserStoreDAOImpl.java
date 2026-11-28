@@ -48,6 +48,7 @@ import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -64,6 +65,7 @@ import javax.xml.stream.XMLStreamException;
 import static org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQueries.GET_ALL_USERSTORE_PROPERTIES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.isUserStoreServedByRealm;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
@@ -71,8 +73,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORE;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.XML;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 
 /**
  * This class contains the implementation of CRUD operations of the database based user Stores.
@@ -83,6 +84,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private SecretResolver secretResolver;
     private static final String DATABASE_BASED = DatabaseBasedUserStoreDAOFactory.class.getName();
     private XMLProcessorUtils xmlProcessorUtils = new XMLProcessorUtils();
+    private static final String OF_TENANT = " of tenant: ";
 
     @Override
     protected void doAddUserStore(UserStorePersistanceDTO userStorePersistanceDTO) throws
@@ -148,12 +150,11 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         InputStream clonedStream = null;
         String userStoreProperties = null;
         UserStorePersistanceDTO userStorePersistanceDTO = new UserStorePersistanceDTO();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              PreparedStatement prepStmt = connection.prepareStatement
                      (UserStoreMgtDBQueries.GET_USERSTORE_PROPERTIES)) {
             prepStmt.setString(1, domainName);
             prepStmt.setInt(2, tenantId);
-            prepStmt.setString(3, USERSTORE);
             try (ResultSet rSet = prepStmt.executeQuery()) {
                 if (rSet.next()) {
                     RealmConfiguration realmConfiguration = null;
@@ -203,11 +204,10 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         List<UserStorePersistanceDTO> userStorePersistanceDTOs = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              PreparedStatement prepStmt = connection.prepareStatement
                      (GET_ALL_USERSTORE_PROPERTIES)) {
             prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, USERSTORE);
             try (ResultSet rSet = prepStmt.executeQuery()) {
                 while (rSet.next()) {
                     String identifier = rSet.getString(1);
@@ -262,8 +262,13 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private RealmConfiguration getRealmConfiguration(String identifier, InputStream scriptBinaryStream)
             throws UserStoreException, XMLStreamException {
 
-        UserStoreConfigXMLProcessor userStoreXMLProcessor =
-                new UserStoreConfigXMLProcessor("/" + identifier + ".xml");
+        /*
+         The processor splits this path on the platform's file separator and requires the last segment to
+         match the domain, reading underscores back as dots. A hard coded slash leaves it unsplit on Windows.
+        */
+        UserStoreConfigXMLProcessor userStoreXMLProcessor = new UserStoreConfigXMLProcessor(
+                File.separator + identifier.replace(UserStoreConfigurationConstant.PERIOD,
+                        UserStoreConfigurationConstant.UNDERSCORE) + FILE_EXTENSION_XML);
         return userStoreXMLProcessor.
                 buildUserStoreConfiguration(getRealmElement(scriptBinaryStream));
     }
@@ -337,7 +342,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 "the userstore domain:" + domainName + "in the tenant:" + tenantId;
         try {
 
-            try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
                 try (PreparedStatement userStorePrepStmt = connection
                         .prepareStatement(UserStoreMgtDBQueries.STORE_USERSTORE_PROPERTIES)) {
                     String uuid = String.valueOf(UUID.randomUUID());
@@ -345,15 +350,13 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                     userStorePrepStmt.setInt(2, tenantId);
                     setBlobValue(userStoreProperties, userStorePrepStmt, 3);
                     userStorePrepStmt.setString(4, domainName);
-                    userStorePrepStmt.setString(5, XML);
-                    userStorePrepStmt.setString(6, USERSTORE);
                     userStorePrepStmt.execute();
                     if (log.isDebugEnabled()) {
                         log.debug("The userstore domain:" + domainName + "added for the tenant:" + tenantId);
                     }
-                    IdentityDatabaseUtil.commitTransaction(connection);
+                    IdentityDatabaseUtil.commitUserDBTransaction(connection);
                 } catch (SQLException e) {
-                    IdentityDatabaseUtil.rollbackTransaction(connection);
+                    IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
                     throw new IdentityUserStoreMgtException(errorMessage, e);
                 }
             } catch (IOException | SQLException ex) {
@@ -391,20 +394,19 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         String msg = "Error while removing the user store with the domain name: " + domain + " in the tenant: " +
                      tenantId;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries
                                                                             .DELETE_USERSTORE_PROPERTIES)) {
                 ps.setString(1, domain);
                 ps.setInt(2, tenantId);
-                ps.setString(3, USERSTORE);
                 ps.executeUpdate();
                 if (log.isDebugEnabled()) {
                     log.debug("The userstore domain :" + domain + "removed for the tenant" + tenantId);
                 }
-                IdentityDatabaseUtil.commitTransaction(connection);
+                IdentityDatabaseUtil.commitUserDBTransaction(connection);
 
             } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
                 throw new IdentityUserStoreMgtException(msg, e);
             }
         } catch (SQLException e) {
@@ -426,7 +428,37 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String msg = "Error while removing the user store in the tenant: " + tenantId;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try {
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext.
+                    getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            if (userStoreManager == null) {
+                throw new IdentityUserStoreMgtException("Unable to find a user store from the " +
+                        "ThreadLocalCarbonContext.");
+            }
+            // Run pre user-store delete listeners, as the single store path does.
+            for (String domain : domains) {
+                triggerListnersOnUserStorePreDelete(domain);
+            }
+            deleteUserStoresFromDatabase(domains, tenantId, msg);
+            /*
+             The realm is only changed once the rows are gone. Doing it while the batch is still open leaves the
+             realm without user stores the database still holds if the batch then fails.
+            */
+            for (String domain : domains) {
+                userStoreManager.deletePersistedDomain(domain);
+                removeRealmFromSecondaryUserStoreManager(domain);
+            }
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstores cannot be deleted.", e);
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException(msg, e);
+        }
+    }
+
+    private void deleteUserStoresFromDatabase(String[] domains, int tenantId, String msg)
+            throws IdentityUserStoreMgtException {
+
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries
                                                                             .DELETE_USERSTORE_PROPERTIES)) {
                 for (String domain : domains) {
@@ -435,14 +467,11 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                         log.debug("The userstore domain :" + domain + "in tenant :" + tenantId + " added to the batch" +
                                   " to remove.");
                     }
-                    removeRealmFromSecondaryUserStoreManager(domain);
                 }
                 ps.executeBatch();
-                IdentityDatabaseUtil.commitTransaction(connection);
+                IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw new IdentityUserStoreMgtException(msg, e);
-            } catch (UserStoreException e) {
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
                 throw new IdentityUserStoreMgtException(msg, e);
             }
         } catch (SQLException e) {
@@ -456,21 +485,20 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String msg = "Error occured while updating user store properties for the domain:" + domainName + "in the " +
                      "tenant:" + tenantId;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try (PreparedStatement pst = connection.prepareStatement(UserStoreMgtDBQueries
                                                                              .UPDATE_USERSTORE_PROPERTIES)) {
                 setBlobValue(userStorePersistanceDTO.getUserStoreProperties(), pst, 1);
                 pst.setString(2, userStorePersistanceDTO.getUserStoreDTO().getDomainId());
                 pst.setString(3, domainName);
                 pst.setInt(4, tenantId);
-                pst.setString(5, USERSTORE);
                 pst.executeUpdate();
-                IdentityDatabaseUtil.commitTransaction(connection);
+                IdentityDatabaseUtil.commitUserDBTransaction(connection);
                 if (log.isDebugEnabled()) {
                     log.debug("The userstore domain:" + domainName + "updated for the tenant:" + tenantId);
                 }
             } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
                 throw new IdentityUserStoreMgtException(msg, e);
             } catch (IOException ex) {
                 throw new IdentityUserStoreMgtException(msg, ex);
@@ -498,19 +526,93 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         preparedStatement.setString(1, domain);
         preparedStatement.setInt(2, tenantId);
-        preparedStatement.setString(3, USERSTORE);
         preparedStatement.addBatch();
+    }
+
+    /**
+     * Register every secondary user store persisted for the current tenant with its realm. The file based
+     * repository has the deployment engine to do this on tenant load; the database based repository does not,
+     * so this is driven by the user store configuration listener instead.
+     *
+     * @throws IdentityUserStoreMgtException if the persisted user stores cannot be read.
+     */
+    public void loadSecondaryUserStores() throws IdentityUserStoreMgtException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        for (UserStorePersistanceDTO userStorePersistanceDTO : doGetAllUserStores()) {
+            if (userStorePersistanceDTO.getUserStoreDTO() == null) {
+                continue;
+            }
+            String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
+            try {
+                if (isUserStoreServedByRealm(domainName)) {
+                    /*
+                     The realm already serves this domain, which is the case when the same domain is also on
+                     the file system and the deployment engine read it first. Registering it again is rejected
+                     as a duplicate domain, so leave the realm as it stands.
+                    */
+                    if (log.isDebugEnabled()) {
+                        log.debug("Skipping the user store domain: " + domainName + OF_TENANT + tenantId +
+                                ". The realm already serves it.");
+                    }
+                    continue;
+                }
+                addRealmToSecondaryUserStoreManager(userStorePersistanceDTO);
+                if (log.isDebugEnabled()) {
+                    log.debug("Loaded the user store domain: " + domainName + OF_TENANT + tenantId +
+                            " from the database.");
+                }
+            } catch (UserStoreException | XMLStreamException e) {
+                // A single broken user store should not stop the remaining ones from loading.
+                log.error("Error occurred while loading the user store domain: " + domainName + OF_TENANT +
+                        tenantId, e);
+            }
+        }
     }
 
     private void addRealmToSecondaryUserStoreManager(UserStorePersistanceDTO userStorePersistanceDTO) throws
             UserStoreException, XMLStreamException {
 
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         UserRealm userRealm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
         AbstractUserStoreManager primaryUSM = (AbstractUserStoreManager) userRealm.getUserStoreManager();
         InputStream targetStream = new ByteArrayInputStream(userStorePersistanceDTO.getUserStoreProperties()
                                                                                    .getBytes());
         RealmConfiguration realmConfiguration = getRealmConfiguration(userStorePersistanceDTO.getUserStoreDTO().
                 getDomainId(), targetStream);
+        /*
+         Unlike a file based configuration, which the deployment engine reads from the tenant's own deployment
+         directory, the configuration read here carries no tenant of its own. Without this the secondary user
+         store manager is built against the default tenant and the domain cannot be resolved.
+        */
+        realmConfiguration.setTenantId(tenantId);
+        setSecondaryUserStore(userRealm.getRealmConfiguration(), realmConfiguration);
         primaryUSM.addSecondaryUserStoreManager(realmConfiguration, userRealm);
+    }
+
+    /**
+     * Append the secondary user store to the end of the realm configuration chain.
+     *
+     * @param parent Primary realm configuration.
+     * @param child  Secondary realm configuration being added.
+     */
+    private void setSecondaryUserStore(RealmConfiguration parent, RealmConfiguration child) {
+
+        String parentDomain = parent.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME);
+        String addingDomain = child.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME);
+        if (parentDomain == null) {
+            return;
+        }
+        while (parent.getSecondaryRealmConfig() != null) {
+            if (parentDomain.equals(addingDomain)) {
+                return;
+            }
+            parent = parent.getSecondaryRealmConfig();
+            parentDomain = parent.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME);
+        }
+        if (parentDomain.equals(addingDomain)) {
+            return;
+        }
+        parent.setSecondaryRealmConfig(child);
     }
 }
