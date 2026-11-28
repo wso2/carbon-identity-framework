@@ -176,8 +176,8 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
             Map<String, String> addedClaims = new HashMap<>();
             Map<String, String> updatedClaims = new HashMap<>();
             Map<String, String> removedClaims = new HashMap<>();
-            Map<String, String> loggableClaims = userStoreManager.getUserClaimValues(userName, loggableClaimURIs,
-                    DEFAULT);
+            Map<String, String> loggableClaims = userStoreManager.getUserClaimValues(userName,
+                    loggableClaimURIs.clone(), DEFAULT);
             resolveLoggableClaims(loggableClaims);
 
             for (Map.Entry<String, String> entry : loggableClaims.entrySet()) {
@@ -243,8 +243,8 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     private void logClaims(String userName, String action, UserStoreManager userStoreManager) {
 
         try {
-            Map<String, String> loggableClaims = userStoreManager.getUserClaimValues(userName, loggableClaimURIs,
-                    DEFAULT);
+            Map<String, String> loggableClaims = userStoreManager.getUserClaimValues(userName,
+                    loggableClaimURIs.clone(), DEFAULT);
             if (MapUtils.isNotEmpty(loggableClaims)) {
                 if (LoggerUtils.isLogMaskingEnable) {
                     audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), action, LoggerUtils
