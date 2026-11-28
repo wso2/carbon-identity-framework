@@ -179,9 +179,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         log.debug("Authentication has failed in the Step " + (context.getCurrentStep()));
                     }
 
+                    // A step aborted through the userAbort request parameter should not be retried, since the step
+                    // handler would abort the step again for the same request.
+                    boolean isUserAbort = Boolean.parseBoolean(
+                            request.getParameter(FrameworkConstants.RequestParams.USER_ABORT));
+
                     // if the step contains multiple login options, we should give the user to retry
                     // authentication
-                    if (stepConfig.isMultiOption() && !context.isPassiveAuthenticate()) {
+                    if (stepConfig.isMultiOption() && !context.isPassiveAuthenticate() && !isUserAbort) {
                         stepConfig.setRetrying(true);
                         context.setRequestAuthenticated(true);
                     } else {
