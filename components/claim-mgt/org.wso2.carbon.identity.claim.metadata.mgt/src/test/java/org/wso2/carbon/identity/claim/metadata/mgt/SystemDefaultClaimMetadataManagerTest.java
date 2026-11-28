@@ -24,6 +24,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -34,6 +35,7 @@ import org.wso2.carbon.user.core.claim.ClaimKey;
 import org.wso2.carbon.user.core.claim.ClaimMapping;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +49,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
@@ -289,6 +292,136 @@ public class SystemDefaultClaimMetadataManagerTest {
         assertThrows(ClaimMetadataException.class, () -> {
             claimMetadataManager.isLocalClaimMappedWithinDialect("", EXT_CLAIM_DIALECT_1, 1);
         });
+    }
+
+    @Test
+    public void testLocalClaimDefensiveCopy() throws ClaimMetadataException {
+
+        Optional<LocalClaim> localClaimOpt = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
+        assertTrue(localClaimOpt.isPresent());
+        LocalClaim localClaim = localClaimOpt.get();
+
+        // Mutate properties and mapped attributes on the returned claim
+        localClaim.setClaimProperty("MUTATED_PROP", "MUTATED_VALUE");
+        localClaim.getClaimProperties().remove("property1");
+        localClaim.setMappedAttribute(new AttributeMapping("SECONDARY", "mutatedAttr"));
+
+        // Fetch again and verify internal state was not modified
+        Optional<LocalClaim> localClaimOptSecond = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
+        assertTrue(localClaimOptSecond.isPresent());
+        LocalClaim freshClaim = localClaimOptSecond.get();
+
+        assertNull(freshClaim.getClaimProperty("MUTATED_PROP"));
+        assertNotNull(freshClaim.getClaimProperty("property1"));
+        assertNull(freshClaim.getMappedAttribute("SECONDARY"));
+
+        // Also verify getLocalClaims returns fresh copies
+        List<LocalClaim> localClaims = claimMetadataManager.getLocalClaims(1);
+        LocalClaim claimFromList = localClaims.stream()
+                .filter(c -> LOCAL_CLAIM_1.equals(c.getClaimURI()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(claimFromList);
+        assertNull(claimFromList.getClaimProperty("MUTATED_PROP"));
+        assertNotNull(claimFromList.getClaimProperty("property1"));
+    }
+
+    @Test
+    public void testExternalClaimDefensiveCopy() throws ClaimMetadataException {
+
+        Optional<ExternalClaim> extClaimOpt = claimMetadataManager.getExternalClaim(
+                EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
+        assertTrue(extClaimOpt.isPresent());
+        ExternalClaim extClaim = extClaimOpt.get();
+
+        // Mutate properties on the returned claim
+        extClaim.setClaimProperty("MUTATED_PROP", "MUTATED_VALUE");
+        extClaim.getClaimProperties().remove("property13");
+
+        // Fetch again and verify internal state was not modified
+        Optional<ExternalClaim> extClaimOptSecond = claimMetadataManager.getExternalClaim(
+                EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
+        assertTrue(extClaimOptSecond.isPresent());
+        ExternalClaim freshExtClaim = extClaimOptSecond.get();
+
+        assertNull(freshExtClaim.getClaimProperty("MUTATED_PROP"));
+        assertNotNull(freshExtClaim.getClaimProperty("property13"));
+
+        // Also verify getExternalClaims returns fresh copies
+        List<ExternalClaim> extClaims = claimMetadataManager.getExternalClaims(EXT_CLAIM_DIALECT_1, 1);
+        ExternalClaim extFromList = extClaims.stream()
+                .filter(c -> EXT_CLAIM_DIALECT_1_CLAIM_1.equals(c.getClaimURI()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(extFromList);
+        assertNull(extFromList.getClaimProperty("MUTATED_PROP"));
+        assertNotNull(extFromList.getClaimProperty("property13"));
+    }
+
+    @Test
+    public void testMappedExternalClaimsDefensiveCopy() throws ClaimMetadataException {
+
+        List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim> mappedExternalClaims =
+                claimMetadataManager.getMappedExternalClaims(LOCAL_CLAIM_2, 1);
+        assertFalse(mappedExternalClaims.isEmpty());
+        org.wso2.carbon.identity.claim.metadata.mgt.model.Claim firstClaim = mappedExternalClaims.get(0);
+        firstClaim.setClaimProperty("MUTATED_MAPPED_PROP", "MUTATED_VALUE");
+
+        List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim> secondCallClaims =
+                claimMetadataManager.getMappedExternalClaims(LOCAL_CLAIM_2, 1);
+        org.wso2.carbon.identity.claim.metadata.mgt.model.Claim freshMappedClaim = secondCallClaims.get(0);
+        assertNull(freshMappedClaim.getClaimProperty("MUTATED_MAPPED_PROP"));
+    }
+
+    @Test
+    public void testConcurrentAccessToSystemDefaultClaims() throws Exception {
+
+        int threadCount = 10;
+        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(threadCount);
+        List<java.util.concurrent.Future<Void>> futures = new ArrayList<>();
+
+        for (int i = 0; i < 50; i++) {
+            final int index = i;
+            futures.add(executor.submit(() -> {
+                // Fetch external claim, mutate its properties, iterate over entrySet
+                Optional<ExternalClaim> extClaimOpt = claimMetadataManager.getExternalClaim(
+                        EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
+                assertTrue(extClaimOpt.isPresent());
+                ExternalClaim extClaim = extClaimOpt.get();
+                extClaim.getClaimProperties().put("thread_prop_" + index, "val_" + index);
+                extClaim.getClaimProperties().remove("property13");
+                for (Map.Entry<String, String> entry : extClaim.getClaimProperties().entrySet()) {
+                    assertNotNull(entry.getKey());
+                }
+
+                // Fetch local claim, mutate its properties and attributes, iterate
+                Optional<LocalClaim> localClaimOpt = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
+                assertTrue(localClaimOpt.isPresent());
+                LocalClaim localClaim = localClaimOpt.get();
+                localClaim.getClaimProperties().put("thread_prop_" + index, "val_" + index);
+                localClaim.getClaimProperties().remove("property1");
+                for (Map.Entry<String, String> entry : localClaim.getClaimProperties().entrySet()) {
+                    assertNotNull(entry.getKey());
+                }
+
+                return null;
+            }));
+        }
+
+        for (java.util.concurrent.Future<Void> future : futures) {
+            future.get(10, java.util.concurrent.TimeUnit.SECONDS);
+        }
+        executor.shutdown();
+
+        // Verify that system default claims were never mutated
+        Optional<ExternalClaim> extClaimOpt = claimMetadataManager.getExternalClaim(
+                EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
+        assertTrue(extClaimOpt.isPresent());
+        assertNotNull(extClaimOpt.get().getClaimProperty("property13"));
+
+        Optional<LocalClaim> localClaimOpt = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
+        assertTrue(localClaimOpt.isPresent());
+        assertNotNull(localClaimOpt.get().getClaimProperty("property1"));
     }
 
     @AfterClass
