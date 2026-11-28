@@ -37,9 +37,11 @@ import org.wso2.carbon.identity.webhook.management.internal.component.WebhookMan
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,6 +51,13 @@ import java.util.stream.Collectors;
  * webhook management operations such as creating, retrieving, updating, and deleting webhooks.
  */
 public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
+
+    /**
+     * Adapter property, {@code adapter.<name>.verifiesSubscriptionSynchronously} in
+     * identity-outbound-adapter.properties. Set it to true for an adapter whose subscribe call returns
+     * SUBSCRIPTION_ACCEPTED only after the endpoint has confirmed the subscription.
+     */
+    public static final String SYNCHRONOUS_VERIFICATION_PROPERTY = "verifiesSubscriptionSynchronously";
 
     private final String webhookAdapterName;
 
@@ -114,7 +123,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                         .eventProfileName(webhook.getEventProfileName())
                         .eventProfileUri(webhook.getEventProfileUri())
                         .eventProfileVersion(webhook.getEventProfileVersion())
-                        .status(WebhookStatus.PARTIALLY_ACTIVE)
+                        .status(subscribedStatus(subscriptions))
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
                         .eventsSubscribed(subscriptions)
@@ -220,7 +229,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
             dao.activateWebhook(
                     buildWebhookWith(webhook, updatedSubscriptions, webhook.getSecret(),
-                            WebhookStatus.PARTIALLY_ACTIVE), tenantId);
+                            subscribedStatus(updatedSubscriptions)), tenantId);
         }
     }
 
@@ -268,7 +277,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
             dao.deactivateWebhook(
                     buildWebhookWith(webhook, updatedUnsubscriptions, webhook.getSecret(),
-                            WebhookStatus.PARTIALLY_INACTIVE), tenantId);
+                            unsubscribedStatus(updatedUnsubscriptions)), tenantId);
         }
     }
 
@@ -324,7 +333,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                             mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
                     dao.retryWebhook(
                             buildWebhookWith(webhook, updatedSubscriptions, webhook.getSecret(),
-                                    WebhookStatus.PARTIALLY_ACTIVE), tenantId);
+                                    subscribedStatus(updatedSubscriptions)), tenantId);
                 }
             } else if (webhook.getStatus() == WebhookStatus.PARTIALLY_INACTIVE) {
                 List<Subscription> toUnsubscribe = webhook.getEventsSubscribed().stream()
@@ -360,7 +369,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                             mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
                     dao.retryWebhook(
                             buildWebhookWith(webhook, updatedUnsubscriptions, webhook.getSecret(),
-                                    WebhookStatus.PARTIALLY_INACTIVE),
+                                    unsubscribedStatus(updatedUnsubscriptions)),
                             tenantId);
                 }
             }
@@ -452,6 +461,47 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                         tenantDomain);
             }
         }
+    }
+
+    /**
+     * Status after a subscribe call. An adapter that relays the request to a hub learns only that the hub accepted
+     * it, not whether the endpoint confirmed, so the webhook stays PARTIALLY_ACTIVE. An adapter that verifies the
+     * endpoint before answering declares {@value #SYNCHRONOUS_VERIFICATION_PROPERTY}; for it, a webhook whose
+     * channels are all accepted is ACTIVE.
+     *
+     * @param subscriptions All channels of the webhook after the call.
+     * @return ACTIVE or PARTIALLY_ACTIVE.
+     */
+    private WebhookStatus subscribedStatus(List<Subscription> subscriptions) {
+
+        return verifiesSubscriptionSynchronously() && allHaveStatus(subscriptions,
+                SubscriptionStatus.SUBSCRIPTION_ACCEPTED) ? WebhookStatus.ACTIVE : WebhookStatus.PARTIALLY_ACTIVE;
+    }
+
+    /**
+     * Status after an unsubscribe call, with the same rule as {@link #subscribedStatus(List)}.
+     *
+     * @param subscriptions All channels of the webhook after the call.
+     * @return INACTIVE or PARTIALLY_INACTIVE.
+     */
+    private WebhookStatus unsubscribedStatus(List<Subscription> subscriptions) {
+
+        return verifiesSubscriptionSynchronously() && allHaveStatus(subscriptions,
+                SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED) ? WebhookStatus.INACTIVE
+                : WebhookStatus.PARTIALLY_INACTIVE;
+    }
+
+    private static boolean allHaveStatus(List<Subscription> subscriptions, SubscriptionStatus status) {
+
+        return subscriptions != null && !subscriptions.isEmpty()
+                && subscriptions.stream().allMatch(s -> s.getStatus() == status);
+    }
+
+    private static boolean verifiesSubscriptionSynchronously() {
+
+        Adapter adapter = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapter();
+        Map<String, String> properties = adapter == null ? null : adapter.getProperties();
+        return properties != null && Boolean.parseBoolean(properties.get(SYNCHRONOUS_VERIFICATION_PROPERTY));
     }
 
     private Webhook buildWebhookWith(Webhook base, List<Subscription> updatedSubs, String secret,
