@@ -217,8 +217,11 @@ public class IdentityManagementEndpointUtil {
                     // Falling back to building the url.
                 }
             }
-            return ServiceURLBuilder.create().addPath(IdentityManagementEndpointConstants.USER_PORTAL_URL).build()
-                    .getAbsolutePublicURL();
+            return ServiceURLBuilder.create()
+        .addPath(IdentityManagementEndpointConstants.USER_PORTAL_URL)
+        .setTenant(tenantDomain)
+        .build()
+        .getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw new IdentityRuntimeException(
                     "Error while building url for context: " + IdentityManagementEndpointConstants.USER_PORTAL_URL);

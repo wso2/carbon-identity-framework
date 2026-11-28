@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
+import org.mockito.MockedConstruction;
+import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -55,6 +59,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 
 /**
  * This class tests the methods of IdentityManagementEndpointUtil class.
@@ -650,5 +657,51 @@ public class IdentityManagementEndpointUtilTest {
         privilegedCarbonContext.when(
                 PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(mockPrivilegedCarbonContext);
         when(mockPrivilegedCarbonContext.getOrganizationId()).thenReturn(SAMPLE_ORG_ID);
+    }
+        @Test
+    public void testGetUserPortalUrlWithConfiguredUrl() {
+        String configuredUrl = "https://example.com/myaccount";
+        String result = IdentityManagementEndpointUtil.getUserPortalUrl(configuredUrl, SAMPLE_TENANT_DOMAIN);
+        assertEquals(result, configuredUrl);
+    }
+
+    @Test
+    public void testGetUserPortalUrlFallback() throws URLBuilderException {
+        String expectedUrl = "https://localhost:9443/myaccount";
+        try (MockedStatic<ServiceURLBuilder> mockedBuilder = mockStatic(ServiceURLBuilder.class)) {
+            prepareServiceURLBuilder(mockedBuilder);
+            when(serviceURL.getAbsolutePublicURL()).thenReturn(expectedUrl);
+
+            String result = IdentityManagementEndpointUtil.getUserPortalUrl(null, null);
+            assertEquals(result, expectedUrl);
+        }
+    }
+
+    @Test
+    public void testGetUserPortalUrlWhenMyAccountIsNotShared()
+            throws URLBuilderException, ApplicationDataRetrievalClientException {
+
+        Boolean previousLegacyAuthzRuntime = CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = Boolean.FALSE;
+
+        try (MockedConstruction<ApplicationDataRetrievalClient> mockedClient =
+                     mockConstruction(ApplicationDataRetrievalClient.class,
+                             (mock, context) -> when(mock.getApplicationAccessURL(
+                                     anyString(), anyString())).thenReturn(""));
+             MockedStatic<ServiceURLBuilder> mockedBuilder = mockStatic(ServiceURLBuilder.class)) {
+
+            prepareServiceURLBuilder(mockedBuilder);
+
+            when(serviceURL.getAbsolutePublicURL()).thenReturn(
+                    "https://localhost:9443/t/test.com/o/" + SAMPLE_ORG_ID + "/myaccount");
+
+            String result = IdentityManagementEndpointUtil.getUserPortalUrl(null, SAMPLE_TENANT_DOMAIN);
+
+            assertEquals(result, "https://localhost:9443/t/test.com/o/" + SAMPLE_ORG_ID + "/myaccount");
+            verify(serviceURLBuilder).setTenant(SAMPLE_TENANT_DOMAIN);
+
+        } finally {
+            CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = previousLegacyAuthzRuntime;
+        }
     }
 }
