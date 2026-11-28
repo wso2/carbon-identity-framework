@@ -26,13 +26,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages;
@@ -50,6 +57,7 @@ import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngi
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowOrganization;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.Constants;
@@ -66,12 +74,16 @@ import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationM
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_FLOW_EXECUTION_STEP_EVENT;
@@ -88,6 +100,8 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.EventPropert
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.STEP_TYPE;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.USER_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ORGANIZATION_AUTO_LOGIN_URL;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PROVISIONED_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
@@ -492,6 +506,11 @@ public class FlowExecutionEngineUtils {
     public static String resolveCompletionRedirectionUrl(FlowExecutionContext context)
             throws FlowEngineServerException {
 
+        String completedTenantDomain = resolveCompletedTenantDomain(context);
+        if (!completedTenantDomain.equals(context.getTenantDomain())) {
+            return resolveOrganizationCompletionRedirectionUrl(context);
+        }
+
         String redirectionUrl = getApplicationAccessUrlByAppId(context.getTenantDomain(), context.getApplicationId());
 
         // If the application access URL is not available, we will use the MyAccount access URL.
@@ -499,6 +518,272 @@ public class FlowExecutionEngineUtils {
             redirectionUrl = buildMyAccountAccessURL(context.getTenantDomain());
         }
         return redirectionUrl;
+    }
+
+    /**
+     * Resolve the tenant where the flow provisioned the user. This is the flow tenant unless the flow created an
+     * organization and provisioned the user inside it.
+     *
+     * @param context Flow context.
+     * @return Tenant domain of the provisioned user.
+     */
+    public static String resolveCompletedTenantDomain(FlowExecutionContext context) {
+
+        String provisionedTenantDomain = (String) context.getProperty(PROVISIONED_TENANT_DOMAIN);
+        if (StringUtils.isNotBlank(provisionedTenantDomain)) {
+            return provisionedTenantDomain;
+        }
+        return context.getTenantDomain();
+    }
+
+    private static String resolveOrganizationCompletionRedirectionUrl(FlowExecutionContext context)
+            throws FlowEngineServerException {
+
+        FlowOrganization organization = context.getFlowOrganization();
+        String organizationId = organization != null ? organization.getOrganizationId() : null;
+        if (StringUtils.isBlank(organizationId)) {
+            return null;
+        }
+        return buildOrganizationApplicationAccessUrl(context.getTenantDomain(), organizationId,
+                resolveOrganizationApplication(context),
+                getApplicationAccessUrlByAppId(context.getTenantDomain(), context.getApplicationId()));
+    }
+
+    /**
+     * Create the authentication request that establishes a session for a user whose flow completed, so the browser
+     * can submit the generated user assertion. The request is created for the tenant where the user was provisioned
+     * and is flagged as an assertion based login, so the assertion is accepted by the authentication framework.
+     *
+     * @param context Flow context.
+     * @return Session data key, request type and Commonauth URL, or an empty map when the request cannot be created.
+     * @throws FlowEngineServerException Flow engine exception.
+     */
+    public static Map<String, String> createCompletionAuthenticationRequest(FlowExecutionContext context)
+            throws FlowEngineServerException {
+
+        if (StringUtils.isBlank(context.getApplicationId())) {
+            LOG.warn("Skipping the post-completion auto login because the application that started the flow is "
+                    + "unknown. Flow: " + context.getContextIdentifier());
+            return Collections.emptyMap();
+        }
+        if (resolveCompletedTenantDomain(context).equals(context.getTenantDomain())) {
+            return createFlowTenantAuthenticationRequest(context);
+        }
+        return createOrganizationAuthenticationRequest(context);
+    }
+
+    /**
+     * Create the authentication request that establishes a session in the organization where the flow provisioned
+     * the user, so the browser can submit the generated user assertion there.
+     *
+     * @param context Flow context.
+     * @return Session data key, request type and Commonauth URL of the organization, or an empty map when the user
+     * was provisioned in the flow tenant.
+     * @throws FlowEngineServerException Flow engine exception.
+     */
+    public static Map<String, String> createOrganizationAuthenticationRequest(FlowExecutionContext context)
+            throws FlowEngineServerException {
+
+        if (resolveCompletedTenantDomain(context).equals(context.getTenantDomain())) {
+            return Collections.emptyMap();
+        }
+        FlowOrganization organization = context.getFlowOrganization();
+        if (organization == null || StringUtils.isBlank(organization.getOrganizationId())) {
+            LOG.warn("Skipping the organization auto login because the provisioned organization is unknown. Flow: "
+                    + context.getContextIdentifier());
+            return Collections.emptyMap();
+        }
+        ServiceProvider application = resolveOrganizationApplication(context);
+        String clientId = getOAuthClientId(application);
+        // The fallback is only used for non-portal applications. Resolve it only when the application is
+        // available, so a failure to read it does not skip an otherwise valid auto login.
+        String fallbackAccessUrl = application != null
+                ? getApplicationAccessUrlByAppId(context.getTenantDomain(), context.getApplicationId()) : null;
+        String callerPath = buildOrganizationApplicationAccessUrl(context.getTenantDomain(),
+                organization.getOrganizationId(), application, fallbackAccessUrl);
+        if (StringUtils.isBlank(clientId) || StringUtils.isBlank(callerPath)) {
+            LOG.warn("Skipping the organization auto login because the application is not shared with the "
+                    + "organization: " + resolveCompletedTenantDomain(context) + ". Share the application with the "
+                    + "organization to enable auto login. Flow: " + context.getContextIdentifier());
+            return Collections.emptyMap();
+        }
+        String commonAuthUrl;
+        try {
+            commonAuthUrl = ServiceURLBuilder.create()
+                    .addPath("o/" + organization.getOrganizationId(), FrameworkConstants.COMMONAUTH)
+                    .build(IdentityUtil.getHostName()).getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, context.getApplicationId(),
+                    context.getTenantDomain());
+        }
+        return cacheAuthenticationRequest(context, resolveCompletedTenantDomain(context), clientId, callerPath,
+                commonAuthUrl, organization.getOrganizationId());
+    }
+
+    /**
+     * Create the post-completion authentication request for a user provisioned in the flow tenant. The request is
+     * flagged for assertion based login so the assertion is accepted when it is submitted to the tenant commonauth.
+     *
+     * @param context Flow context.
+     * @return Session data key, request type and Commonauth URL of the flow tenant, or an empty map when the
+     * application cannot be resolved.
+     * @throws FlowEngineServerException Flow engine exception.
+     */
+    private static Map<String, String> createFlowTenantAuthenticationRequest(FlowExecutionContext context)
+            throws FlowEngineServerException {
+
+        ServiceProvider application;
+        try {
+            application = FlowExecutionEngineDataHolder.getInstance().getApplicationManagementService()
+                    .getApplicationByResourceId(context.getApplicationId(), context.getTenantDomain());
+        } catch (IdentityApplicationManagementException e) {
+            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, context.getApplicationId(),
+                    context.getTenantDomain());
+        }
+        String clientId = getOAuthClientId(application);
+        String callerPath = resolveCompletionRedirectionUrl(context);
+        if (StringUtils.isBlank(clientId) || StringUtils.isBlank(callerPath)) {
+            LOG.warn("Skipping the post-completion auto login because the application or access URL of the flow "
+                    + "tenant could not be resolved. Flow: " + context.getContextIdentifier());
+            return Collections.emptyMap();
+        }
+        String commonAuthUrl;
+        try {
+            commonAuthUrl = ServiceURLBuilder.create().addPath(FrameworkConstants.COMMONAUTH)
+                    .build(IdentityUtil.getHostName()).getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, context.getApplicationId(),
+                    context.getTenantDomain());
+        }
+        return cacheAuthenticationRequest(context, context.getTenantDomain(), clientId, callerPath, commonAuthUrl,
+                context.getTenantDomain());
+    }
+
+    private static Map<String, String> cacheAuthenticationRequest(FlowExecutionContext context, String tenantDomain,
+            String clientId, String callerPath, String commonAuthUrl, String target) {
+
+        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+        authenticationRequest.setTenantDomain(tenantDomain);
+        authenticationRequest.setRelyingParty(clientId);
+        authenticationRequest.setType(FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
+        authenticationRequest.setUserAssertionFlow(true);
+        authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(callerPath, StandardCharsets.UTF_8));
+
+        AuthenticationRequestCacheEntry cacheEntry = new AuthenticationRequestCacheEntry(authenticationRequest);
+        String sessionDataKey = UUID.randomUUID().toString();
+        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout()));
+        FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, cacheEntry);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created completion authentication request for application: " + clientId + " in: " + target
+                    + ". Flow: " + context.getContextIdentifier());
+        }
+
+        Map<String, String> autoLoginData = new HashMap<>();
+        autoLoginData.put(FrameworkConstants.SESSION_DATA_KEY, sessionDataKey);
+        autoLoginData.put(FrameworkConstants.RequestParams.TYPE, FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
+        autoLoginData.put(ORGANIZATION_AUTO_LOGIN_URL, commonAuthUrl);
+        return autoLoginData;
+    }
+
+    private static ServiceProvider resolveOrganizationApplication(FlowExecutionContext context)
+            throws FlowEngineServerException {
+
+        ApplicationManagementService applicationManagementService =
+                FlowExecutionEngineDataHolder.getInstance().getApplicationManagementService();
+        try {
+            String provisionedTenantDomain = resolveCompletedTenantDomain(context);
+            if (provisionedTenantDomain.equals(context.getTenantDomain())) {
+                return applicationManagementService.getApplicationByResourceId(context.getApplicationId(),
+                        context.getTenantDomain());
+            }
+            if (StringUtils.isBlank(context.getApplicationId())) {
+                return null;
+            }
+            ServiceProvider application = applicationManagementService.getApplicationByResourceId(
+                    context.getApplicationId(), context.getTenantDomain());
+            if (application == null) {
+                return null;
+            }
+            // The user was provisioned in a different organization. A shared application is a separate application
+            // in the organization with its own resource ID and OAuth client, so resolve the organization copy by
+            // name. The resource-ID lookup above covers SaaS applications, which are not copied into the organization.
+            try {
+                return applicationManagementService.getServiceProvider(application.getApplicationName(),
+                        provisionedTenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                LOG.warn("The application that started the flow is not available in the provisioned organization: "
+                        + provisionedTenantDomain + ". Flow: " + context.getContextIdentifier(), e);
+                return null;
+            }
+        } catch (IdentityApplicationManagementException e) {
+            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, context.getApplicationId(),
+                    context.getTenantDomain());
+        }
+    }
+
+    private static String getOAuthClientId(ServiceProvider application) {
+
+        if (application == null || application.getInboundAuthenticationConfig() == null
+                || application.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() == null) {
+            return null;
+        }
+        for (InboundAuthenticationRequestConfig inboundConfig : application.getInboundAuthenticationConfig()
+                .getInboundAuthenticationRequestConfigs()) {
+            String authType = inboundConfig.getInboundAuthType();
+            if (FrameworkConstants.StandardInboundProtocols.OAUTH2.equals(authType)
+                    || FrameworkConstants.OIDC.equals(authType)) {
+                return inboundConfig.getInboundAuthKey();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Build the access URL of an application inside an organization. The application is shared with the
+     * organization from the tenant that owns it, so it is resolved from there.
+     *
+     * @param applicationOwnerTenantDomain Tenant domain of the application owner.
+     * @param organizationId               Organization ID.
+     * @param application                  Application that started the flow.
+     * @param fallbackAccessUrl            Access URL of the main application.
+     * @return Organization qualified access URL, or null when the application has no access URL.
+     * @throws FlowEngineServerException Flow engine exception.
+     */
+    private static String buildOrganizationApplicationAccessUrl(String applicationOwnerTenantDomain,
+            String organizationId, ServiceProvider application, String fallbackAccessUrl)
+            throws FlowEngineServerException {
+
+        if (StringUtils.isBlank(organizationId) || application == null) {
+            return null;
+        }
+        String appPath = getPortalApplicationPath(application);
+        if (StringUtils.isBlank(appPath)) {
+            // The application is not a portal, so use its shared access URL, falling back to the main application.
+            String accessUrl = application.getAccessUrl();
+            return StringUtils.isNotBlank(accessUrl) ? accessUrl : fallbackAccessUrl;
+        }
+        try {
+            String serverUrl = IdentityUtil.getServerURL(appPath, true, true);
+            return serverUrl.replace(appPath, FrameworkConstants.TENANT_CONTEXT_PREFIX + applicationOwnerTenantDomain
+                    + FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + appPath);
+        } catch (IdentityRuntimeException e) {
+            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, applicationOwnerTenantDomain,
+                    organizationId);
+        }
+    }
+
+    private static String getPortalApplicationPath(ServiceProvider application) {
+
+        if (application == null) {
+            return null;
+        }
+        if (ApplicationMgtUtil.isConsole(application.getApplicationName())) {
+            return FrameworkConstants.Application.CONSOLE_APP_PATH;
+        }
+        if (ApplicationMgtUtil.isMyAccount(application.getApplicationName())) {
+            return FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
+        }
+        return null;
     }
 
     /**

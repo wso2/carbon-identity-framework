@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -62,6 +62,11 @@ public class AuthenticationRequest implements Serializable {
      */
     private String relyingParty;
     /**
+     * Whether this request was created to complete authentication with a user assertion. Assertions submitted with
+     * a request that was not created for this purpose are ignored.
+     */
+    private boolean userAssertionFlow;
+    /**
      * used to store query params which should be sent to Authentication Framework
      */
     private Map<String, String[]> requestQueryParams = new HashMap<String, String[]>();
@@ -114,6 +119,24 @@ public class AuthenticationRequest implements Serializable {
      */
     public void setRelyingParty(String relyingParty) {
         this.relyingParty = relyingParty;
+    }
+
+    /**
+     * Whether this request was created to complete authentication with a user assertion.
+     *
+     * @return True if the request accepts a user assertion, false otherwise.
+     */
+    public boolean isUserAssertionFlow() {
+        return userAssertionFlow;
+    }
+
+    /**
+     * Set whether this request was created to complete authentication with a user assertion.
+     *
+     * @param userAssertionFlow True if the request accepts a user assertion.
+     */
+    public void setUserAssertionFlow(boolean userAssertionFlow) {
+        this.userAssertionFlow = userAssertionFlow;
     }
 
     /**
